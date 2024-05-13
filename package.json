@@ -1,0 +1,46 @@
+{
+  "name": "@bcpros/ecash-escrow",
+  "version": "0.0.1",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "build:telegram-ecash-escrow": "turbo run build --scope=@bcpros/telegram-ecash-escrow...",
+    "dev": "turbo run dev --parallel --no-cache",
+    "dev:next": "turbo run dev --scope=@monorepo-boilerplate/next... --no-cache",
+    "storybook": "turbo run storybook --scope=@monorepo-boilerplate/ui...",
+    "build:storybook": "turbo run build:storybook --scope=@monorepo-boilerplate/ui...",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "test:ci": "turbo run test:ci",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
+    "postinstall": "husky install"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.8.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "husky": "^9.0.11",
+    "prettier": "^3.2.5",
+    "turbo": "^1.13.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "turbo run format"
+    }
+  },
+  "lint-staged": {
+    "**/*.{json,css,scss,md}": [
+      "prettier --write"
+    ],
+    "**/*.css": "stylelint --fix",
+    "**/*.{js,jsx,ts,tsx}": [
+      "prettier --write"
+    ]
+  }
+}
