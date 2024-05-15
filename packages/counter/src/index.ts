@@ -1,5 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { TypedUseSelectorHook, useDispatch } from "react-redux";
+import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
+import { persistStore, persistReducer } from 'redux-persist'
 import storage from "redux-persist/lib/storage";
 import { counterReducer } from "./reducer";
 import { CounterStateInterface } from "./state";

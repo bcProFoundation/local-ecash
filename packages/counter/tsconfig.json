@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "outDir": "lib",
-    "declaration": true,
+    "declaration": false,
     "target": "es5",
     "lib": [
       "dom",
