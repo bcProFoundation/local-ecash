@@ -5,23 +5,10 @@ module.exports = {
     'eslint:recommended',
     'plugin:react/recommended',
     'plugin:@typescript-eslint/recommended',
-    'plugin:prettier/recommended',
-    'plugin:storybook/recommended',
-    'prettier'
   ],
   plugins: [
     'react',
     '@typescript-eslint',
-    'react-hooks',
-    'eslint-plugin-import-helpers',
-    'testing-library'
-  ],
-  overrides: [
-    // Only uses Testing Library lint rules in test files
-    {
-      files: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[jt]s?(x)'],
-      extends: ['plugin:testing-library/react']
-    }
   ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
