@@ -1,18 +1,13 @@
-import { Action } from '@reduxjs/toolkit'
-import { TypedUseSelectorHook, useSelector } from 'react-redux'
-import { ThunkAction } from 'redux-thunk'
+import { Action } from '@reduxjs/toolkit';
+import { ThunkAction } from 'redux-thunk';
 
-export interface CounterStateInterface {
-  counter: CountState
-}
+export type CounterStateInterface = {
+  counter: CountState;
+};
 
 export interface CountState {
-  count: number
+  count: number;
 }
 
-type SliceThunkInterface<ReturnType = void> = ThunkAction<
-  ReturnType,
-  CounterStateInterface,
-  unknown,
-  Action<string>
->
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type SliceThunkInterface<ReturnType = void> = ThunkAction<ReturnType, CounterStateInterface, unknown, Action<string>>;

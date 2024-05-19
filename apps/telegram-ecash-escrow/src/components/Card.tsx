@@ -7,45 +7,40 @@
  *
  */
 
-import * as stylex from '@stylexjs/stylex'
-import { globalTokens as $, spacing, text } from '@/src/globalTokens.stylex'
-import { colors } from '@stylexjs/open-props/lib/colors.stylex'
-import { tokens } from './CardTokens.stylex'
+import { globalTokens as $, spacing, text } from '@/src/app/globalTokens.stylex';
+import { colors } from '@stylexjs/open-props/lib/colors.stylex';
+import * as stylex from '@stylexjs/stylex';
+import { tokens } from './CardTokens.stylex';
 
 type Props = Readonly<{
-  title: string
-  body: string
-  href: string
-}>
+  title: string;
+  body: string;
+  href: string;
+}>;
 
 export default function Card({ title, body, href }: Props) {
   return (
-    <a
-      {...stylex.props(styles.link)}
-      href={href}
-      rel="noopener noreferrer"
-      target="_blank"
-    >
+    <a {...stylex.props(styles.link)} href={href} rel="noopener noreferrer" target="_blank">
       <h2 {...stylex.props(styles.h2)}>
         {title} <span {...stylex.props(styles.span)}>→</span>
       </h2>
       <p {...stylex.props(styles.p)}>{body}</p>
     </a>
-  )
+  );
 }
 
-type TMobile = '@media (max-width: 700px)'
+type TMobile = '@media (max-width: 700px)';
 
-const MOBILE: TMobile = '@media (max-width: 700px)' as TMobile
-const REDUCE_MOTION = '@media (prefers-reduced-motion: reduce)' as const
+const MOBILE: TMobile = '@media (max-width: 700px)' as TMobile;
+const REDUCE_MOTION = '@media (prefers-reduced-motion: reduce)' as const;
 
-const bgDefault = `rgba(${$.cardR}, ${$.cardG}, ${$.cardB}, 0)` as const
+const bgDefault = `rgba(${$.cardR}, ${$.cardG}, ${$.cardB}, 0)` as const;
 
 const styles = stylex.create({
   link: {
     display: {
       default: 'flex',
-      [MOBILE]: 'block',
+      [MOBILE]: 'block'
     },
     alignItems: 'center',
     justifyContent: 'flex-start',
@@ -53,13 +48,13 @@ const styles = stylex.create({
     borderRadius: spacing.xs,
     backgroundColor: {
       default: bgDefault,
-      ':hover': `rgba(${$.cardR}, ${$.cardG}, ${$.cardB}, 0.1)`,
+      ':hover': `rgba(${$.cardR}, ${$.cardG}, ${$.cardB}, 0.1)`
     },
     borderWidth: 1,
     borderStyle: 'solid',
     borderColor: {
       default: `rgba(${$.cardBorderR}, ${$.cardBorderG}, ${$.cardBorderB}, 0)`,
-      ':hover': `rgba(${$.cardBorderR}, ${$.cardBorderG}, ${$.cardBorderB}, 0.1)`,
+      ':hover': `rgba(${$.cardBorderR}, ${$.cardBorderG}, ${$.cardBorderB}, 0.1)`
     },
     color: 'inherit',
     fontFamily: $.fontSans,
@@ -70,8 +65,8 @@ const styles = stylex.create({
     textDecoration: 'none',
     [tokens.arrowTransform]: {
       default: 'translateX(0)',
-      ':hover': 'translateX(4px)',
-    },
+      ':hover': 'translateX(4px)'
+    }
   },
   h2: {
     color: colors.blue3,
@@ -79,8 +74,8 @@ const styles = stylex.create({
     fontWeight: 600,
     marginBottom: {
       default: spacing.xs,
-      [MOBILE]: spacing.xxs,
-    },
+      [MOBILE]: spacing.xxs
+    }
   },
   span: {
     display: 'inline-block',
@@ -88,8 +83,8 @@ const styles = stylex.create({
     transform: tokens.arrowTransform,
     transitionDuration: {
       default: '200ms',
-      [REDUCE_MOTION]: '0s',
-    },
+      [REDUCE_MOTION]: '0s'
+    }
   },
   p: {
     margin: 0,
@@ -97,8 +92,8 @@ const styles = stylex.create({
     fontSize: text.p,
     textWrap: 'balance',
     lineHeight: 1.5,
-    maxWidth: '30ch',
+    maxWidth: '30ch'
   },
   color: (color: string) => ({ color }),
-  width: (width: string) => ({ width }),
-})
+  width: (width: string) => ({ width })
+});

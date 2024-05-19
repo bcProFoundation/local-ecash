@@ -7,7 +7,7 @@
  *
  */
 
-import * as stylex from '@stylexjs/stylex'
+import * as stylex from '@stylexjs/stylex';
 
 /**
  * o--o o    o   o o-O-o o-o       o--o  o-o  o   o o-O-o  o-o
@@ -27,12 +27,12 @@ import * as stylex from '@stylexjs/stylex'
  *
  * NOTE: Any custom functions will not be able to be computed at compile time.
  */
-const MIN_WIDTH = 320
-const MAX_WIDTH = 1240
-const MIN_SCALE = 1.2
-const MAX_SCALE = 1.333
-const MIN_BASE_SIZE = 16
-const MAX_BASE_SIZE = 20
+const MIN_WIDTH = 320;
+const MAX_WIDTH = 1240;
+const MIN_SCALE = 1.2;
+const MAX_SCALE = 1.333;
+const MIN_BASE_SIZE = 16;
+const MAX_BASE_SIZE = 20;
 
 // Font sizes in `rem` units
 const MIN_FONT = {
@@ -44,8 +44,8 @@ const MIN_FONT = {
   h4: Math.round((MIN_BASE_SIZE * Math.pow(MIN_SCALE, 2)) / 0.16) / 100,
   h3: Math.round((MIN_BASE_SIZE * Math.pow(MIN_SCALE, 3)) / 0.16) / 100,
   h2: Math.round((MIN_BASE_SIZE * Math.pow(MIN_SCALE, 4)) / 0.16) / 100,
-  h1: Math.round((MIN_BASE_SIZE * Math.pow(MIN_SCALE, 5)) / 0.16) / 100,
-}
+  h1: Math.round((MIN_BASE_SIZE * Math.pow(MIN_SCALE, 5)) / 0.16) / 100
+};
 // Font sizes in `rem` units
 const MAX_FONT = {
   xxs: Math.round(MAX_BASE_SIZE / Math.pow(MAX_SCALE, 3) / 0.16) / 100,
@@ -56,8 +56,8 @@ const MAX_FONT = {
   h4: Math.round((MAX_BASE_SIZE * Math.pow(MAX_SCALE, 2)) / 0.16) / 100,
   h3: Math.round((MAX_BASE_SIZE * Math.pow(MAX_SCALE, 3)) / 0.16) / 100,
   h2: Math.round((MAX_BASE_SIZE * Math.pow(MAX_SCALE, 4)) / 0.16) / 100,
-  h1: Math.round((MAX_BASE_SIZE * Math.pow(MAX_SCALE, 5)) / 0.16) / 100,
-}
+  h1: Math.round((MAX_BASE_SIZE * Math.pow(MAX_SCALE, 5)) / 0.16) / 100
+};
 const SLOPE = {
   xxs: (16 * (MAX_FONT.xxs - MIN_FONT.xxs)) / (MAX_WIDTH - MIN_WIDTH),
   xs: (16 * (MAX_FONT.xs - MIN_FONT.xs)) / (MAX_WIDTH - MIN_WIDTH),
@@ -67,8 +67,8 @@ const SLOPE = {
   h4: (16 * (MAX_FONT.h4 - MIN_FONT.h4)) / (MAX_WIDTH - MIN_WIDTH),
   h3: (16 * (MAX_FONT.h3 - MIN_FONT.h3)) / (MAX_WIDTH - MIN_WIDTH),
   h2: (16 * (MAX_FONT.h2 - MIN_FONT.h2)) / (MAX_WIDTH - MIN_WIDTH),
-  h1: (16 * (MAX_FONT.h1 - MIN_FONT.h1)) / (MAX_WIDTH - MIN_WIDTH),
-}
+  h1: (16 * (MAX_FONT.h1 - MIN_FONT.h1)) / (MAX_WIDTH - MIN_WIDTH)
+};
 const INTERCEPT = {
   xxs: Math.round(100 * (MIN_FONT.xxs - SLOPE.xxs * (MIN_WIDTH / 16))) / 100,
   xs: Math.round(100 * (MIN_FONT.xs - SLOPE.xs * (MIN_WIDTH / 16))) / 100,
@@ -78,8 +78,8 @@ const INTERCEPT = {
   h4: Math.round(100 * (MIN_FONT.h4 - SLOPE.h4 * (MIN_WIDTH / 16))) / 100,
   h3: Math.round(100 * (MIN_FONT.h3 - SLOPE.h3 * (MIN_WIDTH / 16))) / 100,
   h2: Math.round(100 * (MIN_FONT.h2 - SLOPE.h2 * (MIN_WIDTH / 16))) / 100,
-  h1: Math.round(100 * (MIN_FONT.h1 - SLOPE.h1 * (MIN_WIDTH / 16))) / 100,
-}
+  h1: Math.round(100 * (MIN_FONT.h1 - SLOPE.h1 * (MIN_WIDTH / 16))) / 100
+};
 
 // prettier-ignore
 export const text = stylex.defineVars({
@@ -132,8 +132,8 @@ const MULT = {
   xl: 3,
   xxl: 4,
   xxxl: 6,
-  xxxxl: 8,
-}
+  xxxxl: 8
+};
 const MIN_SPACE = {
   xxxs: MULT.xxxs * MIN_BASE_SIZE,
   xxs: MULT.xxs * MIN_BASE_SIZE,
@@ -144,8 +144,8 @@ const MIN_SPACE = {
   xl: MULT.xl * MIN_BASE_SIZE,
   xxl: MULT.xxl * MIN_BASE_SIZE,
   xxxl: MULT.xxxl * MIN_BASE_SIZE,
-  xxxxl: MULT.xxxxl * MIN_BASE_SIZE,
-}
+  xxxxl: MULT.xxxxl * MIN_BASE_SIZE
+};
 const MAX_SPACE = {
   xxxs: MULT.xxxs * MAX_BASE_SIZE,
   xxs: MULT.xxs * MAX_BASE_SIZE,
@@ -156,8 +156,8 @@ const MAX_SPACE = {
   xl: MULT.xl * MAX_BASE_SIZE,
   xxl: MULT.xxl * MAX_BASE_SIZE,
   xxxl: MULT.xxxl * MAX_BASE_SIZE,
-  xxxxl: MULT.xxxxl * MAX_BASE_SIZE,
-}
+  xxxxl: MULT.xxxxl * MAX_BASE_SIZE
+};
 const SLOPE_SPACE = {
   xxxs: (MAX_SPACE.xxxs - MIN_SPACE.xxxs) / (MAX_WIDTH - MIN_WIDTH),
   xxs: (MAX_SPACE.xxs - MIN_SPACE.xxs) / (MAX_WIDTH - MIN_WIDTH),
@@ -168,8 +168,8 @@ const SLOPE_SPACE = {
   xl: (MAX_SPACE.xl - MIN_SPACE.xl) / (MAX_WIDTH - MIN_WIDTH),
   xxl: (MAX_SPACE.xxl - MIN_SPACE.xxl) / (MAX_WIDTH - MIN_WIDTH),
   xxxl: (MAX_SPACE.xxxl - MIN_SPACE.xxxl) / (MAX_WIDTH - MIN_WIDTH),
-  xxxxl: (MAX_SPACE.xxxxl - MIN_SPACE.xxxxl) / (MAX_WIDTH - MIN_WIDTH),
-}
+  xxxxl: (MAX_SPACE.xxxxl - MIN_SPACE.xxxxl) / (MAX_WIDTH - MIN_WIDTH)
+};
 // rounded to the nearest 0.25px
 const INTERCEPT_SPACE = {
   xxxs: Math.round(4 * (MIN_SPACE.xxxs - SLOPE_SPACE.xxxs * MIN_WIDTH)) / 4,
@@ -181,8 +181,8 @@ const INTERCEPT_SPACE = {
   xl: Math.round(4 * (MIN_SPACE.xl - SLOPE_SPACE.xl * MIN_WIDTH)) / 4,
   xxl: Math.round(4 * (MIN_SPACE.xxl - SLOPE_SPACE.xxl * MIN_WIDTH)) / 4,
   xxxl: Math.round(4 * (MIN_SPACE.xxxl - SLOPE_SPACE.xxxl * MIN_WIDTH)) / 4,
-  xxxxl: Math.round(4 * (MIN_SPACE.xxxxl - SLOPE_SPACE.xxxxl * MIN_WIDTH)) / 4,
-}
+  xxxxl: Math.round(4 * (MIN_SPACE.xxxxl - SLOPE_SPACE.xxxxl * MIN_WIDTH)) / 4
+};
 
 // prettier-ignore
 export const spacing = stylex.defineVars({
@@ -201,7 +201,7 @@ export const spacing = stylex.defineVars({
 /**
  * Color Tokens
  */
-const DARK_MODE = '@media (prefers-color-scheme: dark)'
+const DARK_MODE = '@media (prefers-color-scheme: dark)';
 
 export const globalTokens = stylex.defineVars({
   maxWidth: `${MAX_WIDTH}px`,
@@ -218,7 +218,7 @@ export const globalTokens = stylex.defineVars({
     '"Fira Mono"',
     '"Droid Sans Mono"',
     '"Courier New"',
-    'monospace',
+    'monospace'
   ].join(', '),
   fontSans: [
     '-apple-system',
@@ -232,7 +232,7 @@ export const globalTokens = stylex.defineVars({
     '"Apple Color Emoji"',
     '"Segoe UI Emoji"',
     '"Segoe UI Symbol"',
-    '"Noto Color Emoji"',
+    '"Noto Color Emoji"'
   ].join(', '),
 
   foregroundR: { default: '0', [DARK_MODE]: '255' },
@@ -248,7 +248,7 @@ export const globalTokens = stylex.defineVars({
   calloutRGB: { default: 'rgb(238, 240, 241)', [DARK_MODE]: 'rgb(20, 20, 20)' },
   calloutRGB50: {
     default: 'rgba(238, 240, 241, 0.5)',
-    [DARK_MODE]: 'rgba(20, 20, 20, 0.5)',
+    [DARK_MODE]: 'rgba(20, 20, 20, 0.5)'
   },
 
   calloutBorderR: { default: '172', [DARK_MODE]: '108' },
@@ -270,9 +270,9 @@ export const globalTokens = stylex.defineVars({
       '#0885ff33 55deg',
       '#54d6ff33 120deg',
       '#0071ff33 160deg',
-      'transparent 360deg',
+      'transparent 360deg'
     ].join(', ')})`,
-    [DARK_MODE]: 'radial-gradient(rgba(1, 65, 255, 0.4), rgba(1, 65, 255, 0))',
+    [DARK_MODE]: 'radial-gradient(rgba(1, 65, 255, 0.4), rgba(1, 65, 255, 0))'
   },
   secondaryGlow: {
     default: 'radial-gradient(rgba(255, 255, 255, 1), rgba(255, 255, 255, 0))',
@@ -280,13 +280,13 @@ export const globalTokens = stylex.defineVars({
       'to bottom right',
       'rgba(1, 65, 255, 0)',
       'rgba(1, 65, 255, 0)',
-      'rgba(1, 65, 255, 0.3)',
-    ].join(', ')})`,
-  },
-})
+      'rgba(1, 65, 255, 0.3)'
+    ].join(', ')})`
+  }
+});
 
 export const scales = stylex.defineVars({
   small: 'scale(0.95)',
   medium: 'scale(1)',
-  large: 'scale(1.2)',
-})
+  large: 'scale(1.2)'
+});
