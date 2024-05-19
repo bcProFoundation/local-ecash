@@ -1,5 +1,5 @@
-import { CounterStateInterface } from "./state"
+import { CounterStateInterface } from './state'
 
 export const countSelector = (state: CounterStateInterface): number => {
-  return state.counter.count;
+  return state.counter.count
 }

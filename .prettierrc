@@ -8,4 +8,8 @@
   "singleQuote": true,
   "tabWidth": 2,
   "trailingComma": "all",
+  "plugins": [
+    "prettier-plugin-stylex-key-sort",
+    "prettier-plugin-organize-imports"
+  ]
 }

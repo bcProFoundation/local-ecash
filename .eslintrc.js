@@ -35,23 +35,6 @@ module.exports = {
     'newline-before-return': 2,
     'react/prop-types': 0,
     'react/react-in-jsx-scope': 0,
-    'import-helpers/order-imports': [
-      2,
-      {
-        newlinesBetween: 'always',
-        groups: [
-          ['/^next/', 'module'],
-          '/^@/styles/',
-          '/^@/components/',
-          '/^@/lib/',
-          ['parent', 'sibling', 'index']
-        ],
-        alphabetize: {
-          order: 'asc',
-          ignoreCase: true
-        }
-      }
-    ],
     '@typescript-eslint/no-unused-vars': [
       2,
       {

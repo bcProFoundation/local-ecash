@@ -1,4 +1,3 @@
-
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
@@ -8,16 +7,16 @@
  *
  */
 
-import * as stylex from '@stylexjs/stylex';
-import { globalTokens as $, spacing, text } from '@/globalTokens.stylex';
-import { colors } from '@stylexjs/open-props/lib/colors.stylex';
-import { tokens } from './CardTokens.stylex';
+import * as stylex from '@stylexjs/stylex'
+import { globalTokens as $, spacing, text } from '@/src/globalTokens.stylex'
+import { colors } from '@stylexjs/open-props/lib/colors.stylex'
+import { tokens } from './CardTokens.stylex'
 
 type Props = Readonly<{
-  title: string;
-  body: string;
-  href: string;
-}>;
+  title: string
+  body: string
+  href: string
+}>
 
 export default function Card({ title, body, href }: Props) {
   return (
@@ -32,15 +31,15 @@ export default function Card({ title, body, href }: Props) {
       </h2>
       <p {...stylex.props(styles.p)}>{body}</p>
     </a>
-  );
+  )
 }
 
-type TMobile = '@media (max-width: 700px)';
+type TMobile = '@media (max-width: 700px)'
 
-const MOBILE: TMobile = '@media (max-width: 700px)' as TMobile;
-const REDUCE_MOTION = '@media (prefers-reduced-motion: reduce)' as const;
+const MOBILE: TMobile = '@media (max-width: 700px)' as TMobile
+const REDUCE_MOTION = '@media (prefers-reduced-motion: reduce)' as const
 
-const bgDefault = `rgba(${$.cardR}, ${$.cardG}, ${$.cardB}, 0)` as const;
+const bgDefault = `rgba(${$.cardR}, ${$.cardG}, ${$.cardB}, 0)` as const
 
 const styles = stylex.create({
   link: {
@@ -102,4 +101,4 @@ const styles = stylex.create({
   },
   color: (color: string) => ({ color }),
   width: (width: string) => ({ width }),
-});
+})

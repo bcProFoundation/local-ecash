@@ -1,6 +1,5 @@
 # Ecash escrow
 
-
 ## Structure
 
 ```
@@ -28,4 +27,3 @@ pnpm dev:next
 ```
 
 Make sure to refer to the available scripts in `package.json`.
-

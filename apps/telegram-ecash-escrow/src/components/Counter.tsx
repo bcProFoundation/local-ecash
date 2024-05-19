@@ -7,15 +7,15 @@
  *
  */
 
-'use client';
+'use client'
 
-import * as stylex from '@stylexjs/stylex';
-import { spacing, text, globalTokens as $ } from '../globalTokens.stylex';
-import { colors } from '@stylexjs/open-props/lib/colors.stylex';
-import { useState } from 'react';
+import * as stylex from '@stylexjs/stylex'
+import { spacing, text, globalTokens as $ } from '../globalTokens.stylex'
+import { colors } from '@stylexjs/open-props/lib/colors.stylex'
+import { useState } from 'react'
 
 export default function Counter() {
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState(0)
 
   return (
     <div {...stylex.props(styles.container)}>
@@ -40,10 +40,10 @@ export default function Counter() {
         +
       </button>
     </div>
-  );
+  )
 }
 
-const DARK = '@media (prefers-color-scheme: dark)' as const;
+const DARK = '@media (prefers-color-scheme: dark)' as const
 
 const styles = stylex.create({
   container: {
@@ -98,4 +98,4 @@ const styles = stylex.create({
   largeNumber: {
     fontSize: text.h3,
   },
-});
+})

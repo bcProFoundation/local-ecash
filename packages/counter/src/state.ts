@@ -1,13 +1,13 @@
-import { Action } from "@reduxjs/toolkit";
-import { TypedUseSelectorHook, useSelector } from "react-redux";
-import { ThunkAction } from "redux-thunk";
+import { Action } from '@reduxjs/toolkit'
+import { TypedUseSelectorHook, useSelector } from 'react-redux'
+import { ThunkAction } from 'redux-thunk'
 
 export interface CounterStateInterface {
-    counter: CountState
+  counter: CountState
 }
 
 export interface CountState {
-    count: number
+  count: number
 }
 
 type SliceThunkInterface<ReturnType = void> = ThunkAction<
@@ -15,5 +15,4 @@ type SliceThunkInterface<ReturnType = void> = ThunkAction<
   CounterStateInterface,
   unknown,
   Action<string>
->;
-
+>
