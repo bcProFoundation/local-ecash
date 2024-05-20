@@ -1,15 +1,34 @@
 import { counterReducer } from '@bcpros/counter';
-import { Action, ThunkAction, combineReducers, configureStore } from '@reduxjs/toolkit';
+import { Action, Store, ThunkAction, configureStore } from '@reduxjs/toolkit';
+import createSagaMiddleware, { Task } from 'redux-saga';
+import rootReducer from './rootReducer';
+import rootSaga from './rootSaga';
 
-const combineReducer = combineReducers({
-  counter: counterReducer
+export interface SagaStore extends Store {
+  __sagaTask: Task;
+}
+
+const sagaMiddleware = createSagaMiddleware({
+  context: {}
 });
-export type RootState = ReturnType<typeof combineReducer>;
+
+export type RootState = ReturnType<typeof rootReducer>;
+
 export const store = configureStore({
   reducer: {
     counter: counterReducer
+  },
+
+  middleware: (getDefaultMiddleware) => {
+    const middleware = getDefaultMiddleware<RootState>({
+      serializableCheck: false
+    });
+
+    return middleware.concat(sagaMiddleware);
   }
 });
+
+(store as SagaStore).__sagaTask = sagaMiddleware.run(rootSaga);
 
 // Infer the type of makeStore
 export type AppStore = typeof store;

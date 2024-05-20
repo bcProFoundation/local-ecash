@@ -9,6 +9,7 @@
 
 import { globalTokens as $ } from '@/src/app/globalTokens.stylex';
 import * as stylex from '@stylexjs/stylex';
+import { Providers } from '../lib/provider';
 import './globals.css';
 
 export const metadata = {
@@ -18,9 +19,11 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html {...stylex.props(styles.html, styles.reset)} lang="en">
-      <body {...stylex.props(styles.reset, styles.body)}>{children}</body>
-    </html>
+    <Providers>
+      <html {...stylex.props(styles.html, styles.reset)} lang="en">
+        <body {...stylex.props(styles.reset, styles.body)}>{children}</body>
+      </html>
+    </Providers>
   );
 }
 
