@@ -20,7 +20,7 @@ export const store = configureStore({
   },
 
   middleware: (getDefaultMiddleware) => {
-    const middleware = getDefaultMiddleware<RootState>({
+    const middleware = getDefaultMiddleware({
       serializableCheck: false
     });
 
