@@ -10,6 +10,7 @@
   "trailingComma": "none",
   "plugins": [
     "prettier-plugin-stylex-key-sort",
-    "prettier-plugin-organize-imports"
+    "prettier-plugin-organize-imports",
+    "prettier-plugin-packagejson"
   ]
 }

@@ -1,5 +1,6 @@
 import { counterReducer } from '@bcpros/counter';
 import { Action, Store, ThunkAction, configureStore } from '@reduxjs/toolkit';
+import { setupListeners } from '@reduxjs/toolkit/query';
 import createSagaMiddleware, { Task } from 'redux-saga';
 import rootReducer from './rootReducer';
 import rootSaga from './rootSaga';
@@ -25,9 +26,11 @@ export const store = configureStore({
     });
 
     return middleware.concat(sagaMiddleware);
-  }
+  },
+  devTools: true
 });
 
+setupListeners(store.dispatch);
 (store as SagaStore).__sagaTask = sagaMiddleware.run(rootSaga);
 
 // Infer the type of makeStore
