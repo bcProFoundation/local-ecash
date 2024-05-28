@@ -35,18 +35,6 @@ module.exports = {
     'newline-before-return': 2,
     'react/prop-types': 0,
     'react/react-in-jsx-scope': 0,
-    '@typescript-eslint/no-unused-vars': [
-      2,
-      {
-        argsIgnorePattern: '^_'
-      }
-    ],
-    'no-console': [
-      2,
-      {
-        allow: ['warn', 'error']
-      }
-    ]
   }
 };
 
