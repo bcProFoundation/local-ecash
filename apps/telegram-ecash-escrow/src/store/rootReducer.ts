@@ -1,4 +1,3 @@
-import { routerReducer } from 'connected-next-router';
 import { counterReducer } from '@bcpros/counter';
 import { combineReducers } from '@reduxjs/toolkit';
 import { createMigrate, PersistConfig, persistReducer } from 'redux-persist';
@@ -39,26 +38,33 @@ import {
   actionReducer
 } from '@bcpros/redux-store';
 import { api } from '@bcpros/redux-store/api/baseApi';
-import storage from 'redux-persist-indexeddb-storage';
+import indexedDbStorage from 'redux-persist-indexeddb-storage';
 
-const migration = {
-  0: (state: { burn: any; }) => {
-    return {
-      ...state,
-      burn: {
-        ...state.burn,
-        burnQueue: [],
-        failQueue: []
-      }
-    };
-  }
+const createNoopStorage = () => {
+  return {
+    getItem() {
+      return Promise.resolve(null);
+    },
+    setItem(_key: string, value: number) {
+      return Promise.resolve(value);
+    },
+    removeItem() {
+      return Promise.resolve();
+    },
+  };
 };
+
+const storage =
+  typeof window !== "undefined"
+    ? indexedDbStorage 
+    : createNoopStorage();
+
 
 const persistConfig = {
   timeout: 1000,
   key: 'root',
   version: 0,
-  storage: storage('lixi-indexeddb'),
+  storage: storage('escrow-app-indexeddb'),
   blacklist: [
     'accounts',
     'router',
@@ -74,22 +80,21 @@ const persistConfig = {
     'loading',
     'notifications'
   ],
-  migrate: createMigrate(migration, { debug: false })
 };
 
 const walletPersistConfig: PersistConfig<WalletState> = {
   key: 'wallet',
-  storage: storage('lixi-indexeddb')
+  storage: storage('escrow-app-indexeddb')
 };
 
 const localAccountPersistConfig: PersistConfig<LocalUserAccountsState> = {
   key: 'localAccounts',
-  storage: storage('lixi-indexeddb')
+  storage: storage('escrow-app-indexeddb')
 };
 
 const accountPersistConfig: PersistConfig<AccountsState> = {
   key: 'accounts',
-  storage: storage('lixi-indexeddb'),
+  storage: storage('escrow-app-indexeddb'),
   blacklist: [
     `envelopeUpload`,
     'pageCoverUpload',
@@ -121,39 +126,38 @@ const claimsPersistConfig: PersistConfig<ClaimsState> = {
 
 const shopPersistConfig: PersistConfig<PageState> = {
   key: 'pages',
-  storage: storage('lixi-indexeddb'),
+  storage: storage('escrow-app-indexeddb'),
   blacklist: ['currentPageMessageSession']
 };
 
 const settingsPersistConfig: PersistConfig<SettingsState> = {
   key: 'settings',
-  storage: storage('lixi-indexeddb'),
+  storage: storage('escrow-app-indexeddb'),
   whitelist: ['locale']
 };
 
 const countryPersistConfig: PersistConfig<CountriesState> = {
   key: 'countries',
-  storage: storage('lixi-indexeddb')
+  storage: storage('escrow-app-indexeddb')
 };
 
 const statePersistConfig: PersistConfig<StatesState> = {
   key: 'states',
-  storage: storage('lixi-indexeddb')
+  storage: storage('escrow-app-indexeddb')
 };
 
 const categoryPersistConfig: PersistConfig<CategoriesState> = {
   key: 'categories',
-  storage: storage('lixi-indexeddb')
+  storage: storage('escrow-app-indexeddb')
 };
 
 const pageMessagePersistConfig: PersistConfig<PageMessageSessionState> = {
   key: 'pageMessage',
-  storage: storage('lixi-indexeddb')
+  storage: storage('escrow-app-indexeddb')
 };
 
 
 export const serverReducer = combineReducers({
-  router: routerReducer,
   counter: counterReducer,
   wallet: walletStateReducer,
   accounts: accountReducer,
@@ -181,7 +185,6 @@ export const serverReducer = combineReducers({
 });
 
 export const clientReducer = combineReducers({
-  router: routerReducer,
   counter: counterReducer,
   wallet: persistReducer(walletPersistConfig, walletStateReducer),
   accounts: persistReducer(accountPersistConfig, accountReducer),
@@ -208,4 +211,4 @@ export const clientReducer = combineReducers({
   action: actionReducer
 });
 
-export default persistReducer(persistConfig, clientReducer);
+export default persistReducer(persistConfig, serverReducer);
