@@ -14,7 +14,7 @@ const useCSSLayers = options.useCSSLayers?? undefined;
 const nextConfig = {
   reactStrictMode: true,
   pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
-  transpilePackages: ['@stylexjs/open-props'],
+  transpilePackages: ['@stylexjs/open-props', '@bcpros/redux-store'],
 };
 
 module.exports = stylexPlugin({
