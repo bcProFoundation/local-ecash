@@ -9,7 +9,7 @@
 
 import { globalTokens as $ } from '@/src/app/globalTokens.stylex';
 import * as stylex from '@stylexjs/stylex';
-import { Providers } from '../lib/provider';
+import { Providers } from '../store/provider';
 import './globals.css';
 
 export const metadata = {
