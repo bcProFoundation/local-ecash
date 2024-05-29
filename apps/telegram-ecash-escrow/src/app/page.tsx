@@ -7,7 +7,7 @@
  *
  */
 
-import Card from '@/src/components/Card';
+import Card from '@/components/Card';
 import stylex from '@stylexjs/stylex';
 import Counter from './Counter';
 import { globalTokens as $, scales, spacing, text } from './globalTokens.stylex';

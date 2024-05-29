@@ -2,10 +2,13 @@ import { Action, Store, ThunkAction, configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
 import createSagaMiddleware, { Task } from 'redux-saga';
 import rootReducer from './rootReducer';
+import { Persistor, persistStore } from 'redux-persist';
+import rootSaga from './rootSaga';
 // import rootSaga from './rootSaga';
 
 export interface SagaStore extends Store {
   __sagaTask: Task;
+  __persistor: Persistor
 }
 
 export const makeStore = () => {
@@ -39,8 +42,9 @@ export const makeStore = () => {
   });
   setupListeners(store.dispatch);
 
-  // (store as any).__persistor = persistStore(store);
-  // (store as SagaStore).__sagaTask = sagaMiddleware.run(rootSaga);
+  (store as SagaStore).__persistor = persistStore(store);
+  (store as SagaStore).__sagaTask = sagaMiddleware.run(rootSaga);
+
   return store;
 };
 

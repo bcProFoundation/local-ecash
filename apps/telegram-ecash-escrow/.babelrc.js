@@ -9,7 +9,7 @@ module.exports = {
                 runtimeInjection: false,
                 treeshakeCompensation: true,
                 aliases: {
-                    '@/*': [path.join(__dirname, '*')],
+                    '@/*': [path.join(__dirname, 'src', '*')],
                 },
                 genConditionalClasses: true,
                 unstable_moduleResolution: {
