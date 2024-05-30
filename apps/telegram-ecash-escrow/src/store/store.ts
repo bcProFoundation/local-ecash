@@ -3,6 +3,7 @@ import { setupListeners } from '@reduxjs/toolkit/query';
 import createSagaMiddleware, { Task } from 'redux-saga';
 import rootReducer from './rootReducer';
 import { Persistor, persistStore } from 'redux-persist';
+import { FLUSH, PAUSE, PERSIST, PURGE, REGISTER, REHYDRATE } from 'redux-persist';
 import rootSaga from './rootSaga';
 // import rootSaga from './rootSaga';
 
@@ -23,7 +24,7 @@ export const makeStore = () => {
       return (
         getDefaultMiddleware({
           serializableCheck: {
-            ignoredActions: []
+            ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER]
           }
         }).concat(sagaMiddleware)
       );

@@ -1,7 +1,8 @@
 import { counterReducer } from '@bcpros/counter';
 import { combineReducers } from '@reduxjs/toolkit';
-import { persistReducer } from 'redux-persist';
+import { PersistConfig, persistReducer } from 'redux-persist';
 import indexedDbStorage from 'redux-persist-indexeddb-storage';
+import { WalletState, walletStateReducer } from '@bcpros/redux-store';
 
 const createNoopStorage = () => {
   return {
@@ -51,8 +52,15 @@ const counterPersistConfig = {
   whitelist: ['counter']
 };
 
+const walletPersistConfig: PersistConfig<WalletState> = {
+  key: 'wallet',
+  storage,
+  whitelist: ['wallet']
+};
+
 const reducer = combineReducers({
-  counter: persistReducer(counterPersistConfig, counterReducer)
+  counter: persistReducer(counterPersistConfig, counterReducer),
+  wallet: persistReducer(walletPersistConfig, walletStateReducer)
 });
 
 export default reducer;
