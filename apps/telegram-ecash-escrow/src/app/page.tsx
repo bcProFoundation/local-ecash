@@ -9,6 +9,7 @@
 
 import Card from '@/src/components/Card';
 import stylex from '@stylexjs/stylex';
+import LixiButton from '../components/Button/LixiButton';
 import Counter from './Counter';
 import { globalTokens as $, scales, spacing, text } from './globalTokens.stylex';
 
@@ -17,6 +18,12 @@ const HOMEPAGE = 'https://stylexjs.com';
 export default function Home() {
   return (
     <main {...stylex.props(style.main)}>
+      <div {...stylex.props(style.groupBtn)}>
+        <LixiButton variant="clear">Clear Button</LixiButton>
+        <LixiButton variant="primary">Primary Button</LixiButton>
+        <LixiButton variant="outlined">Outline Button</LixiButton>
+        <LixiButton variant="linear">Linear Button</LixiButton>
+      </div>
       <div {...stylex.props(style.description)}>
         <p {...stylex.props(style.descP)}>
           Get started by editing&nbsp;
@@ -182,5 +189,11 @@ const style = stylex.create({
       [MEDIA_MOBILE]: 320
     },
     textAlign: { [MEDIA_MOBILE]: 'center' }
+  },
+  groupBtn: {
+    marginBottom: '16px',
+    display: 'flex',
+    justifyContent: 'center',
+    gap: '10px'
   }
 });

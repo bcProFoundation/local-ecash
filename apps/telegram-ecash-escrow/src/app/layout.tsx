@@ -6,9 +6,7 @@
  *
  *
  */
-
-import { globalTokens as $ } from '@/src/app/globalTokens.stylex';
-import * as stylex from '@stylexjs/stylex';
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v13-appRouter';
 import { Providers } from '../lib/provider';
 import './globals.css';
 
@@ -20,29 +18,11 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <Providers>
-      <html {...stylex.props(styles.html, styles.reset)} lang="en">
-        <body {...stylex.props(styles.reset, styles.body)}>{children}</body>
+      <html lang="en">
+        <AppRouterCacheProvider>
+          <body>{children}</body>
+        </AppRouterCacheProvider>
       </html>
     </Providers>
   );
 }
-
-const DARK = '@media (prefers-color-scheme: dark)';
-
-const styles = stylex.create({
-  html: {
-    colorScheme: 'light dark'
-  },
-  reset: {
-    minHeight: '100%',
-    margin: 0,
-    padding: 0
-  },
-  body: {
-    color: `rgba(${$.foregroundR}, ${$.foregroundG}, ${$.foregroundB}, 1)`,
-    backgroundImage: {
-      default: 'linear-gradient(to bottom, rgb(214, 219, 220), white)',
-      [DARK]: 'linear-gradient(to bottom, rgb(20, 22, 27), black)'
-    }
-  }
-});
