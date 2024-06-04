@@ -1,11 +1,11 @@
-'use client';
 import Card from '@/src/components/Card';
 import stylex from '@stylexjs/stylex';
-import Counter from './Counter';
-import { globalTokens as $, scales, spacing, text } from './globalTokens.stylex';
+import Counter from '../Counter';
+import { globalTokens as $, scales, spacing, text } from '../globalTokens.stylex';
+
 const HOMEPAGE = 'https://stylexjs.com';
 
-export default function Home() {
+export default function GET() {
   return (
     <main {...stylex.props(style.main)}>
       <div {...stylex.props(style.description)}>
@@ -28,11 +28,6 @@ export default function Home() {
           body="Play with StyleX and look at the compile outputs"
           href={`${HOMEPAGE}/playground/`}
           title="Playground"
-        />
-        <Card
-          body="Get started with a NextJS+StyleX project"
-          href="https://github.com/nmn/nextjs-app-dir-stylex"
-          title="Templates"
         />
       </div>
     </main>
