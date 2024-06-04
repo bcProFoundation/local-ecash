@@ -16,6 +16,21 @@ const nextConfig = {
   reactStrictMode: true,
   pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
   transpilePackages: ['@stylexjs/open-props', '@bcpros/redux-store'],
+  webpack(config, { defaultLoaders, isServer }) {
+		config.resolve.alias = {
+			...config.resolve.alias,
+      "@nestjs/graphql": path.resolve(__dirname, "node_modules/@nestjs/graphql/dist/extra/graphql-model-shim"),
+			'@store': path.resolve(__dirname, path.resolve('node_modules/@bcpros/redux-store/src/store')),
+			'@hooks': path.resolve(__dirname, path.resolve('node_modules/@bcpros/redux-store/src/hooks')),
+			'@utils': path.resolve(__dirname, path.resolve('node_modules/@bcpros/redux-store/src/utils')),
+			'@context': path.resolve(__dirname, path.resolve('node_modules/@bcpros/redux-store/src/context')),
+		};
+    return config;
+  },
+  experimental: {
+    enableShaking: true,
+    optimizePackageImports: ['@bcpros/lixi-models', '@bcpros/redux-store']
+  }
 };
 
 const config = nextConfig;

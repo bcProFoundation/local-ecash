@@ -21,7 +21,6 @@ module.exports = {
         },
       },
     ],
-     'babel-plugin-transform-typescript-metadata',
     '@babel/plugin-transform-modules-commonjs',
   ],
 };
