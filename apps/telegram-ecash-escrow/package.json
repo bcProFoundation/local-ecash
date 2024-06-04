@@ -14,7 +14,7 @@
     "@babel/plugin-transform-modules-commonjs": "^7.24.6",
     "@babel/preset-typescript": "^7.24.6",
     "@bcpros/counter": "workspace:*",
-    "@bcpros/lixi-models": "1.1.7",
+    "@bcpros/lixi-models": "link:/home/tnviet/projects/lixi/packages/lixi-models",
     "@bcpros/redux-store": "link:/home/tnviet/projects/lixi/packages/redux-store",
     "@bcpros/xpi-js": "4.0.6",
     "@prisma/client": "^5.14.0",
@@ -42,6 +42,7 @@
     "redux-thunk": "~3.1.0"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^14.2.3",
     "@stylexjs/babel-plugin": "^0.6.1",
     "@stylexjs/eslint-plugin": "^0.6.1",
     "@stylexjs/nextjs-plugin": "^0.6.1",
@@ -49,6 +50,7 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@typescript-eslint/parser": "^7.9.0",
+    "babel-plugin-transform-typescript-metadata": "^0.3.2",
     "eslint": "^8.56.0",
     "eslint-config-next": "14.2.3",
     "rimraf": "^5.0.7",
