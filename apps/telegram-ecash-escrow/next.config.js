@@ -18,9 +18,11 @@ const nextConfig = {
 };
 
 module.exports = stylexPlugin({
-  aliases,
+  aliases: {
+    '@/*': [path.join(__dirname, '*')],
+  },
   useCSSLayers,
   filename: 'stylex-bundle.css',
-  rootDir
+  rootDir: __dirname
 })(nextConfig);
 
