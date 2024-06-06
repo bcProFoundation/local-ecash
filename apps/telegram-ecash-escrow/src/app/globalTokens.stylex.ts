@@ -258,26 +258,39 @@ export const globalTokens = stylex.defineVars({
 });
 
 export const colors = stylex.defineVars({
-  primary: '#1f4b91',
-  black: '#1a1919',
-  white: '#edebeb',
+  primary: '#9e2a9c',
+  secondary: '#74546f',
+  tertiary: '#8f4c39',
+  danger: '#ba1a1a',
+  warning: '#e37100',
+  success: '#598300',
+  info: '#5476eb',
+  black: '#000',
+  white: '#fff',
   gray: '#656565',
   lightGray: '#d3d3d3',
-  xBorderColor: 'rgba(108, 108, 108, 0.3)',
-  bg: {
-    default: 'red',
-    [DARK]: 'blue'
+  borderItem: {
+    default: 'rgba(129, 116, 124, 0.12)',
+    [DARK]: 'rgba(233, 234, 237, 1)'
+  },
+  bgTheme: {
+    default: 'linear-gradient(0deg,rgba(158,42,156,.05),rgba(158,42,156,.05)),#fffbff',
+    [DARK]: '#121212'
+  },
+  bgItem: {
+    default: '#fff',
+    [DARK]: '#1e1e1e'
   },
   inputBg: {
-    default: 'gree',
+    default: 'green',
     [DARK]: 'green'
   },
   inverted: {
-    default: 'gree',
+    default: 'green',
     [DARK]: 'green'
   },
   navUnderline: {
-    default: 'gree',
+    default: 'green',
     [DARK]: 'green'
   },
   animationDarkBg: {
