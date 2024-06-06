@@ -7,10 +7,10 @@
  *
  */
 
-import { globalTokens as $, spacing, text } from '@/app/globalTokens.stylex';
-import { colors } from '@stylexjs/open-props/lib/colors.stylex';
+import { globalTokens as $, spacing, text } from '../app/globalTokens.stylex';
 import * as stylex from '@stylexjs/stylex';
 import { tokens } from './CardTokens.stylex';
+import { colors } from '@stylexjs/open-props/lib/colors.stylex';
 
 type Props = Readonly<{
   title: string;

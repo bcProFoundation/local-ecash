@@ -1,5 +1,5 @@
 'use client';
-import Card from '@/components/Card';
+import Card from '../components/Card';
 import stylex from '@stylexjs/stylex';
 import LixiButton from '../components/Button/LixiButton';
 import Counter from './Counter';

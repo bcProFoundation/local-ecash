@@ -1,4 +1,4 @@
-import { colors } from '@/src/app/globalTokens.stylex';
+import { colors } from '../../app/globalTokens.stylex';
 import * as stylex from '@stylexjs/stylex';
 
 export const lixiButtonStyles: any = stylex.create({

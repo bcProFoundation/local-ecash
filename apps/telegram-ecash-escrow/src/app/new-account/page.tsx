@@ -1,7 +1,8 @@
-import Card from '@/src/components/Card';
+'use client';
 import stylex from '@stylexjs/stylex';
 import Counter from '../Counter';
 import { globalTokens as $, scales, spacing, text } from '../globalTokens.stylex';
+import Card from '../../components/Card';
 
 const HOMEPAGE = 'https://stylexjs.com';
 

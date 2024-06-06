@@ -50,6 +50,7 @@
     "redux-thunk": "~3.1.0"
   },
   "devDependencies": {
+    "@tkow/stylex-next-compiler-plugin": "git+https://github.com/tkow/stylex-next-compiler-plugin.git",
     "@stylexjs/babel-plugin": "^0.6.1",
     "@stylexjs/eslint-plugin": "^0.6.1",
     "@stylexjs/nextjs-plugin": "^0.6.1",
