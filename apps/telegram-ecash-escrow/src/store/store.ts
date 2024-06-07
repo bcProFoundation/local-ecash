@@ -5,7 +5,6 @@ import rootReducer from './rootReducer';
 import { Persistor, persistStore } from 'redux-persist';
 import { FLUSH, PAUSE, PERSIST, PURGE, REGISTER, REHYDRATE } from 'redux-persist';
 import rootSaga from './rootSaga';
-// import rootSaga from './rootSaga';
 
 export interface SagaStore extends Store {
   __sagaTask: Task;

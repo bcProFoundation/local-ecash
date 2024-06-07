@@ -2,7 +2,8 @@ import { counterReducer } from '@bcpros/counter';
 import { combineReducers } from '@reduxjs/toolkit';
 import { PersistConfig, persistReducer } from 'redux-persist';
 import indexedDbStorage from 'redux-persist-indexeddb-storage';
-import { WalletState, walletStateReducer } from '@bcpros/redux-store';
+import { WalletState } from '@bcpros/redux-store/store/wallet/state';
+import { walletStateReducer } from '@bcpros/redux-store';
 
 const createNoopStorage = () => {
   return {

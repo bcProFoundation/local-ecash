@@ -1,0 +1,128 @@
+@import '@fontsource/roboto/300.css';
+@import '@fontsource/roboto/400.css';
+@import '@fontsource/roboto/500.css';
+@import '@fontsource/roboto/700.css';
+
+:root {
+  --font-family-primary: 'Roboto', sans-serif;
+  /** Light theme **/
+  --color-primary: #9e2a9c;
+  --color-secondary: #74546f;
+  --color-tertiary: #8f4c39;
+  --color-danger: #ba1a1a;
+  --color-success: #598300;
+  --color-info: #5476eb;
+  --color-warning: #e37100;
+
+  /* Background color */
+  --bg-color-primary: linear-gradient(0deg, rgba(158, 42, 156, 0.05), rgba(158, 42, 156, 0.05)), #fffbff;
+  --bg-color-disable: rgba(30, 26, 29, 0.12);
+  --bg-color-light-theme: linear-gradient(0deg, rgba(158, 42, 156, 0.05), rgba(158, 42, 156, 0.05)), #fffbff;
+
+  /* Text color */
+  --text-color-on-background: #1e1a1d;
+  --text-color-1: rgba(30, 26, 29, 0.38);
+
+  /* Boder color */
+  --border-color: #c5c5c5;
+  --border-color-base: #f1f1f1;
+  --border-item-dark: #e9eaed;
+  --border-item-light: none;
+  --border-item-primary: rgba(128, 116, 124, 0.12);
+
+  /* Toast notfication */
+  --light-toast-title: #27303a;
+  --light-toast-message: #2f3f53;
+  --light-error-background: #fff5f3;
+  --light-error-border: #f4b0a1;
+  --light-sucess-border: #48c1b5;
+  --light-sucess-background: #f6fff9;
+  --light-informative-border: #9dc0ee;
+  --light-informative-background: #f5f9ff;
+  --light-warning-border: #f7d9a4;
+  --light-warning-background: #fff8ec;
+  --box-shadow-toast-light: 0px 4px 16px 0px rgba(16, 11, 39, 0.08);
+
+  /** Dark theme **/
+  --color-primary-dark: #9e2a9c;
+  --color-secondary-dark: #74546f;
+  --color-tertiary-dark: #8f4c39;
+  --color-danger-dark: #ba1a1a;
+  --color-success-dark: #006c44;
+  --color-info-dark: #5476eb;
+  --bg-color-dark-theme: #121212;
+  --bg-color-dark-item: #1e1e1e;
+  --text-color-primary-dark: #fff;
+  --text-color-on-dark: #e1e1e1;
+  --border-color-dark-base: #70818a61;
+
+  --filter-svg-white-color: invert(100%) sepia(0%) saturate(7450%) hue-rotate(352deg) brightness(113%) contrast(100%);
+  --filter-svg-gray-color: invert(73%) sepia(12%) saturate(19%) hue-rotate(251deg) brightness(92%) contrast(85%);
+  --filter-color-primary: invert(28%) sepia(34%) saturate(3619%) hue-rotate(276deg) brightness(83%) contrast(99%);
+  --border-radius-primary: 5px;
+  --border-radius-item: 18px;
+
+  /* Toast notfication */
+  --dark-toast-title: #fff;
+  --dark-toast-message: #fff;
+  --dark-error-background: linear-gradient(149deg, #f6743e 0%, #d42525 100%);
+  --dark-error-border: #f0863a;
+  --dark-sucess-background: linear-gradient(145deg, #32bb71 18.3%, #2a9d8f 100%);
+  --dark-sucess-border: #43d590;
+  --dark-informative-background: linear-gradient(140deg, #2d82b2 0%, #329abb 100%);
+  --dark-informative-border: #7bcfed;
+  --dark-warning-background: linear-gradient(131deg, #f8b806 0%, #ff8c04 100%);
+  --dark-warning-border: #ffdf8d;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: var(--font-family-primary);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (prefers-color-scheme: light) {
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  .MuiDialog-paper {
+    background: #fff !important;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    background: #161b22;
+  }
+
+  .MuiDialog-paper {
+    background: #161b22 !important;
+  }
+
+  .MuiSelect-select {
+    display: flex !important;
+    gap: 4px !important;
+    align-items: center !important;
+  }
+}
