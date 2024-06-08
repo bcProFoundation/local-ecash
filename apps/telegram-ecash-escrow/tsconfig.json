@@ -29,11 +29,7 @@
       ],
       "@components/*": [
         "src/components/*"
-      ],
-
-      "@/*": [
-        "./*"
-      ],
+      ]
     }
   },
   "include": [

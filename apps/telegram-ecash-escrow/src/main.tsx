@@ -1,21 +1,13 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { makeStore, AppStore } from '@local-store/store';
-import { PersistGate } from 'redux-persist/integration/react';
-import OutsideCallConsumer from 'react-outside-call';
-import { WalletProvider } from '@context/walletProvider';
-import { callConfig } from '@context/shareContext';
-import { SocketProvider } from '@context/socketContext';
-import App from './App.tsx';
-import './index.css';
-import { Provider } from 'react-redux';
-import { persistStore } from 'redux-persist';
-import { RouterProvider, Router, createRouter } from '@tanstack/react-router';
-// Import the generated route tree
-import { routeTree } from './routeTree.gen';
-import { Box, CircularProgress, ThemeProvider } from '@mui/material';
+
 import { TmaSDKLoader } from '@components/Common/TmaSDKLoader.tsx';
+import { makeStore } from '@local-store/store';
+import { Box, CircularProgress } from '@mui/material';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { RouterProvider, createRouter } from '@tanstack/react-router';
+import ReactDOM from 'react-dom/client';
+import { persistStore } from 'redux-persist';
+import './index.css';
+import { routeTree } from './routeTree.gen';
 
 // Register the router instance for type safety
 declare module '@tanstack/react-router' {
@@ -24,7 +16,6 @@ declare module '@tanstack/react-router' {
   }
 }
 
-let persistor = persistStore(makeStore());
 
 const rootElement = document.getElementById('root')!;
 
@@ -45,35 +36,11 @@ const router = createRouter({
 if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
 
-  const LoadingComponent = () => {
-    return (
-      <>
-        <Box sx={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <CircularProgress color="primary" />
-        </Box>
-      </>
-    );
-  };
   root.render(
     <TmaSDKLoader>
       <QueryClientProvider client={queryClient}>
         <RouterProvider router={router} />
       </QueryClientProvider>
     </TmaSDKLoader>
-    // <Provider store={makeStore()}>
-    //   <PersistGate loading={<LoadingComponent />} persistor={persistor}>
-    //     <SocketProvider>
-    //       <WalletProvider>
-    //         <OutsideCallConsumer config={callConfig}>
-    //           <ThemeProvider theme={theme}>
-    //             <TmaSDKLoader>
-    //               <RouterProvider router={router} />
-    //             </TmaSDKLoader>
-    //           </ThemeProvider>
-    //         </OutsideCallConsumer>
-    //       </WalletProvider>
-    //     </SocketProvider>
-    //   </PersistGate>
-    // </Provider>
   );
 }

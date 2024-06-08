@@ -1,6 +1,6 @@
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react-swc';
-import * as path from 'path';
+import tsconfigPaths from 'vite-tsconfig-paths';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import { TanStackRouterVite } from '@tanstack/router-vite-plugin';
 
@@ -9,7 +9,7 @@ import { TanStackRouterVite } from '@tanstack/router-vite-plugin';
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   return {
-    plugins: [react(), nodePolyfills(), TanStackRouterVite()],
+    plugins: [tsconfigPaths(), react(), nodePolyfills(), TanStackRouterVite()],
     define: {
       'process.env.REACT_PUBLIC_NETWORK': JSON.stringify(env.REACT_PUBLIC_NETWORK),
       'process.env.REACT_PUBLIC_XPI_APIS': JSON.stringify(env.REACT_PUBLIC_XPI_APIS),
@@ -18,17 +18,5 @@ export default defineConfig(({ mode }) => {
       'process.env.DEPLOY_ENVIROMENT': JSON.stringify(env.DEPLOY_ENVIROMENT),
       'process.env.REACT_PUBLIC_BOT_SERVER_URL': JSON.stringify(env.REACT_PUBLIC_BOT_SERVER_URL)
     },
-    resolve: {
-      alias: [
-        { find: '@', replacement: path.resolve(__dirname, 'src') },
-        { find: '@local-store', replacement: path.resolve(__dirname, 'src/store') },
-        { find: '@api', replacement: path.resolve(__dirname, 'src/api') },
-        { find: '@models', replacement: path.resolve(__dirname, 'src/models') },
-        { find: '@components', replacement: path.resolve(__dirname, 'src/components') },
-        { find: '@utils', replacement: path.resolve(__dirname, 'src/utils') },
-        { find: '@hooks', replacement: path.resolve(__dirname, 'src/hooks') },
-        { find: '@context', replacement: path.resolve(__dirname, 'src/context') }
-      ]
-    }
   };
 });

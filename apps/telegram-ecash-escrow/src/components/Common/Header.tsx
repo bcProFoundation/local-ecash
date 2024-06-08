@@ -1,7 +1,7 @@
 import styled from '@emotion/styled';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import ReceiptIcon from '@mui/icons-material/Receipt';
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 
 const Section = styled.div`
   padding: 1rem;
@@ -22,12 +22,12 @@ function Header(props: HeaderProps) {
   return (
     <Section>
       <div>
-        <Link href="/qpay">
+        <Link to="/qpay">
           <ReceiptIcon />
         </Link>
       </div>
       <div>
-        <Link href="/setting">
+        <Link to="/setting">
           <SettingsOutlinedIcon />
         </Link>
       </div>
