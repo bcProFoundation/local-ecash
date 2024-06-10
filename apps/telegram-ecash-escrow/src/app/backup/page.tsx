@@ -3,88 +3,88 @@ import LixiButton from '@/src/components/Button/LixiButton';
 import { CheckCircleOutline } from '@mui/icons-material';
 import { Alert } from '@mui/material';
 // import { useBackButton, useHapticFeedback, useMainButton, usePopup } from '@tma.js/sdk-react';
-import stylex from '@stylexjs/stylex';
+import styled from '@emotion/styled';
 import { useEffect, useMemo, useState } from 'react';
 import BackupSeed, { BackupWordModel } from './backup-seed';
 
-const backupStyle = stylex.create({
-  container: {
-    padding: '1rem'
-  },
-  info: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1rem',
-    textAlign: 'center'
-  },
-  img: {
-    alignSelf: 'center',
-    filter: 'drop-shadow(2px 4px 6px black)'
-  },
-  headerContainer: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'baseline'
-  },
-  headerTitle: {
-    marginTop: '1rem'
-  },
-  headerSubtitle: {
-    fontSize: '12px',
-    color: '#d5d5d5'
-  },
-  contentContainer: {
-    padding: '1rem 0'
-  },
-  contentItemContainer: {
-    marginBottom: '1rem'
-  },
-  contentItemTitle: {
-    padding: 0,
-    paddingBottom: '1rem',
-    fontSize: '14px',
-    color: '#edeff099'
-  },
-  wordContainer: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr 1fr',
-    columnGap: '1rem',
-    rowGap: '1rem'
-  },
-  word: {
-    padding: '0.5rem',
-    background: '#2c2c2c',
-    borderRadius: '8px'
-  },
-  wordNumber: {
-    color: 'gray',
-    fontSize: '12px'
-  },
-  wordLetter: {
-    fontSize: '14px',
-    color: '#fff'
+const ContainerBackupGame = styled.div`
+  padding: 1rem;
+  .setting-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    img {
+      align-self: center;
+      filter: drop-shadow(2px 4px 6px black);
+    }
+    .header-setting {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      .title {
+        margin-top: 1rem;
+      }
+      .subtitle {
+        span {
+          font-size: 12px;
+          color: #d5d5d5;
+        }
+      }
+    }
   }
-});
+  .setting-content {
+    padding: 1rem 0;
+    .setting-item {
+      margin-bottom: 1rem;
+      .title {
+        padding: 0;
+        padding-bottom: 1rem;
+        font-size: 14px;
+        color: #edeff099;
+      }
+      .ico-alert {
+        align-self: center !important;
+      }
+    }
+    .word-alignment {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      column-gap: 1rem;
+      row-gap: 1rem;
+      .word {
+        padding: 0.5rem;
+        background: #2c2c2c;
+        border-radius: 8px;
+        .word-number {
+          color: gray;
+          font-size: 12px;
+        }
+        .word-letter {
+          font-size: 14px;
+          color: #fff;
+        }
+      }
+    }
+  }
+`;
 
-const wordGuessStyle = stylex.create({
-  container: {
-    padding: '1rem',
-    background: '#2c2c2c',
-    fontSize: '14px'
-  },
-  content: {
-    display: 'flex',
-    gap: '1rem',
-    marginTop: '1rem'
-  },
-  randomWord: {
-    padding: '0.5rem 1rem',
-    border: '1px solid gray',
-    background: '#161b22',
-    borderRadius: '8px',
-    fontSize: '14px'
+const WordGuessConatiner = styled.div`
+  padding: 1rem;
+  background: #2c2c2c;
+  font-size: 14px;
+  .word-guess-content {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    .random-word {
+      padding: 0.5rem 1rem;
+      border: 1px solid gray;
+      background: #161b22;
+      border-radius: 8px;
+      font-size: 14px;
+    }
   }
-});
+`;
 
 export default function Backup() {
   const [mnemonicWordsConverted, setMnemonicWordsConverted] = useState<Array<BackupWordModel>>([
@@ -278,20 +278,18 @@ export default function Backup() {
   };
 
   return (
-    <div {...stylex.props(backupStyle.container)}>
-      <div {...stylex.props(backupStyle.info)}>
+    <ContainerBackupGame>
+      <div className="setting-info">
         <picture>
-          <img width={96} height={96} src="/setting.svg" alt="" {...stylex.props(backupStyle.img)} />
+          <img width={96} height={96} src="/setting.svg" alt="" />
         </picture>
-        <div {...stylex.props(backupStyle.headerContainer)}>
-          <h2 {...stylex.props(backupStyle.headerTitle)}>
-            {!isPlayGame ? 'Your recovery phrase' : 'Verify your phrase'}
-          </h2>
+        <div className="header-setting">
+          <h2 className="title">{!isPlayGame ? 'Your recovery phrase' : 'Verify your phrase'}</h2>
         </div>
       </div>
-      <div {...stylex.props(backupStyle.contentContainer)}>
-        <div {...stylex.props(backupStyle.contentItemContainer)}>
-          <p {...stylex.props(backupStyle.contentItemTitle)}>
+      <div className="setting-content">
+        <div className="setting-item">
+          <p className="title">
             {!isPlayGame
               ? `Your recovery key is composed of 12 randomly selected words. Please
             carefully write down each word in the order it appears.`
@@ -302,25 +300,25 @@ export default function Backup() {
               Never share your recovery phrase with anyone, store it securely !
             </Alert>
           ) : (
-            <div {...stylex.props(wordGuessStyle.container)}>
-              <div>{'Word #' + (countWord + 1 > 12 ? 12 : countWord + 1)}</div>
-              <div {...stylex.props(wordGuessStyle.content)}>
+            <WordGuessConatiner>
+              <div className="word-guess-title">{'Word #' + (countWord + 1 > 12 ? 12 : countWord + 1)}</div>
+              <div className="word-guess-content">
                 {randomListFinal &&
                   randomListFinal.map((word, index) => {
                     return (
-                      <div key={index} {...stylex.props(wordGuessStyle.randomWord)} onClick={() => checkWord(word)}>
+                      <div key={index} className="random-word" onClick={() => checkWord(word)}>
                         {word}
                       </div>
                     );
                   })}
               </div>
-            </div>
+            </WordGuessConatiner>
           )}
         </div>
 
         <BackupSeed mnemonicWords={mnemonicWordsConverted} isPlayGame={isPlayGame} />
       </div>
       <LixiButton variant="linear">Continue</LixiButton>
-    </div>
+    </ContainerBackupGame>
   );
 }

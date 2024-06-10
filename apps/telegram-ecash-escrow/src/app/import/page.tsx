@@ -15,7 +15,6 @@ import {
   Tooltip
 } from '@mui/material';
 // import { useBackButton, useHapticFeedback, useMainButton, usePopup, useQRScanner } from '@tma.js/sdk-react';
-import stylex from '@stylexjs/stylex';
 import React, { useState } from 'react';
 
 const ContainerImportWallet = styled.div`
@@ -67,33 +66,6 @@ const ContainerImportWallet = styled.div`
     padding: 1rem 0;
   }
 `;
-
-const importStyle = stylex.create({
-  container: {
-    padding: '1rem'
-  },
-  recieveInfoContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1rem',
-    textAlign: 'center'
-  },
-  recieveInfoHeaderContainer: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'baseline'
-  },
-  recieveInfoHeaderTitle: {
-    marginTop: '1rem'
-  },
-  img: {
-    alignSelf: 'center',
-    filter: 'drop-shadow(2px 4px 6px black)'
-  },
-  recieveForm: {
-    padding: '1rem 0'
-  }
-});
 
 export default function ImportWallet() {
   // const { navigate } = useRouter();
@@ -174,13 +146,13 @@ export default function ImportWallet() {
   };
 
   return (
-    <div {...stylex.props(importStyle.container)}>
-      <div {...stylex.props(importStyle.recieveInfoContainer)}>
+    <ContainerImportWallet>
+      <div className="receive-info">
         <picture>
-          <img width={96} height={96} src="/import.svg" alt="" {...stylex.props(importStyle.img)} />
+          <img width={96} height={96} src="/import.svg" alt="" />
         </picture>
-        <div {...stylex.props(importStyle.recieveInfoHeaderContainer)}>
-          <h2 {...stylex.props(importStyle.recieveInfoHeaderTitle)}>Import</h2>
+        <div className="header-receive">
+          <h2 className="title">Import</h2>
           <Tooltip title={'Test'}>
             <IconButton>
               <InfoOutlinedIcon />
@@ -188,7 +160,7 @@ export default function ImportWallet() {
           </Tooltip>
         </div>
       </div>
-      <div {...stylex.props(importStyle.recieveForm)}>
+      <div className="receive-form">
         <FormControl fullWidth={true}>
           <TextField
             id="recovery-phrase"
@@ -234,6 +206,6 @@ export default function ImportWallet() {
         />
       </Stack>
       <LixiButton variant="linear">Import</LixiButton>
-    </div>
+    </ContainerImportWallet>
   );
 }

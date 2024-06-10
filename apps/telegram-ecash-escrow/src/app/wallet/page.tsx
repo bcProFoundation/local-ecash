@@ -1,5 +1,6 @@
 'use client';
 import LixiButton from '@/src/components/Button/LixiButton';
+import styled from '@emotion/styled';
 import RemoveRedEyeOutlinedIcon from '@mui/icons-material/RemoveRedEyeOutlined';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
 import stylex from '@stylexjs/stylex';
@@ -13,6 +14,154 @@ export interface TxHistory {
   dateTime: string;
   coin: string;
 }
+
+const ContainerWallet = styled.div``;
+
+const WalletInfoContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  .currency-info {
+    text-align: center;
+    .curency-image {
+      width: 96px;
+      height: 96px;
+    }
+  }
+  .balance {
+    width: 100%;
+    margin-top: 1rem;
+    align-self: flex-start;
+    .balance-header {
+      display: flex;
+      justify-content: space-between;
+      .title-balance {
+        font-size: 18px;
+        font-weight: 500;
+      }
+      .hidden-balance {
+        height: 24px;
+      }
+    }
+    .balance-content {
+      text-align: center;
+      padding: 2rem;
+      background: #2c2c2c;
+      margin: 1rem 0;
+      border-radius: 0.5rem;
+      .amount {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        font-size: 26px;
+        font-weight: 500;
+        span {
+          font-weight: 400;
+          font-size: 16px;
+          letter-spacing: 0.25px;
+          opacity: 0.6;
+        }
+        svg {
+          opacity: 0.6;
+        }
+      }
+      .fiat-rate {
+        font-weight: 400;
+        font-size: 16px;
+        letter-spacing: 0.25px;
+        opacity: 0.6;
+      }
+    }
+  }
+  .group-action-wallet {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+    a {
+      width: 100%;
+    }
+    button {
+      min-width: auto !important;
+      width: 100% !important;
+    }
+  }
+  .transaction-history {
+    width: 100%;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    margin-top: 1rem;
+    background: #2c2c2c;
+    border-radius: 1rem;
+    .title {
+      font-size: 12px;
+      font-weight: 400;
+      text-transform: uppercase;
+      padding: 1rem;
+      padding-bottom: 0;
+    }
+    .transaction-detail {
+      padding: 0.5rem 0;
+    }
+    .ghost-town {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 2rem;
+      img {
+        max-width: 20%;
+      }
+      .blank-title {
+        font-size: 18px;
+        font-weight: 500;
+        letter-spacing: 0.25px;
+      }
+      .blank-subtitle {
+        text-align: center;
+        font-size: 14px;
+        letter-spacing: 0.25px;
+      }
+    }
+    .item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid #383838;
+      border-left: 0;
+      border-right: 0;
+      padding: 1rem;
+      background: #333;
+      margin: 0.5rem 0;
+      .tx-history {
+        .amount {
+          font-size: 16px;
+          font-weight: 500;
+          color: #73daa5;
+          letter-spacing: 0.25px;
+          &.sent {
+            color: #ffb4a9;
+          }
+        }
+        .username {
+          font-size: 14px;
+          color: #e0e4e7;
+          letter-spacing: 0.25px;
+          margin-top: 4px;
+        }
+      }
+      .date-time {
+        font-size: 10px;
+        color: #d5d5d5;
+      }
+      &:last-child {
+        // border-bottom: 1px solid gray;
+      }
+    }
+  }
+`;
 
 export default function Wallet() {
   const [hideBalance, setHideBalance] = useState<boolean>(false);
@@ -71,54 +220,54 @@ export default function Wallet() {
   };
 
   return (
-    <div>
-      <div {...stylex.props(style.walletInfoContainer)}>
-        <div {...stylex.props(style.currencyInfo)}>
+    <ContainerWallet>
+      <WalletInfoContainer>
+        <div className="currency-info">
           <picture>
-            <img {...stylex.props(style.curencyImage)} src="/xec.svg" alt="" />
+            <img className="curency-image" src="/xec.svg" alt="" />
           </picture>
-          <div {...stylex.props(style.currencyInfo)}>
+          <div className="curency-info">
             <p className="coin-symbol">eCash</p>
             <h3 className="coin-name">XEC</h3>
           </div>
         </div>
-        <div {...stylex.props(balanceStyle.container)}>
-          <div {...stylex.props(balanceStyle.balanceHeader)}>
-            <h2 {...stylex.props(balanceStyle.titleBalance)}>Total balance:</h2>
-            <div {...stylex.props(balanceStyle.hiddenBalance)} onClick={handleHideBalance}>
+        <div className="balance">
+          <div className="balance-header">
+            <h2 className="title-balance">Total balance:</h2>
+            <div className="hidden-balance" onClick={handleHideBalance}>
               {hideBalance ? <RemoveRedEyeOutlinedIcon /> : <VisibilityOffOutlinedIcon />}
             </div>
           </div>
-          <div {...stylex.props(balanceStyle.balanceContent)}>
+          <div className="balance-content">
             {hideBalance ? (
               <>
-                <p {...stylex.props(balanceStyle.amount)}>******</p>
-                <p {...stylex.props(balanceStyle.fiatRate)}>******</p>
+                <p className="amount">******</p>
+                <p className="fiat-rate">******</p>
               </>
             ) : (
               <>
-                <p {...stylex.props(balanceStyle.amount)}>
+                <p className="amount">
                   33,542 <span>XEC</span>
                 </p>
-                <p {...stylex.props(balanceStyle.fiatRate)}>~ 2.20 USD</p>
+                <p className="fiat-rate">~ 2.20 USD</p>
               </>
             )}
           </div>
         </div>
-        <div {...stylex.props(style.groupActionWallet)}>
-          <Link href="/send" {...stylex.props(style.link)}>
+        <div className="group-action-wallet">
+          <Link href="/receive">
             <LixiButton
               variant="linear"
               icon={
                 <picture>
-                  <img src="/send.svg" alt="send" />
+                  <img src="/request.svg" alt="request" />
                 </picture>
               }
             >
               Send
             </LixiButton>
           </Link>
-          <Link href="/receive" {...stylex.props(style.link)}>
+          <Link href="/receive">
             <LixiButton
               variant="linear"
               icon={
@@ -131,27 +280,24 @@ export default function Wallet() {
             </LixiButton>
           </Link>
         </div>
-        <div {...stylex.props(transactionStyle.container)}>
-          <h5 {...stylex.props(transactionStyle.title)}>Transaction History</h5>
-          <div {...stylex.props(transactionStyle.transactionDetail)}>
+        <div className="transaction-history">
+          <h5 className="title">Transaction History</h5>
+          <div className="transaction-detail">
             {txHistory &&
               txHistory.map((tx) => (
-                <div {...stylex.props(transactionStyle.txContainer)} key={Math.random()}>
-                  <div>
-                    <p
-                      {...stylex.props(transactionStyle.txHistoryAmount)}
-                      style={{ color: tx.type === 'sent' ? '#73daa5' : '#ffb4a9' }}
-                    >
+                <div className="item" key={Math.random()}>
+                  <div className="tx-history">
+                    <p className={`amount ${tx.type}`}>
                       {(tx.type === 'sent' ? '-' : '+') + tx.amount + ' ' + tx.coin}
                     </p>
-                    <p {...stylex.props(transactionStyle.txHistoryUsername)}>
+                    <p className="username">
                       {(tx.type === 'sent' ? 'To: ' : 'From: ') + tx.username}
                       <picture>
                         <img width={12} height={12} src="/telegram-ico.svg" alt="telegram icon" />
                       </picture>
                     </p>
                   </div>
-                  <div {...stylex.props(transactionStyle.dateTime)}>{tx.dateTime}</div>
+                  <div className="date-time">{tx.dateTime}</div>
                 </div>
               ))}
             {txHistory.length === 0 && (
@@ -165,8 +311,8 @@ export default function Wallet() {
             )}
           </div>
         </div>
-      </div>
-    </div>
+      </WalletInfoContainer>
+    </ContainerWallet>
   );
 }
 
