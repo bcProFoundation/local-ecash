@@ -13,7 +13,6 @@ export default defineConfig(({ mode }) => {
     define: {
       'process.env.REACT_PUBLIC_NETWORK': JSON.stringify(env.REACT_PUBLIC_NETWORK),
       'process.env.REACT_PUBLIC_XPI_APIS': JSON.stringify(env.REACT_PUBLIC_XPI_APIS),
-      'process.env.REACT_PUBLIC_BWS_URL': JSON.stringify(env.REACT_PUBLIC_BWS_URL),
       'process.env.NODE_ENV': JSON.stringify(env.NODE_ENV),
       'process.env.DEPLOY_ENVIROMENT': JSON.stringify(env.DEPLOY_ENVIROMENT),
       'process.env.REACT_PUBLIC_BOT_SERVER_URL': JSON.stringify(env.REACT_PUBLIC_BOT_SERVER_URL)

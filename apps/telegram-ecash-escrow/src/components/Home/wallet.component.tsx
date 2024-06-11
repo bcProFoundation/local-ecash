@@ -3,7 +3,7 @@ import LixiButton from '@components/Common/LixiButton';
 import styled from '@emotion/styled';
 import RemoveRedEyeOutlinedIcon from '@mui/icons-material/RemoveRedEyeOutlined';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 import React, { useState } from 'react';
 
 export interface TxHistory {

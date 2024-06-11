@@ -4,7 +4,7 @@ import { useRouter } from '@tanstack/react-router';
 import styled from '@emotion/styled';
 import { Alert } from '@mui/material';
 import { CheckCircleOutline } from '@mui/icons-material';
-import BackupSeed, { BackupWordModel } from '@components/backup-seed/page';
+import BackupSeed, { BackupWordModel } from '@components/Backup/Backup';
 import LixiButton from '@components/Common/LixiButton';
 
 const ContainerBackupGame = styled.div`
@@ -85,6 +85,7 @@ const WordGuessConatiner = styled.div`
     }
   }
 `;
+
 export const component = function Backup() {
   const { navigate } = useRouter();
 
@@ -205,21 +206,12 @@ export const component = function Backup() {
   }, [libWord]);
 
   useEffect(() => {
-    fetchData();
   }, []);
 
   useEffect(() => {
     createRandom();
   }, [memoizedLibWord]);
 
-  const fetchData = () => {
-    fetch('/backup-word.txt')
-      .then(response => response.text())
-      .then(data => {
-        let result = data.split(/\r\n|\n/);
-        setLibWord(result);
-      });
-  };
 
   const createRandom = (tempCount?: number) => {
     const randomList = [mnemonicWordsConverted[tempCount || countWord].word];

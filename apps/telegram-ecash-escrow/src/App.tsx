@@ -1,18 +1,32 @@
+import { TmaSDKLoader } from '@/components/Common/TmaSDKLoader';
+import { ThemeProvider, useMediaQuery } from '@mui/material';
+import { RouterProvider, createRouter } from '@tanstack/react-router';
 import './App.css';
-import { generateAccount, useSliceDispatch as useLixiSliceDispatch } from '@bcpros/redux-store';
+import { routeTree } from './routeTree.gen';
+import { ReduxProvider } from './store/provider';
+import { darkTheme, lightTheme } from './theme/theme';
+
+declare module "@tanstack/react-router" {
+  interface Register {
+    router: typeof router;
+  }
+};
+
+const router = createRouter({ routeTree });
 
 const App = () => {
 
-  const dispatch = useLixiSliceDispatch();
+  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
 
   return (
     <>
-      <div>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => dispatch(generateAccount({ coin: 'XPI' }))}>Generate new account</button>
-      </div>
+      <TmaSDKLoader>
+        <ReduxProvider>
+          <ThemeProvider theme={prefersDarkMode ? darkTheme : lightTheme}>
+            <RouterProvider router={router} />
+          </ThemeProvider>
+        </ReduxProvider>
+      </TmaSDKLoader>
     </>
   );
 };
