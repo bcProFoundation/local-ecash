@@ -42,7 +42,7 @@ const FunctionalBar = styled.div`
 `;
 
 
-function Index() {
+export default function Index() {
 
   const dispatch = useLixiSliceDispatch();
 

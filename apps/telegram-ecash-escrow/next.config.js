@@ -5,10 +5,12 @@ const webpack = require('webpack');
 const nextConfig = {
   reactStrictMode: true,
   pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
-  transpilePackages: [],
+  transpilePackages: ['@bcpros/redux-store'],
   webpack(config, { defaultLoaders, isServer }) {
     config.resolve.alias = {
       ...config.resolve.alias,
+      '@store': path.resolve(__dirname, "node_modules/@bcpros/redux-store"),
+      '@bcpros/redux-store': path.resolve(__dirname, "node_modules/@bcpros/redux-store"),
       "@nestjs/graphql": path.resolve(__dirname, "node_modules/@nestjs/graphql/dist/extra/graphql-model-shim"),
     };
     if (!isServer) {
@@ -32,9 +34,8 @@ const nextConfig = {
   },
   experimental: {
     esmExternals: "loose",
-    enableShaking: true,
     // optimizePackageImports: ['@bcpros/lixi-models', '@bcpros/redux-store']
-    optimizePackageImports: []
+    optimizePackageImports: ['@bcpros/redux-store']
   }
 };
 
