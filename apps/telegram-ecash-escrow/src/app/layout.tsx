@@ -7,19 +7,25 @@
  *
  */
 'use client';
+
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v13-appRouter';
 import { SDKProvider } from '@tma.js/sdk-react';
+import { ThemeProvider } from '@mui/material/styles';
 import { ReduxProvider } from '../store/provider';
-import './globals.css';
+import theme from '../theme/theme';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <SDKProvider acceptCustomStyles debug>
       <ReduxProvider>
         <html lang="en">
-          <AppRouterCacheProvider>
-            <body>{children}</body>
-          </AppRouterCacheProvider>
+          <body>
+            <AppRouterCacheProvider>
+              <ThemeProvider theme={theme}>
+                {children}
+              </ThemeProvider>
+            </AppRouterCacheProvider>
+          </body>
         </html>
       </ReduxProvider>
     </SDKProvider>

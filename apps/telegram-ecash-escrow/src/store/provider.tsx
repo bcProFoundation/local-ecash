@@ -1,8 +1,10 @@
-'use client';
+'use client'
 
+import { Box, CircularProgress } from '@mui/material';
+import React, { useRef } from 'react';
 import { Provider } from 'react-redux';
-import { useRef } from 'react';
-import { AppStore, makeStore } from './store';
+import { PersistGate } from 'redux-persist/integration/react';
+import { AppStore, SagaStore, makeStore } from './store';
 
 export function ReduxProvider({ children }: { children: React.ReactNode }) {
 
@@ -11,5 +13,21 @@ export function ReduxProvider({ children }: { children: React.ReactNode }) {
     storeRef.current = makeStore();
   }
 
-  return <Provider store={storeRef.current}>{children}</Provider>;
+  const LoadingComponent = () => {
+    return (
+      <>
+        <Box sx={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <CircularProgress color="primary" />
+        </Box>
+      </>
+    );
+  };
+
+  return (
+    <Provider store={storeRef.current}>
+      <PersistGate persistor={(storeRef.current as SagaStore).__persistor} loading={<LoadingComponent />}>
+        {children}
+      </PersistGate>
+    </Provider>
+  );
 }
