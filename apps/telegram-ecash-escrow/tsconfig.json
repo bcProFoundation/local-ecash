@@ -24,12 +24,12 @@
     ],
     "incremental": true,
     "paths": {
+      "@store/*": [
+        "@bcpros/redux-store/*"
+      ],
       "@/*": [
         "./*"
       ],
-      "@store/*": [
-        "@bcpros/redux-store/*"
-      ]
     }
   },
   "include": [
