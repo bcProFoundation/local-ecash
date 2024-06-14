@@ -1,10 +1,10 @@
-import { TmaSDKLoader } from '@/components/Common/TmaSDKLoader';
 import { ThemeProvider, useMediaQuery } from '@mui/material';
 import { RouterProvider, createRouter } from '@tanstack/react-router';
 import './App.css';
 import { routeTree } from './routeTree.gen';
 import { ReduxProvider } from './store/provider';
 import { darkTheme, lightTheme } from './theme/theme';
+import { SDKProvider } from '@tma.js/sdk-react';
 
 declare module "@tanstack/react-router" {
   interface Register {
@@ -20,13 +20,13 @@ const App = () => {
 
   return (
     <>
-      <TmaSDKLoader>
+      <SDKProvider acceptCustomStyles debug={true}>
         <ReduxProvider>
           <ThemeProvider theme={prefersDarkMode ? darkTheme : lightTheme}>
             <RouterProvider router={router} />
           </ThemeProvider>
         </ReduxProvider>
-      </TmaSDKLoader>
+      </SDKProvider>
     </>
   );
 };

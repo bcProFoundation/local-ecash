@@ -2,7 +2,8 @@ import { counterReducer } from '@bcpros/counter';
 import { combineReducers } from '@reduxjs/toolkit';
 import { PersistConfig, persistReducer } from 'redux-persist';
 import indexedDbStorage from 'redux-persist-indexeddb-storage';
-import { baseApi as api } from '@lixi-store/api/baseApi';
+import { baseApi as api } from '@bcpros/redux-store/api/baseApi';
+import { Account } from '@bcpros/lixi-models';
 import {
   AccountsState,
   CategoriesState,
@@ -38,7 +39,7 @@ import {
   tokenReducer,
   walletStateReducer,
   actionReducer
-} from '@lixi-store/index'
+} from '@bcpros/redux-store'
 
 const createNoopStorage = () => {
   return {

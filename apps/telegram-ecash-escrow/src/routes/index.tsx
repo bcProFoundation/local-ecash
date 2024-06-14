@@ -1,9 +1,6 @@
 import LixiButton from '@/components/Common/LixiButton';
-import styled from '@emotion/styled';
-import { Typography, useMediaQuery } from '@mui/material';
-import { createFileRoute } from '@tanstack/react-router';
-import { useInitData, usePostEvent } from '@tma.js/sdk-react';
 import { generateAccount, useSliceDispatch as useLixiSliceDispatch } from '@bcpros/redux-store';
+import styled from '@emotion/styled';
 
 
 const ContainerHome = styled.div`
@@ -42,24 +39,8 @@ const FunctionalBar = styled.div`
   row-gap: 0.5rem;
 `;
 
-const PayeeItem = styled(Typography)`
-  display: flex;
-  align-items: center;
-`;
-
-export const Route = createFileRoute('/')({
-  //@ts-ignore
-  loader: ({ context: { queryClient } }) => queryClient.ensureQueryData(qpayQueryOptions),
-  component: Index,
-  errorComponent: ({ error }) => {
-    return <h3 style={{ textAlign: 'center' }}>Can't get Qpay's merchant</h3>;
-  }
-});
 
 function Index() {
-  const initData = useInitData();
-  const postEvent = usePostEvent();
-  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
 
   const dispatch = useLixiSliceDispatch();
 
@@ -77,7 +58,9 @@ function Index() {
         <LixiButton
           title="Create new account"
           classCustom="create-new-account"
-          onClickItem={() => dispatch(generateAccount({ coin: 'XPI' });}
+          onClickItem={() => {
+            dispatch(generateAccount({ coin: 'XPI' }));
+          }}
         />
         <LixiButton
           title="Import from backup"
