@@ -57,5 +57,8 @@
     "eslint-config-next": "14.2.3",
     "rimraf": "^5.0.7",
     "typescript": "^5"
+  },
+  "resolutions": {
+    "@abcpros/bitcore-lib": "8.25.43"
   }
 }

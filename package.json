@@ -17,11 +17,12 @@
     "postinstall": "husky install"
   },
   "devDependencies": {
-    "@typescript-eslint/parser": "^7.9.0",
     "@typescript-eslint/eslint-plugin": "^7.9.0",
+    "@typescript-eslint/parser": "^7.9.0",
     "eslint": "8.56.0",
     "husky": "^9.0.11",
     "prettier": "^3.2.5",
+    "syncpack": "^12.3.2",
     "turbo": "^1.13.3"
   },
   "engines": {
@@ -43,7 +44,7 @@
   },
   "dependencies": {
     "prettier-plugin-organize-imports": "^3.2.4",
-    "prettier-plugin-stylex-key-sort": "^1.0.1",
-    "prettier-plugin-packagejson": "2.5.0"
+    "prettier-plugin-packagejson": "2.5.0",
+    "prettier-plugin-stylex-key-sort": "^1.0.1"
   }
 }
