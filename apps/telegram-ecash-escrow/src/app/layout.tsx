@@ -9,8 +9,9 @@
 'use client';
 
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v13-appRouter';
-import { SDKProvider } from '@tma.js/sdk-react';
 import { ThemeProvider } from '@mui/material/styles';
+import { SDKProvider } from '@tma.js/sdk-react';
+import React from 'react';
 import { ReduxProvider } from '../store/provider';
 import theme from '../theme/theme';
 
@@ -21,9 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <html lang="en">
           <body>
             <AppRouterCacheProvider>
-              <ThemeProvider theme={theme}>
-                {children}
-              </ThemeProvider>
+              <ThemeProvider theme={theme}>{children}</ThemeProvider>
             </AppRouterCacheProvider>
           </body>
         </html>
@@ -31,5 +30,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </SDKProvider>
   );
 }
-
-

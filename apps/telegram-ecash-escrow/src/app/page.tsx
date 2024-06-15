@@ -1,9 +1,8 @@
 'use client';
 
-import LixiButton from '@/src/components/Common/LixiButton';
 import { generateAccount, useSliceDispatch as useLixiSliceDispatch } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
-
+import { LixiButton } from '../components/Common/LixiButton';
 
 const ContainerHome = styled.div`
   display: grid;
@@ -41,9 +40,7 @@ const FunctionalBar = styled.div`
   row-gap: 0.5rem;
 `;
 
-
 export default function Index() {
-
   const dispatch = useLixiSliceDispatch();
 
   return (
@@ -52,8 +49,8 @@ export default function Index() {
         <img className="feature-banner" src="/lixi-credit.svg" alt="" />
         <h3 className="feature-title">Control your money without an account</h3>
         <p className="feature-subtitle">
-          Lixi app allows you to privately store, manage, and use your crypto
-          funds without having to trust a centralized bank or exchange
+          Lixi app allows you to privately store, manage, and use your crypto funds without having to trust a
+          centralized bank or exchange
         </p>
       </FeatureEducation>
       <FunctionalBar>
@@ -64,10 +61,7 @@ export default function Index() {
             dispatch(generateAccount({ coin: 'XPI' }));
           }}
         />
-        <LixiButton
-          title="Import from backup"
-          classCustom="no-border-btn import-backup"
-        />
+        <LixiButton title="Import from backup" classCustom="no-border-btn import-backup" />
       </FunctionalBar>
     </ContainerHome>
   );

@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { Box, CircularProgress } from '@mui/material';
 import React, { useRef } from 'react';
@@ -7,7 +7,6 @@ import { PersistGate } from 'redux-persist/integration/react';
 import { AppStore, SagaStore, makeStore } from './store';
 
 export function ReduxProvider({ children }: { children: React.ReactNode }) {
-
   const storeRef = useRef<AppStore>();
   if (!storeRef.current) {
     storeRef.current = makeStore();

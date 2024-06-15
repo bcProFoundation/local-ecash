@@ -9,7 +9,7 @@ const nextConfig = {
   webpack(config, { defaultLoaders, isServer }) {
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@store': path.resolve(__dirname, "node_modules/@bcpros/redux-store/src/store"),
+      '@store': path.resolve(__dirname, "node_modules/@bcpros/redux-store/build/main/store"),
       '@bcpros/redux-store': path.resolve(__dirname, "node_modules/@bcpros/redux-store"),
       "@nestjs/graphql": path.resolve(__dirname, "node_modules/@nestjs/graphql/dist/extra/graphql-model-shim"),
     };
