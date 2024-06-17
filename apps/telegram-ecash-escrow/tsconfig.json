@@ -1,6 +1,10 @@
 {
   "compilerOptions": {
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "baseUrl": ".",
     "allowJs": true,
     "skipLibCheck": true,
@@ -13,6 +17,7 @@
     "isolatedModules": true,
     "noImplicitAny": false,
     "jsx": "preserve",
+    "sourceMap": true,
     "plugins": [
       {
         "name": "next"
@@ -20,10 +25,28 @@
     ],
     "incremental": true,
     "paths": {
-      "@store/*": ["@bcpros/redux-store/*"],
-      "@/*": ["./*"]
-    }
+      "@store/*": [
+        "@bcpros/redux-store/*"
+      ],
+      "@/*": [
+        "./*"
+      ]
+    },
+    "typeRoots": [
+      "./src/@types",
+      "./node_modules/@types"
+    ],
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "types": [
+    "redux-persist"
+  ],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

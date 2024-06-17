@@ -1,45 +1,91 @@
+import { api } from '@bcpros/redux-store';
 import { Action, Store, ThunkAction, configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
-import { FLUSH, PAUSE, PERSIST, PURGE, Persistor, REGISTER, REHYDRATE, persistStore } from 'redux-persist';
+import { getPersistConfig } from 'redux-deep-persist';
+import { FLUSH, PAUSE, PERSIST, PURGE, REGISTER, REHYDRATE } from 'redux-persist';
+import persistReducer from 'redux-persist/es/persistReducer';
 import createSagaMiddleware, { Task } from 'redux-saga';
 import rootReducer from './rootReducer';
-import rootSaga from './rootSaga';
+import rootSaga, { emptySaga } from './rootSaga';
+import storage from './storage';
 
 export interface SagaStore extends Store {
   __sagaTask: Task;
-  __persistor: Persistor;
 }
 
+const persistConfig = getPersistConfig({
+  key: 'root',
+  storage,
+
+  blacklist: [
+    `accounts.envelopeUpload`,
+    'accounts.pageCoverUpload',
+    'accounts.pageAvatarUpload',
+    'accounts.postCoverUploads',
+    'accounts.messageUploads',
+    'accounts.leaderBoard',
+    'accounts.graphqlRequestLoading',
+    'accounts.productImageUploads',
+    'accounts.accountInfoTemp',
+    'accounts.commentUpload',
+    'posts.selectedId',
+    'pages.currentPageMessageSession',
+    'settings.locale',
+    'tokens',
+    'notifications',
+    'envelopes',
+    'loading',
+    'modal',
+    'actionSheet',
+    'toast',
+    'error',
+    'burn',
+    'api',
+    'action'
+  ],
+  rootReducer
+});
+
+const persistedReducer = persistReducer(persistConfig, rootReducer);
+
 export const makeStore = () => {
+  const isServer = typeof window === 'undefined';
   const sagaMiddleware = createSagaMiddleware({
     context: {}
   });
 
   const store = configureStore({
-    reducer: rootReducer,
+    reducer: persistedReducer,
     middleware: (getDefaultMiddleware) => {
       return getDefaultMiddleware({
         serializableCheck: {
           ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER]
         }
-      }).concat(sagaMiddleware);
+      })
+        .concat(api.middleware)
+        .concat(sagaMiddleware)
+
     },
     devTools:
       process.env.NODE_ENV === 'production'
         ? false
         : {
-            actionsDenylist: [
-              'wallet/writeWalletStatus',
-              'posts/setShowCreatePost',
-              'analyticEvent/batchEvents',
-              'analyticEvent/analyticEvent'
-            ]
-          }
+          actionsDenylist: [
+            'wallet/writeWalletStatus',
+            'posts/setShowCreatePost',
+            'analyticEvent/batchEvents',
+            'analyticEvent/analyticEvent'
+          ]
+        }
   });
   setupListeners(store.dispatch);
 
-  (store as SagaStore).__persistor = persistStore(store);
-  (store as SagaStore).__sagaTask = sagaMiddleware.run(rootSaga);
+  if (!isServer) {
+    (store as SagaStore).__sagaTask = sagaMiddleware.run(rootSaga);
+  } else {
+    (store as SagaStore).__sagaTask = sagaMiddleware.run(emptySaga);
+  }
+
   return store;
 };
 

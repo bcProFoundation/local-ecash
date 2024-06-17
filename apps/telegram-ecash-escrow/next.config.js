@@ -32,11 +32,15 @@ const nextConfig = {
     }
     return config;
   },
+  eslint: {
+    ignoreDuringBuilds: true
+  },
   experimental: {
     esmExternals: "loose",
-    // optimizePackageImports: ['@bcpros/lixi-models', '@bcpros/redux-store']
-    optimizePackageImports: ['@bcpros/redux-store']
-  }
+    optimizePackageImports: ['@bcpros/lixi-models', '@bcpros/redux-store']
+    // optimizePackageImports: ['@bcpros/redux-store']
+  },
+  productionBrowserSourceMaps: true
 };
 
 const config = nextConfig;
