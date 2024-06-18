@@ -7,6 +7,13 @@ const nextConfig = {
   pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
   transpilePackages: ['@bcpros/lixi-models', '@bcpros/redux-store'],
   webpack(config, { defaultLoaders, isServer }) {
+
+    config.module.rules.push({
+      test: /\.m?js$/i,
+      use: ['source-map-loader'],
+      enforce: 'pre'
+    });
+
     config.resolve.alias = {
       ...config.resolve.alias,
       '@store': path.resolve(__dirname, "node_modules/@bcpros/redux-store/build/main/store"),
