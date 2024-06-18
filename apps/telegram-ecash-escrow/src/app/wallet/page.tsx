@@ -1,8 +1,8 @@
 'use client';
-import LixiButton from '@/src/components/Button/LixiButton';
 import styled from '@emotion/styled';
 import RemoveRedEyeOutlinedIcon from '@mui/icons-material/RemoveRedEyeOutlined';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
+import { Button } from '@mui/material';
 import Link from 'next/link';
 import { useState } from 'react';
 
@@ -255,7 +255,7 @@ export default function Wallet() {
         </div>
         <div className="group-action-wallet">
           <Link href="/receive">
-            <LixiButton
+            {/* <LixiButton
               variant="linear"
               icon={
                 <picture>
@@ -264,10 +264,11 @@ export default function Wallet() {
               }
             >
               Send
-            </LixiButton>
+            </LixiButton> */}
+            <Button>Send</Button>
           </Link>
           <Link href="/receive">
-            <LixiButton
+            {/* <LixiButton
               variant="linear"
               icon={
                 <picture>
@@ -276,7 +277,8 @@ export default function Wallet() {
               }
             >
               Recieve
-            </LixiButton>
+            </LixiButton> */}
+            <Button>Recieve</Button>
           </Link>
         </div>
         <div className="transaction-history">

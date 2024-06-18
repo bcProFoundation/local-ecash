@@ -1,7 +1,6 @@
 'use client';
-import LixiButton from '@/src/components/Button/LixiButton';
 import { CheckCircleOutline } from '@mui/icons-material';
-import { Alert } from '@mui/material';
+import { Alert, Button } from '@mui/material';
 // import { useBackButton, useHapticFeedback, useMainButton, usePopup } from '@tma.js/sdk-react';
 import styled from '@emotion/styled';
 import { useEffect, useMemo, useState } from 'react';
@@ -318,7 +317,7 @@ export default function Backup() {
 
         <BackupSeed mnemonicWords={mnemonicWordsConverted} isPlayGame={isPlayGame} />
       </div>
-      <LixiButton variant="linear">Continue</LixiButton>
+      <Button>Continue</Button>
     </ContainerBackupGame>
   );
 }

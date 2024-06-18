@@ -1,10 +1,10 @@
 'use client';
-import LixiButton from '@/src/components/Button/LixiButton';
 import styled from '@emotion/styled';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import QrCodeScannerOutlinedIcon from '@mui/icons-material/QrCodeScannerOutlined';
 import {
   Backdrop,
+  Button,
   CircularProgress,
   FormControl,
   IconButton,
@@ -205,7 +205,7 @@ export default function ImportWallet() {
           anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         />
       </Stack>
-      <LixiButton variant="linear">Import</LixiButton>
+      <Button>Import</Button>
     </ContainerImportWallet>
   );
 }

@@ -5,7 +5,7 @@ const webpack = require('webpack');
 const nextConfig = {
   reactStrictMode: true,
   pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
-  transpilePackages: ['@bcpros/redux-store'],
+  transpilePackages: ['@bcpros/lixi-models', '@bcpros/redux-store'],
   webpack(config, { defaultLoaders, isServer }) {
     config.resolve.alias = {
       ...config.resolve.alias,
@@ -32,11 +32,15 @@ const nextConfig = {
     }
     return config;
   },
+  eslint: {
+    ignoreDuringBuilds: true
+  },
   experimental: {
     esmExternals: "loose",
-    // optimizePackageImports: ['@bcpros/lixi-models', '@bcpros/redux-store']
-    optimizePackageImports: ['@bcpros/redux-store']
-  }
+    optimizePackageImports: ['@bcpros/lixi-models', '@bcpros/redux-store']
+    // optimizePackageImports: ['@bcpros/redux-store']
+  },
+  productionBrowserSourceMaps: true
 };
 
 const config = nextConfig;

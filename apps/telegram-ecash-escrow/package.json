@@ -10,12 +10,11 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@abcpros/bitcore-lib-xpi": "^8.25.37",
+    "@abcpros/bitcore-lib-xpi": "^8.25.43",
     "@bcpros/counter": "workspace:*",
-    "@bcpros/lixi-models": "1.1.11",
-    "@bcpros/redux-store": "1.1.11",
+    "@bcpros/lixi-models": "link:/home/tnviet/projects/lixilotus/packages/lixi-models",
+    "@bcpros/redux-store": "link:/home/ken/Work/lixi/packages/redux-store",
     "@bcpros/xpi-js": "4.0.6",
-    "@prisma/client": "^5.14.0",
     "@emotion/cache": "^11.11.0",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
@@ -23,18 +22,20 @@
     "@mui/icons-material": "^5.15.18",
     "@mui/material": "^5.15.18",
     "@mui/material-nextjs": "^5.15.11",
+    "@prisma/client": "^5.14.0",
     "@reduxjs/toolkit": "^2.2.4",
     "@rtk-query/graphql-request-base-query": "^2.3.1",
+    "@socket.io/component-emitter": "3.1.0",
+    "@tma.js/sdk": "^2.4.0",
+    "@tma.js/sdk-react": "^2.2.2",
     "axios": "^1.7.2",
     "bignumber.js": "^9.0.0",
     "chronik-client": "^0.28.0",
-    "file-saver": "^2.0.5",
     "ecashaddrjs": "^1.5.2",
+    "file-saver": "^2.0.5",
     "graphql": "^16.8.1",
     "iron-session": "^8.0.1",
     "moment": "^2.30.1",
-    "@tma.js/sdk": "^2.4.0",
-    "@tma.js/sdk-react": "^2.2.2",
     "next": "latest",
     "react": "^18",
     "react-device-detect": "^2.2.3",
@@ -44,10 +45,13 @@
     "react-redux": "^9.1.2",
     "react-swipeable-views": "^0.14.0",
     "redux": "^5.0.1",
+    "redux-deep-persist": "^1.0.7",
     "redux-persist": "^6.0.0",
     "redux-persist-indexeddb-storage": "^1.0.4",
     "redux-saga": "^1.3.0",
-    "redux-thunk": "~3.1.0"
+    "redux-thunk": "~3.1.0",
+    "socket.io-client": "^4.5.4",
+    "unique-names-generator": "^4.7.1"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.202",
@@ -57,9 +61,11 @@
     "eslint": "^8.56.0",
     "eslint-config-next": "14.2.3",
     "rimraf": "^5.0.7",
+    "source-map-loader": "^5.0.0",
     "typescript": "^5"
   },
   "resolutions": {
-    "@abcpros/bitcore-lib": "8.25.43"
+    "@abcpros/bitcore-lib": "8.25.43",
+    "@abcpros/bitcore-lib-xpi": "8.25.43"
   }
 }

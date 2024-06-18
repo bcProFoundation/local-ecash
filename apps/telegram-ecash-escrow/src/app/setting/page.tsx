@@ -1,9 +1,8 @@
 'use client';
-import LixiButton from '@/src/components/Button/LixiButton';
 import styled from '@emotion/styled';
 import { CheckCircleOutline } from '@mui/icons-material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { Accordion, AccordionDetails, AccordionSummary, Alert } from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary, Alert, Button } from '@mui/material';
 import Link from 'next/link';
 
 const ContainerSetting = styled.div`
@@ -153,8 +152,8 @@ export default function Setting() {
             </AccordionSummary>
             <AccordionDetails>
               <p className="address-string">eCash:qp8ks7622cklc7c9pm2d3ktwzctack6njq6q83ed9x</p>
-              {/* <LixiButton variant='linear' onClickItem={handleVerifyAddress}>Verify</LixiButton>	 */}
-              <LixiButton variant="linear">Verify</LixiButton>
+              {/* <Button variant='linear' onClickItem={handleVerifyAddress}>Verify</LixiButton>	 */}
+              <Button>Verify</Button>
             </AccordionDetails>
           </Accordion>
         </div>
@@ -170,7 +169,7 @@ export default function Setting() {
             </AccordionSummary>
             <AccordionDetails>
               <Link href="/backup">
-                <LixiButton variant="linear">Backup seed game</LixiButton>
+                <Button>Backup seed game</Button>
               </Link>
             </AccordionDetails>
           </Accordion>
@@ -186,8 +185,7 @@ export default function Setting() {
               <p>Click to delete account</p>
             </AccordionSummary>
             <AccordionDetails>
-              <LixiButton variant="linear">Delete</LixiButton>
-              {/* <LixiButton title="Delete" onClickItem={handleDeleteAccount} /> */}
+              <Button onClick={handleDeleteAccount}>Delete</Button>
             </AccordionDetails>
           </Accordion>
         </div>
@@ -204,7 +202,7 @@ export default function Setting() {
             </AccordionSummary>
             <AccordionDetails>
               <Link href="/import">
-                <LixiButton variant="linear">Import account</LixiButton>
+                <Button>Import account</Button>
               </Link>
             </AccordionDetails>
           </Accordion>

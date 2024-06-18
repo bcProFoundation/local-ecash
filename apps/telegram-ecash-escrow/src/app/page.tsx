@@ -2,7 +2,7 @@
 
 import { generateAccount, useSliceDispatch as useLixiSliceDispatch } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
-import { Button } from '@mui/material';
+import { LixiButton } from '../components/Common/LixiButton';
 
 const ContainerHome = styled.div`
   display: grid;
@@ -54,8 +54,14 @@ export default function Index() {
         </p>
       </FeatureEducation>
       <FunctionalBar>
-        <Button title="Create new account" onClick={() => dispatch(generateAccount({ coin: 'XPI' }))} />
-        <Button title="Import from backup" />
+        <LixiButton
+          title="Create new account"
+          classCustom="create-new-account"
+          onClickItem={() => {
+            dispatch(generateAccount({ coin: 'XPI' }));
+          }}
+        />
+        <LixiButton title="Import from backup" classCustom="no-border-btn import-backup" />
       </FunctionalBar>
     </ContainerHome>
   );

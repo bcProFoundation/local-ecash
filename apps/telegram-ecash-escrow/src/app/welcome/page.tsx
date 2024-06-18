@@ -1,6 +1,6 @@
 'use client';
-import LixiButton from '@/src/components/Button/LixiButton';
 import styled from '@emotion/styled';
+import { Button } from '@mui/material';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -61,10 +61,10 @@ export default function Home() {
       </FeatureEducation>
       <FunctionalBar>
         {/* <LixiButton title="Create new account" classCustom="create-new-account" onClickItem={() => navigateWallet()} /> */}
-        <LixiButton variant="linear">Create new account</LixiButton>
+        <Button>Create new account</Button>
 
         <Link href="/import">
-          <LixiButton variant="linear">Import from backup</LixiButton>
+          <Button>Import from backup</Button>
         </Link>
       </FunctionalBar>
     </ContainerHome>
