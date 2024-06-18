@@ -5,7 +5,7 @@ const webpack = require('webpack');
 const nextConfig = {
   reactStrictMode: true,
   pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
-  transpilePackages: ['@bcpros/redux-store'],
+  transpilePackages: ['@bcpros/lixi-models', '@bcpros/redux-store'],
   webpack(config, { defaultLoaders, isServer }) {
     config.resolve.alias = {
       ...config.resolve.alias,
