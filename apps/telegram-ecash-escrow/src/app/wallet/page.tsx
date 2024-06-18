@@ -3,7 +3,6 @@ import LixiButton from '@/src/components/Button/LixiButton';
 import styled from '@emotion/styled';
 import RemoveRedEyeOutlinedIcon from '@mui/icons-material/RemoveRedEyeOutlined';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
-import stylex from '@stylexjs/stylex';
 import Link from 'next/link';
 import { useState } from 'react';
 
@@ -316,123 +315,123 @@ export default function Wallet() {
   );
 }
 
-const transactionStyle = stylex.create({
-  container: {
-    width: '100%',
-    display: 'grid',
-    gridTemplateRows: 'auto 1fr',
-    marginTop: '1rem',
-    background: '#2c2c2c',
-    borderRadius: '1rem'
-  },
-  title: {
-    fontSize: '12px',
-    fontWeight: 400,
-    textTransform: 'uppercase',
-    padding: '1rem',
-    paddingBottom: 0
-  },
-  transactionDetail: {
-    padding: '0.5rem 0'
-  },
-  txContainer: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    border: '1px solid #383838',
-    borderLeft: 0,
-    borderRight: 0,
-    padding: '1rem',
-    background: '#333',
-    margin: '0.5rem 0'
-  },
-  txHistoryAmount: {
-    fontSize: '16px',
-    fontWeight: 500,
-    color: '#73daa5',
-    letterSpacing: '0.25px'
-  },
-  txHistoryUsername: {
-    fontSize: '14px',
-    color: '#e0e4e7',
-    letterSpacing: '0.25px',
-    marginTop: '4px'
-  },
-  dateTime: {
-    fontSize: '10px',
-    color: '#d5d5d5'
-  }
-});
+// const transactionStyle = stylex.create({
+//   container: {
+//     width: '100%',
+//     display: 'grid',
+//     gridTemplateRows: 'auto 1fr',
+//     marginTop: '1rem',
+//     background: '#2c2c2c',
+//     borderRadius: '1rem'
+//   },
+//   title: {
+//     fontSize: '12px',
+//     fontWeight: 400,
+//     textTransform: 'uppercase',
+//     padding: '1rem',
+//     paddingBottom: 0
+//   },
+//   transactionDetail: {
+//     padding: '0.5rem 0'
+//   },
+//   txContainer: {
+//     display: 'flex',
+//     justifyContent: 'space-between',
+//     alignItems: 'center',
+//     border: '1px solid #383838',
+//     borderLeft: 0,
+//     borderRight: 0,
+//     padding: '1rem',
+//     background: '#333',
+//     margin: '0.5rem 0'
+//   },
+//   txHistoryAmount: {
+//     fontSize: '16px',
+//     fontWeight: 500,
+//     color: '#73daa5',
+//     letterSpacing: '0.25px'
+//   },
+//   txHistoryUsername: {
+//     fontSize: '14px',
+//     color: '#e0e4e7',
+//     letterSpacing: '0.25px',
+//     marginTop: '4px'
+//   },
+//   dateTime: {
+//     fontSize: '10px',
+//     color: '#d5d5d5'
+//   }
+// });
 
-const balanceStyle = stylex.create({
-  container: {
-    width: '100%',
-    marginTop: '1rem',
-    alignSelf: 'flexStart'
-  },
-  balanceHeader: {
-    display: 'flex',
-    justifyContent: 'space-between'
-  },
-  titleBalance: {
-    fontSize: '18px',
-    fontWeight: 500
-  },
-  hiddenBalance: {
-    height: '24px'
-  },
-  balanceContent: {
-    textAlign: 'center',
-    padding: '2rem',
-    background: '#2c2c2c',
-    margin: '1rem 0',
-    borderRadius: '0.5rem'
-  },
-  span: {
-    fonWeight: 400,
-    fontSize: '16px',
-    letterSpacing: '0.25px',
-    opacity: '0.6'
-  },
-  svg: {
-    opacity: '0.6'
-  },
-  amount: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '4px',
-    fontSize: '26px',
-    fontWeight: '500'
-  },
-  fiatRate: {
-    fontWeight: 400,
-    fontSize: '16px',
-    letterSpacing: '0.25px',
-    opacity: 0.6
-  }
-});
+// const balanceStyle = stylex.create({
+//   container: {
+//     width: '100%',
+//     marginTop: '1rem',
+//     alignSelf: 'flexStart'
+//   },
+//   balanceHeader: {
+//     display: 'flex',
+//     justifyContent: 'space-between'
+//   },
+//   titleBalance: {
+//     fontSize: '18px',
+//     fontWeight: 500
+//   },
+//   hiddenBalance: {
+//     height: '24px'
+//   },
+//   balanceContent: {
+//     textAlign: 'center',
+//     padding: '2rem',
+//     background: '#2c2c2c',
+//     margin: '1rem 0',
+//     borderRadius: '0.5rem'
+//   },
+//   span: {
+//     fonWeight: 400,
+//     fontSize: '16px',
+//     letterSpacing: '0.25px',
+//     opacity: '0.6'
+//   },
+//   svg: {
+//     opacity: '0.6'
+//   },
+//   amount: {
+//     display: 'flex',
+//     alignItems: 'center',
+//     justifyContent: 'center',
+//     gap: '4px',
+//     fontSize: '26px',
+//     fontWeight: '500'
+//   },
+//   fiatRate: {
+//     fontWeight: 400,
+//     fontSize: '16px',
+//     letterSpacing: '0.25px',
+//     opacity: 0.6
+//   }
+// });
 
-const style = stylex.create({
-  walletInfoContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    padding: '1rem'
-  },
-  currencyInfo: {
-    textAlign: 'center'
-  },
-  curencyImage: {
-    width: '96px',
-    height: '96px'
-  },
-  groupActionWallet: {
-    width: '100%',
-    display: 'flex',
-    gap: '8px'
-  },
-  link: {
-    width: '100%'
-  }
-});
+// const style = stylex.create({
+//   walletInfoContainer: {
+//     display: 'flex',
+//     flexDirection: 'column',
+//     alignItems: 'center',
+//     padding: '1rem'
+//   },
+//   currencyInfo: {
+//     textAlign: 'center'
+//   },
+//   curencyImage: {
+//     width: '96px',
+//     height: '96px'
+//   },
+//   groupActionWallet: {
+//     width: '100%',
+//     display: 'flex',
+//     gap: '8px'
+//   },
+//   link: {
+//     width: '100%'
+//   }
+// });

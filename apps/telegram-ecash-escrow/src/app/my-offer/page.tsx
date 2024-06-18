@@ -1,9 +1,8 @@
 'use client';
-import { TabType } from '@/src/lib/constants';
+import { TabType } from '@/src/store/constants';
 import { AddCircleOutline } from '@mui/icons-material';
 import { Box, Tab, Tabs, Typography } from '@mui/material';
 import { useState } from 'react';
-//@ts-expect-error: no .ts file. Package is deprecated
 import SwipeableViews from 'react-swipeable-views';
 import Fab from '../../components/Fab';
 
