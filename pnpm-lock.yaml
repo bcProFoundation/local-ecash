@@ -52,8 +52,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/counter
       '@bcpros/lixi-models':
-        specifier: link:/home/tnviet/projects/lixilotus/packages/lixi-models
-        version: link:../../../../../tnviet/projects/lixilotus/packages/lixi-models
+        specifier: link:/home/ken/Work/lixi/packages/lixi-models
+        version: link:../../../lixi/packages/lixi-models
       '@bcpros/redux-store':
         specifier: link:/home/ken/Work/lixi/packages/redux-store
         version: link:../../../lixi/packages/redux-store

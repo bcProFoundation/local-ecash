@@ -1,5 +1,6 @@
 import { counterReducer } from '@bcpros/counter';
 import {
+  WalletState,
   accountReducer,
   actionReducer,
   actionSheetReducer,
@@ -25,10 +26,17 @@ import {
   walletStateReducer
 } from '@bcpros/redux-store';
 import { combineReducers } from '@reduxjs/toolkit';
+import { PersistConfig, persistReducer } from 'redux-persist';
+import storage from './storage';
+
+const walletPersistConfig: PersistConfig<WalletState> = {
+  key: 'wallet',
+  storage
+};
 
 const reducer = combineReducers({
   counter: counterReducer,
-  wallet: walletStateReducer,
+  wallet: persistReducer(walletPersistConfig, walletStateReducer),
   accounts: accountReducer,
   localAccounts: localUserAccountReducer,
   posts: postReducer,

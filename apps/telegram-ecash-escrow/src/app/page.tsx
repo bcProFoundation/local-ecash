@@ -58,7 +58,7 @@ export default function Index() {
           title="Create new account"
           classCustom="create-new-account"
           onClickItem={() => {
-            dispatch(generateAccount({ coin: 'XPI' }));
+            dispatch(generateAccount({ coin: 'XEC' }));
           }}
         />
         <LixiButton title="Import from backup" classCustom="no-border-btn import-backup" />

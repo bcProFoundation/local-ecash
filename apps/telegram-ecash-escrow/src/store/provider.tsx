@@ -9,12 +9,13 @@ import {
   callConfig
 } from '@bcpros/redux-store';
 import { Box, CircularProgress } from '@mui/material';
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import OutsideCallConsumer from 'react-outside-call';
 import { Provider } from 'react-redux';
 import { persistStore, type Persistor } from 'redux-persist';
 import { PersistGate } from 'redux-persist/integration/react';
 import { AppStore, makeStore } from './store';
+import { setupListeners } from "@reduxjs/toolkit/query";
 
 const PGate = PersistGate as any;
 
@@ -24,11 +25,11 @@ interface ReduxProviderProps {
 
 const LoadingComponent = () => {
   return (
-    <>
+    <React.Fragment>
       <Box sx={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <CircularProgress color="primary" />
       </Box>
-    </>
+    </React.Fragment>
   );
 };
 
@@ -39,6 +40,16 @@ const ReduxProvider: React.FC<ReduxProviderProps> = ({ children }) => {
     storeRef.current = makeStore();
     persistorRef.current = persistStore(storeRef.current);
   }
+  useEffect(() => {
+    if (storeRef.current != null) {
+      // configure listeners using the provided defaults
+      // optional, but required for `refetchOnFocus`/`refetchOnReconnect` behaviors
+      const unsubscribe = setupListeners(storeRef.current.dispatch);
+
+      return unsubscribe;
+    }
+  }, []);
+
 
   return (
     <Provider store={storeRef.current}>
