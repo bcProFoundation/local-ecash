@@ -17,16 +17,16 @@ import theme from '../theme/theme';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ReduxProvider>
-      <html lang="en">
-        <body>
+    <html lang="en">
+      <body>
+        <ReduxProvider>
           <SDKProvider acceptCustomStyles debug>
-              <AppRouterCacheProvider>
-                <ThemeProvider theme={theme}>{children}</ThemeProvider>
-              </AppRouterCacheProvider> 
+            <AppRouterCacheProvider>
+              <ThemeProvider theme={theme}>{children}</ThemeProvider>
+            </AppRouterCacheProvider>
           </SDKProvider>
-        </body>
-      </html>
-    </ReduxProvider>
+        </ReduxProvider>
+      </body>
+    </html>
   );
 }

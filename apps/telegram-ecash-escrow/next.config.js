@@ -3,7 +3,7 @@ const path = require('path');
 const webpack = require('webpack');
 
 const nextConfig = {
-  reactStrictMode: true,
+  reactStrictMode: false,
   pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
   transpilePackages: ['@bcpros/lixi-models', '@bcpros/redux-store'],
   webpack(config, { defaultLoaders, isServer }) {

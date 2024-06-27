@@ -9,13 +9,13 @@ import {
   callConfig
 } from '@bcpros/redux-store';
 import { Box, CircularProgress } from '@mui/material';
+import { setupListeners } from '@reduxjs/toolkit/query';
 import React, { useEffect, useRef } from 'react';
 import OutsideCallConsumer from 'react-outside-call';
 import { Provider } from 'react-redux';
 import { persistStore, type Persistor } from 'redux-persist';
 import { PersistGate } from 'redux-persist/integration/react';
 import { AppStore, makeStore } from './store';
-import { setupListeners } from "@reduxjs/toolkit/query";
 
 const PGate = PersistGate as any;
 
@@ -50,13 +50,9 @@ const ReduxProvider: React.FC<ReduxProviderProps> = ({ children }) => {
     }
   }, []);
 
-
   return (
     <Provider store={storeRef.current}>
-      <PGate
-        persistor={persistorRef.current}
-        loading={(bootstrapped: boolean) => (bootstrapped ? null : LoadingComponent())}
-      >
+      <PGate persistor={persistorRef.current} loading={<LoadingComponent />}>
         <SocketProvider>
           <ServiceWorkerProvider>
             <WalletProvider>
