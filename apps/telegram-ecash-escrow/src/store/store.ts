@@ -56,6 +56,7 @@ export const makeStore = () => {
 
   const store = configureStore({
     reducer: persistedReducer,
+    //@ts-expect-error: fix later
     middleware: (getDefaultMiddleware) => {
       return getDefaultMiddleware({
         serializableCheck: {
