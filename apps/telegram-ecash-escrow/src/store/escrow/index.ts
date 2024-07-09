@@ -1,3 +1,4 @@
+import { Utxo } from 'chronik-client';
 import {
   ALL_BIP143,
   Ecc,
@@ -17,7 +18,9 @@ import {
   OP_IF,
   OP_SWAP,
   OP_TOALTSTACK,
+  P2PKHSignatory,
   Script,
+  TxBuilder,
   UnsignedTxInput,
   fromHex,
   pushBytesOp,
@@ -185,4 +188,45 @@ export const ArbiReturnSignatory = (arbiSk: Uint8Array, arbiPk: Uint8Array, sell
       pushBytesOp(preimage.redeemScript.bytecode)
     ]);
   };
+};
+
+export const buildDepositTx = (
+  sellerUtxos: Array<Utxo & { address: string }>,
+  sellerSk: Uint8Array,
+  sellerPk: Uint8Array,
+  amountToSend: number,
+  escrowScript: Script
+): Uint8Array => {
+  const ecc = new Ecc();
+  const sellerP2pkh = Script.p2pkh(shaRmd160(sellerPk));
+  const escrowP2sh = Script.p2sh(shaRmd160(escrowScript.bytecode));
+
+  const utxos = sellerUtxos.map((utxo) => {
+    return {
+      input: {
+        prevOut: {
+          outIdx: utxo.outpoint.outIdx,
+          txid: utxo.outpoint.txid
+        },
+        signData: {
+          value: Number(utxo.value),
+          outputScript: sellerP2pkh
+        }
+      },
+      signatory: P2PKHSignatory(sellerSk, sellerPk, ALL_BIP143)
+    };
+  });
+
+  const txBuild = new TxBuilder({
+    inputs: utxos,
+    outputs: [
+      {
+        value: amountToSend,
+        script: escrowP2sh
+      },
+      sellerP2pkh
+    ]
+  });
+
+  return txBuild.sign(ecc, 1000, 546).ser();
 };
