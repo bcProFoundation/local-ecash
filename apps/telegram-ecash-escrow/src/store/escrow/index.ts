@@ -190,7 +190,7 @@ export const ArbiReturnSignatory = (arbiSk: Uint8Array, arbiPk: Uint8Array, sell
   };
 };
 
-export const buildDepositTx = (
+export const sellerBuildDepositTx = (
   sellerUtxos: Array<Utxo & { address: string }>,
   sellerSk: Uint8Array,
   sellerPk: Uint8Array,
@@ -227,6 +227,86 @@ export const buildDepositTx = (
       sellerP2pkh
     ]
   });
+
+  return txBuild.sign(ecc, 1000, 546).ser();
+};
+
+export const buyerBuildDepositTx = (
+  buyerUtxos: Array<Utxo & { address: string }>,
+  buyerSk: Uint8Array,
+  buyerPk: Uint8Array,
+  advancePaymentAmount: number
+): TxBuilder => {
+  const buyerP2pkh = Script.p2pkh(shaRmd160(buyerPk));
+
+  const utxos = buyerUtxos.map((utxo) => {
+    return {
+      input: {
+        prevOut: {
+          outIdx: utxo.outpoint.outIdx,
+          txid: utxo.outpoint.txid
+        },
+        signData: {
+          value: Number(utxo.value),
+          outputScript: buyerP2pkh
+        }
+      },
+      signatory: P2PKHSignatory(buyerSk, buyerPk, ALL_BIP143)
+    };
+  });
+
+  const txBuild = new TxBuilder({
+    inputs: utxos,
+    outputs: [
+      {
+        value: advancePaymentAmount,
+        script: buyerP2pkh
+      },
+      buyerP2pkh
+    ]
+  });
+
+  return txBuild;
+};
+
+export const sellerDepositAndBuildTx = (
+  sellerUtxos: Array<Utxo & { address: string }>,
+  sellerSk: Uint8Array,
+  sellerPk: Uint8Array,
+  depositAmount: number,
+  txBuild: TxBuilder,
+  escrowScript: Script
+): Uint8Array => {
+  const ecc = new Ecc();
+  const sellerP2pkh = Script.p2pkh(shaRmd160(sellerPk));
+  const escrowP2sh = Script.p2sh(shaRmd160(escrowScript.bytecode));
+
+  const utxos = sellerUtxos.map((utxo) => {
+    return {
+      input: {
+        prevOut: {
+          outIdx: utxo.outpoint.outIdx,
+          txid: utxo.outpoint.txid
+        },
+        signData: {
+          value: Number(utxo.value),
+          outputScript: sellerP2pkh
+        }
+      },
+      signatory: P2PKHSignatory(sellerSk, sellerPk, ALL_BIP143)
+    };
+  });
+
+  txBuild.inputs = [...txBuild.inputs, ...utxos];
+
+  txBuild.outputs = [
+    ...txBuild.outputs,
+    {
+      value: depositAmount,
+      script: escrowP2sh
+    },
+    sellerP2pkh
+  ];
 
   return txBuild.sign(ecc, 1000, 546).ser();
 };
