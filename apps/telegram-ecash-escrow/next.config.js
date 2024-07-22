@@ -3,10 +3,17 @@ const path = require('path');
 const webpack = require('webpack');
 
 const nextConfig = {
-  reactStrictMode: true,
+  reactStrictMode: false,
   pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
-  transpilePackages: ['@bcpros/redux-store'],
+  transpilePackages: ['@bcpros/lixi-models', '@bcpros/redux-store'],
   webpack(config, { defaultLoaders, isServer }) {
+
+    config.module.rules.push({
+      test: /\.m?js$/i,
+      use: ['source-map-loader'],
+      enforce: 'pre'
+    });
+
     config.resolve.alias = {
       ...config.resolve.alias,
       '@store': path.resolve(__dirname, "node_modules/@bcpros/redux-store/build/main/store"),
@@ -32,11 +39,15 @@ const nextConfig = {
     }
     return config;
   },
+  eslint: {
+    ignoreDuringBuilds: true
+  },
   experimental: {
     esmExternals: "loose",
-    // optimizePackageImports: ['@bcpros/lixi-models', '@bcpros/redux-store']
-    optimizePackageImports: ['@bcpros/redux-store']
-  }
+    optimizePackageImports: ['@bcpros/lixi-models', '@bcpros/redux-store']
+    // optimizePackageImports: ['@bcpros/redux-store']
+  },
+  productionBrowserSourceMaps: true
 };
 
 const config = nextConfig;

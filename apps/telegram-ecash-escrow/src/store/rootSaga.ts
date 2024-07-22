@@ -1,6 +1,52 @@
-import { countWatcher } from '@bcpros/counter';
+import {
+  accountSaga,
+  analyticEventSaga,
+  burnSaga,
+  categorySaga,
+  claimSaga,
+  commentSaga,
+  countrySaga,
+  envelopeSaga,
+  lixiSaga,
+  localAccountSaga,
+  messageSaga,
+  notificationSaga,
+  pageSaga,
+  postSaga,
+  sendSaga,
+  settingsSaga,
+  tokenSaga,
+  walletSaga,
+  webpushSaga,
+  websocketSaga
+} from '@bcpros/redux-store';
 import { all } from 'redux-saga/effects';
 
+export function* emptySaga() {
+  yield all([]);
+}
+
 export default function* rootSaga() {
-  yield all([countWatcher]);
+  yield all([
+    walletSaga(),
+    localAccountSaga(),
+    accountSaga(),
+    lixiSaga(),
+    sendSaga(),
+    claimSaga(),
+    envelopeSaga(),
+    settingsSaga(),
+    notificationSaga(),
+    webpushSaga(),
+    pageSaga(),
+    postSaga(),
+    commentSaga(),
+    countrySaga(),
+    tokenSaga(),
+    burnSaga(),
+    categorySaga(),
+    messageSaga(),
+    websocketSaga(),
+    analyticEventSaga()
+  ]);
 }

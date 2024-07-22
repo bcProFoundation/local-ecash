@@ -1,8 +1,8 @@
 'use client';
-
-import { generateAccount, useSliceDispatch as useLixiSliceDispatch } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
-import { LixiButton } from '../components/Common/LixiButton';
+import { Button } from '@mui/material';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 const ContainerHome = styled.div`
   display: grid;
@@ -40,13 +40,19 @@ const FunctionalBar = styled.div`
   row-gap: 0.5rem;
 `;
 
-export default function Index() {
-  const dispatch = useLixiSliceDispatch();
+export default function Home() {
+  const router = useRouter();
+
+  const navigateWallet = () => {
+    router.push('/wallet');
+  };
 
   return (
     <ContainerHome>
       <FeatureEducation>
-        <img className="feature-banner" src="/lixi-credit.svg" alt="" />
+        <picture>
+          <img className="feature-banner" src="/lixi-credit.svg" alt="" />
+        </picture>
         <h3 className="feature-title">Control your money without an account</h3>
         <p className="feature-subtitle">
           Lixi app allows you to privately store, manage, and use your crypto funds without having to trust a
@@ -54,14 +60,12 @@ export default function Index() {
         </p>
       </FeatureEducation>
       <FunctionalBar>
-        <LixiButton
-          title="Create new account"
-          classCustom="create-new-account"
-          onClickItem={() => {
-            dispatch(generateAccount({ coin: 'XEC' }));
-          }}
-        />
-        <LixiButton title="Import from backup" classCustom="no-border-btn import-backup" />
+        {/* <LixiButton title="Create new account" classCustom="create-new-account" onClickItem={() => navigateWallet()} /> */}
+        <Button>Create new account</Button>
+
+        <Link href="/import">
+          <Button>Import from backup</Button>
+        </Link>
       </FunctionalBar>
     </ContainerHome>
   );
