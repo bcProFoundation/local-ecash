@@ -18,7 +18,7 @@ import theme from '../theme/theme';
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>
+      <body style={{ background: '#04080F', margin: '0' }}>
         <ReduxProvider>
           <SDKProvider acceptCustomStyles debug>
             <AppRouterCacheProvider>

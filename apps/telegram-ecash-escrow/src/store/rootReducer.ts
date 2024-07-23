@@ -1,4 +1,4 @@
-import { counterReducer } from '@bcpros/counter';
+// import { counterReducer } from '@bcpros/counter';
 import {
   WalletState,
   accountReducer,
@@ -35,7 +35,7 @@ const walletPersistConfig: PersistConfig<WalletState> = {
 };
 
 const reducer = combineReducers({
-  counter: counterReducer,
+  // counter: counterReducer,
   wallet: persistReducer(walletPersistConfig, walletStateReducer),
   accounts: accountReducer,
   localAccounts: localUserAccountReducer,
