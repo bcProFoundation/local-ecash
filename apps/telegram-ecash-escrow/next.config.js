@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const path = require('path');
 const webpack = require('webpack');
+const CopyPlugin = require('copy-webpack-plugin')
 
 const nextConfig = {
   reactStrictMode: false,
@@ -20,6 +21,9 @@ const nextConfig = {
       '@bcpros/redux-store': path.resolve(__dirname, "node_modules/@bcpros/redux-store"),
       "@nestjs/graphql": path.resolve(__dirname, "node_modules/@nestjs/graphql/dist/extra/graphql-model-shim"),
     };
+
+    config.experiments = { asyncWebAssembly: true, syncWebAssembly: true, layers: true };
+
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -34,8 +38,27 @@ const nextConfig = {
         "stream": false,
         "crypto": false,
         "async_hooks": false,
-        "child_process": false
+        "child_process": false,
       }
+    } else {
+      // This line is necessary to avoid the error 
+      // Error: ENOENT: no such file or directory, 
+      // '/home/ken/Work/ecash-escrow/apps/telegram-ecash-escrow/
+      //      .next/server/vendor-chunks/ecash_lib_wasm_bg_nodejs.wasm'
+      config.plugins.push(
+        new CopyPlugin({
+          patterns: [
+            {
+              from: path.resolve(__dirname, 'node_modules/ecash-lib/dist/ffi/ecash_lib_wasm_bg_nodejs.wasm'),
+              to: path.resolve(__dirname, '.next/server/chunks/ecash_lib_wasm_bg_nodejs.wasm'),
+            },
+            {
+              from: path.resolve(__dirname, 'node_modules/ecash-lib/dist/ffi/ecash_lib_wasm_bg_nodejs.wasm'),
+              to: path.resolve(__dirname, '.next/server/vendor-chunks/ecash_lib_wasm_bg_nodejs.wasm'),
+            },
+          ],
+        })
+      );
     }
     return config;
   },
