@@ -1,7 +1,6 @@
 'use client';
+import { Info } from '@/src/components/info';
 import styled from '@emotion/styled';
-import { Button } from '@mui/material';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 const ContainerHome = styled.div`
@@ -49,24 +48,14 @@ export default function Home() {
 
   return (
     <ContainerHome>
-      <FeatureEducation>
-        <picture>
-          <img className="feature-banner" src="/lixi-credit.svg" alt="" />
-        </picture>
-        <h3 className="feature-title">Control your money without an account</h3>
-        <p className="feature-subtitle">
-          Lixi app allows you to privately store, manage, and use your crypto funds without having to trust a
-          centralized bank or exchange
-        </p>
-      </FeatureEducation>
-      <FunctionalBar>
-        {/* <LixiButton title="Create new account" classCustom="create-new-account" onClickItem={() => navigateWallet()} /> */}
-        <Button>Create new account</Button>
-
-        <Link href="/import">
-          <Button>Import from backup</Button>
-        </Link>
-      </FunctionalBar>
+      <Info botUsername={`${process.env.NEXT_PUBLIC_BOT_USERNAME}`} />
+      {/* <LoginButton
+        botUsername={'test2212231_bot'}
+        onAuthCallback={(data) => {
+          console.log(data);
+          // call your backend here to validate the data and sign in the user
+        }}
+      /> */}
     </ContainerHome>
   );
 }

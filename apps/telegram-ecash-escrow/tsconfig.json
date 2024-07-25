@@ -1,10 +1,6 @@
 {
   "compilerOptions": {
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "baseUrl": ".",
     "allowJs": true,
     "skipLibCheck": true,
@@ -24,29 +20,14 @@
     ],
     "incremental": true,
     "paths": {
-      "@store/*": [
-        "@bcpros/redux-store/*"
-      ],
-      "@/*": [
-        "./*"
-      ]
+      "@store/*": ["@bcpros/redux-store/*"],
+      "@/*": ["./*"]
     },
-    "typeRoots": [
-      "./src/@types",
-      "./node_modules/@types"
-    ],
-    "strict": false
+    "typeRoots": ["./src/@types", "./node_modules/@types"],
+    "strict": false,
+    "strictNullChecks": true
   },
-  "types": [
-    "redux-persist"
-  ],
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "types": ["redux-persist"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/api/auth/[...nextauth]"],
+  "exclude": ["node_modules"]
 }

@@ -26,6 +26,8 @@
     "@reduxjs/toolkit": "^2.2.4",
     "@rtk-query/graphql-request-base-query": "^2.3.1",
     "@socket.io/component-emitter": "3.1.0",
+    "@telegram-auth/react": "^1.0.3",
+    "@telegram-auth/server": "^1.0.3",
     "@tma.js/sdk": "^2.4.0",
     "@tma.js/sdk-react": "^2.2.2",
     "axios": "^1.7.2",
@@ -37,6 +39,7 @@
     "iron-session": "^8.0.1",
     "moment": "^2.30.1",
     "next": "latest",
+    "next-auth": "^4.24.7",
     "react": "^18",
     "react-device-detect": "^2.2.3",
     "react-dom": "^18",
@@ -64,6 +67,5 @@
     "source-map-loader": "^5.0.0",
     "typescript": "^5"
   },
-  "resolutions": {
-  }
+  "resolutions": {}
 }
