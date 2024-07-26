@@ -2,8 +2,8 @@
 
 import styled from '@emotion/styled';
 import { HomeOutlined, SettingsOutlined } from '@mui/icons-material';
+import InventoryOutlinedIcon from '@mui/icons-material/InventoryOutlined';
 import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined';
-import StorefrontOutlinedIcon from '@mui/icons-material/StorefrontOutlined';
 import SupportAgentOutlinedIcon from '@mui/icons-material/SupportAgentOutlined';
 import { IconButton, Typography } from '@mui/material';
 
@@ -26,6 +26,7 @@ const TabMenu = styled.div`
   text-align: center;
 
   button {
+    padding-bottom: 4px;
     color: #696f74;
     svg {
       font-size: 28px;
@@ -60,15 +61,15 @@ export default function Footer() {
       </TabMenu>
       <TabMenu>
         <IconButton>
-          <StorefrontOutlinedIcon />
+          <LocalOfferOutlinedIcon />
         </IconButton>
-        <Typography variant="body2">Offer</Typography>
+        <Typography variant="body2">Offers</Typography>
       </TabMenu>
       <TabMenu>
         <IconButton>
-          <LocalOfferOutlinedIcon />
+          <InventoryOutlinedIcon />
         </IconButton>
-        <Typography variant="body2">Order</Typography>
+        <Typography variant="body2">Orders</Typography>
       </TabMenu>
       <TabMenu>
         <IconButton>
