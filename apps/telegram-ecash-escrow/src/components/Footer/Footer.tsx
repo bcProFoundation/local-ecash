@@ -2,9 +2,9 @@
 
 import styled from '@emotion/styled';
 import { HomeOutlined, SettingsOutlined } from '@mui/icons-material';
+import GavelOutlinedIcon from '@mui/icons-material/GavelOutlined';
 import InventoryOutlinedIcon from '@mui/icons-material/InventoryOutlined';
 import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined';
-import SupportAgentOutlinedIcon from '@mui/icons-material/SupportAgentOutlined';
 import { IconButton, Typography } from '@mui/material';
 
 const Tabs = styled.div`
@@ -73,7 +73,7 @@ export default function Footer() {
       </TabMenu>
       <TabMenu>
         <IconButton>
-          <SupportAgentOutlinedIcon />
+          <GavelOutlinedIcon />
         </IconButton>
         <Typography variant="body2">Dispute</Typography>
       </TabMenu>
