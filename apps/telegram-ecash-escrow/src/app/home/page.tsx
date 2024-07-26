@@ -14,6 +14,8 @@ const HomePage = styled.div`
   background-image: url('/shape-reg.svg');
   background-repeat: no-repeat;
   padding: 1rem;
+  padding-bottom: 96px;
+  min-height: 100svh;
 
   .shape-reg-footer {
     position: absolute;
