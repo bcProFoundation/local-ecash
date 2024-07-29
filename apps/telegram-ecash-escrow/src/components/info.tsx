@@ -1,8 +1,11 @@
 'use client';
-import { User } from '@/pages/api/auth/[...nextauth]';
-import { Box, Button, Card, CardActions, CardContent, Skeleton, Stack } from '@mui/material';
-import { LoginButton } from '@telegram-auth/react';
-import { signIn, signOut, useSession } from 'next-auth/react';
+import { generateAccount, useSliceDispatch as useLixiSliceDispatch } from '@bcpros/redux-store';
+import axiosClient from '@bcpros/redux-store/build/main/utils/axiosClient';
+import { Box, Skeleton } from '@mui/material';
+import { LoginButton, TelegramAuthData } from '@telegram-auth/react';
+import { signIn, useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import React from 'react';
 
 function LoadingPlaceholder() {
   return (
@@ -13,54 +16,37 @@ function LoadingPlaceholder() {
 }
 
 export function Info({ botUsername }: { botUsername: string }) {
-  const { data: session, status } = useSession();
-  console.log('🚀 ~ Info ~ session.id:', session);
+  const { status } = useSession();
+  const router = useRouter();
+  const dispatch = useLixiSliceDispatch();
 
   if (status === 'loading') {
     return <LoadingPlaceholder />;
   }
 
-  const user = session?.user as User;
-
-  if (status === 'authenticated') {
-    return (
-      <Card>
-        {user?.image ? (
-          <picture>
-            <img src={user?.image} alt="" />
-          </picture>
-        ) : null}
-        <Stack>
-          <div>You are signed in as {user.name}</div>
-
-          <Button
-            onClick={() => {
-              signOut();
-            }}
-          >
-            {'Sign out'}
-          </Button>
-        </Stack>
-      </Card>
-    );
-  }
-
   return (
-    <Card>
-      <CardContent>
-        <h1>Hello</h1>
-        You are not signed in
-      </CardContent>
-      <CardActions>
+    <React.Fragment>
+      {status === 'unauthenticated' ? (
         <LoginButton
           botUsername={botUsername}
           showAvatar={true}
-          onAuthCallback={(data) => {
-            console.log('🚀 ~ Info ~ data:', data);
-            signIn('telegram-login', { redirect: false }, data as any);
+          onAuthCallback={async (data: TelegramAuthData) => {
+            try {
+              await axiosClient.get(`/api/accounts/telegram/${data.id}`);
+              signIn('telegram-login', { redirect: false }, data as any);
+
+              router.push(`/import?id=${data.id}`);
+            } catch {
+              dispatch(generateAccount({ coin: 'XEC', telegramId: data.id.toString() }));
+              signIn('telegram-login', { redirect: false }, data as any);
+
+              router.push('/home');
+            }
           }}
         />
-      </CardActions>
-    </Card>
+      ) : (
+        <h1 style={{ color: 'white' }}>You already signed in</h1>
+      )}
+    </React.Fragment>
   );
 }
