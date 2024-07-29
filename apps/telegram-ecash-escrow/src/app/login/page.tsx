@@ -1,7 +1,20 @@
 'use client';
-import { Info } from '@/src/components/info';
+import { generateAccount, useSliceDispatch as useLixiSliceDispatch } from '@bcpros/redux-store';
+import axiosClient from '@bcpros/redux-store/build/main/utils/axiosClient';
 import styled from '@emotion/styled';
+import { Box, Skeleton } from '@mui/material';
+import { LoginButton, TelegramAuthData } from '@telegram-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import React from 'react';
+
+function LoadingPlaceholder() {
+  return (
+    <Box padding="6">
+      <Skeleton variant="rectangular" />
+    </Box>
+  );
+}
 
 const ContainerHome = styled.div`
   display: grid;
@@ -40,22 +53,37 @@ const FunctionalBar = styled.div`
 `;
 
 export default function Home() {
+  const { status } = useSession();
   const router = useRouter();
+  const dispatch = useLixiSliceDispatch();
 
-  const navigateWallet = () => {
-    router.push('/wallet');
-  };
+  if (status === 'loading') {
+    return <LoadingPlaceholder />;
+  }
+
+  if (status === 'authenticated') {
+    return <h1 style={{ color: 'white' }}>You already signed in</h1>;
+  }
 
   return (
-    <ContainerHome>
-      <Info botUsername={`${process.env.NEXT_PUBLIC_BOT_USERNAME}`} />
-      {/* <LoginButton
-        botUsername={'test2212231_bot'}
-        onAuthCallback={(data) => {
-          console.log(data);
-          // call your backend here to validate the data and sign in the user
+    <React.Fragment>
+      <h1 style={{ color: 'white' }}>Please login</h1>
+      <LoginButton
+        botUsername={process.env.NEXT_PUBLIC_BOT_USERNAME!}
+        onAuthCallback={async (data: TelegramAuthData) => {
+          try {
+            await axiosClient.get(`/api/accounts/telegram/${data.id}`);
+            signIn('telegram-login', { redirect: false }, data as any);
+
+            router.push(`/import?id=${data.id}`);
+          } catch {
+            dispatch(generateAccount({ coin: 'XEC', telegramId: data.id.toString() }));
+            signIn('telegram-login', { redirect: false }, data as any);
+
+            router.push('/home');
+          }
         }}
-      /> */}
-    </ContainerHome>
+      />
+    </React.Fragment>
   );
 }

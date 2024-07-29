@@ -3,8 +3,10 @@
 import styled from '@emotion/styled';
 import ArrowCircleUpRoundedIcon from '@mui/icons-material/ArrowCircleUpRounded';
 import { Button, IconButton, Typography } from '@mui/material';
+import { useSession } from 'next-auth/react';
 import Image from 'next/image';
-import { useState } from 'react';
+import React, { useState } from 'react';
+import useAuthorization from '../Auth/use-authorization.hooks';
 import PlaceAnOrderModal from '../PlaceAnOrderModal/PlaceAnOrderModal';
 
 const OfferItemWrap = styled.div`
@@ -57,9 +59,21 @@ const OfferItemWrap = styled.div`
 
 export default function OfferItem() {
   const [open, setOpen] = useState<boolean>(false);
+  const { status } = useSession();
+  const askAuthorization = useAuthorization();
+
+  const handleBuyClick = () => {
+    if (status === 'loading') return;
+
+    if (status === 'unauthenticated') {
+      askAuthorization();
+    } else {
+      setOpen(true);
+    }
+  };
 
   return (
-    <>
+    <React.Fragment>
       <OfferItemWrap>
         <div className="push-offer-wrap">
           <Typography variant="body2">
@@ -88,7 +102,7 @@ export default function OfferItem() {
           <Typography variant="body2">
             <span className="prefix">Price: </span>USD 50/ 1M XEC
           </Typography>
-          <Button className="place-order-btn" color="success" variant="contained" onClick={() => setOpen(true)}>
+          <Button className="place-order-btn" color="success" variant="contained" onClick={() => handleBuyClick()}>
             Buy
             <Image width={25} height={25} src="/eCash.svg" alt="" />
           </Button>
@@ -96,6 +110,6 @@ export default function OfferItem() {
       </OfferItemWrap>
 
       <PlaceAnOrderModal isOpen={open} onDissmissModal={(value) => setOpen(value)} />
-    </>
+    </React.Fragment>
   );
 }
