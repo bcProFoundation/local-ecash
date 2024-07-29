@@ -4,6 +4,8 @@ import styled from '@emotion/styled';
 import { FilterAltOutlined } from '@mui/icons-material';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import { IconButton, Typography } from '@mui/material';
+import React, { useState } from 'react';
+import FilterOfferModal from '../FilterOfferModal/FilterOfferModal';
 
 const TopSectionWrap = styled.div`
   padding: 12px 8px;
@@ -24,23 +26,31 @@ const TopSectionWrap = styled.div`
   }
 `;
 
-export default function TopSection() {
+const TopSection: React.FC = () => {
+  const [open, setOpen] = useState<boolean>(false);
+
   return (
-    <TopSectionWrap>
-      <div className="location-wrap">
-        <div>
-          <IconButton>
-            <LocationOnOutlinedIcon />
-          </IconButton>
-          <Typography variant="body2">HCM, Vietnam</Typography>
+    <>
+      <TopSectionWrap>
+        <div className="location-wrap">
+          <div onClick={() => setOpen(true)}>
+            <IconButton size="large">
+              <LocationOnOutlinedIcon />
+            </IconButton>
+            <Typography variant="body2">HCM, Vietnam</Typography>
+          </div>
+          <div onClick={() => setOpen(true)}>
+            <IconButton>
+              <FilterAltOutlined />
+            </IconButton>
+            <Typography variant="body2">Bank transfer</Typography>
+          </div>
         </div>
-        <div>
-          <IconButton>
-            <FilterAltOutlined />
-          </IconButton>
-          <Typography variant="body2">Bank transfer</Typography>
-        </div>
-      </div>
-    </TopSectionWrap>
+      </TopSectionWrap>
+
+      <FilterOfferModal isOpen={open} onDissmissModal={(value) => setOpen(value)} />
+    </>
   );
-}
+};
+
+export default TopSection;
