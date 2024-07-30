@@ -1,5 +1,4 @@
 import {
-  accountSaga,
   analyticEventSaga,
   burnSaga,
   categorySaga,
@@ -20,6 +19,7 @@ import {
   webpushSaga,
   websocketSaga
 } from '@bcpros/redux-store';
+import { accountSaga } from '@bcpros/redux-store/build/main/store/account';
 import { all } from 'redux-saga/effects';
 
 export function* emptySaga() {
