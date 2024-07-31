@@ -204,10 +204,10 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = (props) => {
     <StyledDialog
       fullScreen={fullScreen}
       open={props.isOpen}
-      onClose={() => props.onDissmissModal(false)}
+      onClose={() => props.onDissmissModal!(false)}
       TransitionComponent={Transition}
     >
-      <IconButton className="back-btn" onClick={() => props.onDissmissModal(false)}>
+      <IconButton className="back-btn" onClick={() => props.onDissmissModal!(false)}>
         <ChevronLeft />
       </IconButton>
       <DialogTitle>Place an order</DialogTitle>
@@ -283,7 +283,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = (props) => {
           className="confirm-btn"
           color="info"
           variant="contained"
-          onClick={() => props.onDissmissModal(false)}
+          onClick={() => props.onDissmissModal!(false)}
           autoFocus
         >
           Create

@@ -30,10 +30,13 @@ export const authOptions: NextAuthOptions = {
         const data = objectToAuthDataMap(req.query || {});
         const user = await validator.validate(data);
 
+        const fullname = !_.isEmpty(user.last_name) ? [user.first_name, user.last_name].join(' ') : user.first_name;
+        const username = !_.isEmpty(user.username) ? user.username : fullname;
+
         if (user.id && user.first_name) {
           return {
             id: user.id.toString(),
-            name: !_.isEmpty(user.last_name) ? [user.first_name, user.last_name].join(' ') : user.first_name,
+            name: username,
             image: user.photo_url
           };
         }

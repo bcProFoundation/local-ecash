@@ -1,5 +1,5 @@
 'use client';
-import { importAccount, useSliceDispatch as useLixiSliceDispatch } from '@bcpros/redux-store';
+import { generateAccount, importAccount, useSliceDispatch as useLixiSliceDispatch } from '@bcpros/redux-store';
 import useWallet from '@bcpros/redux-store/build/main/hooks/useWallet';
 import axiosClient from '@bcpros/redux-store/build/main/utils/axiosClient';
 import styled from '@emotion/styled';
@@ -75,6 +75,7 @@ const ContainerImportWallet = styled.div`
 
 export default function ImportWallet() {
   const search = useSearchParams();
+  const dispatch = useLixiSliceDispatch();
   const router = useRouter();
   const id = search!.get('id');
   const {
@@ -86,7 +87,6 @@ export default function ImportWallet() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(false);
-  const dispatch = useLixiSliceDispatch();
   //@ts-expect-error: Unreachable code error
   const { getXecWalletPublicKey } = useWallet();
   // const mainButton = useMainButton();
@@ -106,17 +106,17 @@ export default function ImportWallet() {
   //   backButton.on('click', onBackButtonClick);
   // }, [mainButton, backButton]);
 
-  const onMainButtonClick = () => {
-    // importWallet();
-  };
+  // const onMainButtonClick = () => {
+  // importWallet();
+  // };
 
-  const onBackButtonClick = () => {
-    // backButton.hide();
-    // mainButton.hide();
-    // mainButton.off('click', onMainButtonClick);
-    // backButton.off('click', onBackButtonClick);
-    // navigate({ to: '/wallet' });
-  };
+  // const onBackButtonClick = () => {
+  // backButton.hide();
+  // mainButton.hide();
+  // mainButton.off('click', onMainButtonClick);
+  // backButton.off('click', onBackButtonClick);
+  // navigate({ to: '/wallet' });
+  // };
 
   const scanQRCode = () => {
     // haptic.notificationOccurred('warning');
@@ -140,6 +140,21 @@ export default function ImportWallet() {
       });
 
       dispatch(importAccount(recoveryPhrase));
+
+      setSuccess(true);
+    } catch (e) {
+      setError(true);
+    }
+
+    setLoading(false);
+  };
+
+  const handleCreateNewWallet = async () => {
+    setLoading(true);
+    try {
+      await axiosClient.get(`/api/accounts/telegram/unlink/${id}`);
+
+      dispatch(generateAccount({ coin: 'XEC', telegramId: id!.toString() }));
 
       setSuccess(true);
     } catch (e) {
@@ -202,6 +217,7 @@ export default function ImportWallet() {
                 onChange={onChange}
                 onBlur={onBlur}
                 value={value}
+                disabled={loading || success}
                 id="recoveryPhrase"
                 label="Recovery phrase"
                 placeholder="Enter your recovery phrase (12 words) in the correct order. Separate each word with a single space only (no commas or any other punctuation)."
@@ -225,7 +241,17 @@ export default function ImportWallet() {
             )}
           />
         </FormControl>
-        <Button onClick={handleSubmit(importWallet)}>Import</Button>
+        <Button onClick={handleSubmit(importWallet)} disabled={loading || success}>
+          Import
+        </Button>
+      </div>
+      <div className="receive-form">
+        <p className="title" style={{ color: 'white' }}>
+          I forgot my wallet recovery phrase. Create me a new one.
+        </p>
+        <Button onClick={() => handleCreateNewWallet()} disabled={loading || success}>
+          Create new wallet
+        </Button>
       </div>
       <Backdrop sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }} open={loading} onClick={handleClose}>
         <CircularProgress color={'inherit'} />
@@ -233,7 +259,7 @@ export default function ImportWallet() {
       <Stack>
         <Snackbar
           open={success}
-          autoHideDuration={4000}
+          autoHideDuration={3000}
           onClose={() =>
             setTimeout(() => {
               router.push('/home');
@@ -241,7 +267,7 @@ export default function ImportWallet() {
           }
         >
           <Alert onClose={handleClose} severity="success" variant="filled" sx={{ width: '100%' }}>
-            Import wallet success
+            Import wallet success - Redirecting to home...
           </Alert>
         </Snackbar>
 
