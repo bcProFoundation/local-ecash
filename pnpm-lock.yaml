@@ -52,11 +52,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/counter
       '@bcpros/lixi-models':
-        specifier: link:/home/ken/Work/lixi/packages/lixi-models
-        version: link:../../../lixi/packages/lixi-models
+        specifier: ^1.2.2
+        version: 1.2.2(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.17.0)(class-transformer@0.5.1)(graphql@16.9.0)(reflect-metadata@0.2.2)
       '@bcpros/redux-store':
-        specifier: link:/home/ken/Work/lixi/packages/redux-store
-        version: link:../../../lixi/packages/redux-store
+        specifier: ^1.2.2
+        version: 1.2.2(@abcpros/bitcore-lib-xpi@8.25.43)(@bcpros/xpi-js@4.0.6)(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.17.0)(@reduxjs/toolkit@2.2.6(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(@rtk-query/graphql-request-base-query@2.3.1(@reduxjs/toolkit@2.2.6(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(graphql@16.9.0))(axios@1.7.2)(chronik-client@0.26.2)(class-transformer@0.5.1)(file-saver@2.0.5)(iron-session@8.0.2)(moment@2.30.1)(react-device-detect@2.2.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-intl-universal@2.11.1(react@18.3.1))(react-outside-call@0.2.0)(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1)(redux-persist-indexeddb-storage@1.0.4)(redux-persist@6.0.0(react@18.3.1)(redux@5.0.1))(redux-saga@1.3.0)(redux-thunk@3.1.0(redux@5.0.1))(redux@5.0.1)(reflect-metadata@0.2.2)
       '@bcpros/xpi-js':
         specifier: 4.0.6
         version: 4.0.6
@@ -345,8 +345,64 @@ packages:
     resolution: {integrity: sha512-xm8XrMKz0IlUdocVbYJe0Z9xEgidU7msskG8BbhnTPK/HZ2z/7FP7ykqPgrUH+C+r414mNfNWam1f2vqOjqjYQ==}
     engines: {node: '>=6.9.0'}
 
+  '@bcpros/lixi-models@1.2.2':
+    resolution: {integrity: sha512-TM7AmHv4+aPj5TzlctbjfJa7GeXl/28RjN0YSG+OjNHKaOs5o6R+HoK1Bfm6mhXJeGojZg6E+kmLcWI9Cio8Og==}
+    engines: {node: '>=16'}
+    peerDependencies:
+      '@prisma/client': 5.12.1
+      class-transformer: ^0.5.1
+
+  '@bcpros/redux-store@1.2.2':
+    resolution: {integrity: sha512-DZtPjgiwYJkwwBEqboJ7/1HXH9xUmX0o/igFcaVYDzFAtTnumXbrFbUnUXtQciDHNHa58h/mHpSBoQhVbV+TgQ==}
+    peerDependencies:
+      '@abcpros/bitcore-lib-xpi': '>=8.25.37'
+      '@bcpros/xpi-js': 4.0.6
+      '@prisma/client': 5.12.1
+      '@reduxjs/toolkit': ^2.2.1
+      '@rtk-query/graphql-request-base-query': ^2.2.0
+      axios: '>=1.4.0'
+      chronik-client: ^0.26.2
+      file-saver: '>=2.0.5'
+      iron-session: '>=8.0.1'
+      moment: ^2.30.1
+      react: 18.2.0
+      react-device-detect: ^2.2.2
+      react-intl-universal: ^2.11.1
+      react-outside-call: ^0.2.0
+      react-redux: ^9.1.2
+      redux: ^5.0.1
+      redux-persist: ^6.0.0
+      redux-persist-indexeddb-storage: ^1.0.4
+      redux-saga: ^1.3.0
+      redux-thunk: ^3.1.0
+
   '@bcpros/xpi-js@4.0.6':
     resolution: {integrity: sha512-5YxLAgZo/D/8a7GTJ+HMAS7DA6IZl/U5kNuHkHotgESVBB0Tx+UCl4FbBuGCO2aw5MwkdO2IjZo8tyQsTgaYYg==}
+
+  '@bitgo-forks/bip174@3.1.0-master.4':
+    resolution: {integrity: sha512-WDRNzPSdJGDqQNqfN+L5KHNHFDmNOPYnUnT7NkEkfHWn5m1jSOfcf8Swaslt5P0xcSDiERdN2gZxFc6XtOqRYg==}
+    engines: {node: '>=8.0.0'}
+
+  '@bitgo-forks/bitcoinjs-lib@7.1.0-master.9':
+    resolution: {integrity: sha512-iWDwsRZK30tW7jtBiOlOJhuJzZ2THIvdvREBHM2cHG669nGQxNPxpYXmk0Lgm5x4jG4GN1dM6dPR6Car6EtDsA==}
+    engines: {node: '>=8.0.0'}
+
+  '@bitgo/blake2b-wasm@3.2.3':
+    resolution: {integrity: sha512-NaurBrMaEpjfg7EdUJgW/c6byt27O6q1ZaxB5Ita10MjjYjUu0SyYF4q7JPNxpHF/lMxb0YZakOxigbDBu9Jjw==}
+
+  '@bitgo/blake2b@3.2.4':
+    resolution: {integrity: sha512-46PEgEVPxecNJ/xczggIllSxIkFIvvbVM0OfIDdNJ5qpFHUeBCkNIiGdzC3fYZlsv7bVTdUZOj79GcFBLMYBqA==}
+
+  '@bitgo/ecpair@2.1.0-rc.0':
+    resolution: {integrity: sha512-qPZetcEA1Lzzm9NsqsGF9NGorAGaXrv20eZjopLUjsdwftWcsYTE7lwzE/Xjdf4fcq6G4+vjrCudWAMGNfJqOQ==}
+    engines: {node: '>=8.0.0'}
+
+  '@bitgo/utxo-lib@9.40.0':
+    resolution: {integrity: sha512-8qnlfwrPpkJ9sAqxzxHEU70zWn8SxuQwo7QZpIVfI/w5+xXDYZ6tGI6WJkLT9eXUBuKONIPdDc3WcWX3c4jJPg==}
+    engines: {node: '>=10.22.0 <21', npm: '>=3.10.10'}
+
+  '@brandonblack/musig@0.0.1-alpha.1':
+    resolution: {integrity: sha512-00RbByQG85lSzrkDjCblzrUc2n1LJAPPrEMHS4oMg+QckE0kzjd26JytT6yx6tNU2+aOXfK7O4kGW/sKVL67cw==}
 
   '@effect/schema@0.66.5':
     resolution: {integrity: sha512-xfu5161JyrfAS1Ruwv0RXd4QFiCALbm3iu9nlW9N9K+52wbS0WdO6XUekPZ9V/O7LN+XmlIh5Y9xhJaIWCZ/gw==}
@@ -501,6 +557,10 @@ packages:
     resolution: {integrity: sha512-/gKJun8NNiWGZJkGzI/Ragc53cOdcLNdzjLaIa+GEjguQs0ulsurx8WN0jijdK9yPqDvziX995sMRLyLt1uZMQ==}
     engines: {node: '>= 0.4'}
 
+  '@lukeed/csprng@1.1.0':
+    resolution: {integrity: sha512-Z7C/xXCiGWsg0KuKsHTKJxbWhpI3Vs5GwLfOean7MGyVFGqdRgBbAjOCh6u4bbjPc/8MJ2pZmK/0DLdCbivLDA==}
+    engines: {node: '>=8'}
+
   '@mui/core-downloads-tracker@5.16.4':
     resolution: {integrity: sha512-rNdHXhclwjEZnK+//3SR43YRx0VtjdHnUFhMSGYmAMJve+KiwEja/41EYh8V3pZKqF2geKyfcFUenTfDTYUR4w==}
 
@@ -607,6 +667,32 @@ packages:
       '@types/react':
         optional: true
 
+  '@nestjs/common@10.3.10':
+    resolution: {integrity: sha512-H8k0jZtxk1IdtErGDmxFRy0PfcOAUg41Prrqpx76DQusGGJjsaovs1zjXVD1rZWaVYchfT1uczJ6L4Kio10VNg==}
+    peerDependencies:
+      class-transformer: '*'
+      class-validator: '*'
+      reflect-metadata: ^0.1.12 || ^0.2.0
+      rxjs: ^7.1.0
+    peerDependenciesMeta:
+      class-transformer:
+        optional: true
+      class-validator:
+        optional: true
+
+  '@nestjs/mapped-types@2.0.5':
+    resolution: {integrity: sha512-bSJv4pd6EY99NX9CjBIyn4TVDoSit82DUZlL4I3bqNfy5Gt+gXTa86i3I/i0iIV9P4hntcGM5GyO+FhZAhxtyg==}
+    peerDependencies:
+      '@nestjs/common': ^8.0.0 || ^9.0.0 || ^10.0.0
+      class-transformer: ^0.4.0 || ^0.5.0
+      class-validator: ^0.13.0 || ^0.14.0
+      reflect-metadata: ^0.1.12 || ^0.2.0
+    peerDependenciesMeta:
+      class-transformer:
+        optional: true
+      class-validator:
+        optional: true
+
   '@next/env@14.2.5':
     resolution: {integrity: sha512-/zZGkrTOsraVfYjGP8uM0p6r0BDT6xWpkjdVbcz66PJVSpwXX3yNiRycxAuDfBKGWBrZBXRuK/YVlkNgxHGwmA==}
 
@@ -670,6 +756,9 @@ packages:
   '@noble/hashes@1.4.0':
     resolution: {integrity: sha512-V1JJ1WTRUqHHrOSh597hURcMqVKVGL/ea3kv0gSnEdsEZ0/+VyPghM1lMNGc00z7CIQorSvbKpuJkxvuHbvdbg==}
     engines: {node: '>= 16'}
+
+  '@noble/secp256k1@1.6.3':
+    resolution: {integrity: sha512-T04e4iTurVy7I8Sw4+c5OSN9/RkPlo1uKxAomtxQNLq8j1uPAqnsqG1bqvY3Jv7c13gyr6dui0zmh/I3+f/JaQ==}
 
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -791,6 +880,9 @@ packages:
   '@rushstack/eslint-patch@1.10.3':
     resolution: {integrity: sha512-qC/xYId4NMebE6w/V33Fh9gWxLgURiNYgVNObbJl2LZv0GUUItCcCqC5axQSwRaAgaxl2mELq1rMzlswaQ0Zxg==}
 
+  '@shoooe/derive@0.2.7':
+    resolution: {integrity: sha512-1n39cqvPMcA8GvUoxKhuZMqEUKeuPTVm7lIDkNaT+MK6QCrY4sMV+JGm+YHb1K5AItjNptwX49LTllqVChb62A==}
+
   '@sindresorhus/merge-streams@2.3.0':
     resolution: {integrity: sha512-LtoMMhxAlorcGhmFYI+LhPgbPZCkgP6ra1YL604EeF6U98pLlQ3iWIGMdWSC+vWmPBWBNgmDBAhnAobLROJmwg==}
     engines: {node: '>=18'}
@@ -831,6 +923,9 @@ packages:
 
   '@transloadit/prettier-bytes@0.0.7':
     resolution: {integrity: sha512-VeJbUb0wEKbcwaSlj5n+LscBl9IPgLPkHVGBkh00cztv6X4L/TJXK58LzFuBKX7/GAfiGhIwH67YTLTlzvIzBA==}
+
+  '@types/cookie@0.6.0':
+    resolution: {integrity: sha512-4Kh9a6B2bQciAhf7FSuMRRkUWecJgJu9nPnx3yzpsfXX/c50REIqpHY4C82bXP90qrLtXtkDxTZosYO3UpOwlA==}
 
   '@types/eslint-scope@3.7.7':
     resolution: {integrity: sha512-MzMFlSLBqNF2gcHWO0G1vP/YQyfvrxZ0bF+u7mzUdZ1/xK4A4sru+nraZz5i3iEIk1l1uyicaDVTB4QbbEkAYg==}
@@ -879,6 +974,9 @@ packages:
 
   '@types/use-sync-external-store@0.0.3':
     resolution: {integrity: sha512-EwmlvuaxPNej9+T4v5AuBPJa2x2UOJVdjCtDHgcDqitUeOtjnJKJ+apYjVcAoBEMjKW1VVFGZLUb5+qqa09XFA==}
+
+  '@types/validator@13.12.0':
+    resolution: {integrity: sha512-nH45Lk7oPIJ1RVOF6JgFI6Dy0QpHEzq4QecZhvguxYPDwT8c93prCMqAtiIttm39voZ+DDR+qkNnMpJmMBRqag==}
 
   '@types/ws@8.5.11':
     resolution: {integrity: sha512-4+q7P5h3SpJxaBft0Dzpbr6lmMaqh0Jr2tbhJZ/luAwvD7ohSCniYkwz/pLxuT2h0EOa6QADgJj1Ko+TzRfZ+w==}
@@ -1203,6 +1301,9 @@ packages:
   base-x@4.0.0:
     resolution: {integrity: sha512-FuwxlW4H5kh37X/oW59pwTzzTKRzfrrQwhmyspRM7swOEZcHtDZSCt45U6oKgtuFE+WYPblePMVIPR4RZrh/hw==}
 
+  base-x@5.0.0:
+    resolution: {integrity: sha512-sMW3VGSX1QWVFA6l8U62MLKz29rRfpTlYdCqLdpLo1/Yd4zZwSbnUaDfciIAowAqvq7YFnWq9hrhdg1KYgc1lQ==}
+
   bc-bip68@1.0.5:
     resolution: {integrity: sha512-GzaMlN7pNthrY5BhReVhnfr4Ixx+GUSfyNRHYh0QiMUF0d0+0YaD8MpEdv6AjFBksg/zlqL1fVCBBm6PpTt2Rg==}
     engines: {node: '>=4.5.0'}
@@ -1216,6 +1317,9 @@ packages:
 
   bech32@1.1.4:
     resolution: {integrity: sha512-s0IrSOzLlbvX7yp4WBfPITzpAU8sqQcpsmwXDiKwrG4r491vwCO/XpejasRNl0piBMe/DvP4Tz0mIS/X1DPJBQ==}
+
+  bech32@2.0.0:
+    resolution: {integrity: sha512-LcknSilhIGatDAsY1ak2I8VtGaHNhgMSYVxFrGLXv+xLHytaKZKcaUJJUE7qmBr7h33o5YQwP55pMI0xmkpJwg==}
 
   big-integer@1.6.36:
     resolution: {integrity: sha512-t70bfa7HYEA1D9idDbmuv7YbsbVkQ+Hp+8KFSul4aE5e/i1bjCNIRYJZlA8Q8p0r9T8cF/RVvwUgRA//FydEyg==}
@@ -1241,6 +1345,10 @@ packages:
     resolution: {integrity: sha512-Sc1Hn2+1n+okPEW8G+JLjeaM12dsUOwr+oFlMDSKR9wYwNGMw0alskeBIHTmXxBxMZSWKhCW7PwKQVDyGmnaVg==}
     engines: {node: '>=8.0.0'}
 
+  bip32@3.1.0:
+    resolution: {integrity: sha512-eoeajYEzJ4d6yyVtby8C+XkCeKItiC4Mx56a0M9VaqTMC73SWOm4xVZG7SaR8e/yp4eSyky2XcBpH3DApPdu7Q==}
+    engines: {node: '>=6.0.0'}
+
   bip38@2.0.3:
     resolution: {integrity: sha512-HiABhYNhhRNAAeGmkt3LS2El6oonIftNkHq6uFxHCjaCIEbHr7I6RIBhKMQWw5AhGzIPpO5Mt7I8bFOfKqqh9w==}
 
@@ -1249,6 +1357,9 @@ packages:
 
   bip66@1.1.5:
     resolution: {integrity: sha512-nemMHz95EmS38a26XbbdxIYj5csHd3RMP3H5bwQknX0WYHF01qhpufP42mLOwVICuH2JmhIhXiWs89MfUGL7Xw==}
+
+  bitcoin-ops@1.4.1:
+    resolution: {integrity: sha512-pef6gxZFztEhaE9RY9HmWVmiIHqCb2OyS4HPKkpc6CIiiOa3Qmuoylxc5P2EkU3w+5eTSifI9SEZC88idAIGow==}
 
   bitcoinjs-message@2.2.0:
     resolution: {integrity: sha512-103Wy3xg8Y9o+pdhGP4M3/mtQQuUWs6sPuOp1mYphSUoSMHjHTlkj32K4zxU8qMH0Ckv23emfkGlFWtoWZ7YFA==}
@@ -1259,6 +1370,9 @@ packages:
 
   bn.js@4.12.0:
     resolution: {integrity: sha512-c98Bf3tPniI+scsdk237ku1Dc3ujXQTSgyiPUDEOe7tRkhrqridvh8klBv0HCEso1OLOYcHuCv/cS6DNxKH+ZA==}
+
+  bn.js@5.2.1:
+    resolution: {integrity: sha512-eXRvHzWyYPBuB4NBy0cmYQjGitUrtqwbvlzP3G6VFnNRbsZQIxQ10PbKKHt8gZ/HW/D/747aDl+QkDqg3KQLMQ==}
 
   brace-expansion@1.1.11:
     resolution: {integrity: sha512-iCuPHDFgrHX7H2vEI/5xpz07zSHB00TpugqhmYtVmMO6518mCuRMoOYFldEBl0g187ufozdaHgWKcYFb61qGiA==}
@@ -1287,11 +1401,17 @@ packages:
   bs58@5.0.0:
     resolution: {integrity: sha512-r+ihvQJvahgYT50JD05dyJNKlmmSlMoOGwn1lCcEzanPglg7TxYjioQUYehQ9mAR/+hOSd2jRc/Z2y5UxBymvQ==}
 
+  bs58@6.0.0:
+    resolution: {integrity: sha512-PD0wEnEYg6ijszw/u8s+iI3H17cTymlrwkKhDhPZq+Sokl3AU4htyBFTjAeNAlCCmg0f53g6ih3jATyCKftTfw==}
+
   bs58check@2.1.2:
     resolution: {integrity: sha512-0TS1jicxdU09dwJMNZtVAfzPi6Q6QeN0pM1Fkzrjn+XYHvzMKPU3pHVpva+769iNVSfIYWf7LJ6WR+BuuMf8cA==}
 
   bs58check@3.0.1:
     resolution: {integrity: sha512-hjuuJvoWEybo7Hn/0xOrczQKKEKD63WguEjlhLExYs2wUBcebDC1jDNK17eEAD2lYfw82d5ASC1d7K3SWszjaQ==}
+
+  bs58check@4.0.0:
+    resolution: {integrity: sha512-FsGDOnFg9aVI9erdriULkd/JjEWONV/lQE5aYziB5PoBsXRind56lh8doIZIc9X4HoxT5x4bLjMWN1/NB8Zp5g==}
 
   buffer-compare@1.1.1:
     resolution: {integrity: sha512-O6NvNiHZMd3mlIeMDjP6t/gPG75OqGPeiRZXoMQZJ6iy9GofCls4Ijs5YkPZZwoysizLiedhticmdyx/GyHghA==}
@@ -1320,6 +1440,9 @@ packages:
 
   caniuse-lite@1.0.30001643:
     resolution: {integrity: sha512-ERgWGNleEilSrHM6iUz/zJNSQTP8Mr21wDWpdgvRwcTXGAq6jMtOUPP4dqFPTdKqZ2wKTdtB+uucZ3MRpAUSmg==}
+
+  cashaddress@1.1.0:
+    resolution: {integrity: sha512-cdqIjZodtErhoQOiojQ1SRqDKh6bOVkLYNJjMmFEUxGoErrO2am8txotXmEi8glvU/y9wzup+LsvEBl8AttUwA==}
 
   cashaddrjs-slp@0.2.12:
     resolution: {integrity: sha512-n2TTIuW6vZZxYvjvsUAA+wOM0Zkj+3RRKUtDC1XSu4Ic4XVr0yFJkl1bzQkHWda7nkVT51sxjZneygz7D0SyrQ==}
@@ -1352,6 +1475,12 @@ packages:
 
   cipher-base@1.0.4:
     resolution: {integrity: sha512-Kkht5ye6ZGmwv40uUDZztayT2ThLQGfnj/T71N/XzeZeo3nf8foyW7zGTsPYkEya3m5f3cAypH+qe7YOrM1U2Q==}
+
+  class-transformer@0.5.1:
+    resolution: {integrity: sha512-SQa1Ws6hUbfC98vKGxZH3KFY0Y1lm5Zm0SY8XX9zbK7FJCyVEac3ATW0RIpwzW+oOfmHE5PMPufDG9hCfoEOMw==}
+
+  class-validator@0.14.1:
+    resolution: {integrity: sha512-2VEG9JICxIqTpoK1eMzZqaV+u/EiwEJkMGzTrZf6sU/fwsnOITVgYJ8yojSy6CaXtO9V0Cc6ZQZ8h8m4UBuLwQ==}
 
   cli-cursor@4.0.0:
     resolution: {integrity: sha512-VGtlMu3x/4DOtIUwEkRezxUZ2lBacNJCHash0N0WeZDBS+7Ux1dm3XWAgWYxLJFMMdOeXMHXorshEFhbMSGelg==}
@@ -1806,6 +1935,9 @@ packages:
   fast-uri@3.0.1:
     resolution: {integrity: sha512-MWipKbbYiYI0UC7cl8m/i/IWTqfC8YXsqjzybjddLsFjStroQzsHXkc73JutMvBiXmOvapk+axIl79ig5t55Bw==}
 
+  fastpriorityqueue@0.7.5:
+    resolution: {integrity: sha512-3Pa0n9gwy8yIbEsT3m2j/E9DXgWvvjfiZjjqcJ+AdNKTAlVMIuFYrYG5Y3RHEM8O6cwv9hOpOWY/NaMfywoQVA==}
+
   fastq@1.17.1:
     resolution: {integrity: sha512-sRVD3lWVIXWg6By68ZN7vho9a1pQcN/WBFaAAsDDFzlJjvoGx0P8z7V1t72grFJfJhu3YPZBuu25f7Kaw2jN1w==}
 
@@ -1960,6 +2092,12 @@ packages:
     resolution: {integrity: sha512-p+XPfS4q7aIpKVcgmnZKhMNqhltk20hfXtkaIkTfjjmiKMJ5xrt5c743cL03y/K7y1rg3WrIC49xGiEQ4mxdNw==}
     peerDependencies:
       graphql: 14 - 16
+
+  graphql-scalars@1.23.0:
+    resolution: {integrity: sha512-YTRNcwitkn8CqYcleKOx9IvedA8JIERn8BRq21nlKgOr4NEcTaWEG0sT+H92eF3ALTFbPgsqfft4cw+MGgv0Gg==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
 
   graphql@16.9.0:
     resolution: {integrity: sha512-GGTKBX4SD7Wdb8mqeDLni2oaRGYQWjWHGKPQ24ZMnUtKfcsVoiv4uX8+LJr1K6U5VW2Lu1BwJnj7uiori0YtRw==}
@@ -2226,6 +2364,10 @@ packages:
     peerDependencies:
       ws: '*'
 
+  iterare@1.2.1:
+    resolution: {integrity: sha512-RKYVTCjAnRthyJes037NX/IiqeidgN1xc3j1RjFfECFp28A1GVwK9nA+i0rJPaHqSZwygLzRnFlzUuHFoWWy+Q==}
+    engines: {node: '>=6'}
+
   iterator.prototype@1.1.2:
     resolution: {integrity: sha512-DR33HMMr8EzwuRL8Y9D3u2BMj8+RqSE850jfGu59kS7tbmPLzGkZmVSfyCFSDxuZiEY6Rzt3T2NA/qU+NwVj1w==}
 
@@ -2284,6 +2426,11 @@ packages:
     resolution: {integrity: sha512-g1MWMLBiz8FKi1e4w0UyVL3w+iJceWAFBAaBnnGKOpNa5f8TLktkbre1+s6oICydWAm+HRUGTmI+//xv2hvXYA==}
     hasBin: true
 
+  json5@2.2.3:
+    resolution: {integrity: sha512-XmOWe7eyHYH14cLdVPoyg+GOH3rYX++KpzrylJwSW98t3Nk+U8XOl8FWKOgwtzdb8lXGf6zYwDUzeHMWfxasyg==}
+    engines: {node: '>=6'}
+    hasBin: true
+
   jsx-ast-utils@3.3.5:
     resolution: {integrity: sha512-ZZow9HBI5O6EPgSJLUb8n2NKgmVWTwCvHGwFuJlMjvLFqlGG6pjirPhtdsseaLZjSibD8eegzmYpUZwoIlj2cQ==}
     engines: {node: '>=4.0'}
@@ -2312,6 +2459,9 @@ packages:
   levn@0.4.1:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
     engines: {node: '>= 0.8.0'}
+
+  libphonenumber-js@1.11.5:
+    resolution: {integrity: sha512-TwHR5BZxGRODtAfz03szucAkjT5OArXr+94SMtAM2pYXIlQNVMrxvb6uSCbnaJJV6QXEyICk7+l6QPgn72WHhg==}
 
   lie@3.1.1:
     resolution: {integrity: sha512-RiNhHysUjhrDQntfYSfY4MU24coXXdEOgw9WGcKHNeEwffDYbF//u87M1EWaMGzuFoSbqW0C9C6lEEhDOAswfw==}
@@ -2460,6 +2610,12 @@ packages:
   nan@2.20.0:
     resolution: {integrity: sha512-bk3gXBZDGILuuo/6sKtr0DQmSThYHLtNCdSdXk9YkxD/jK6X2vmCyyXBBxyqZ4XcnzTyYEAThfX3DCEnLf6igw==}
 
+  nanoassert@1.1.0:
+    resolution: {integrity: sha512-C40jQ3NzfkP53NsO8kEOFd79p4b9kDXQMwgiY1z8ZwrDZgUyom0AHwGegF4Dm99L+YoYhuaB0ceerUcXmqr1rQ==}
+
+  nanoassert@2.0.0:
+    resolution: {integrity: sha512-7vO7n28+aYO4J+8w96AzhmU8G+Y/xpPDJz/se19ICsqj/momRbb9mh9ZUtkoJ5X3nTnPdhEJyc0qnM6yAsHBaA==}
+
   nanoid@3.3.7:
     resolution: {integrity: sha512-eSRppjcPIatRIMC1U6UngP8XFcz8MQWGQdt1MTBQ7NaAmvXDfvNxbvWV3x2y6CdEUciCSsDHDQZbhYaB8QEo2g==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
@@ -2511,6 +2667,10 @@ packages:
     peerDependenciesMeta:
       encoding:
         optional: true
+
+  node-forge@1.3.1:
+    resolution: {integrity: sha512-dPEtOeMvF9VMcYV/1Wb8CPoVAXtp6MKMlcbAt4ddqmGqUJ6fQZFXkNZNkNlfevtNkGtaSoXf/vNNNSvgrdXwtA==}
+    engines: {node: '>= 6.13.0'}
 
   node-gyp-build@4.8.1:
     resolution: {integrity: sha512-OSs33Z9yWr148JZcbZd5WiAXhh/n9z8TxQcdMhIOlpN9AhWpLfvVFO73+m77bBABQMaY9XSvIa+qk0jlI7Gcaw==}
@@ -2591,6 +2751,9 @@ packages:
   ora@8.0.1:
     resolution: {integrity: sha512-ANIvzobt1rls2BDny5fWZ3ZVKyD6nscLvfFRpQgfWsythlcsVUC9kL0zq6j2Z5z9wwp1kd7wpsD/T9qNPVLCaQ==}
     engines: {node: '>=18'}
+
+  os-browserify@0.3.0:
+    resolution: {integrity: sha512-gjcpUc3clBf9+210TRaDWbf+rZZZEshZ+DlXMRCeAjp0xhTrnQsKHypIy1J3d5hKdUzj69t708EHtU8P6bUn0A==}
 
   p-limit@3.1.0:
     resolution: {integrity: sha512-TYOanM3wGwNGsZN2cVTYPArw454xnXj5qmWF1bEoAc4+cU/ol7GVh7odevjp1FNHduHc3KZMcFduxU5Xc6uJRQ==}
@@ -2702,6 +2865,12 @@ packages:
 
   pretty-format@3.8.0:
     resolution: {integrity: sha512-WuxUnVtlWL1OfZFQFuqvnvs6MiAGk9UNsBostyBOB0Is9wb5uRESevA6rnl/rkksXaGX3GzZhPup5d6Vp1nFew==}
+
+  prisma-graphql-type-decimal@3.0.0:
+    resolution: {integrity: sha512-jrALv8ShVZoBBNyIOBCxwRoLM/DAOSD/OBKTWeJa9UigQXUTZniNXvLd4fLXwm+3v00A7cOZ1fFh3b74Ndgxhw==}
+    peerDependencies:
+      '@prisma/client': '>=4.12 <=5'
+      graphql: '16'
 
   proc-log@4.2.0:
     resolution: {integrity: sha512-g8+OnU/L2v+wyiVK+D5fA34J7EH8jZ8DDlvwhRCMxmMj7UCBvxiO1mGeN+36JXIKF4zevU4kRBd8lVgG9vLelA==}
@@ -2865,6 +3034,9 @@ packages:
   redux@5.0.1:
     resolution: {integrity: sha512-M9/ELqF6fy8FwmkpnF0S3YKOqMyoWJ4+CS5Efg2ct3oY9daQvd/Pc71FpGZsVsbl3Cpb+IIcjBDUnnyBdQbq4w==}
 
+  reflect-metadata@0.2.2:
+    resolution: {integrity: sha512-urBwgfrvVP/eAyXx4hluJivBKzuEbSQs9rKWCrCkbSxNv8mxPcUZKeuoF3Uy4mJl3Lwprp6yy5/39VWigZ4K6Q==}
+
   reflect.getprototypeof@1.0.6:
     resolution: {integrity: sha512-fmfw4XgoDke3kdI6h4xcUz1dG8uaiv5q9gcEwLS4Pnth2kxT+GZ7YehS1JTMGBQmtV7Y4GFGbs2re2NqhdozUg==}
     engines: {node: '>= 0.4'}
@@ -2934,6 +3106,9 @@ packages:
 
   run-parallel@1.2.0:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
+
+  rxjs@7.8.1:
+    resolution: {integrity: sha512-AA3TVj+0A2iuIoQkWEK/tqFjBq2j+6PO6Y0zJcvzLAFhEFIO3HL0vls9hWLncZbAAbK0mar7oZ4V079I/qPMxg==}
 
   safe-array-concat@1.1.2:
     resolution: {integrity: sha512-vj6RsCsWBCf19jIeHEfkRMw8DPiBb+DMXklQ/1SGDHOMlHdPUkZXFQ2YdplS23zESTijAcurb1aSgJA3AgMu1Q==}
@@ -3251,6 +3426,9 @@ packages:
     peerDependencies:
       typescript: '>=4.2.0'
 
+  ts-pattern@4.3.0:
+    resolution: {integrity: sha512-pefrkcd4lmIVR0LA49Imjf9DYLK8vtWhqBPA3Ya1ir8xCW0O2yjL9dsCVvI7pCodLC5q7smNpEtDR2yVulQxOg==}
+
   ts-toolbelt@9.6.0:
     resolution: {integrity: sha512-nsZd8ZeNUzukXPlJmTBwUAuABDe/9qtVDelJeT/qW0ow3ZS3BsQJtNkan1802aM9Uf68/Y8ljw86Hu0h5IUW3w==}
 
@@ -3341,6 +3519,10 @@ packages:
   ua-parser-js@1.0.38:
     resolution: {integrity: sha512-Aq5ppTOfvrCMgAPneW1HfWj66Xi7XL+/mIy996R1/CLS/rcyJQm6QZdsKrUeivDFQ+Oc9Wyuwor8Ze8peEoUoQ==}
 
+  uid@2.0.2:
+    resolution: {integrity: sha512-u3xV3X7uzvi5b1MncmZo3i2Aw222Zk1keqLA1YkHldREkAhAqi65wuPfe7lHx8H/Wzy+8CE7S7uS3jekIM5s8g==}
+    engines: {node: '>=8'}
+
   unbox-primitive@1.0.2:
     resolution: {integrity: sha512-61pPlCD9h51VoreyJ0BReideM3MDKMKnh6+V9L08331ipq6Q8OFXZYiqP6n/tbHx4s5I9uRhcye6BrbkizkBDw==}
 
@@ -3357,6 +3539,9 @@ packages:
   unique-names-generator@4.7.1:
     resolution: {integrity: sha512-lMx9dX+KRmG8sq6gulYYpKWZc9RlGsgBR6aoO8Qsm3qvkSJ+3rAymr+TnV8EDMrIrwuFJ4kruzMWM/OpYzPoow==}
     engines: {node: '>=8'}
+
+  universal-cookie@7.2.0:
+    resolution: {integrity: sha512-PvcyflJAYACJKr28HABxkGemML5vafHmiL4ICe3e+BEKXRMt0GaFLZhAwgv637kFFnnfiSJ8e6jknrKkMrU+PQ==}
 
   update-browserslist-db@1.1.0:
     resolution: {integrity: sha512-EdRAaAyk2cUE1wOf2DkEhzxqOQvFOoRJFNS6NeyJ01Gp2beMRpBAINjM2iDXE3KCuKhwnvHIQCJm6ThL2Z+HzQ==}
@@ -3382,12 +3567,20 @@ packages:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
     hasBin: true
 
+  uuid@9.0.1:
+    resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
+    hasBin: true
+
   v8-compile-cache@2.4.0:
     resolution: {integrity: sha512-ocyWc3bAHBB/guyqJQVI5o4BZkPhznPYUG2ea80Gond/BgNWpap8TOmLSeeQG7bnh2KMISxskdADG59j7zruhw==}
 
   validate-npm-package-name@5.0.1:
     resolution: {integrity: sha512-OljLrQ9SQdOUqTaQxqL5dEfZWrXExyyWsozYlAWFawPVNuD83igl7uJD2RTkNMbniIYgt8l81eCJGIdQF7avLQ==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
+
+  validator@13.12.0:
+    resolution: {integrity: sha512-c1Q0mCiPlgdTVVVIJIrBuxNicYE+t/7oKeI9MWLj3fh/uq2Pxh/3eeWbVZ4OcGW1TUf53At0njHw5SMdA3tmMg==}
+    engines: {node: '>= 0.10'}
 
   varuint-bitcoin@1.1.2:
     resolution: {integrity: sha512-4EVb+w4rx+YfVM32HQX42AbbT7/1f5zwAYhIujKXKk8NQK+JfRVl3pqT3hjNn/L+RstigmGGKVwHA/P0wgITZw==}
@@ -3441,6 +3634,9 @@ packages:
 
   wif@2.0.6:
     resolution: {integrity: sha512-HIanZn1zmduSF+BQhkE+YXIbEiH0xPr1012QbFEGB0xsKqJii0/SqJjyn8dFv6y36kOznMgMB+LGcbZTJ1xACQ==}
+
+  wif@5.0.0:
+    resolution: {integrity: sha512-iFzrC/9ne740qFbNjTZ2FciSRJlHIXoxqk/Y5EnE08QOXu1WjJyCCswwDTYbohAOEnlCtLaAAQBhyaLRFh2hMA==}
 
   wildcard@1.1.2:
     resolution: {integrity: sha512-DXukZJxpHA8LuotRwL0pP1+rS6CS7FF2qStDDE1C7DDg2rLud2PXRMuEDYIPhgEezwnlHNL4c+N6MfMTjCGTng==}
@@ -3619,6 +3815,76 @@ snapshots:
       '@babel/helper-validator-identifier': 7.24.7
       to-fast-properties: 2.0.0
 
+  '@bcpros/lixi-models@1.2.2(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.17.0)(class-transformer@0.5.1)(graphql@16.9.0)(reflect-metadata@0.2.2)':
+    dependencies:
+      '@nestjs/mapped-types': 2.0.5(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)
+      '@prisma/client': 5.17.0
+      bignumber.js: 9.1.2
+      class-transformer: 0.5.1
+      class-validator: 0.14.1
+      graphql-scalars: 1.23.0(graphql@16.9.0)
+      moment: 2.30.1
+      os-browserify: 0.3.0
+      prisma-graphql-type-decimal: 3.0.0(@prisma/client@5.17.0)(graphql@16.9.0)
+    transitivePeerDependencies:
+      - '@nestjs/common'
+      - graphql
+      - reflect-metadata
+
+  '@bcpros/redux-store@1.2.2(@abcpros/bitcore-lib-xpi@8.25.43)(@bcpros/xpi-js@4.0.6)(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.17.0)(@reduxjs/toolkit@2.2.6(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(@rtk-query/graphql-request-base-query@2.3.1(@reduxjs/toolkit@2.2.6(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(graphql@16.9.0))(axios@1.7.2)(chronik-client@0.26.2)(class-transformer@0.5.1)(file-saver@2.0.5)(iron-session@8.0.2)(moment@2.30.1)(react-device-detect@2.2.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-intl-universal@2.11.1(react@18.3.1))(react-outside-call@0.2.0)(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1)(redux-persist-indexeddb-storage@1.0.4)(redux-persist@6.0.0(react@18.3.1)(redux@5.0.1))(redux-saga@1.3.0)(redux-thunk@3.1.0(redux@5.0.1))(redux@5.0.1)(reflect-metadata@0.2.2)':
+    dependencies:
+      '@abcpros/bitcore-lib-xpi': 8.25.43
+      '@bcpros/lixi-models': 1.2.2(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.17.0)(class-transformer@0.5.1)(graphql@16.9.0)(reflect-metadata@0.2.2)
+      '@bcpros/xpi-js': 4.0.6
+      '@bitgo/utxo-lib': 9.40.0
+      '@nestjs/mapped-types': 2.0.5(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)
+      '@prisma/client': 5.17.0
+      '@reduxjs/toolkit': 2.2.6(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1)
+      '@rtk-query/graphql-request-base-query': 2.3.1(@reduxjs/toolkit@2.2.6(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(graphql@16.9.0)
+      '@shoooe/derive': 0.2.7
+      '@socket.io/component-emitter': 3.1.0
+      axios: 1.7.2
+      bignumber.js: 9.1.2
+      bitcoinjs-message: 2.2.0
+      bs58: 5.0.0
+      chronik-client: 0.26.2
+      class-validator: 0.14.1
+      ecash-lib: 0.1.3
+      ecashaddrjs: 1.5.8
+      file-saver: 2.0.5
+      graphql: 16.9.0
+      graphql-request: 6.1.0(graphql@16.9.0)
+      iron-session: 8.0.2
+      lodash: 4.17.21
+      moment: 2.30.1
+      node-forge: 1.3.1
+      prisma-graphql-type-decimal: 3.0.0(@prisma/client@5.17.0)(graphql@16.9.0)
+      react: 18.3.1
+      react-device-detect: 2.2.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react-intl-universal: 2.11.1(react@18.3.1)
+      react-outside-call: 0.2.0
+      react-redux: 9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1)
+      redux: 5.0.1
+      redux-persist: 6.0.0(react@18.3.1)(redux@5.0.1)
+      redux-persist-indexeddb-storage: 1.0.4
+      redux-saga: 1.3.0
+      redux-thunk: 3.1.0(redux@5.0.1)
+      reselect: 5.1.1
+      socket.io-client: 4.7.5
+      ts-pattern: 4.3.0
+      unique-names-generator: 4.7.1
+      universal-cookie: 7.2.0
+      uuid: 9.0.1
+      wif: 5.0.0
+    transitivePeerDependencies:
+      - '@nestjs/common'
+      - bufferutil
+      - class-transformer
+      - encoding
+      - reflect-metadata
+      - supports-color
+      - utf-8-validate
+
   '@bcpros/xpi-js@4.0.6':
     dependencies:
       '@abcpros/coininfo': 5.2.0
@@ -3650,6 +3916,59 @@ snapshots:
       wif: 2.0.6
     transitivePeerDependencies:
       - debug
+
+  '@bitgo-forks/bip174@3.1.0-master.4': {}
+
+  '@bitgo-forks/bitcoinjs-lib@7.1.0-master.9':
+    dependencies:
+      bech32: 2.0.0
+      bip174: '@bitgo-forks/bip174@3.1.0-master.4'
+      bs58check: 2.1.2
+      create-hash: 1.2.0
+      fastpriorityqueue: 0.7.5
+      json5: 2.2.3
+      ripemd160: 2.0.2
+      typeforce: 1.18.0
+      varuint-bitcoin: 1.1.2
+      wif: 2.0.6
+
+  '@bitgo/blake2b-wasm@3.2.3':
+    dependencies:
+      nanoassert: 1.1.0
+
+  '@bitgo/blake2b@3.2.4':
+    dependencies:
+      '@bitgo/blake2b-wasm': 3.2.3
+      nanoassert: 2.0.0
+
+  '@bitgo/ecpair@2.1.0-rc.0':
+    dependencies:
+      randombytes: 2.1.0
+      typeforce: 1.18.0
+      wif: 2.0.6
+
+  '@bitgo/utxo-lib@9.40.0':
+    dependencies:
+      '@bitgo/blake2b': 3.2.4
+      '@brandonblack/musig': 0.0.1-alpha.1
+      '@noble/secp256k1': 1.6.3
+      bech32: 2.0.0
+      bip174: '@bitgo-forks/bip174@3.1.0-master.4'
+      bip32: 3.1.0
+      bitcoin-ops: 1.4.1
+      bitcoinjs-lib: '@bitgo-forks/bitcoinjs-lib@7.1.0-master.9'
+      bn.js: 5.2.1
+      bs58check: 2.1.2
+      cashaddress: 1.1.0
+      create-hash: 1.2.0
+      create-hmac: 1.1.7
+      ecpair: '@bitgo/ecpair@2.1.0-rc.0'
+      elliptic: 6.5.6
+      fastpriorityqueue: 0.7.5
+      typeforce: 1.18.0
+      varuint-bitcoin: 1.1.2
+
+  '@brandonblack/musig@0.0.1-alpha.1': {}
 
   '@effect/schema@0.66.5(effect@3.0.3)(fast-check@3.17.2)':
     dependencies:
@@ -3850,6 +4169,8 @@ snapshots:
     dependencies:
       call-bind: 1.0.7
 
+  '@lukeed/csprng@1.1.0': {}
+
   '@mui/core-downloads-tracker@5.16.4': {}
 
   '@mui/icons-material@5.16.4(@mui/material@5.16.4(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.3)(react@18.3.1)':
@@ -3942,6 +4263,25 @@ snapshots:
     optionalDependencies:
       '@types/react': 18.3.3
 
+  '@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1)':
+    dependencies:
+      iterare: 1.2.1
+      reflect-metadata: 0.2.2
+      rxjs: 7.8.1
+      tslib: 2.6.3
+      uid: 2.0.2
+    optionalDependencies:
+      class-transformer: 0.5.1
+      class-validator: 0.14.1
+
+  '@nestjs/mapped-types@2.0.5(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)':
+    dependencies:
+      '@nestjs/common': 10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1)
+      reflect-metadata: 0.2.2
+    optionalDependencies:
+      class-transformer: 0.5.1
+      class-validator: 0.14.1
+
   '@next/env@14.2.5': {}
 
   '@next/eslint-plugin-next@14.2.3':
@@ -3976,6 +4316,8 @@ snapshots:
     optional: true
 
   '@noble/hashes@1.4.0': {}
+
+  '@noble/secp256k1@1.6.3': {}
 
   '@nodelib/fs.scandir@2.1.5':
     dependencies:
@@ -4101,6 +4443,8 @@ snapshots:
 
   '@rushstack/eslint-patch@1.10.3': {}
 
+  '@shoooe/derive@0.2.7': {}
+
   '@sindresorhus/merge-streams@2.3.0': {}
 
   '@socket.io/component-emitter@3.1.0': {}
@@ -4132,6 +4476,8 @@ snapshots:
   '@tma.js/sdk@2.7.0': {}
 
   '@transloadit/prettier-bytes@0.0.7': {}
+
+  '@types/cookie@0.6.0': {}
 
   '@types/eslint-scope@3.7.7':
     dependencies:
@@ -4187,6 +4533,8 @@ snapshots:
       csstype: 3.1.3
 
   '@types/use-sync-external-store@0.0.3': {}
+
+  '@types/validator@13.12.0': {}
 
   '@types/ws@8.5.11':
     dependencies:
@@ -4617,6 +4965,8 @@ snapshots:
 
   base-x@4.0.0: {}
 
+  base-x@5.0.0: {}
+
   bc-bip68@1.0.5: {}
 
   bchaddrjs-slp@0.2.14:
@@ -4627,6 +4977,8 @@ snapshots:
   bech32@1.1.3: {}
 
   bech32@1.1.4: {}
+
+  bech32@2.0.0: {}
 
   big-integer@1.6.36: {}
 
@@ -4649,6 +5001,15 @@ snapshots:
       random-bytes: 1.0.0
       safe-buffer: 5.2.1
 
+  bip32@3.1.0:
+    dependencies:
+      bs58check: 2.1.2
+      create-hash: 1.2.0
+      create-hmac: 1.1.7
+      ripemd160: 2.0.2
+      typeforce: 1.18.0
+      wif: 2.0.6
+
   bip38@2.0.3:
     dependencies:
       bigi: 1.4.2
@@ -4667,6 +5028,8 @@ snapshots:
     dependencies:
       safe-buffer: 5.2.1
 
+  bitcoin-ops@1.4.1: {}
+
   bitcoinjs-message@2.2.0:
     dependencies:
       bech32: 1.1.4
@@ -4679,6 +5042,8 @@ snapshots:
   bn.js@4.11.8: {}
 
   bn.js@4.12.0: {}
+
+  bn.js@5.2.1: {}
 
   brace-expansion@1.1.11:
     dependencies:
@@ -4719,6 +5084,10 @@ snapshots:
     dependencies:
       base-x: 4.0.0
 
+  bs58@6.0.0:
+    dependencies:
+      base-x: 5.0.0
+
   bs58check@2.1.2:
     dependencies:
       bs58: 4.0.1
@@ -4729,6 +5098,11 @@ snapshots:
     dependencies:
       '@noble/hashes': 1.4.0
       bs58: 5.0.0
+
+  bs58check@4.0.0:
+    dependencies:
+      '@noble/hashes': 1.4.0
+      bs58: 6.0.0
 
   buffer-compare@1.1.1: {}
 
@@ -4753,6 +5127,10 @@ snapshots:
   callsites@3.1.0: {}
 
   caniuse-lite@1.0.30001643: {}
+
+  cashaddress@1.1.0:
+    dependencies:
+      bigi: 1.4.2
 
   cashaddrjs-slp@0.2.12:
     dependencies:
@@ -4798,6 +5176,14 @@ snapshots:
     dependencies:
       inherits: 2.0.4
       safe-buffer: 5.2.1
+
+  class-transformer@0.5.1: {}
+
+  class-validator@0.14.1:
+    dependencies:
+      '@types/validator': 13.12.0
+      libphonenumber-js: 1.11.5
+      validator: 13.12.0
 
   cli-cursor@4.0.0:
     dependencies:
@@ -5190,7 +5576,7 @@ snapshots:
       eslint: 8.56.0
       eslint-import-resolver-node: 0.3.9
       eslint-import-resolver-typescript: 3.6.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.5.4))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(@typescript-eslint/parser@7.17.0(eslint@8.56.0)(typescript@5.5.4))(eslint@8.56.0))(eslint@8.56.0)
-      eslint-plugin-import: 2.29.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.5.4))(eslint-import-resolver-typescript@3.6.1)(eslint@8.56.0)
+      eslint-plugin-import: 2.29.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.5.4))(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.5.4))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(@typescript-eslint/parser@7.17.0(eslint@8.56.0)(typescript@5.5.4))(eslint@8.56.0))(eslint@8.56.0))(eslint@8.56.0)
       eslint-plugin-jsx-a11y: 6.9.0(eslint@8.56.0)
       eslint-plugin-react: 7.35.0(eslint@8.56.0)
       eslint-plugin-react-hooks: 4.6.2(eslint@8.56.0)
@@ -5214,7 +5600,7 @@ snapshots:
       enhanced-resolve: 5.17.0
       eslint: 8.56.0
       eslint-module-utils: 2.8.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.5.4))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.5.4))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(@typescript-eslint/parser@7.17.0(eslint@8.56.0)(typescript@5.5.4))(eslint@8.56.0))(eslint@8.56.0))(eslint@8.56.0)
-      eslint-plugin-import: 2.29.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.5.4))(eslint-import-resolver-typescript@3.6.1)(eslint@8.56.0)
+      eslint-plugin-import: 2.29.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.5.4))(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.5.4))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(@typescript-eslint/parser@7.17.0(eslint@8.56.0)(typescript@5.5.4))(eslint@8.56.0))(eslint@8.56.0))(eslint@8.56.0)
       fast-glob: 3.3.2
       get-tsconfig: 4.7.6
       is-core-module: 2.15.0
@@ -5236,7 +5622,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-import@2.29.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.5.4))(eslint-import-resolver-typescript@3.6.1)(eslint@8.56.0):
+  eslint-plugin-import@2.29.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.5.4))(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.5.4))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(@typescript-eslint/parser@7.17.0(eslint@8.56.0)(typescript@5.5.4))(eslint@8.56.0))(eslint@8.56.0))(eslint@8.56.0):
     dependencies:
       array-includes: 3.1.8
       array.prototype.findlastindex: 1.2.5
@@ -5472,6 +5858,8 @@ snapshots:
 
   fast-uri@3.0.1: {}
 
+  fastpriorityqueue@0.7.5: {}
+
   fastq@1.17.1:
     dependencies:
       reusify: 1.0.4
@@ -5649,6 +6037,11 @@ snapshots:
       graphql: 16.9.0
     transitivePeerDependencies:
       - encoding
+
+  graphql-scalars@1.23.0(graphql@16.9.0):
+    dependencies:
+      graphql: 16.9.0
+      tslib: 2.6.3
 
   graphql@16.9.0: {}
 
@@ -5884,6 +6277,8 @@ snapshots:
     dependencies:
       ws: 8.18.0
 
+  iterare@1.2.1: {}
+
   iterator.prototype@1.1.2:
     dependencies:
       define-properties: 1.2.1
@@ -5943,6 +6338,8 @@ snapshots:
     dependencies:
       minimist: 1.2.8
 
+  json5@2.2.3: {}
+
   jsx-ast-utils@3.3.5:
     dependencies:
       array-includes: 3.1.8
@@ -5974,6 +6371,8 @@ snapshots:
     dependencies:
       prelude-ls: 1.2.1
       type-check: 0.4.0
+
+  libphonenumber-js@1.11.5: {}
 
   lie@3.1.1:
     dependencies:
@@ -6112,6 +6511,10 @@ snapshots:
 
   nan@2.20.0: {}
 
+  nanoassert@1.1.0: {}
+
+  nanoassert@2.0.0: {}
+
   nanoid@3.3.7: {}
 
   natural-compare@1.4.0: {}
@@ -6163,6 +6566,8 @@ snapshots:
   node-fetch@2.7.0:
     dependencies:
       whatwg-url: 5.0.0
+
+  node-forge@1.3.1: {}
 
   node-gyp-build@4.8.1: {}
 
@@ -6262,6 +6667,8 @@ snapshots:
       string-width: 7.2.0
       strip-ansi: 7.1.0
 
+  os-browserify@0.3.0: {}
+
   p-limit@3.1.0:
     dependencies:
       yocto-queue: 0.1.0
@@ -6345,6 +6752,11 @@ snapshots:
   prettier@3.3.3: {}
 
   pretty-format@3.8.0: {}
+
+  prisma-graphql-type-decimal@3.0.0(@prisma/client@5.17.0)(graphql@16.9.0):
+    dependencies:
+      '@prisma/client': 5.17.0
+      graphql: 16.9.0
 
   proc-log@4.2.0: {}
 
@@ -6533,6 +6945,8 @@ snapshots:
 
   redux@5.0.1: {}
 
+  reflect-metadata@0.2.2: {}
+
   reflect.getprototypeof@1.0.6:
     dependencies:
       call-bind: 1.0.7
@@ -6603,6 +7017,10 @@ snapshots:
   run-parallel@1.2.0:
     dependencies:
       queue-microtask: 1.2.3
+
+  rxjs@7.8.1:
+    dependencies:
+      tslib: 2.6.3
 
   safe-array-concat@1.1.2:
     dependencies:
@@ -6982,6 +7400,8 @@ snapshots:
     dependencies:
       typescript: 5.5.4
 
+  ts-pattern@4.3.0: {}
+
   ts-toolbelt@9.6.0: {}
 
   tsconfig-paths@3.15.0:
@@ -7084,6 +7504,10 @@ snapshots:
 
   ua-parser-js@1.0.38: {}
 
+  uid@2.0.2:
+    dependencies:
+      '@lukeed/csprng': 1.1.0
+
   unbox-primitive@1.0.2:
     dependencies:
       call-bind: 1.0.7
@@ -7098,6 +7522,11 @@ snapshots:
   unicorn-magic@0.1.0: {}
 
   unique-names-generator@4.7.1: {}
+
+  universal-cookie@7.2.0:
+    dependencies:
+      '@types/cookie': 0.6.0
+      cookie: 0.6.0
 
   update-browserslist-db@1.1.0(browserslist@4.23.2):
     dependencies:
@@ -7122,9 +7551,13 @@ snapshots:
 
   uuid@8.3.2: {}
 
+  uuid@9.0.1: {}
+
   v8-compile-cache@2.4.0: {}
 
   validate-npm-package-name@5.0.1: {}
+
+  validator@13.12.0: {}
 
   varuint-bitcoin@1.1.2:
     dependencies:
@@ -7224,6 +7657,10 @@ snapshots:
   wif@2.0.6:
     dependencies:
       bs58check: 2.1.2
+
+  wif@5.0.0:
+    dependencies:
+      bs58check: 4.0.0
 
   wildcard@1.1.2: {}
 
