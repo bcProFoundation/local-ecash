@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "build": "turbo run build",
-    "build:telegram-ecash-escrow": "turbo run build --scope=@bcpros/telegram-ecash-escrow...",
+    "build:app": "turbo run build --scope=@bcpros/telegram-ecash-escrow",
     "dev": "turbo run dev --parallel --no-cache",
     "dev:next": "turbo run dev --scope=@bcpros/telegram-ecash-escrow... --no-cache",
     "lint": "turbo run lint",
