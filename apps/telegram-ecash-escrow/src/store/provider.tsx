@@ -10,14 +10,14 @@ import {
 } from '@bcpros/redux-store';
 import { Box, CircularProgress } from '@mui/material';
 import { setupListeners } from '@reduxjs/toolkit/query';
-import React, { useEffect, useRef } from 'react';
+import { initWasm } from 'ecash-lib';
+import React, { useEffect, useRef, useState } from 'react';
 import OutsideCallConsumer from 'react-outside-call';
 import { Provider } from 'react-redux';
 import { persistStore, type Persistor } from 'redux-persist';
 import { PersistGate } from 'redux-persist/integration/react';
 import { AppStore, makeStore } from './store';
-
-const PGate = PersistGate as any;
+const PGate = PersistGate;
 
 interface ReduxProviderProps {
   children: React.ReactNode;
@@ -36,6 +36,7 @@ const LoadingComponent = () => {
 const ReduxProvider: React.FC<ReduxProviderProps> = ({ children }) => {
   const storeRef = useRef<AppStore>();
   const persistorRef = useRef<Persistor>({} as Persistor);
+  const [isWasmInitialized, setIsWasmInitialized] = useState(false);
   if (!storeRef.current) {
     storeRef.current = makeStore();
     persistorRef.current = persistStore(storeRef.current);
@@ -50,22 +51,38 @@ const ReduxProvider: React.FC<ReduxProviderProps> = ({ children }) => {
     }
   }, []);
 
+  useEffect(() => {
+    const init = async () => {
+      await initWasm().then(() => {
+        setIsWasmInitialized(true);
+      });
+    };
+
+    init();
+  }, []);
+
+  if (!isWasmInitialized) {
+    return <LoadingComponent />;
+  }
+
   return (
-    <Provider store={storeRef.current}>
-      <PGate persistor={persistorRef.current} loading={<LoadingComponent />}>
-        <SocketProvider>
-          <ServiceWorkerProvider>
-            <WalletProvider>
-              <AuthenticationProvider>
-                <AuthorizationProvider>
-                  <OutsideCallConsumer config={callConfig}>{children}</OutsideCallConsumer>
-                </AuthorizationProvider>
-              </AuthenticationProvider>
-            </WalletProvider>
-          </ServiceWorkerProvider>
-        </SocketProvider>
-      </PGate>
-    </Provider>
+    <React.Fragment>
+      <Provider store={storeRef.current}>
+        <PGate persistor={persistorRef.current} loading={<LoadingComponent />}>
+          <SocketProvider>
+            <ServiceWorkerProvider>
+              <WalletProvider>
+                <AuthenticationProvider>
+                  <AuthorizationProvider>
+                    <OutsideCallConsumer config={callConfig}>{children}</OutsideCallConsumer>
+                  </AuthorizationProvider>
+                </AuthenticationProvider>
+              </WalletProvider>
+            </ServiceWorkerProvider>
+          </SocketProvider>
+        </PGate>
+      </Provider>
+    </React.Fragment>
   );
 };
 

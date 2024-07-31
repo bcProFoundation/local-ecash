@@ -20,14 +20,13 @@
     ],
     "incremental": true,
     "paths": {
-      "@store/*": ["@bcpros/redux-store/*"],
+      // "@store/*": ["@bcpros/redux-store/"],
       "@/*": ["./*"]
     },
     "typeRoots": ["./src/@types", "./node_modules/@types"],
-    "strict": false,
-    "strictNullChecks": true
+    "strict": false
   },
   "types": ["redux-persist"],
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/api/auth/[...nextauth]"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
 }
