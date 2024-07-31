@@ -21,6 +21,7 @@ import {
   useTheme
 } from '@mui/material';
 import { TransitionProps } from '@mui/material/transitions';
+import { useRouter } from 'next/navigation';
 import React from 'react';
 
 interface PlaceAnOrderModalProps {
@@ -199,6 +200,7 @@ const Transition = React.forwardRef(function Transition(
 const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = (props) => {
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
+  const router = useRouter();
 
   return (
     <StyledDialog
@@ -283,7 +285,10 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = (props) => {
           className="confirm-btn"
           color="info"
           variant="contained"
-          onClick={() => props.onDissmissModal(false)}
+          onClick={() => {
+            router.push('/order-detail');
+            props.onDissmissModal(false);
+          }}
           autoFocus
         >
           Create
