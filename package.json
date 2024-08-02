@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "build": "turbo run build",
-    "build:app": "turbo run build --scope=@bcpros/telegram-ecash-escrow",
+    "build:telegram-ecash-escrow": "turbo run build --scope=@bcpros/telegram-ecash-escrow...",
     "dev": "turbo run dev --parallel --no-cache",
     "dev:next": "turbo run dev --scope=@bcpros/telegram-ecash-escrow... --no-cache",
     "lint": "turbo run lint",
@@ -47,6 +47,7 @@
     "prettier-plugin-packagejson": "2.5.0",
     "prettier-plugin-stylex-key-sort": "^1.0.1"
   },
+  "packageManager": "pnpm@7.0.0",
   "resolutions": {
     "@abcpros/bitcore-lib": "8.25.43"
   }

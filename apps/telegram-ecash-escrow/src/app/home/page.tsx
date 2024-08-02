@@ -80,7 +80,9 @@ export default function Home() {
             <OfferItem />
           </div>
         </Section>
-        <img className="shape-reg-footer" src="/shape-reg-footer.svg" alt="" />
+        <picture>
+          <img className="shape-reg-footer" src="/shape-reg-footer.svg" alt="" />
+        </picture>
       </HomePage>
 
       <Footer />

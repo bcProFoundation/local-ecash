@@ -126,10 +126,10 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = (props) => {
     <StyledDialog
       fullScreen={fullScreen}
       open={props.isOpen}
-      onClose={() => props.onDissmissModal(false)}
+      onClose={() => props.onDissmissModal!(false)}
       TransitionComponent={Transition}
     >
-      <IconButton className="close-btn" onClick={() => props.onDissmissModal(false)}>
+      <IconButton className="close-btn" onClick={() => props.onDissmissModal!(false)}>
         <CloseOutlined />
       </IconButton>
       <DialogTitle>Filter</DialogTitle>
@@ -166,14 +166,14 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = (props) => {
         </FilterWrap>
       </DialogContent>
       <DialogActions>
-        <Button color="inherit" variant="contained" autoFocus onClick={() => props.onDissmissModal(false)}>
+        <Button color="inherit" variant="contained" autoFocus onClick={() => props.onDissmissModal!(false)}>
           Reset
         </Button>
         <Button
           className="confirm-btn"
           color="info"
           variant="contained"
-          onClick={() => props.onDissmissModal(false)}
+          onClick={() => props.onDissmissModal!(false)}
           autoFocus
         >
           Confirm

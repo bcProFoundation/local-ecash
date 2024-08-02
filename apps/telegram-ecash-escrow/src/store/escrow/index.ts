@@ -6,6 +6,8 @@ import {
   OP_2,
   OP_3,
   OP_4,
+  OP_5,
+  OP_6,
   OP_CAT,
   OP_CHECKDATASIGVERIFY,
   OP_DUP,
@@ -33,22 +35,26 @@ export class Escrow {
   public sellerPk: Uint8Array;
   public buyerPk: Uint8Array;
   public arbiPk: Uint8Array;
+  public modPk: Uint8Array;
   public nonce: string;
 
   constructor({
     sellerPk,
     buyerPk,
     arbiPk,
+    modPk,
     nonce
   }: {
     sellerPk: Uint8Array;
     buyerPk: Uint8Array;
     arbiPk: Uint8Array;
+    modPk: Uint8Array;
     nonce: string;
   }) {
     this.sellerPk = sellerPk;
     this.buyerPk = buyerPk;
     this.arbiPk = arbiPk;
+    this.modPk = modPk;
     this.nonce = nonce;
   }
 
@@ -57,6 +63,7 @@ export class Escrow {
     const sellerPkh = shaRmd160(this.sellerPk);
     const buyerPkh = shaRmd160(this.buyerPk);
     const arbiPkh = shaRmd160(this.arbiPk);
+    const modPkh = shaRmd160(this.modPk);
     const nonce = fromHex(Buffer.from(this.nonce, 'utf-8').toString('hex'));
 
     return Script.fromOps([
@@ -69,24 +76,40 @@ export class Escrow {
       pushBytesOp(buyerPkh), //<hash160(BuyerPubKey)> # Spender pub key
       OP_ELSE,
       OP_DUP,
-      OP_2, //# = release from arbitrator
+      OP_2, //# = release to buyer from arbitrator
       OP_EQUAL,
       OP_IF,
       pushBytesOp(arbiPkh), //<hash160(ArbPubKey)> # Oracle pub key
       pushBytesOp(buyerPkh), //<hash160(BuyerPubKey)> # Spender pub key
       OP_ELSE,
       OP_DUP,
-      OP_3, //# = return from buyer
+      OP_3, //# = return to seller from buyer
       OP_EQUAL,
       OP_IF,
       pushBytesOp(buyerPkh), //<hash160(BuyerPubKey)> # Oracle pub key
       pushBytesOp(sellerPkh), //<hash160(SellerPubKey)> # Spender pub key
       OP_ELSE,
       OP_DUP,
-      OP_4, //# = return from arbitrator
-      OP_EQUALVERIFY, //# must be true, else the message is unknown
+      OP_4, //# = return to seller from arbitrator
+      OP_EQUAL,
+      OP_IF,
       pushBytesOp(arbiPkh), //<hash160(ArbPubKey)> # Oracle pub key
       pushBytesOp(sellerPkh), //<hash160(SellerPubKey)> # Spender pub key
+      OP_ELSE,
+      OP_DUP,
+      OP_5, //# = release to buyer from moderator
+      OP_EQUAL,
+      OP_IF,
+      pushBytesOp(modPkh), //<hash160(ArbPubKey)> # Oracle pub key
+      pushBytesOp(buyerPkh), //<hash160(SellerPubKey)> # Spender pub key
+      OP_ELSE,
+      OP_DUP,
+      OP_6, //# = return to seller from moderator
+      OP_EQUALVERIFY,
+      pushBytesOp(modPkh), //<hash160(ArbPubKey)> # Oracle pub key
+      pushBytesOp(sellerPkh), //<hash160(SellerPubKey)> # Spender pub key
+      OP_ENDIF,
+      OP_ENDIF,
       OP_ENDIF,
       OP_ENDIF,
       OP_ENDIF,
@@ -185,6 +208,44 @@ export const ArbiReturnSignatory = (arbiSk: Uint8Array, arbiPk: Uint8Array, sell
       pushBytesOp(oracleSig),
       pushBytesOp(arbiPk),
       OP_4,
+      pushBytesOp(preimage.redeemScript.bytecode)
+    ]);
+  };
+};
+
+export const ModReleaseSignatory = (modSk: Uint8Array, modPk: Uint8Array, buyerPk: Uint8Array, nonce: string) => {
+  return (ecc: Ecc, input: UnsignedTxInput): Script => {
+    const preimage = input.sigHashPreimage(ALL_BIP143);
+    const hexNonce = Buffer.from(nonce, 'utf-8').toString('hex');
+    const message = ACTION.MOD_RELEASE + hexNonce;
+
+    const oracleMessage = sha256(fromHex(message)); // ACTION BYTE - 01 + NONCE - 48656c6c6f
+    const oracleSig = ecc.ecdsaSign(modSk, oracleMessage);
+
+    return Script.fromOps([
+      pushBytesOp(buyerPk),
+      pushBytesOp(oracleSig),
+      pushBytesOp(modPk),
+      OP_5,
+      pushBytesOp(preimage.redeemScript.bytecode)
+    ]);
+  };
+};
+
+export const ModReturnSignatory = (modSk: Uint8Array, modPk: Uint8Array, sellerPk: Uint8Array, nonce: string) => {
+  return (ecc: Ecc, input: UnsignedTxInput): Script => {
+    const preimage = input.sigHashPreimage(ALL_BIP143);
+    const hexNonce = Buffer.from(nonce, 'utf-8').toString('hex');
+    const message = ACTION.MOD_RELEASE + hexNonce;
+
+    const oracleMessage = sha256(fromHex(message)); // ACTION BYTE - 01 + NONCE - 48656c6c6f
+    const oracleSig = ecc.ecdsaSign(modSk, oracleMessage);
+
+    return Script.fromOps([
+      pushBytesOp(sellerPk),
+      pushBytesOp(oracleSig),
+      pushBytesOp(modPk),
+      OP_6,
       pushBytesOp(preimage.redeemScript.bytecode)
     ]);
   };

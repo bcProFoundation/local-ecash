@@ -1,8 +1,12 @@
 'use client';
+import { generateAccount, importAccount, useSliceDispatch as useLixiSliceDispatch } from '@bcpros/redux-store';
+import useWallet from '@bcpros/redux-store/build/main/hooks/useWallet';
+import axiosClient from '@bcpros/redux-store/build/main/utils/axiosClient';
 import styled from '@emotion/styled';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import QrCodeScannerOutlinedIcon from '@mui/icons-material/QrCodeScannerOutlined';
 import {
+  Alert,
   Backdrop,
   Button,
   CircularProgress,
@@ -14,8 +18,10 @@ import {
   TextField,
   Tooltip
 } from '@mui/material';
-// import { useBackButton, useHapticFeedback, useMainButton, usePopup, useQRScanner } from '@tma.js/sdk-react';
-import React, { useState } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 
 const ContainerImportWallet = styled.div`
   padding: 1rem;
@@ -68,11 +74,21 @@ const ContainerImportWallet = styled.div`
 `;
 
 export default function ImportWallet() {
-  // const { navigate } = useRouter();
+  const search = useSearchParams();
+  const dispatch = useLixiSliceDispatch();
+  const router = useRouter();
+  const id = search!.get('id');
+  const {
+    handleSubmit,
+    formState: { errors },
+    control
+  } = useForm();
+  const { status, data } = useSession();
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(false);
-  const [seedPhrase, setSeedPhrase] = useState<string>('');
+  //@ts-expect-error: Unreachable code error
+  const { getXecWalletPublicKey } = useWallet();
   // const mainButton = useMainButton();
   // const backButton = useBackButton();
   // const popUp = usePopup();
@@ -90,17 +106,17 @@ export default function ImportWallet() {
   //   backButton.on('click', onBackButtonClick);
   // }, [mainButton, backButton]);
 
-  const onMainButtonClick = () => {
-    importWallet();
-  };
+  // const onMainButtonClick = () => {
+  // importWallet();
+  // };
 
-  const onBackButtonClick = () => {
-    // backButton.hide();
-    // mainButton.hide();
-    // mainButton.off('click', onMainButtonClick);
-    // backButton.off('click', onBackButtonClick);
-    // navigate({ to: '/wallet' });
-  };
+  // const onBackButtonClick = () => {
+  // backButton.hide();
+  // mainButton.hide();
+  // mainButton.off('click', onMainButtonClick);
+  // backButton.off('click', onBackButtonClick);
+  // navigate({ to: '/wallet' });
+  // };
 
   const scanQRCode = () => {
     // haptic.notificationOccurred('warning');
@@ -110,40 +126,64 @@ export default function ImportWallet() {
     // });
   };
 
-  const handleSeedPhrase = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.target;
-    setSeedPhrase(value);
+  const importWallet = async (data: { recoveryPhrase: string }) => {
+    const { recoveryPhrase } = data;
+    setLoading(true);
+    try {
+      const publicKey = await getXecWalletPublicKey(recoveryPhrase);
+
+      await axiosClient.get(`/api/accounts/telegram`, {
+        params: {
+          telegramId: id,
+          publicKey: publicKey
+        }
+      });
+
+      dispatch(importAccount(recoveryPhrase));
+
+      setSuccess(true);
+    } catch (e) {
+      setError(true);
+    }
+
+    setLoading(false);
   };
 
-  const importWallet = () => {
-    const result = true;
-    // result =
-    //   seedPhrase ===
-    //   "firm panther globe worry affair solve monitor reason carpet yellow return labor"
-    //     ? true
-    //     : false;
-    // Call API to import seed phrase
+  const handleCreateNewWallet = async () => {
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000);
-    if (result) {
-      // setError(false);
-      // setSuccess(true);
-      // localStorage.setItem('accounts', 'true');
-      // setTimeout(() => {
-      //   navigate({ to: '/wallet' });
-      //   mainButton.hide();
-      // }, 1000);
-    } else {
+    try {
+      await axiosClient.get(`/api/accounts/telegram/unlink/${id}`);
+
+      dispatch(generateAccount({ coin: 'XEC', telegramId: id!.toString() }));
+
+      setSuccess(true);
+    } catch (e) {
       setError(true);
-      setSuccess(false);
     }
+
+    setLoading(false);
   };
 
   const handleClose = () => {
-    setLoading(false);
+    setSuccess(false);
   };
+
+  if (status === 'unauthenticated') {
+    return (
+      <div>
+        <h1 style={{ color: 'white' }}>Please sign in to continue</h1>
+        <Button onClick={() => router.push('/login')}>Login</Button>
+      </div>
+    );
+  }
+
+  if (status === 'authenticated' && data.user.id !== id) {
+    return (
+      <div>
+        <h1 style={{ color: 'white' }}>You are not authorized to access this page</h1>
+      </div>
+    );
+  }
 
   return (
     <ContainerImportWallet>
@@ -152,7 +192,9 @@ export default function ImportWallet() {
           <img width={96} height={96} src="/import.svg" alt="" />
         </picture>
         <div className="header-receive">
-          <h2 className="title">Import</h2>
+          <h2 className="title" style={{ color: 'white' }}>
+            Import
+          </h2>
           <Tooltip title={'Test'}>
             <IconButton>
               <InfoOutlinedIcon />
@@ -161,51 +203,80 @@ export default function ImportWallet() {
         </div>
       </div>
       <div className="receive-form">
+        <p className="title" style={{ color: 'white' }}>
+          We detected telegram account already exists. Please import your mnemonic seed phrase to continue.
+        </p>
         <FormControl fullWidth={true}>
-          <TextField
-            id="recovery-phrase"
-            label="Recovery phrase"
-            placeholder="Enter your recovery phrase (12 words) in the correct order. Separate each word with a single space only (no commas or any other punctuation)."
-            color="primary"
-            variant="outlined"
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <div onClick={scanQRCode}>
-                    <QrCodeScannerOutlinedIcon />
-                  </div>
-                </InputAdornment>
-              )
-            }}
-            value={seedPhrase}
-            onChange={handleSeedPhrase}
-            required
-            multiline
-            rows={5}
-            error={error}
-            helperText={error && 'Valid mnemonic seed phrase required'}
+          <Controller
+            name="recoveryPhrase"
+            control={control}
+            defaultValue=""
+            rules={{ required: true }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextField
+                onChange={onChange}
+                onBlur={onBlur}
+                value={value}
+                disabled={loading || success}
+                id="recoveryPhrase"
+                label="Recovery phrase"
+                placeholder="Enter your recovery phrase (12 words) in the correct order. Separate each word with a single space only (no commas or any other punctuation)."
+                color="primary"
+                variant="outlined"
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <div onClick={scanQRCode}>
+                        <QrCodeScannerOutlinedIcon />
+                      </div>
+                    </InputAdornment>
+                  )
+                }}
+                required
+                multiline
+                rows={5}
+                error={errors.recoveryPhrase && true}
+                helperText={errors.recoveryPhrase && 'Valid mnemonic seed phrase required'}
+              />
+            )}
           />
         </FormControl>
+        <Button onClick={handleSubmit(importWallet)} disabled={loading || success}>
+          Import
+        </Button>
+      </div>
+      <div className="receive-form">
+        <p className="title" style={{ color: 'white' }}>
+          I forgot my wallet recovery phrase. Create me a new one.
+        </p>
+        <Button onClick={() => handleCreateNewWallet()} disabled={loading || success}>
+          Create new wallet
+        </Button>
       </div>
       <Backdrop sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }} open={loading} onClick={handleClose}>
         <CircularProgress color={'inherit'} />
-        {/* <Alert
-          icon={<CheckCircleOutline fontSize="inherit" />}
-          severity="success"
-        >
-          Import wallet success — Check it out!
-        </Alert> */}
       </Backdrop>
       <Stack>
         <Snackbar
           open={success}
-          autoHideDuration={2000}
-          onClose={handleClose}
-          message="Import wallet success — Check it out!"
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        />
+          autoHideDuration={3000}
+          onClose={() =>
+            setTimeout(() => {
+              router.push('/home');
+            })
+          }
+        >
+          <Alert onClose={handleClose} severity="success" variant="filled" sx={{ width: '100%' }}>
+            Import wallet success - Redirecting to home...
+          </Alert>
+        </Snackbar>
+
+        <Snackbar open={error} autoHideDuration={4000} onClose={() => setError(false)}>
+          <Alert onClose={handleClose} severity="error" variant="filled" sx={{ width: '100%' }}>
+            Import wallet failed — Please check your mnemonic seed phrase
+          </Alert>
+        </Snackbar>
       </Stack>
-      <Button>Import</Button>
     </ContainerImportWallet>
   );
 }
