@@ -70,5 +70,6 @@
     "source-map-loader": "^5.0.0",
     "typescript": "^5"
   },
+  "packageManager": "pnpm@7.0.0",
   "resolutions": {}
 }
