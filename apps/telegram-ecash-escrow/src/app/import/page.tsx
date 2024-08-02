@@ -1,7 +1,11 @@
 'use client';
-import { generateAccount, importAccount, useSliceDispatch as useLixiSliceDispatch } from '@bcpros/redux-store';
-import useWallet from '@bcpros/redux-store/build/main/hooks/useWallet';
-import axiosClient from '@bcpros/redux-store/build/main/utils/axiosClient';
+import {
+  axiosClient,
+  generateAccount,
+  importAccount,
+  useSliceDispatch as useLixiSliceDispatch,
+  default as useWallet
+} from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import QrCodeScannerOutlinedIcon from '@mui/icons-material/QrCodeScannerOutlined';

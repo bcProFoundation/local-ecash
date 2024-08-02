@@ -1,6 +1,5 @@
 'use client';
-import { generateAccount, useSliceDispatch as useLixiSliceDispatch } from '@bcpros/redux-store';
-import axiosClient from '@bcpros/redux-store/build/main/utils/axiosClient';
+import { axiosClient, generateAccount, useSliceDispatch as useLixiSliceDispatch } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import { Box, Skeleton } from '@mui/material';
 import { LoginButton, TelegramAuthData } from '@telegram-auth/react';
