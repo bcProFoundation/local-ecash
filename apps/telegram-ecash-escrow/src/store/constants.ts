@@ -1,4 +1,5 @@
 export enum TabType {
   ACTIVE = 'Active',
-  ARCHIVED = 'Archived'
+  ARCHIVED = 'Archived',
+  RESOLVED = 'Resolved'
 }

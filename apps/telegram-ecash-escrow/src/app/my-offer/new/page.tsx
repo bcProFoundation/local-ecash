@@ -20,6 +20,7 @@ const NewOfferWrap = styled.div`
   background-image: url('/bg-dialog.svg');
   background-repeat: no-repeat;
   background-size: cover;
+  padding-bottom: 56px;
 
   .offer-content {
     padding: 16px;

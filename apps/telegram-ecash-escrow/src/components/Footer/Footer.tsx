@@ -77,8 +77,8 @@ export default function Footer() {
         </IconButton>
         <Typography variant="body2">Orders</Typography>
       </TabMenu>
-      <TabMenu className={`${pathName === '/disputes' && 'active'}`}>
-        <IconButton onClick={() => router.push('/home')}>
+      <TabMenu className={`${pathName === '/my-dispute' && 'active'}`}>
+        <IconButton onClick={() => router.push('/my-dispute')}>
           <GavelOutlinedIcon />
         </IconButton>
         <Typography variant="body2">Dispute</Typography>
