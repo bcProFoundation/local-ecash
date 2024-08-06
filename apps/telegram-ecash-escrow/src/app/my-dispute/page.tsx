@@ -1,6 +1,6 @@
 'use client';
+import DisputeDetailInfo from '@/src/components/DisputeDetailInfo/DisputeDetailInfo';
 import Footer from '@/src/components/Footer/Footer';
-import OrderDetailInfo from '@/src/components/OrderDetailInfo/OrderDetailInfo';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
 import { TabType } from '@/src/store/constants';
 import styled from '@emotion/styled';
@@ -35,7 +35,7 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
-const MyOfferPage = styled.div`
+const MyDisputePage = styled.div`
   min-height: 100vh;
   background-image: url('/bg-dialog.svg');
   background-repeat: no-repeat;
@@ -92,8 +92,8 @@ export default function MyOffer() {
 
   return (
     <>
-      <MyOfferPage>
-        <TickerHeader hideIcon={true} title="My offers" />
+      <MyDisputePage>
+        <TickerHeader hideIcon={true} title="My disputes" />
 
         <Tabs value={value} onChange={handleChange} indicatorColor="secondary" textColor="inherit" variant="fullWidth">
           <Tab
@@ -102,28 +102,28 @@ export default function MyOffer() {
             aria-controls={`full-width-tabpanel-${TabType.ACTIVE}`}
           />
           <Tab
-            label={TabType.ARCHIVED}
-            id={`full-width-tab-${TabType.ARCHIVED}`}
-            aria-controls={`full-width-tabpanel-${TabType.ARCHIVED}`}
+            label={TabType.RESOLVED}
+            id={`full-width-tab-${TabType.RESOLVED}`}
+            aria-controls={`full-width-tabpanel-${TabType.RESOLVED}`}
           />
         </Tabs>
         <SwipeableViews index={value} onChangeIndex={handleChangeIndex}>
           <TabPanel value={value} index={0}>
             <div className="list-item">
-              <OrderDetailInfo />
-              <OrderDetailInfo />
+              <DisputeDetailInfo />
+              <DisputeDetailInfo />
             </div>
           </TabPanel>
           <TabPanel value={value} index={1}>
             <div className="list-item">
-              <OrderDetailInfo />
-              <OrderDetailInfo />
+              <DisputeDetailInfo />
+              <DisputeDetailInfo />
             </div>
           </TabPanel>
         </SwipeableViews>
 
         <Fab route="/my-offer/new" icon={<Add />} />
-      </MyOfferPage>
+      </MyDisputePage>
 
       <Footer />
     </>

@@ -8,13 +8,14 @@ import Footer from '@/src/components/Footer/Footer';
 import Header from '@/src/components/Header/Header';
 import OfferItem from '@/src/components/OfferItem/OfferItem';
 import TopSection from '@/src/components/TopSection/TopSection';
+import Image from 'next/image';
 
 const HomePage = styled.div`
   position: relative;
   background-image: url('/shape-reg.svg');
   background-repeat: no-repeat;
   padding: 1rem;
-  padding-bottom: 96px;
+  padding-bottom: 56px;
   min-height: 100svh;
 
   .shape-reg-footer {
@@ -80,9 +81,7 @@ export default function Home() {
             <OfferItem />
           </div>
         </Section>
-        <picture>
-          <img className="shape-reg-footer" src="/shape-reg-footer.svg" alt="" />
-        </picture>
+        <Image width={200} height={200} className="shape-reg-footer" src="/shape-reg-footer.svg" alt="" />
       </HomePage>
 
       <Footer />
