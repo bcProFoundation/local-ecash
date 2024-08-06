@@ -1,4 +1,4 @@
-import { api } from '@bcpros/redux-store';
+import { api, useXPI } from '@bcpros/redux-store';
 import { Action, Store, ThunkAction, configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
 import { getPersistConfig } from 'redux-deep-persist';
@@ -51,7 +51,9 @@ const persistedReducer = persistReducer(persistConfig, rootReducer);
 export const makeStore = () => {
   const isServer = typeof window === 'undefined';
   const sagaMiddleware = createSagaMiddleware({
-    context: {}
+    context: {
+      useXPI: useXPI
+    }
   });
 
   const store = configureStore({

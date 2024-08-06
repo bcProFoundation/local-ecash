@@ -8,13 +8,13 @@
   ],
   "scripts": {
     "build": "turbo run build",
-    "build:telegram-ecash-escrow": "turbo run build --scope=@bcpros/telegram-ecash-escrow...",
+    "build:app": "turbo run build --scope=@bcpros/telegram-ecash-escrow...",
     "dev": "turbo run dev --parallel --no-cache",
     "dev:next": "turbo run dev --scope=@bcpros/telegram-ecash-escrow... --no-cache",
     "lint": "turbo run lint",
     "test": "turbo run test",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
-    "postinstall": "husky install"
+    "prepare": "husky"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^7.9.0",
@@ -27,11 +27,6 @@
   },
   "engines": {
     "node": ">=18.0.0"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "turbo run format"
-    }
   },
   "lint-staged": {
     "**/*.{json,css,scss,md}": [
@@ -47,6 +42,7 @@
     "prettier-plugin-packagejson": "2.5.0",
     "prettier-plugin-stylex-key-sort": "^1.0.1"
   },
+  "packageManager": "pnpm@7.0.0",
   "resolutions": {
     "@abcpros/bitcore-lib": "8.25.43"
   }

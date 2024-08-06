@@ -28,8 +28,8 @@ export const initializeSlicePackage = (
   useSliceSelector = useAppSelector;
 };
 
-export * from './state';
 export * from './actions';
 export * from './saga';
 export * from './selectors';
+export * from './state';
 export { counterReducer };

@@ -4,6 +4,7 @@ const webpack = require('webpack');
 const CopyPlugin = require('copy-webpack-plugin')
 
 const nextConfig = {
+  output: 'standalone',
   reactStrictMode: false,
   pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
   transpilePackages: ['@bcpros/lixi-models', '@bcpros/redux-store'],
@@ -55,7 +56,7 @@ const nextConfig = {
             {
               from: path.resolve(__dirname, 'node_modules/ecash-lib/dist/ffi/ecash_lib_wasm_bg_nodejs.wasm'),
               to: path.resolve(__dirname, '.next/server/vendor-chunks/ecash_lib_wasm_bg_nodejs.wasm'),
-            },
+            }
           ],
         })
       );

@@ -184,10 +184,10 @@ const ResolveDisputeModal: React.FC<PlaceAnOrderModalProps> = (props) => {
       <StyledDialog
         fullScreen={fullScreen}
         open={props.isOpen}
-        onClose={() => props.onDissmissModal(false)}
+        onClose={() => props.onDissmissModal!(false)}
         TransitionComponent={Transition}
       >
-        <IconButton className="back-btn" onClick={() => props.onDissmissModal(false)}>
+        <IconButton className="back-btn" onClick={() => props.onDissmissModal!(false)}>
           <ChevronLeft />
         </IconButton>
         <DialogTitle>Resolve Dispute</DialogTitle>

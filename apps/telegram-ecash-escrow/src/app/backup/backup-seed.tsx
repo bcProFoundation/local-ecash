@@ -1,5 +1,4 @@
-import React from "react";
-import styled from "@emotion/styled";
+import styled from '@emotion/styled';
 
 const WordAlignment = styled.div`
   display: grid;
@@ -51,8 +50,8 @@ const BackupSeed = ({ mnemonicWords, isPlayGame }: BackupSeedProps) => {
           return (
             <div
               key={index}
-              className={`word ${word.isBlur && isPlayGame ? "blur" : "not-blur"} ${
-                word.isCorrect ? "right" : "wrong"
+              className={`word ${word.isBlur && isPlayGame ? 'blur' : 'not-blur'} ${
+                word.isCorrect ? 'right' : 'wrong'
               }`}
             >
               <span className="word-number">{index + 1}</span>&nbsp;
