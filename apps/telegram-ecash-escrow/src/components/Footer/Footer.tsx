@@ -5,7 +5,7 @@ import { HomeOutlined, SettingsOutlined } from '@mui/icons-material';
 import GavelOutlinedIcon from '@mui/icons-material/GavelOutlined';
 import InventoryOutlinedIcon from '@mui/icons-material/InventoryOutlined';
 import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined';
-import { IconButton, Typography } from '@mui/material';
+import { IconButton, Slide, Typography } from '@mui/material';
 import { usePathname, useRouter } from 'next/navigation';
 
 const Tabs = styled.div`
@@ -51,44 +51,48 @@ const TabMenu = styled.div`
   }
 `;
 
-export default function Footer() {
+type PropsFooter = {
+  hidden?: boolean;
+};
+
+export default function Footer({ hidden = false }: PropsFooter) {
   const router = useRouter();
   const pathName = usePathname();
 
-  console.log('AAA', pathName);
-
   return (
-    <Tabs>
-      <TabMenu className={`${pathName === '/home' && 'active'}`}>
-        <IconButton onClick={() => router.push('/home')}>
-          <HomeOutlined />
-        </IconButton>
-        <Typography variant="body2">Home</Typography>
-      </TabMenu>
-      <TabMenu className={`${pathName === '/my-offer' && 'active'}`}>
-        <IconButton onClick={() => router.push('/my-offer')}>
-          <LocalOfferOutlinedIcon />
-        </IconButton>
-        <Typography variant="body2">Offers</Typography>
-      </TabMenu>
-      <TabMenu className={`${pathName === '/my-order' && 'active'}`}>
-        <IconButton onClick={() => router.push('/my-order')}>
-          <InventoryOutlinedIcon />
-        </IconButton>
-        <Typography variant="body2">Orders</Typography>
-      </TabMenu>
-      <TabMenu className={`${pathName === '/my-dispute' && 'active'}`}>
-        <IconButton onClick={() => router.push('/my-dispute')}>
-          <GavelOutlinedIcon />
-        </IconButton>
-        <Typography variant="body2">Dispute</Typography>
-      </TabMenu>
-      <TabMenu className={`${pathName === '/setting' && 'active'}`}>
-        <IconButton onClick={() => router.push('/setting')}>
-          <SettingsOutlined />
-        </IconButton>
-        <Typography variant="body2">Setting</Typography>
-      </TabMenu>
-    </Tabs>
+    <Slide direction="up" in={hidden}>
+      <Tabs>
+        <TabMenu className={`${pathName === '/home' && 'active'}`}>
+          <IconButton onClick={() => router.push('/home')}>
+            <HomeOutlined />
+          </IconButton>
+          <Typography variant="body2">Home</Typography>
+        </TabMenu>
+        <TabMenu className={`${pathName === '/my-offer' && 'active'}`}>
+          <IconButton onClick={() => router.push('/my-offer')}>
+            <LocalOfferOutlinedIcon />
+          </IconButton>
+          <Typography variant="body2">Offers</Typography>
+        </TabMenu>
+        <TabMenu className={`${pathName === '/my-order' && 'active'}`}>
+          <IconButton onClick={() => router.push('/my-order')}>
+            <InventoryOutlinedIcon />
+          </IconButton>
+          <Typography variant="body2">Orders</Typography>
+        </TabMenu>
+        <TabMenu className={`${pathName === '/my-dispute' && 'active'}`}>
+          <IconButton onClick={() => router.push('/my-dispute')}>
+            <GavelOutlinedIcon />
+          </IconButton>
+          <Typography variant="body2">Dispute</Typography>
+        </TabMenu>
+        <TabMenu className={`${pathName === '/setting' && 'active'}`}>
+          <IconButton onClick={() => router.push('/setting')}>
+            <SettingsOutlined />
+          </IconButton>
+          <Typography variant="body2">Setting</Typography>
+        </TabMenu>
+      </Tabs>
+    </Slide>
   );
 }

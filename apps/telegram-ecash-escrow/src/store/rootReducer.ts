@@ -18,6 +18,7 @@ import {
   modalReducer,
   notificationReducer,
   pageReducer,
+  paymentMethodReducer,
   postReducer,
   settingsReducer,
   stateReducer,
@@ -57,6 +58,7 @@ const reducer = combineReducers({
   categories: categoryReducer,
   burn: burnReducer,
   pageMessage: messageReducer,
+  paymentMethods: paymentMethodReducer,
   [api.reducerPath]: api.reducer,
   action: actionReducer
 });
