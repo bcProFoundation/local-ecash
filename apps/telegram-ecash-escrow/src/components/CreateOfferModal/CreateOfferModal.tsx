@@ -13,15 +13,22 @@ import {
 import styled from '@emotion/styled';
 import { ChevronLeft } from '@mui/icons-material';
 import {
+  Alert,
+  Box,
   Button,
   Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControl,
+  FormControlLabel,
+  FormGroup,
   Grid,
   IconButton,
   Slide,
+  Snackbar,
+  Stack,
   TextField,
   useMediaQuery,
   useTheme
@@ -86,7 +93,7 @@ interface CreateOfferModalProps {
 
 const Transition = React.forwardRef(function Transition(
   props: TransitionProps & {
-    children: React.ReactElement<any, any>;
+    children: React.ReactElement;
   },
   ref: React.Ref<unknown>
 ) {
@@ -94,30 +101,38 @@ const Transition = React.forwardRef(function Transition(
 });
 
 const CreateOfferModal: React.FC<CreateOfferModalProps> = (props) => {
-  const { isOpen, onConfirmClick, onDissmissModal } = props;
+  const { isOpen, onDissmissModal } = props;
   const dispatch = useLixiSliceDispatch();
   const { useCreateOfferMutation } = offerApi;
   const [createOfferTrigger] = useCreateOfferMutation();
-  const {
-    handleSubmit,
-    getValues,
-    control,
-    clearErrors,
-    setError,
-    reset,
-    formState: { errors }
-  } = useForm();
-
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
+  const {
+    handleSubmit,
+    control,
+    watch,
+    reset,
+    formState: { errors }
+  } = useForm({
+    defaultValues: {
+      price: '',
+      message: '',
+      min: '',
+      max: ''
+    }
+  });
 
   const paymenthods = useLixiSliceSelector(getAllPaymentMethods);
   const [selectedOptions, setSelectedOptions] = useState<number[]>([1]);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleCreateOffer = async (data) => {
-    const minNum = parseFloat(data.orderLimitMin);
-    const maxNum = parseFloat(data.orderLimitMax);
-    if (minNum >= maxNum) return;
+    setLoading(true);
+
+    const minNum = parseFloat(data.min);
+    const maxNum = parseFloat(data.max);
 
     const inputCreateOffer: CreateOfferInput = {
       message: data.message,
@@ -129,13 +144,15 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = (props) => {
       coin: Coin.Xec,
       type: OfferType.Sell
     };
-    const offerCreated = await createOfferTrigger({ input: inputCreateOffer }).unwrap();
-    //reset field
-    if (offerCreated) {
-      reset();
-      setSelectedOptions([1]);
-      onDissmissModal(false);
-    }
+    const offerCreated = await createOfferTrigger({ input: inputCreateOffer })
+      .unwrap()
+      .catch(() => {
+        setError(true);
+      });
+
+    offerCreated && setSuccess(true);
+
+    setLoading(false);
   };
 
   const handleChangeCheckBox = (e, value) => {
@@ -155,71 +172,21 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = (props) => {
     }
   };
 
-  const validateLimits = () => {
-    const minValue = parseFloat(getValues('orderLimitMin'));
-    const maxValue = parseFloat(getValues('orderLimitMax'));
-    if (minValue >= maxValue) {
-      setError('orderLimitMax', {
-        type: 'manual',
-        message: 'Max need to greater min'
-      });
-    } else {
-      clearErrors('orderLimitMax');
-    }
-  };
-  console.log(errors);
-
-  const TextFieldController = (name, control, label, type = 'text', placeholder = '', checkValidLimit = false) => {
-    return (
-      <Controller
-        name={name}
-        control={control}
-        rules={{
-          required: { message: 'This field not empty', value: true }
-        }}
-        render={({ field: { onChange, value }, fieldState: { error }, formState }) => (
-          <TextField
-            key={name}
-            helperText={error ? error.message : null}
-            size="small"
-            error={!!error}
-            onChange={(e) => {
-              onChange(e);
-              console.log('on change');
-              checkValidLimit && validateLimits();
-            }}
-            value={value}
-            fullWidth
-            label={label}
-            type={type}
-            placeholder={placeholder}
-            variant="standard"
-          />
-        )}
-      />
-    );
-  };
-
   const CheckBoxUI = (id, name) => {
     const numId = Number(id);
+
     return (
-      <Controller
-        name={`checkbox${numId}`}
+      <FormControlLabel
         key={id}
-        control={control}
-        render={({ field }) => {
-          return (
-            <div className="checkbox-money">
-              <Checkbox
-                key={id}
-                value={numId}
-                checked={selectedOptions.includes(numId) || (numId === 1 && selectedOptions.length === 0)} //auto check option 1
-                onChange={(e) => handleChangeCheckBox(e, numId)}
-              />
-              {name}
-            </div>
-          );
-        }}
+        label={name}
+        control={
+          <Checkbox
+            key={id}
+            value={numId}
+            checked={selectedOptions.includes(numId) || (numId === 1 && selectedOptions.length === 0)} //auto check option 1
+            onChange={(e) => handleChangeCheckBox(e, numId)}
+          />
+        }
       />
     );
   };
@@ -243,20 +210,169 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = (props) => {
       <DialogContent>
         <Grid container spacing={2}>
           <Grid item xs={12}>
-            {TextFieldController('message', control, 'Message')}
+            <Controller
+              name="message"
+              control={control}
+              rules={{
+                required: {
+                  value: true,
+                  message: 'Message is required!'
+                }
+              }}
+              render={({ field: { onChange, onBlur, value, name, ref } }) => (
+                <FormControl fullWidth={true}>
+                  <TextField
+                    className="form-input"
+                    onChange={onChange}
+                    onBlur={onBlur}
+                    value={value}
+                    name={name}
+                    inputRef={ref}
+                    id="message"
+                    label="Message"
+                    defaultValue="I want to buy 20M XEC in cash"
+                    error={errors.message && true}
+                    helperText={errors.message && (errors.message?.message as string)}
+                    variant="standard"
+                  />
+                </FormControl>
+              )}
+            />
           </Grid>
           <Grid item xs={12}>
-            {TextFieldController('price', control, 'Price')}
+            <Controller
+              name="price"
+              control={control}
+              rules={{
+                required: {
+                  value: true,
+                  message: 'Price is required!'
+                },
+                pattern: {
+                  value: /^-?[0-9]\d*\.?\d*$/,
+                  message: 'Price is invalid!'
+                },
+                validate: (value) => {
+                  if (parseFloat(value) < 0) return 'Price must be greater than 0!';
+
+                  return true;
+                }
+              }}
+              render={({ field: { onChange, onBlur, value, name, ref } }) => (
+                <FormControl fullWidth={true}>
+                  <TextField
+                    id="payment-amount"
+                    label="Price"
+                    onChange={onChange}
+                    color="info"
+                    onBlur={onBlur}
+                    value={value}
+                    name={name}
+                    inputRef={ref}
+                    error={errors.price ? true : false}
+                    helperText={errors.price && (errors.price?.message as string)}
+                    variant="standard"
+                  />
+                </FormControl>
+              )}
+            />
           </Grid>
           <Grid item xs={6}>
-            {TextFieldController('orderLimitMin', control, 'Order Min', 'number', 'Order limit min', true)}
+            <Controller
+              name="min"
+              control={control}
+              rules={{
+                required: {
+                  value: true,
+                  message: 'Minimum is required!'
+                },
+                pattern: {
+                  value: /^-?[0-9]\d*\.?\d*$/,
+                  message: 'Minimum amount is invalid!'
+                },
+                validate: (value) => {
+                  const max = parseFloat(watch('max'));
+
+                  if (parseFloat(value) < 0) return 'Minimum amount must be greater than 0!';
+                  if (parseFloat(value) >= max) return 'Minimum amount must be less than maximum amount!';
+
+                  return true;
+                }
+              }}
+              render={({ field: { onChange, onBlur, value, name, ref } }) => (
+                <FormControl fullWidth={true}>
+                  <TextField
+                    onChange={onChange}
+                    onBlur={onBlur}
+                    value={value}
+                    type="number"
+                    name={name}
+                    inputRef={ref}
+                    className="form-input"
+                    id="min"
+                    label="Order limit (USD)"
+                    placeholder="Min order limit (USD)"
+                    error={errors.min && true}
+                    helperText={errors.min && (errors.min?.message as string)}
+                    variant="standard"
+                  />
+                </FormControl>
+              )}
+            />
           </Grid>
-          <Grid item xs={6}>
-            {TextFieldController('orderLimitMax', control, 'Order Max', 'number', 'Order limit max', true)}
+          <Grid item xs={1}>
+            <h2 style={{ color: 'white' }}>to</h2>
+          </Grid>
+          <Grid item xs={5}>
+            <Controller
+              name="max"
+              control={control}
+              rules={{
+                required: {
+                  value: true,
+                  message: 'Maximum is required!'
+                },
+                pattern: {
+                  value: /^-?[0-9]\d*\.?\d*$/,
+                  message: 'Maximum amount is invalid!'
+                },
+                validate: (value) => {
+                  const min = parseFloat(watch('min'));
+
+                  if (parseFloat(value) < 0) return 'Maximum amount must be greater than 0!';
+                  if (parseFloat(value) <= min) return 'Maximum amount must be greater than minimum amount!';
+
+                  return true;
+                }
+              }}
+              render={({ field: { onChange, onBlur, value, name, ref } }) => (
+                <FormControl fullWidth={true}>
+                  <TextField
+                    onChange={onChange}
+                    onBlur={onBlur}
+                    value={value}
+                    name={name}
+                    type="number"
+                    inputRef={ref}
+                    className="form-input"
+                    id="max"
+                    label=" "
+                    placeholder="Max order limit (USD)"
+                    error={errors.max && true}
+                    helperText={errors.max && (errors.max?.message as string)}
+                    variant="standard"
+                  />
+                </FormControl>
+              )}
+            />
           </Grid>
           <Grid item xs={12} className="payment-method">
-            <p className="title-payment-method">Payment Method</p>
-            {paymenthods.map((item) => CheckBoxUI(item.id, item.name))}
+            <p className="title-payment-method">Payment Methods</p>
+            <Box sx={{ display: 'flex', margin: '16px 0' }}>
+              <FormGroup sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                {paymenthods.map((item) => CheckBoxUI(item.id, item.name))}
+              </FormGroup>
+            </Box>
           </Grid>
         </Grid>
       </DialogContent>
@@ -265,14 +381,36 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = (props) => {
           className="confirm-btn"
           color="info"
           variant="contained"
-          onClick={() => {
-            if (!errors) handleSubmit(handleCreateOffer);
-          }}
-          autoFocus
+          onClick={handleSubmit(handleCreateOffer)}
+          disabled={loading || success}
         >
-          Create
+          Create offer
         </Button>
       </DialogActions>
+
+      <Stack zIndex={999}>
+        <Snackbar
+          open={success}
+          autoHideDuration={3000}
+          onClose={() => {
+            reset();
+            setSuccess(false);
+            onDissmissModal(false);
+            setSelectedOptions([1]);
+          }}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        >
+          <Alert severity="success" variant="filled" sx={{ width: '100%' }}>
+            Offer created successfully
+          </Alert>
+        </Snackbar>
+
+        <Snackbar open={error} autoHideDuration={4000} onClose={() => setError(false)}>
+          <Alert severity="error" variant="filled" sx={{ width: '100%' }}>
+            Create offer failed
+          </Alert>
+        </Snackbar>
+      </Stack>
     </StyledDialog>
   );
 };
