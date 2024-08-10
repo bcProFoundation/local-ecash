@@ -10,7 +10,7 @@
     "build": "turbo run build",
     "build:app": "turbo run build --filter=@bcpros/telegram-ecash-escrow",
     "dev": "turbo run dev --parallel --no-cache",
-    "dev:next": "turbo run dev --filter=@bcpros/telegram-ecash-escrow... --no-cache",
+    "dev:next": "turbo run dev --filter=@bcpros/telegram-ecash-escrow --no-cache",
     "lint": "turbo run lint",
     "test": "turbo run test",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
