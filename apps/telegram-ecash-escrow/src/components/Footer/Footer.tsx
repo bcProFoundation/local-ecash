@@ -56,6 +56,7 @@ export default function Footer() {
   const pathName = usePathname();
 
   console.log('AAA', pathName);
+  console.log(process.env.NEXT_PUBLIC_LIXI_API);
 
   return (
     <Tabs>
