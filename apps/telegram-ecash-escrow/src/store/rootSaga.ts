@@ -12,6 +12,7 @@ import {
   messageSaga,
   notificationSaga,
   pageSaga,
+  paymentMethodsSaga,
   postSaga,
   sendSaga,
   settingsSaga,
@@ -47,6 +48,7 @@ export default function* rootSaga() {
     categorySaga(),
     messageSaga(),
     websocketSaga(),
-    analyticEventSaga()
+    analyticEventSaga(),
+    paymentMethodsSaga()
   ]);
 }

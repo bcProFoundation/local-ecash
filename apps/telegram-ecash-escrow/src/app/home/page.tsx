@@ -2,8 +2,9 @@
 
 import styled from '@emotion/styled';
 import CachedRoundedIcon from '@mui/icons-material/CachedRounded';
-import { Badge, Skeleton, Typography } from '@mui/material';
+import { Badge, Fade, Skeleton, Typography } from '@mui/material';
 
+import CreateOfferModal from '@/src/components/CreateOfferModal/CreateOfferModal';
 import Footer from '@/src/components/Footer/Footer';
 import Header from '@/src/components/Header/Header';
 import OfferItem from '@/src/components/OfferItem/OfferItem';
@@ -107,7 +108,7 @@ export default function Home() {
   }, []);
 
   return (
-    <>
+    <WrapHome>
       <HomePage>
         <Header />
         <TopSection />
@@ -148,8 +149,18 @@ export default function Home() {
         </Section>
         <Image width={200} height={200} className="shape-reg-footer" src="/shape-reg-footer.svg" alt="" />
       </HomePage>
-
-      <Footer />
-    </>
+      <Fade in={visible}>
+        <div className="btn-create-offer" onClick={() => setOpen(true)}>
+          <img src="/ico-create-post.svg" />
+        </div>
+      </Fade>
+      <CreateOfferModal
+        isOpen={open}
+        onDissmissModal={(value) => {
+          setOpen(value);
+        }}
+      />
+      <Footer hidden={visible} />
+    </WrapHome>
   );
 }

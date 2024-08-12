@@ -13,8 +13,10 @@ const nextConfig = {
     config.module.rules.push({
       test: /\.m?js$/i,
       use: ['source-map-loader'],
-      enforce: 'pre'
+      enforce: 'pre',
+      exclude: /node_modules/,
     });
+    config.devtool = 'source-map';
 
     config.resolve.alias = {
       ...config.resolve.alias,
