@@ -59,6 +59,8 @@ export default function Footer({ hidden = false }: PropsFooter) {
   const router = useRouter();
   const pathName = usePathname();
 
+  console.log(`${process.env.NEXT_PUBLIC_LIXI_API}`);
+
   return (
     <Slide direction="up" in={hidden}>
       <Tabs>
