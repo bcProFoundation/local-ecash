@@ -4,11 +4,28 @@ import styled from '@emotion/styled';
 import CachedRoundedIcon from '@mui/icons-material/CachedRounded';
 import { Badge, Typography } from '@mui/material';
 
+import CreateOfferModal from '@/src/components/CreateOfferModal/CreateOfferModal';
 import Footer from '@/src/components/Footer/Footer';
 import Header from '@/src/components/Header/Header';
 import OfferItem from '@/src/components/OfferItem/OfferItem';
 import TopSection from '@/src/components/TopSection/TopSection';
+import Fade from '@mui/material/Fade';
 import Image from 'next/image';
+import { useEffect, useRef, useState } from 'react';
+
+const WrapHome = styled.div`
+  .btn-create-offer {
+    position: absolute;
+    right: 5%;
+    bottom: 100px;
+    z-index: 1;
+    cursor: pointer;
+    background-color: rgb(255, 219, 209);
+    padding: 10px;
+    border-radius: 50%;
+    display: flex;
+  }
+`;
 
 const HomePage = styled.div`
   position: relative;
@@ -60,8 +77,28 @@ const StyledBadge = styled(Badge)`
 `;
 
 export default function Home() {
+  const prevRef = useRef(0);
+  const [visible, setVisible] = useState(true);
+
+  const [open, setOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const handleScroll = (e) => {
+        const currentScrollPos = window.scrollY;
+        setVisible(prevRef.current > currentScrollPos || currentScrollPos < 100);
+        prevRef.current = currentScrollPos;
+      };
+      window.addEventListener('scroll', handleScroll);
+
+      return () => {
+        window.removeEventListener('scroll', handleScroll);
+      };
+    }
+  }, []);
+
   return (
-    <>
+    <WrapHome>
       <HomePage>
         <Header />
         <TopSection />
@@ -83,8 +120,18 @@ export default function Home() {
         </Section>
         <Image width={200} height={200} className="shape-reg-footer" src="/shape-reg-footer.svg" alt="" />
       </HomePage>
-
-      <Footer />
-    </>
+      <Fade in={visible}>
+        <div className="btn-create-offer" onClick={() => setOpen(true)}>
+          <img src="/ico-create-post.svg" />
+        </div>
+      </Fade>
+      <CreateOfferModal
+        isOpen={open}
+        onDissmissModal={(value) => {
+          setOpen(value);
+        }}
+      />
+      <Footer hidden={visible} />
+    </WrapHome>
   );
 }
