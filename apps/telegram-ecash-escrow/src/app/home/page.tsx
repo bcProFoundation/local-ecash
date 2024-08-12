@@ -2,13 +2,30 @@
 
 import styled from '@emotion/styled';
 import CachedRoundedIcon from '@mui/icons-material/CachedRounded';
-import { Badge, Typography } from '@mui/material';
+import { Badge, Skeleton, Typography } from '@mui/material';
 
 import Footer from '@/src/components/Footer/Footer';
 import Header from '@/src/components/Header/Header';
 import OfferItem from '@/src/components/OfferItem/OfferItem';
 import TopSection from '@/src/components/TopSection/TopSection';
+import { TimelineQueryItem, useInfiniteOffersByScoreQuery } from '@bcpros/redux-store';
 import Image from 'next/image';
+import { useEffect, useRef, useState } from 'react';
+import InfiniteScroll from 'react-infinite-scroll-component';
+
+const WrapHome = styled.div`
+  .btn-create-offer {
+    position: fixed;
+    right: 5%;
+    bottom: 100px;
+    z-index: 1;
+    cursor: pointer;
+    background-color: rgb(255, 219, 209);
+    padding: 10px;
+    border-radius: 50%;
+    display: flex;
+  }
+`;
 
 const HomePage = styled.div`
   position: relative;
@@ -60,6 +77,35 @@ const StyledBadge = styled(Badge)`
 `;
 
 export default function Home() {
+  const prevRef = useRef(0);
+  const [visible, setVisible] = useState(true);
+  const [open, setOpen] = useState<boolean>(false);
+
+  const { data, hasNext, isFetching, fetchNext } = useInfiniteOffersByScoreQuery({ first: 20 }, false);
+
+  const loadMoreItems = () => {
+    if (hasNext && !isFetching) {
+      fetchNext();
+    } else if (hasNext) {
+      fetchNext();
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const handleScroll = (e) => {
+        const currentScrollPos = window.scrollY;
+        setVisible(prevRef.current > currentScrollPos || currentScrollPos < 20);
+        prevRef.current = currentScrollPos;
+      };
+      window.addEventListener('scroll', handleScroll);
+
+      return () => {
+        window.removeEventListener('scroll', handleScroll);
+      };
+    }
+  }, []);
+
   return (
     <>
       <HomePage>
@@ -76,9 +122,28 @@ export default function Home() {
             </StyledBadge>
           </div>
           <div className="offer-list">
-            <OfferItem />
-            <OfferItem />
-            <OfferItem />
+            {data.length > 0 ? (
+              <InfiniteScroll
+                dataLength={data.length}
+                next={loadMoreItems}
+                hasMore={hasNext}
+                loader={
+                  <>
+                    <Skeleton variant="text" />
+                    <Skeleton variant="text" />
+                  </>
+                }
+                endMessage={<Footer />}
+                scrollableTarget="scrollableDiv"
+                scrollThreshold={'100px'}
+              >
+                {data.map((item) => {
+                  return <OfferItem timelineItem={item as TimelineQueryItem} />;
+                })}
+              </InfiniteScroll>
+            ) : (
+              <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No offer here</Typography>
+            )}
           </div>
         </Section>
         <Image width={200} height={200} className="shape-reg-footer" src="/shape-reg-footer.svg" alt="" />
