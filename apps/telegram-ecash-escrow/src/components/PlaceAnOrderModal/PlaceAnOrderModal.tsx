@@ -1,10 +1,12 @@
 'use client';
 
+import { Escrow } from '@/src/store/escrow';
+import { CreateEscrowOrderInput } from '@bcpros/lixi-models';
+import { escrowOrderApi } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
-import { ChevronLeft, ContentCopy, QrCode2Outlined } from '@mui/icons-material';
+import { ChevronLeft } from '@mui/icons-material';
 import {
   Button,
-  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
@@ -21,6 +23,7 @@ import {
   useTheme
 } from '@mui/material';
 import { TransitionProps } from '@mui/material/transitions';
+import { fromHex } from 'ecash-lib';
 import { useRouter } from 'next/navigation';
 import React from 'react';
 
@@ -190,17 +193,63 @@ const PlaceAnOrderWrap = styled.div`
 
 const Transition = React.forwardRef(function Transition(
   props: TransitionProps & {
-    children: React.ReactElement<any, any>;
+    children: React.ReactElement;
   },
   ref: React.Ref<unknown>
 ) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = (props) => {
+const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
   const router = useRouter();
+  const { useCreateEscrowOrderMutation } = escrowOrderApi;
+  const [createOrderTrigger] = useCreateEscrowOrderMutation();
+
+  const handleCreateEscrowOrder = async () => {
+    //TODO: get user id from api. Stop using hard code
+    const sellerId = 5;
+    const buyerId = 4;
+    const arbitratorId = 2;
+    const moderatorId = 1;
+
+    const sellerPk = fromHex('035ea9f61b6f433bc85c7ec650e1e6038201890f4cb4a5177383a6b607593763ab');
+    const buyerPk = fromHex('03fd3e50027c756bd5c26baf2db448f66b4c04542892aef4c7e1843589ecf1318c');
+    const arbitratorPk = fromHex('026ddec85c8e73789f60331fbbf2499c208e21a3a14c68a950524a205e4bfb2770');
+    const moderatorPk = fromHex('0254cfce2d067933e34aa61b1e650c8e4d9e849c893c1738b54a81f096f0650593');
+
+    const nonce = Math.floor(Date.now() / 1000).toString();
+
+    try {
+      const escrowScript = new Escrow({
+        sellerPk,
+        buyerPk,
+        arbiPk: arbitratorPk,
+        modPk: moderatorPk,
+        nonce
+      });
+
+      const data: CreateEscrowOrderInput = {
+        amount: 20,
+        arbitratorId,
+        buyerId,
+        sellerId,
+        moderatorId,
+        nonce,
+        escrowScript: Buffer.from(escrowScript.script().bytecode).toString('hex'),
+        price: 1000,
+        paymentMethodId: 1,
+        postId: 'clzqjraoj00037fiuooy9f7n5',
+        message: 'I want to buy 20M XEC in cash'
+      };
+
+      const result = await createOrderTrigger({ input: data }).unwrap();
+      router.push(`/order-detail?id=${result.createEscrowOrder.id}`);
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
   return (
     <StyledDialog
@@ -246,7 +295,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = (props) => {
             <FormControlLabel value="cash-in-person" control={<Radio />} label="Cash in person" />
             <FormControlLabel value="bank-transfer" control={<Radio />} label="Bank transfer" />
           </RadioGroup>
-          <div className="disclaim-wrap">
+          {/* <div className="disclaim-wrap">
             <Typography className="lable" variant="body2">
               Disclaim
             </Typography>
@@ -277,7 +326,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = (props) => {
                 </IconButton>
               </div>
             </div>
-          </div>
+          </div> */}
         </PlaceAnOrderWrap>
       </DialogContent>
       <DialogActions>
@@ -286,8 +335,9 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = (props) => {
           color="info"
           variant="contained"
           onClick={() => {
-            router.push('/order-detail');
-            props.onDissmissModal!(false);
+            handleCreateEscrowOrder();
+            // router.push('/order-detail');
+            // props.onDissmissModal!(false);
           }}
           autoFocus
         >

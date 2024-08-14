@@ -4,7 +4,7 @@ import {
   generateAccount,
   importAccount,
   useSliceDispatch as useLixiSliceDispatch,
-  default as useWallet
+  useWallet
 } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
@@ -91,7 +91,6 @@ export default function ImportWallet() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(false);
-  //@ts-expect-error: Unreachable code error
   const { getXecWalletPublicKey } = useWallet();
   // const mainButton = useMainButton();
   // const backButton = useBackButton();

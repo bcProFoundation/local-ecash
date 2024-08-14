@@ -9,7 +9,6 @@ import {
   boostApi,
   getSelectedWalletPath,
   getWalletStatus,
-  useInfiniteMyOffersQuery,
   useSliceSelector as useLixiSliceSelector,
   useXEC
 } from '@bcpros/redux-store';
@@ -86,7 +85,7 @@ export default function OfferItem() {
   };
 
   const Wallet = React.useContext(WalletContext);
-  const { XPI, chronik } = Wallet;
+  const { chronik } = Wallet;
   const { sendXec } = useXEC();
   const { useCreateBoostMutation } = boostApi;
   const [createBoostTrigger] = useCreateBoostMutation();
@@ -121,11 +120,6 @@ export default function OfferItem() {
     };
     await createBoostTrigger({ data: createBoostInput });
   };
-
-  const { data } = useInfiniteMyOffersQuery({
-    publicKey: selectedWallet?.publicKey,
-    first: 20
-  });
 
   return (
     <React.Fragment>
@@ -165,7 +159,7 @@ export default function OfferItem() {
         </div>
       </OfferItemWrap>
 
-      <PlaceAnOrderModal isOpen={open} onDissmissModal={(value) => setOpen(value)} />
+      <PlaceAnOrderModal isOpen={open} onDissmissModal={value => setOpen(value)} />
     </React.Fragment>
   );
 }

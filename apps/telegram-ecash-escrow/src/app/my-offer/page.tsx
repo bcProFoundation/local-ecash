@@ -1,12 +1,13 @@
 'use client';
 import Footer from '@/src/components/Footer/Footer';
-import OrderDetailInfo from '@/src/components/OrderDetailInfo/OrderDetailInfo';
+import OfferDetailInfo from '@/src/components/OfferDetailInfo/OfferDetailInfo';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
 import { TabType } from '@/src/store/constants';
+import { getSelectedAccount, offerApi, Post, useSliceSelector as useLixiSliceSelector } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import { Add } from '@mui/icons-material';
 import { Box, Tab, Tabs, Typography } from '@mui/material';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import SwipeableViews from 'react-swipeable-views';
 import Fab from '../../components/Fab';
 
@@ -81,6 +82,11 @@ const MyOfferPage = styled.div`
 
 export default function MyOffer() {
   const [value, setValue] = useState(0);
+  const { useAllOfferByPublicKeyQuery } = offerApi;
+  const selectedAccount = useLixiSliceSelector(getSelectedAccount);
+  const { data } = useAllOfferByPublicKeyQuery({
+    publicKey: selectedAccount.publicKey!
+  });
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
@@ -91,7 +97,7 @@ export default function MyOffer() {
   };
 
   return (
-    <>
+    <React.Fragment>
       <MyOfferPage>
         <TickerHeader hideIcon={true} title="My offers" />
 
@@ -110,14 +116,15 @@ export default function MyOffer() {
         <SwipeableViews index={value} onChangeIndex={handleChangeIndex}>
           <TabPanel value={value} index={0}>
             <div className="list-item">
-              <OrderDetailInfo />
-              <OrderDetailInfo />
+              {data?.allOfferByPublicKey.edges.map(edge => (
+                <OfferDetailInfo key={edge.node.id} post={edge.node.data as Post} />
+              ))}
             </div>
           </TabPanel>
           <TabPanel value={value} index={1}>
             <div className="list-item">
-              <OrderDetailInfo />
-              <OrderDetailInfo />
+              {/* <OrderDetailInfo />
+              <OrderDetailInfo /> */}
             </div>
           </TabPanel>
         </SwipeableViews>
@@ -126,6 +133,6 @@ export default function MyOffer() {
       </MyOfferPage>
 
       <Footer />
-    </>
+    </React.Fragment>
   );
 }

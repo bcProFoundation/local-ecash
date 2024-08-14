@@ -9,6 +9,7 @@ import Footer from '@/src/components/Footer/Footer';
 import Header from '@/src/components/Header/Header';
 import OfferItem from '@/src/components/OfferItem/OfferItem';
 import TopSection from '@/src/components/TopSection/TopSection';
+import { offerApi } from '@bcpros/redux-store';
 import Fade from '@mui/material/Fade';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
@@ -79,6 +80,7 @@ const StyledBadge = styled(Badge)`
 export default function Home() {
   const prevRef = useRef(0);
   const [visible, setVisible] = useState(true);
+  const { useAllOfferQuery } = offerApi;
 
   const [open, setOpen] = useState<boolean>(false);
 
@@ -122,7 +124,9 @@ export default function Home() {
       </HomePage>
       <Fade in={visible}>
         <div className="btn-create-offer" onClick={() => setOpen(true)}>
-          <img src="/ico-create-post.svg" />
+          <picture>
+            <img src="/ico-create-post.svg" alt="ico-create-post" />
+          </picture>
         </div>
       </Fade>
       <CreateOfferModal
