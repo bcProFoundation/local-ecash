@@ -4,6 +4,7 @@
     "description": "The counter feature",
     "main": "lib/index.js",
     "types": "lib/index.d.ts",
+    "private": true,
     "scripts": {
         "build": "rimraf ./lib && tsc"
     },
