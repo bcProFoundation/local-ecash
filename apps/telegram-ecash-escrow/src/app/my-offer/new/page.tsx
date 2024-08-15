@@ -52,14 +52,7 @@ export default function NewOffer() {
     formState: { errors },
     control,
     watch
-  } = useForm({
-    defaultValues: {
-      amount: '',
-      message: '',
-      min: '',
-      max: ''
-    }
-  });
+  } = useForm();
   const dispatch = useLixiSliceDispatch();
   // const { useCreateOfferMutation } = offerApi;
   const paymentMethods = useLixiSliceSelector(getAllPaymentMethods);

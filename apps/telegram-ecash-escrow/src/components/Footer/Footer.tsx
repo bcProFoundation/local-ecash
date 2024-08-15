@@ -55,7 +55,7 @@ type PropsFooter = {
   hidden?: boolean;
 };
 
-export default function Footer({ hidden = false }: PropsFooter) {
+export default function Footer({ hidden = true }: PropsFooter) {
   const router = useRouter();
   const pathName = usePathname();
 
