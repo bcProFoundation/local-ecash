@@ -1,68 +1,165 @@
 'use client';
 
-import { generateAccount, useSliceDispatch as useLixiSliceDispatch } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
-import { LixiButton } from '../components/Common/LixiButton';
+import CachedRoundedIcon from '@mui/icons-material/CachedRounded';
+import { Badge, Fade, Skeleton, Typography } from '@mui/material';
 
-const ContainerHome = styled.div`
-  display: grid;
-  grid-template-rows: 85% 15%;
+import CreateOfferModal from '@/src/components/CreateOfferModal/CreateOfferModal';
+import Footer from '@/src/components/Footer/Footer';
+import Header from '@/src/components/Header/Header';
+import OfferItem from '@/src/components/OfferItem/OfferItem';
+import TopSection from '@/src/components/TopSection/TopSection';
+import { TimelineQueryItem, useInfiniteOffersByScoreQuery } from '@bcpros/redux-store';
+import Image from 'next/image';
+import { useEffect, useRef, useState } from 'react';
+import InfiniteScroll from 'react-infinite-scroll-component';
+
+const WrapHome = styled.div`
+  .btn-create-offer {
+    position: fixed;
+    right: 5%;
+    bottom: 100px;
+    z-index: 1;
+    cursor: pointer;
+    background-color: rgb(255, 219, 209);
+    padding: 10px;
+    border-radius: 50%;
+    display: flex;
+  }
+`;
+
+const HomePage = styled.div`
+  position: relative;
+  background-image: url('/shape-reg.svg');
+  background-repeat: no-repeat;
   padding: 1rem;
-  height: 100vh;
-  text-align: center;
+  padding-bottom: 56px;
+  min-height: 100svh;
+
+  .shape-reg-footer {
+    position: absolute;
+    z-index: -1;
+    bottom: 0;
+    right: 0;
+  }
+
+  .MuiButton-root {
+    text-transform: none;
+  }
+
+  .MuiIconButton-root {
+    padding: 0 !important;
+
+    &:hover {
+      background: none;
+      opacity: 0.8;
+    }
+  }
 `;
 
-const FeatureEducation = styled.div`
-  img {
-    max-width: 100%;
-  }
-  .feature-title {
-    font-weight: 600;
+const Section = styled.div`
+  .content-wrap {
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    text-align: center;
-    line-height: 34px;
-  }
-  .feature-subtitle {
-    font-size: 16px;
-    text-align: center;
-    color: #9aa5ac;
-    font-weight: 300;
-    padding-top: 15px;
-    line-height: 28px;
+
+    .title-offer {
+      font-weight: 600;
+    }
   }
 `;
 
-const FunctionalBar = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  row-gap: 0.5rem;
+const StyledBadge = styled(Badge)`
+  .MuiBadge-badge {
+    background: #0f98f2;
+    color: white;
+    filter: drop-shadow(0px 0px 2px #0f98f2);
+  }
 `;
 
-export default function Index() {
-  const dispatch = useLixiSliceDispatch();
+export default function Home() {
+  const prevRef = useRef(0);
+  const [visible, setVisible] = useState(true);
+  const [open, setOpen] = useState<boolean>(false);
+
+  const { data, hasNext, isFetching, fetchNext } = useInfiniteOffersByScoreQuery({ first: 20 }, false);
+
+  const loadMoreItems = () => {
+    if (hasNext && !isFetching) {
+      fetchNext();
+    } else if (hasNext) {
+      fetchNext();
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const handleScroll = (e) => {
+        const currentScrollPos = window.scrollY;
+        setVisible(prevRef.current > currentScrollPos || currentScrollPos < 20);
+        prevRef.current = currentScrollPos;
+      };
+      window.addEventListener('scroll', handleScroll);
+
+      return () => {
+        window.removeEventListener('scroll', handleScroll);
+      };
+    }
+  }, []);
 
   return (
-    <ContainerHome>
-      <FeatureEducation>
-        <img className="feature-banner" src="/lixi-credit.svg" alt="" />
-        <h3 className="feature-title">Control your money without an account</h3>
-        <p className="feature-subtitle">
-          Lixi app allows you to privately store, manage, and use your crypto funds without having to trust a
-          centralized bank or exchange
-        </p>
-      </FeatureEducation>
-      <FunctionalBar>
-        <LixiButton
-          title="Create new account"
-          classCustom="create-new-account"
-          onClickItem={() => {
-            dispatch(generateAccount({ coin: 'XEC' }));
-          }}
-        />
-        <LixiButton title="Import from backup" classCustom="no-border-btn import-backup" />
-      </FunctionalBar>
-    </ContainerHome>
+    <WrapHome>
+      <HomePage>
+        <Header />
+        <TopSection />
+
+        <Section>
+          <div className="content-wrap">
+            <Typography className="title-offer" variant="body1">
+              Offer Watchlist
+            </Typography>
+            <StyledBadge className="badge-new-offer" badgeContent={4} color="info">
+              <CachedRoundedIcon color="action" />
+            </StyledBadge>
+          </div>
+          <div className="offer-list">
+            {data.length > 0 ? (
+              <InfiniteScroll
+                dataLength={data.length}
+                next={loadMoreItems}
+                hasMore={hasNext}
+                loader={
+                  <>
+                    <Skeleton variant="text" />
+                    <Skeleton variant="text" />
+                  </>
+                }
+                scrollableTarget="scrollableDiv"
+                scrollThreshold={'100px'}
+              >
+                {data.map((item) => {
+                  return <OfferItem timelineItem={item as TimelineQueryItem} />;
+                })}
+              </InfiniteScroll>
+            ) : (
+              <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No offer here</Typography>
+            )}
+          </div>
+        </Section>
+        <Image width={200} height={200} className="shape-reg-footer" src="/shape-reg-footer.svg" alt="" />
+      </HomePage>
+      <Fade in={visible}>
+        <div className="btn-create-offer" onClick={() => setOpen(true)}>
+          <img src="/ico-create-post.svg" />
+        </div>
+      </Fade>
+      <CreateOfferModal
+        isOpen={open}
+        onDissmissModal={(value) => {
+          setOpen(value);
+        }}
+      />
+      <Footer hidden={visible} />
+    </WrapHome>
   );
 }
