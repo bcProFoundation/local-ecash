@@ -6,6 +6,7 @@ import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
 import { BuildReleaseTx, BuyerReturnSignatory, sellerBuildDepositTx, SellerReleaseSignatory } from '@/src/store/escrow';
 import { COIN, coinInfo } from '@bcpros/lixi-models';
 import {
+  EscrowOrder,
   escrowOrderApi,
   EscrowOrderStatus,
   getSelectedWalletPath,
@@ -52,6 +53,7 @@ const OrderDetail = () => {
   const [escrow, setEscrow] = useState(false);
   const [release, setRelease] = useState(false);
   const [cancel, setCancel] = useState(false);
+  const [loading, setLoading] = useState(false);
   const { useEscrowOrderQuery, useUpdateEscrowOrderStatusMutation } = escrowOrderApi;
   const { isLoading, currentData, isError } = useEscrowOrderQuery({ id: id! });
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
@@ -61,20 +63,27 @@ const OrderDetail = () => {
   const { chronik } = Wallet;
 
   const updateOrderStatus = async (status: EscrowOrderStatus) => {
+    setLoading(true);
+
     await updateOrderTrigger({ orderId: id!, status })
       .unwrap()
       .catch(() => setError(true));
+
+    setLoading(false);
   };
 
   const handleSellerDepositEscrow = async (status: EscrowOrderStatus) => {
+    setLoading(true);
+
     try {
+      const { amount } = currentData.escrowOrder;
       const sellerSk = fromHex(selectedWalletPath.privateKey!);
       const sellerPk = fromHex(selectedWalletPath.publicKey!);
       const script = Buffer.from(currentData?.escrowOrder.escrowScript as string, 'hex');
 
       const escrowScript = new Script(script);
 
-      const txBuild = sellerBuildDepositTx(walletUtxos, sellerSk, sellerPk, 2000, escrowScript);
+      const txBuild = sellerBuildDepositTx(walletUtxos, sellerSk, sellerPk, amount, escrowScript);
 
       const txid = (await chronik.broadcastTx(txBuild)).txid;
 
@@ -88,10 +97,15 @@ const OrderDetail = () => {
     } catch (e) {
       console.log(e);
     }
+
+    setLoading(false);
   };
 
   const handleSellerReleaseEscrow = async (status: EscrowOrderStatus) => {
+    setLoading(true);
+
     try {
+      const { amount } = currentData.escrowOrder;
       const sellerSk = fromHex(selectedWalletPath.privateKey!);
       const sellerPk = fromHex(selectedWalletPath.publicKey!);
       const escrowTxid = currentData?.escrowOrder.escrowTxid as string;
@@ -104,7 +118,7 @@ const OrderDetail = () => {
       const escrowScript = new Script(script);
       const sellerSignatory = SellerReleaseSignatory(sellerSk, sellerPk, buyerPk, nonce);
 
-      const txBuild = BuildReleaseTx(escrowTxid, 2000, escrowScript, sellerSignatory, buyerP2pkh);
+      const txBuild = BuildReleaseTx(escrowTxid, amount, escrowScript, sellerSignatory, buyerP2pkh);
 
       const txid = (await chronik.broadcastTx(txBuild)).txid;
       console.log(`${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${txid}`);
@@ -119,10 +133,15 @@ const OrderDetail = () => {
     } catch (e) {
       console.log(e);
     }
+
+    setLoading(false);
   };
 
   const handleBuyerReturnEscrow = async (status: EscrowOrderStatus) => {
+    setLoading(true);
+
     try {
+      const { amount } = currentData.escrowOrder;
       const buyerSk = fromHex(selectedWalletPath.privateKey!);
       const buyerPk = fromHex(selectedWalletPath.publicKey!);
       const escrowTxid = currentData?.escrowOrder.escrowTxid as string;
@@ -135,7 +154,7 @@ const OrderDetail = () => {
       const escrowScript = new Script(script);
       const buyerSignatory = BuyerReturnSignatory(buyerSk, buyerPk, sellerPk, nonce);
 
-      const txBuild = BuildReleaseTx(escrowTxid, 2000, escrowScript, buyerSignatory, sellerP2pkh);
+      const txBuild = BuildReleaseTx(escrowTxid, amount, escrowScript, buyerSignatory, sellerP2pkh);
 
       const txid = (await chronik.broadcastTx(txBuild)).txid;
       console.log(`${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${txid}`);
@@ -150,6 +169,8 @@ const OrderDetail = () => {
     } catch (e) {
       console.log(e);
     }
+
+    setLoading(false);
   };
 
   const escrowStatus = () => {
@@ -213,10 +234,20 @@ const OrderDetail = () => {
     if (currentData?.escrowOrder.status === EscrowOrderStatus.Pending) {
       return isSeller ? (
         <div className="group-button-wrap">
-          <Button color="warning" variant="contained" onClick={() => updateOrderStatus(EscrowOrderStatus.Cancel)}>
+          <Button
+            color="warning"
+            variant="contained"
+            onClick={() => updateOrderStatus(EscrowOrderStatus.Cancel)}
+            disabled={loading}
+          >
             Cancel
           </Button>
-          <Button color="primary" variant="contained" onClick={() => updateOrderStatus(EscrowOrderStatus.Active)}>
+          <Button
+            color="primary"
+            variant="contained"
+            onClick={() => updateOrderStatus(EscrowOrderStatus.Active)}
+            disabled={loading}
+          >
             Accept
           </Button>
         </div>
@@ -226,6 +257,7 @@ const OrderDetail = () => {
           variant="contained"
           fullWidth
           onClick={() => updateOrderStatus(EscrowOrderStatus.Cancel)}
+          disabled={loading}
         >
           Cancel
         </Button>
@@ -235,7 +267,12 @@ const OrderDetail = () => {
     if (currentData?.escrowOrder.status === EscrowOrderStatus.Active) {
       return isSeller ? (
         <div className="group-button-wrap">
-          <Button color="warning" variant="contained" onClick={() => updateOrderStatus(EscrowOrderStatus.Cancel)}>
+          <Button
+            color="warning"
+            variant="contained"
+            onClick={() => updateOrderStatus(EscrowOrderStatus.Cancel)}
+            disabled={loading}
+          >
             Cancel
           </Button>
           <Button
@@ -252,6 +289,7 @@ const OrderDetail = () => {
           variant="contained"
           fullWidth
           onClick={() => updateOrderStatus(EscrowOrderStatus.Cancel)}
+          disabled={loading}
         >
           Cancel
         </Button>
@@ -261,23 +299,29 @@ const OrderDetail = () => {
     if (currentData?.escrowOrder.status === EscrowOrderStatus.Escrow) {
       return isSeller ? (
         <div className="group-button-wrap">
-          <Button color="warning" variant="contained">
+          <Button color="warning" variant="contained" disabled={loading}>
             Dispute
           </Button>
           <Button
             color="success"
             variant="contained"
             onClick={() => handleSellerReleaseEscrow(EscrowOrderStatus.Complete)}
+            disabled={loading}
           >
             Release
           </Button>
         </div>
       ) : (
         <div className="group-button-wrap">
-          <Button color="warning" variant="contained">
+          <Button color="warning" variant="contained" disabled={loading}>
             Dispute
           </Button>
-          <Button color="success" variant="contained" onClick={() => handleBuyerReturnEscrow(EscrowOrderStatus.Cancel)}>
+          <Button
+            color="success"
+            variant="contained"
+            onClick={() => handleBuyerReturnEscrow(EscrowOrderStatus.Cancel)}
+            disabled={loading}
+          >
             Cancel
           </Button>
         </div>
@@ -296,7 +340,7 @@ const OrderDetail = () => {
       <TickerHeader title="Order detail" />
 
       <OrderDetailContent>
-        <OrderDetailInfo />
+        <OrderDetailInfo order={currentData.escrowOrder as EscrowOrder} />
         <br />
         {escrowStatus()}
         <br />
@@ -342,10 +386,10 @@ const OrderDetail = () => {
 
         <Snackbar open={cancel} autoHideDuration={3500} onClose={() => setCancel(false)}>
           <Alert severity="success" variant="filled" sx={{ width: '100%' }}>
-            Order cancelled successfully
+            Order cancelled successfully. Funds have been returned to the buyer
             <br />
             <a
-              href={`${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${currentData?.escrowOrder.cancelTxid}`}
+              href={`${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${currentData?.escrowOrder.returnTxid}`}
               target="_blank"
               rel="noreferrer"
             >

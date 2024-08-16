@@ -103,7 +103,8 @@ type OfferItemProps = {
 };
 
 export default function OfferItem({ timelineItem }: OfferItemProps) {
-  const offerData = timelineItem?.data?.offer;
+  const post = timelineItem?.data;
+  const { offer: offerData } = post;
   const [open, setOpen] = useState<boolean>(false);
   const { status } = useSession();
   const askAuthorization = useAuthorization();
@@ -238,7 +239,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
         </Typography>
       </CardWrapper>
 
-      <PlaceAnOrderModal isOpen={open} onDissmissModal={value => setOpen(value)} />
+      <PlaceAnOrderModal isOpen={open} onDissmissModal={value => setOpen(value)} post={post} />
     </React.Fragment>
   );
 }

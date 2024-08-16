@@ -2,7 +2,13 @@
 
 import { Escrow } from '@/src/store/escrow';
 import { CreateEscrowOrderInput } from '@bcpros/lixi-models';
-import { escrowOrderApi } from '@bcpros/redux-store';
+import {
+  convertHashToEcashAddress,
+  escrowOrderApi,
+  getSelectedWalletPath,
+  Post,
+  useSliceSelector as useLixiSliceSelector
+} from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import { ChevronLeft } from '@mui/icons-material';
 import {
@@ -24,13 +30,16 @@ import {
 } from '@mui/material';
 import { TransitionProps } from '@mui/material/transitions';
 import { fromHex } from 'ecash-lib';
+import _ from 'lodash';
 import { useRouter } from 'next/navigation';
-import React from 'react';
+import React, { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 
 interface PlaceAnOrderModalProps {
   isOpen: boolean;
   onDissmissModal?: (value: boolean) => void;
   onConfirmClick?: () => void;
+  post: any;
 }
 
 const StyledDialog = styled(Dialog)`
@@ -202,22 +211,40 @@ const Transition = React.forwardRef(function Transition(
 
 const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const theme = useTheme();
+  const { post }: { post: Post } = props;
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
   const router = useRouter();
-  const { useCreateEscrowOrderMutation } = escrowOrderApi;
+  const { useCreateEscrowOrderMutation, useGetModeratorAccountQuery, useGetRandomArbitratorAccountQuery } =
+    escrowOrderApi;
   const [createOrderTrigger] = useCreateEscrowOrderMutation();
+  const { currentData: moderatorCurrentData } = useGetModeratorAccountQuery();
+  const { currentData: arbitratorCurrentData } = useGetRandomArbitratorAccountQuery();
+  const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
+  const [paymentMethodId, setPaymentMethodId] = useState<number | undefined>();
+  const {
+    handleSubmit,
+    formState: { errors },
+    setError,
+    clearErrors,
+    control
+  } = useForm();
 
-  const handleCreateEscrowOrder = async () => {
-    //TODO: get user id from api. Stop using hard code
-    const sellerId = 5;
-    const buyerId = 4;
-    const arbitratorId = 2;
-    const moderatorId = 1;
+  const handleCreateEscrowOrder = async data => {
+    if (!paymentMethodId) {
+      setError('paymentMethod', { message: 'Payment method is required!' });
 
-    const sellerPk = fromHex('035ea9f61b6f433bc85c7ec650e1e6038201890f4cb4a5177383a6b607593763ab');
-    const buyerPk = fromHex('03fd3e50027c756bd5c26baf2db448f66b4c04542892aef4c7e1843589ecf1318c');
-    const arbitratorPk = fromHex('026ddec85c8e73789f60331fbbf2499c208e21a3a14c68a950524a205e4bfb2770');
-    const moderatorPk = fromHex('0254cfce2d067933e34aa61b1e650c8e4d9e849c893c1738b54a81f096f0650593');
+      return;
+    }
+
+    const { amount, message }: { amount: string; message: string } = data;
+    const sellerId = post.accountId;
+    const moderatorId = moderatorCurrentData.getModeratorAccount.id;
+    const arbitratorId = arbitratorCurrentData.getRandomArbitratorAccount.id;
+
+    const sellerPk = fromHex(post.account.publicKey);
+    const buyerPk = fromHex(selectedWalletPath.publicKey);
+    const arbitratorPk = fromHex(arbitratorCurrentData.getRandomArbitratorAccount.publicKey);
+    const moderatorPk = fromHex(moderatorCurrentData.getModeratorAccount.publicKey);
 
     const nonce = Math.floor(Date.now() / 1000).toString();
 
@@ -231,17 +258,16 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
       });
 
       const data: CreateEscrowOrderInput = {
-        amount: 20,
-        arbitratorId,
-        buyerId,
+        amount: parseFloat(amount),
         sellerId,
+        arbitratorId,
         moderatorId,
         nonce,
         escrowScript: Buffer.from(escrowScript.script().bytecode).toString('hex'),
         price: 1000,
-        paymentMethodId: 1,
-        postId: 'clzqjraoj00037fiuooy9f7n5',
-        message: 'I want to buy 20M XEC in cash'
+        paymentMethodId: paymentMethodId,
+        postId: post.id,
+        message: message
       };
 
       const result = await createOrderTrigger({ input: data }).unwrap();
@@ -263,37 +289,117 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
       </IconButton>
       <DialogTitle>Place an order</DialogTitle>
       <Typography className="offer-info" variant="body2">
-        <span>Offer: 123456789, Selling XEC @Hoi An, Vietnam</span>
+        <span>{`Offer Id: ${post.id}`}</span>
         <br />
-        <span>By: @nghiacc • posted on: 2024-07-24 14:20:39</span>
+        <span>{`By: ${post.account.name} • posted on: ${new Date(post.createdAt).toLocaleString()}`}</span>
       </Typography>
+      {moderatorCurrentData?.getModeratorAccount && arbitratorCurrentData?.getRandomArbitratorAccount && (
+        <Typography className="offer-info" variant="body2">
+          <span>Moderator: {moderatorCurrentData?.getModeratorAccount.name}</span>
+          <br />
+          <span>{convertHashToEcashAddress(moderatorCurrentData?.getModeratorAccount.hash160)}</span>
+        </Typography>
+      )}
+      {arbitratorCurrentData?.getRandomArbitratorAccount && (
+        <Typography className="offer-info" variant="body2">
+          <span>Arbitrator: {arbitratorCurrentData?.getRandomArbitratorAccount.name}</span>
+          <br />
+          <span>{convertHashToEcashAddress(arbitratorCurrentData?.getRandomArbitratorAccount.hash160)}</span>
+        </Typography>
+      )}
       <DialogContent>
         <PlaceAnOrderWrap>
           <Grid container spacing={2}>
             <Grid item xs={12}>
-              <TextField
-                className="form-input"
-                id="amount"
-                label="Amount"
-                defaultValue="20,000,000"
-                // helperText="helper text here."
-                variant="standard"
+              <Controller
+                name="amount"
+                control={control}
+                defaultValue={''}
+                rules={{
+                  required: {
+                    value: true,
+                    message: 'XEC amount is required!'
+                  },
+                  pattern: {
+                    value: /^-?[0-9]\d*\.?\d*$/,
+                    message: 'XEC amount is invalid!'
+                  },
+                  validate: value => {
+                    if (parseFloat(value) < 0) return 'XEC amount must be greater than 0!';
+
+                    return true;
+                  }
+                }}
+                render={({ field: { onChange, onBlur, value, name, ref } }) => (
+                  <TextField
+                    onChange={onChange}
+                    onBlur={onBlur}
+                    value={value}
+                    name={name}
+                    inputRef={ref}
+                    placeholder={post.offer.orderLimitMin + ' - ' + post.offer.orderLimitMax}
+                    className="form-input"
+                    id="amount"
+                    label="Amount"
+                    variant="outlined"
+                    error={errors.amount ? true : false}
+                    helperText={errors.amount && (errors.amount?.message as string)}
+                    InputProps={{
+                      endAdornment: <Typography variant="subtitle1">XEC</Typography>
+                    }}
+                  />
+                )}
               />
             </Grid>
             <Grid item xs={12}>
-              <TextField
-                className="form-input"
-                id="message"
-                label="Message"
-                defaultValue="I want to buy 20M XEC in cash"
-                // helperText="helper text here."
-                variant="standard"
+              <Controller
+                name="message"
+                control={control}
+                defaultValue={''}
+                rules={{
+                  validate: value => {
+                    return _.isEmpty(value) ? 'Should include a message' : true;
+                  }
+                }}
+                render={({ field: { onChange, onBlur, value, name, ref } }) => (
+                  <TextField
+                    onChange={onChange}
+                    onBlur={onBlur}
+                    value={value}
+                    name={name}
+                    inputRef={ref}
+                    className="form-input"
+                    id="message"
+                    label="Message"
+                    variant="outlined"
+                    error={errors.message ? true : false}
+                    helperText={
+                      errors.message
+                        ? (errors.message?.message as string)
+                        : `* Escrow's order has message has higher acceptance rate`
+                    }
+                  />
+                )}
               />
             </Grid>
           </Grid>
           <RadioGroup className="payment-method-wrap" name="payment-method-groups" defaultValue="cash-in-person">
-            <FormControlLabel value="cash-in-person" control={<Radio />} label="Cash in person" />
-            <FormControlLabel value="bank-transfer" control={<Radio />} label="Bank transfer" />
+            {post.offer.paymentMethods.map(item => {
+              return (
+                <FormControlLabel
+                  onClick={() => {
+                    clearErrors('paymentMethod');
+                    setPaymentMethodId(item.paymentMethod.id);
+                  }}
+                  key={item.paymentMethod.name}
+                  value={item.paymentMethod.name}
+                  checked={paymentMethodId === item.paymentMethod.id}
+                  control={<Radio />}
+                  label={item.paymentMethod.name}
+                />
+              );
+            })}
+            {errors.paymentMethod && <Typography color="error">{errors?.paymentMethod?.message as string}</Typography>}
           </RadioGroup>
           {/* <div className="disclaim-wrap">
             <Typography className="lable" variant="body2">
@@ -334,11 +440,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
           className="confirm-btn"
           color="info"
           variant="contained"
-          onClick={() => {
-            handleCreateEscrowOrder();
-            // router.push('/order-detail');
-            // props.onDissmissModal!(false);
-          }}
+          onClick={handleSubmit(handleCreateEscrowOrder)}
           autoFocus
         >
           Create

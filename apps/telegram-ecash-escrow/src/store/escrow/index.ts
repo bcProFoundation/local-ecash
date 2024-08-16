@@ -1,3 +1,5 @@
+import { COIN, coinInfo } from '@bcpros/lixi-models';
+import { calcFee } from '@bcpros/redux-store';
 import { Utxo } from 'chronik-client';
 import {
   ALL_BIP143,
@@ -143,6 +145,7 @@ export const BuildReleaseTx = (
   recieverP2pkh: Script
 ) => {
   const ecc = new Ecc();
+  const actualAmount = amountToSend * Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
 
   const txBuild = new TxBuilder({
     inputs: [
@@ -153,7 +156,7 @@ export const BuildReleaseTx = (
             outIdx: 0
           },
           signData: {
-            value: amountToSend,
+            value: actualAmount,
             redeemScript: escrowScript
           }
         },
@@ -162,7 +165,7 @@ export const BuildReleaseTx = (
     ],
     outputs: [
       {
-        value: 1400, //change later
+        value: actualAmount,
         script: recieverP2pkh
       }
     ]
@@ -317,11 +320,14 @@ export const sellerBuildDepositTx = (
     };
   });
 
+  const fee = calcFee(sellerUtxos, undefined, coinInfo[COIN.XEC].defaultFee, undefined);
+  const actualAmount = amountToSend * Math.pow(10, coinInfo[COIN.XEC].cashDecimals) + fee;
+
   const txBuild = new TxBuilder({
     inputs: utxos,
     outputs: [
       {
-        value: amountToSend,
+        value: actualAmount,
         script: escrowP2sh
       },
       sellerP2pkh
