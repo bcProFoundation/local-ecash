@@ -4,7 +4,7 @@ import OrderDetailInfo from '@/src/components/OrderDetailInfo/OrderDetailInfo';
 import TelegramButton from '@/src/components/TelegramButton/TelegramButton';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
 import { BuildReleaseTx, BuyerReturnSignatory, sellerBuildDepositTx, SellerReleaseSignatory } from '@/src/store/escrow';
-import { COIN, coinInfo } from '@bcpros/lixi-models';
+import { COIN, coinInfo, TX_HISTORY_COUNT } from '@bcpros/lixi-models';
 import {
   EscrowOrder,
   escrowOrderApi,
@@ -15,11 +15,15 @@ import {
   WalletContext
 } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
+import { CopyAllOutlined } from '@mui/icons-material';
 import { Alert, Button, Snackbar, Stack, Typography } from '@mui/material';
+import { SubscribeMsg } from 'chronik-client';
 import { fromHex, Script, shaRmd160 } from 'ecash-lib';
+import cashaddr from 'ecashaddrjs';
 import _ from 'lodash';
 import { useSearchParams } from 'next/navigation';
-import { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 const OrderDetailPage = styled.div`
   min-height: 100vh;
@@ -54,6 +58,7 @@ const OrderDetail = () => {
   const [release, setRelease] = useState(false);
   const [cancel, setCancel] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [copy, setCopy] = useState(false);
   const { useEscrowOrderQuery, useUpdateEscrowOrderStatusMutation } = escrowOrderApi;
   const { isLoading, currentData, isError } = useEscrowOrderQuery({ id: id! });
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
@@ -329,6 +334,136 @@ const OrderDetail = () => {
     }
   };
 
+  const chronikHandleWsMessage = async (msg: SubscribeMsg) => {
+    try {
+      // get the message type
+      const { type } = msg;
+
+      // For now, only act on "first seen" transactions, as the only logic to happen is first seen notifications
+      // Dev note: Other chronik msg types
+      // "BlockConnected", arrives as new blocks are found
+      // "Confirmed", arrives as subscribed + seen txid is confirmed in a block
+      if (type !== 'AddedToMempool') {
+        return;
+      }
+
+      // get txid info
+      const txid = msg.txid;
+      try {
+        const { outputs, slpTxData } = await chronik.tx(txid);
+        const startIndex: number = slpTxData ? 1 : 0;
+        const actualAmount = currentData?.escrowOrder.amount * Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
+
+        // process each tx output
+        for (let i = startIndex; i < outputs.length; i++) {
+          const scriptHex = outputs[i].outputScript;
+          const address = cashaddr.encodeOutputScript(scriptHex, 'ecash');
+
+          if (address === currentData?.escrowOrder.escrowAddress && parseFloat(outputs[i].value) <= actualAmount) {
+            const status = EscrowOrderStatus.Escrow;
+
+            return await updateOrderTrigger({ orderId: id!, status, txid })
+              .unwrap()
+              .catch(() => setError(true));
+          }
+        }
+      } catch (err) {
+        // In this case, no notification
+        return console.log(`Error in chronik.tx(${txid} while processing an incoming websocket tx`, err);
+      }
+
+      // parse tx for notification
+      // const parsedChronikTx = await parseChronikTx(XPI, chronik, incomingTxDetails, wallet);
+    } catch (e: any) {
+      throw new Error(`_chronikHandleWsMessage: ${e.message}`);
+    }
+  };
+
+  const subcribeToEscrow = async () => {
+    const address = currentData?.escrowOrder.escrowAddress;
+    const { type, hash } = cashaddr.decode(address, true);
+    // Listen to updates on scripts:
+    const ws = chronik.ws({
+      onMessage: chronikHandleWsMessage,
+      onReconnect: e => {
+        // Fired before a reconnect attempt is made:
+        console.log('Reconnecting websocket, disconnection cause: ', e);
+      },
+      onConnect: e => {
+        console.log('Listening to address: ', address);
+      },
+      autoReconnect: true
+    });
+    // Wait for WS to be connected:
+    await ws.waitForOpen();
+    // Subscribe to scripts (on Lotus, current ABC payout address):
+    // Will give a message on avg every 2 minutes
+    ws.subscribe(type as any, hash as string);
+  };
+
+  const escrowAddress = () => {
+    const isActive = currentData?.escrowOrder.status === EscrowOrderStatus.Active;
+
+    if (isActive) {
+      return (
+        <React.Fragment>
+          <Typography variant="body1" align="center">
+            {currentData?.escrowOrder.escrowAddress}
+            <CopyToClipboard text={currentData?.escrowOrder.escrowAddress} onCopy={() => setCopy(true)}>
+              <Button className="no-border-btn" endIcon={<CopyAllOutlined />} />
+            </CopyToClipboard>
+          </Typography>
+          <Typography variant="body1" align="center">
+            Remember to send more than actual amount for transaction fee else the transaction will fail
+          </Typography>
+        </React.Fragment>
+      );
+    }
+  };
+
+  const getTxHistory = async () => {
+    const { hash } = cashaddr.decode(currentData?.escrowOrder.escrowAddress, true);
+
+    try {
+      const tx = await chronik
+        .script('p2sh', hash as string)
+        .history(/*page=*/ 0, /*page_size=*/ TX_HISTORY_COUNT)
+        .then(result => {
+          return result.txs[0];
+        });
+
+      const { outputs, slpTxData, txid } = tx;
+      const startIndex: number = slpTxData ? 1 : 0;
+      const actualAmount = currentData?.escrowOrder.amount * Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
+
+      // process each tx output
+      for (let i = startIndex; i < outputs.length; i++) {
+        const scriptHex = outputs[i].outputScript;
+        const address = cashaddr.encodeOutputScript(scriptHex, 'ecash');
+
+        if (address === currentData?.escrowOrder.escrowAddress && actualAmount <= parseFloat(outputs[i].value)) {
+          const status = EscrowOrderStatus.Escrow;
+
+          return await updateOrderTrigger({ orderId: id!, status, txid })
+            .unwrap()
+            .catch(() => setError(true));
+        }
+      }
+    } catch (e) {
+      console.log(e);
+      throw new e();
+    }
+  };
+
+  //First we check if there already an input outside the app
+  //If there is, then update the status
+  //Else, init an ws for checking real-time deposit
+  useEffect(() => {
+    if (currentData?.escrowOrder.status === EscrowOrderStatus.Active && _.isNil(currentData?.escrowOrder.escrowTxid)) {
+      getTxHistory().catch(() => subcribeToEscrow());
+    }
+  }, [currentData]);
+
   if (_.isEmpty(id) || _.isNil(id) || isError) {
     return <div>Invalid order id</div>;
   }
@@ -338,7 +473,6 @@ const OrderDetail = () => {
   return (
     <OrderDetailPage>
       <TickerHeader title="Order detail" />
-
       <OrderDetailContent>
         <OrderDetailInfo order={currentData.escrowOrder as EscrowOrder} />
         <br />
@@ -347,6 +481,7 @@ const OrderDetail = () => {
         {escrowActionButtons()}
         <hr />
         <TelegramButton />
+        {escrowAddress()}
       </OrderDetailContent>
 
       <Stack zIndex={999}>
@@ -395,6 +530,13 @@ const OrderDetail = () => {
             >
               View transaction
             </a>
+          </Alert>
+        </Snackbar>
+
+        <Snackbar open={copy} autoHideDuration={3500} onClose={() => setCopy(false)}>
+          <Alert severity="success" variant="filled" sx={{ width: '100%' }}>
+            Address copied to clipboard
+            <br />
           </Alert>
         </Snackbar>
       </Stack>

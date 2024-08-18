@@ -3,6 +3,7 @@
 import { Escrow } from '@/src/store/escrow';
 import { CreateEscrowOrderInput } from '@bcpros/lixi-models';
 import {
+  convertEscrowScriptHashToEcashAddress,
   convertHashToEcashAddress,
   escrowOrderApi,
   getSelectedWalletPath,
@@ -29,7 +30,7 @@ import {
   useTheme
 } from '@mui/material';
 import { TransitionProps } from '@mui/material/transitions';
-import { fromHex } from 'ecash-lib';
+import { fromHex, shaRmd160 } from 'ecash-lib';
 import _ from 'lodash';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
@@ -257,11 +258,14 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
         nonce
       });
 
+      const escrowAddress = convertEscrowScriptHashToEcashAddress(shaRmd160(escrowScript.script().bytecode));
+
       const data: CreateEscrowOrderInput = {
         amount: parseFloat(amount),
         sellerId,
         arbitratorId,
         moderatorId,
+        escrowAddress,
         nonce,
         escrowScript: Buffer.from(escrowScript.script().bytecode).toString('hex'),
         price: 1000,
