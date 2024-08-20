@@ -39,7 +39,7 @@ export default function Header() {
       <div className="greeting">
         <Typography variant="body2">Hala</Typography>
         <Typography className="handle-name" variant="body1">
-          @{data?.user.name ?? 'Anonymous'} 🍃
+          @{data?.user.name ?? 'Anonymous'}
         </Typography>
       </div>
       <div className="wallet-minimals">
