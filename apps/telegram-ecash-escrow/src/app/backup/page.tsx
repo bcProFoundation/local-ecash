@@ -1,42 +1,24 @@
 'use client';
 import { CheckCircleOutline } from '@mui/icons-material';
-import { Alert, Button } from '@mui/material';
+import { Alert, Button, Typography } from '@mui/material';
 // import { useBackButton, useHapticFeedback, useMainButton, usePopup } from '@tma.js/sdk-react';
+import CustomToast from '@/src/components/Toast/CustomToast';
+import { getWalletMnemonic, useSliceSelector as useLixiSliceSelector } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
+import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import BackupSeed, { BackupWordModel } from './backup-seed';
 
 const ContainerBackupGame = styled.div`
   padding: 1rem;
   .setting-info {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    img {
-      align-self: center;
-      filter: drop-shadow(2px 4px 6px black);
-    }
-    .header-setting {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      .title {
-        margin-top: 1rem;
-      }
-      .subtitle {
-        span {
-          font-size: 12px;
-          color: #d5d5d5;
-        }
-      }
-    }
+    margin-top: 1rem;
   }
   .setting-content {
-    padding: 1rem 0;
+    padding: 0 0 1rem;
     .setting-item {
       margin-bottom: 1rem;
       .title {
-        padding: 0;
         padding-bottom: 1rem;
         font-size: 14px;
         color: #edeff099;
@@ -45,32 +27,15 @@ const ContainerBackupGame = styled.div`
         align-self: center !important;
       }
     }
-    .word-alignment {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      column-gap: 1rem;
-      row-gap: 1rem;
-      .word {
-        padding: 0.5rem;
-        background: #2c2c2c;
-        border-radius: 8px;
-        .word-number {
-          color: gray;
-          font-size: 12px;
-        }
-        .word-letter {
-          font-size: 14px;
-          color: #fff;
-        }
-      }
-    }
   }
 `;
 
-const WordGuessConatiner = styled.div`
+const WordGuessContainer = styled.div`
   padding: 1rem;
   background: #2c2c2c;
   font-size: 14px;
+  border-radius: 10px;
+  color: #fff;
   .word-guess-content {
     display: flex;
     gap: 1rem;
@@ -86,72 +51,25 @@ const WordGuessConatiner = styled.div`
 `;
 
 export default function Backup() {
-  const [mnemonicWordsConverted, setMnemonicWordsConverted] = useState<Array<BackupWordModel>>([
-    {
-      word: 'firm',
-      isCorrect: true,
-      isBlur: true
-    },
-    {
-      word: 'panther',
-      isCorrect: true,
-      isBlur: true
-    },
-    {
-      word: 'globe',
-      isCorrect: true,
-      isBlur: true
-    },
-    {
-      word: 'worry',
-      isCorrect: true,
-      isBlur: true
-    },
-    {
-      word: 'affair',
-      isCorrect: true,
-      isBlur: true
-    },
-    {
-      word: 'solve',
-      isCorrect: true,
-      isBlur: true
-    },
-    {
-      word: 'monitor',
-      isCorrect: true,
-      isBlur: true
-    },
-    {
-      word: 'reason',
-      isCorrect: true,
-      isBlur: true
-    },
-    {
-      word: 'carpet',
-      isCorrect: true,
-      isBlur: true
-    },
-    {
-      word: 'yellow',
-      isCorrect: true,
-      isBlur: true
-    },
-    {
-      word: 'return',
-      isCorrect: true,
-      isBlur: true
-    },
-    {
-      word: 'labor',
-      isCorrect: true,
-      isBlur: true
-    }
-  ]);
+  const walletMnemonic = useLixiSliceSelector(getWalletMnemonic);
+  const [mnemonicWordsConverted, setMnemonicWordsConverted] = useState<Array<BackupWordModel>>(
+    walletMnemonic
+      ? walletMnemonic.split(' ').map((item) => {
+          return {
+            word: item,
+            isCorrect: true,
+            isBlur: true
+          };
+        })
+      : []
+  );
   const [isPlayGame, setIsPlayGame] = useState<boolean>(false);
   const [countWord, setCountWord] = useState(0);
   const [libWord, setLibWord] = useState<string[]>([]);
   const [randomListFinal, setRandomListFinal] = useState<string[]>([]);
+  const [finished, setFinished] = useState(false);
+
+  const router = useRouter();
   // const mainButton = useMainButton();
   // const backButton = useBackButton();
   // const popUp = usePopup();
@@ -168,34 +86,12 @@ export default function Backup() {
   //   backButton.on('click', onBackButtonClick);
   // }, [mainButton, backButton]);
 
-  const onMainButtonClick = () => {
-    setIsPlayGame(!isPlayGame);
-  };
-
-  const onBackButtonClick = () => {
-    // backButton.hide();
-    // mainButton.hide();
-    // mainButton.off('click', onMainButtonClick);
-    // backButton.off('click', onBackButtonClick);
-    // navigate({ to: '/setting' });
-  };
-
   const finalStep = () => {
-    // haptic.notificationOccurred('warning');
-    // popUp
-    //   .open({
-    //     title: 'Perfect!',
-    //     message:
-    //       'In order to protect your funds from being accessible to hackers and thieves, store this recovery phrase in a safe and secure place.',
-    //     buttons: [{ id: 'send-ok', type: 'ok' }]
-    //   })
-    //   .then((rs) => {
-    //     console.log(rs);
-    //     navigate({ to: '/wallet' });
-    //   })
-    //   .catch((err) => {
-    //     console.log(err);
-    //   });
+    setFinished(true);
+    //router after 1s
+    setTimeout(() => {
+      router.push('/');
+    }, 1000);
   };
 
   const memoizedLibWord = useMemo(() => {
@@ -244,14 +140,14 @@ export default function Backup() {
   };
 
   const checkWord = async (word: string) => {
+    if (countWord === 12) return;
     if (word === mnemonicWordsConverted[countWord].word) {
-      mnemonicWordsConverted[countWord].isCorrect = true;
-      mnemonicWordsConverted[countWord].isBlur = false;
       setMnemonicWordsConverted((prev) => {
         const updatedArray = [...prev];
         updatedArray[countWord] = {
           ...updatedArray[countWord],
-          isCorrect: true
+          isCorrect: true,
+          isBlur: false
         };
 
         return updatedArray;
@@ -279,12 +175,7 @@ export default function Backup() {
   return (
     <ContainerBackupGame>
       <div className="setting-info">
-        <picture>
-          <img width={96} height={96} src="/setting.svg" alt="" />
-        </picture>
-        <div className="header-setting">
-          <h2 className="title">{!isPlayGame ? 'Your recovery phrase' : 'Verify your phrase'}</h2>
-        </div>
+        <Typography variant="h5">{!isPlayGame ? 'Your recovery phrase' : 'Verify your phrase'}</Typography>
       </div>
       <div className="setting-content">
         <div className="setting-item">
@@ -299,7 +190,7 @@ export default function Backup() {
               Never share your recovery phrase with anyone, store it securely !
             </Alert>
           ) : (
-            <WordGuessConatiner>
+            <WordGuessContainer>
               <div className="word-guess-title">{'Word #' + (countWord + 1 > 12 ? 12 : countWord + 1)}</div>
               <div className="word-guess-content">
                 {randomListFinal &&
@@ -311,13 +202,29 @@ export default function Backup() {
                     );
                   })}
               </div>
-            </WordGuessConatiner>
+            </WordGuessContainer>
           )}
         </div>
 
         <BackupSeed mnemonicWords={mnemonicWordsConverted} isPlayGame={isPlayGame} />
       </div>
-      <Button>Continue</Button>
+      {!isPlayGame && (
+        <Button
+          onClick={() => {
+            setIsPlayGame(true);
+          }}
+          variant="contained"
+          fullWidth
+        >
+          Continue
+        </Button>
+      )}
+      <CustomToast
+        isOpen={finished}
+        content="Congratulation!! Please store these seed in a secure place"
+        handleClose={() => setFinished(false)}
+        type="success"
+      />
     </ContainerBackupGame>
   );
 }

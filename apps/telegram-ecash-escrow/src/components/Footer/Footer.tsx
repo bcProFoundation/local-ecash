@@ -1,12 +1,14 @@
 'use client';
 
 import styled from '@emotion/styled';
-import { HomeOutlined, SettingsOutlined } from '@mui/icons-material';
+import { HomeOutlined, Menu, SettingsOutlined, Wallet } from '@mui/icons-material';
 import GavelOutlinedIcon from '@mui/icons-material/GavelOutlined';
 import InventoryOutlinedIcon from '@mui/icons-material/InventoryOutlined';
 import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined';
-import { IconButton, Slide, Typography } from '@mui/material';
+import { IconButton, Popover, Slide, SvgIconTypeMap, Typography } from '@mui/material';
+import { OverridableComponent } from '@mui/material/OverridableComponent';
 import { usePathname, useRouter } from 'next/navigation';
+import React from 'react';
 
 const Tabs = styled.div`
   position: fixed;
@@ -51,21 +53,79 @@ const TabMenu = styled.div`
   }
 `;
 
+const PopoverStyled = styled.div`
+  // width: 75px;
+  .content-action {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    .item-action {
+      display: flex;
+      gap: 5px;
+      padding: 3px 0;
+      button {
+        padding: 0;
+      }
+      button,
+      p {
+        color: #c7cdd3;
+      }
+    }
+  }
+`;
+
 type PropsFooter = {
   hidden?: boolean;
 };
 
-export default function Footer({ hidden = false }: PropsFooter) {
+export default function Footer({ hidden = true }: PropsFooter) {
   const router = useRouter();
   const pathName = usePathname();
 
-  console.log(`${process.env.NEXT_PUBLIC_LIXI_API}`);
+  const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
+  const open = Boolean(anchorEl);
+
+  const handlePopoverOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(anchorEl ? null : event.currentTarget);
+  };
+
+  const ItemAction = ({
+    Icon,
+    content,
+    navigateContent
+  }: {
+    Icon: OverridableComponent<SvgIconTypeMap<{}, 'svg'>> & {
+      muiName: string;
+    };
+    content: string;
+    navigateContent: string;
+  }) => {
+    return (
+      <div className="item-action" onClick={() => router.push(navigateContent)}>
+        <IconButton>
+          <Icon />
+        </IconButton>
+        <Typography>{content}</Typography>
+      </div>
+    );
+  };
+
+  const contentMoreAction = (
+    <PopoverStyled>
+      <div className="content-action">
+        <ItemAction Icon={SettingsOutlined} content="Setting" navigateContent="/setting" />
+        <ItemAction Icon={Wallet} content="Wallet" navigateContent="/wallet" />
+      </div>
+    </PopoverStyled>
+  );
 
   return (
     <Slide direction="up" in={hidden}>
       <Tabs>
-        <TabMenu className={`${pathName === '/home' && 'active'}`}>
-          <IconButton onClick={() => router.push('/home')}>
+        <TabMenu className={`${pathName === '/' && 'active'}`}>
+          <IconButton onClick={() => router.push('/')}>
             <HomeOutlined />
           </IconButton>
           <Typography variant="body2">Home</Typography>
@@ -88,11 +148,27 @@ export default function Footer({ hidden = false }: PropsFooter) {
           </IconButton>
           <Typography variant="body2">Dispute</Typography>
         </TabMenu>
-        <TabMenu className={`${pathName === '/setting' && 'active'}`}>
-          <IconButton onClick={() => router.push('/setting')}>
-            <SettingsOutlined />
+        <TabMenu aria-owns={open ? 'mouse-over-popover' : undefined} aria-haspopup="true" onClick={handlePopoverOpen}>
+          <IconButton>
+            {/* <SettingsOutlined /> */}
+            <Menu />
           </IconButton>
-          <Typography variant="body2">Setting</Typography>
+          <Typography variant="body2">Menu</Typography>
+          <Popover
+            id="menu-popover"
+            open={open}
+            anchorEl={anchorEl}
+            anchorOrigin={{
+              vertical: 'top',
+              horizontal: 'right'
+            }}
+            transformOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right'
+            }}
+          >
+            {contentMoreAction}
+          </Popover>
         </TabMenu>
       </Tabs>
     </Slide>

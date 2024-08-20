@@ -108,6 +108,9 @@ importers:
       '@tma.js/sdk-react':
         specifier: ^2.2.2
         version: 2.2.3(@types/react@18.3.3)(react@18.3.1)
+      '@yudiel/react-qr-scanner':
+        specifier: ^2.0.7
+        version: 2.0.8(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       axios:
         specifier: ^1.7.2
         version: 1.7.2
@@ -144,9 +147,15 @@ importers:
       next-auth:
         specifier: ^4.24.7
         version: 4.24.7(next@14.2.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      qrcode.react:
+        specifier: ^3.1.0
+        version: 3.1.0(react@18.3.1)
       react:
         specifier: ^18
         version: 18.3.1
+      react-copy-to-clipboard:
+        specifier: ^5.1.0
+        version: 5.1.0(react@18.3.1)
       react-device-detect:
         specifier: ^2.2.3
         version: 2.2.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -983,6 +992,12 @@ packages:
   '@types/cookie@0.6.0':
     resolution: {integrity: sha512-4Kh9a6B2bQciAhf7FSuMRRkUWecJgJu9nPnx3yzpsfXX/c50REIqpHY4C82bXP90qrLtXtkDxTZosYO3UpOwlA==}
 
+  '@types/dom-webcodecs@0.1.11':
+    resolution: {integrity: sha512-yPEZ3z7EohrmOxbk/QTAa0yonMFkNkjnVXqbGb7D4rMr+F1dGQ8ZUFxXkyLLJuiICPejZ0AZE9Rrk9wUCczx4A==}
+
+  '@types/emscripten@1.39.13':
+    resolution: {integrity: sha512-cFq+fO/isvhvmuP/+Sl4K4jtU6E23DoivtbO4r50e3odaxAiVdbfSYRDdJ4gCdxx+3aRjhphS5ZMwIH4hFy/Cw==}
+
   '@types/eslint-scope@3.7.7':
     resolution: {integrity: sha512-MzMFlSLBqNF2gcHWO0G1vP/YQyfvrxZ0bF+u7mzUdZ1/xK4A4sru+nraZz5i3iEIk1l1uyicaDVTB4QbbEkAYg==}
 
@@ -1203,6 +1218,12 @@ packages:
   '@xtuc/long@4.2.2':
     resolution: {integrity: sha512-NuHqBY1PB/D8xU6s/thBgOAiAP7HOYDQ32+BFZILJ8ivkUkAHQnWfn6WhL79Owj1qmUnoN/YPhktdIoucipkAQ==}
 
+  '@yudiel/react-qr-scanner@2.0.8':
+    resolution: {integrity: sha512-/7WHsdC1a/Z909J2zZxqgpUQ1iI554fZxIagucH/tFu1MhZkNIeykYI1OdZgDEwV4CzuSi+h90wwNrhmETcmRw==}
+    peerDependencies:
+      react: ^17 || ^18
+      react-dom: ^17 || ^18
+
   abortcontroller-polyfill@1.7.5:
     resolution: {integrity: sha512-JMJ5soJWP18htbbxJjG7bG6yuI6pRhgJ0scHHTfkUjf6wjP912xZWvM+A4sJK3gqd9E8fcPbDnOefbA9Th/FIQ==}
 
@@ -1358,6 +1379,9 @@ packages:
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
+
+  barcode-detector@2.2.7:
+    resolution: {integrity: sha512-+6PJNcMtdVehX5i2LQUE9L+mS6C3cG00Vsuc4Ynj3Mls5GNKIAFkE0IFGtw4s6vu8SXeogrzTj4btm44oD+gNw==}
 
   base-x@3.0.9:
     resolution: {integrity: sha512-H7JU6iBHTal1gp56aKoaa//YUxEaAOUiydvrV/pILqIHXTtqxSkATOnDA2u+jZ/61sD+L/412+7kzXRtWukhpQ==}
@@ -1619,6 +1643,9 @@ packages:
   cookie@0.6.0:
     resolution: {integrity: sha512-U71cyTamuh1CRNCfpGY6to28lxvNwPG4Guz/EVjgf3Jmzv0vlDp1atT9eS5dDjMYHucpHbWns6Lwf3BKz6svdw==}
     engines: {node: '>= 0.6'}
+
+  copy-to-clipboard@3.3.3:
+    resolution: {integrity: sha512-2KV8NhB5JqC3ky0r9PMCAZKbUHSwtEo4CwCs0KXgruG43gX5PMqDEBbVU4OUzw2MuAWUfsuFmWvEKG5QRfSnJA==}
 
   copy-webpack-plugin@12.0.2:
     resolution: {integrity: sha512-SNwdBeHyII+rWvee/bTnAYyO8vfVdcSTud4EIb6jcZ8inLeWucJE0DnxXQBjlQ5zlteuuvooGQy3LIyGxhvlOA==}
@@ -3092,6 +3119,11 @@ packages:
   pure-rand@6.1.0:
     resolution: {integrity: sha512-bVWawvoZoBYpp6yIoQtQXHZjmz35RSVHnUOTefl8Vcjr8snTPY1wnpSPMWekcFwbxI6gtmT7rSYPFvz71ldiOA==}
 
+  qrcode.react@3.1.0:
+    resolution: {integrity: sha512-oyF+Urr3oAMUG/OiOuONL3HXM+53wvuH3mtIWQrYmsXoAq0DkvZp2RYUWFSMFtbdOpuS++9v+WAkzNVkMlNW6Q==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+
   qs-stringify@1.2.1:
     resolution: {integrity: sha512-2N5xGLGZUxpgAYq1fD1LmBSCbxQVsXYt5JU0nU3FuPWO8PlCnKNFQwXkZgyB6mrTdg7IbexX4wxIR403dJw9pw==}
 
@@ -3111,6 +3143,11 @@ packages:
 
   randombytes@2.1.0:
     resolution: {integrity: sha512-vYl3iOX+4CKUWuxGi9Ukhie6fsqXqS9FE2Zaic4tNFD2N2QQaXOMFbuKK4QmDHC0JO6B1Zp41J0LpT0oR68amQ==}
+
+  react-copy-to-clipboard@5.1.0:
+    resolution: {integrity: sha512-k61RsNgAayIJNoy9yDsYzDe/yAZAzEbEgcz3DZMhF686LEyukcE1hzurxe85JandPUG+yTfGVFzuEw3xt8WP/A==}
+    peerDependencies:
+      react: ^15.3.0 || 16 || 17 || 18
 
   react-device-detect@2.2.3:
     resolution: {integrity: sha512-buYY3qrCnQVlIFHrC5UcUoAj7iANs/+srdkwsnNjI7anr3Tt7UY6MqNxtMLlr0tMBied0O49UZVK8XKs3ZIiPw==}
@@ -3340,6 +3377,9 @@ packages:
 
   scryptsy@2.1.0:
     resolution: {integrity: sha512-1CdSqHQowJBnMAFyPEBRfqag/YP9OF394FV+4YREIJX4ljD7OxvQRDayyoyyCk+senRjSkP6VnUNQmVQqB6g7w==}
+
+  sdp@3.2.0:
+    resolution: {integrity: sha512-d7wDPgDV3DDiqulJjKiV2865wKsJ34YI+NDREbm+FySq6WuKOikwyNQcm+doLAZ1O6ltdO0SeKle2xMpN3Brgw==}
 
   secp256k1@3.8.0:
     resolution: {integrity: sha512-k5ke5avRZbtl9Tqx/SA7CbY3NF6Ro+Sj9cZxezFzuBlLDmyqPiL8hJJ+EmzD8Ig4LUDByHJ3/iPOVoRixs/hmw==}
@@ -3634,6 +3674,9 @@ packages:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
 
+  toggle-selection@1.0.6:
+    resolution: {integrity: sha512-BiZS+C1OS8g/q2RRbJmy59xpyghNBqrr6k5L/uKBGRsTfxmu3ffiRnd8mlGPUVayg8pvfi5urfnu8TU7DVOkLQ==}
+
   tr46@0.0.3:
     resolution: {integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==}
 
@@ -3833,6 +3876,10 @@ packages:
       webpack-cli:
         optional: true
 
+  webrtc-adapter@9.0.1:
+    resolution: {integrity: sha512-1AQO+d4ElfVSXyzNVTOewgGT/tAomwwztX/6e3totvyyzXPvXIIuUUjAmyZGbKBKbZOXauuJooZm3g6IuFuiNQ==}
+    engines: {node: '>=6.0.0', npm: '>=3.10.0'}
+
   whatwg-url@5.0.0:
     resolution: {integrity: sha512-saE57nupxk6v3HY35+jzBwYa0rKSy0XR8JSxZPwgLr7ys0IBzhGviA1/TUGJLmSVqs8pb9AnvICXEuOHLprYTw==}
 
@@ -3929,6 +3976,9 @@ packages:
   yocto-queue@0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
+
+  zxing-wasm@1.2.11:
+    resolution: {integrity: sha512-rNSMkIU310sK5cCPSjZA58FEhGZUtNx+f0CmtZ3SZzpdwZE6IzzKFdkbFkl8CFnxiUrx1VMVl/2WULDnwwJbfg==}
 
 snapshots:
 
@@ -4859,6 +4909,10 @@ snapshots:
 
   '@types/cookie@0.6.0': {}
 
+  '@types/dom-webcodecs@0.1.11': {}
+
+  '@types/emscripten@1.39.13': {}
+
   '@types/eslint-scope@3.7.7':
     dependencies:
       '@types/eslint': 8.56.10
@@ -5159,6 +5213,13 @@ snapshots:
 
   '@xtuc/long@4.2.2': {}
 
+  '@yudiel/react-qr-scanner@2.0.8(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      barcode-detector: 2.2.7
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+      webrtc-adapter: 9.0.1
+
   abortcontroller-polyfill@1.7.5: {}
 
   acorn-import-attributes@1.9.5(acorn@8.11.3):
@@ -5349,6 +5410,11 @@ snapshots:
       resolve: 1.22.8
 
   balanced-match@1.0.2: {}
+
+  barcode-detector@2.2.7:
+    dependencies:
+      '@types/dom-webcodecs': 0.1.11
+      zxing-wasm: 1.2.11
 
   base-x@3.0.9:
     dependencies:
@@ -5630,6 +5696,10 @@ snapshots:
   cookie@0.5.0: {}
 
   cookie@0.6.0: {}
+
+  copy-to-clipboard@3.3.3:
+    dependencies:
+      toggle-selection: 1.0.6
 
   copy-webpack-plugin@12.0.2(webpack@5.92.0):
     dependencies:
@@ -7326,6 +7396,10 @@ snapshots:
 
   pure-rand@6.1.0: {}
 
+  qrcode.react@3.1.0(react@18.3.1):
+    dependencies:
+      react: 18.3.1
+
   qs-stringify@1.2.1: {}
 
   qs@6.12.1:
@@ -7341,6 +7415,12 @@ snapshots:
   randombytes@2.1.0:
     dependencies:
       safe-buffer: 5.2.1
+
+  react-copy-to-clipboard@5.1.0(react@18.3.1):
+    dependencies:
+      copy-to-clipboard: 3.3.3
+      prop-types: 15.8.1
+      react: 18.3.1
 
   react-device-detect@2.2.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
@@ -7601,6 +7681,8 @@ snapshots:
       ajv-keywords: 5.1.0(ajv@8.16.0)
 
   scryptsy@2.1.0: {}
+
+  sdp@3.2.0: {}
 
   secp256k1@3.8.0:
     dependencies:
@@ -7943,6 +8025,8 @@ snapshots:
     dependencies:
       is-number: 7.0.0
 
+  toggle-selection@1.0.6: {}
+
   tr46@0.0.3: {}
 
   ts-api-utils@1.3.0(typescript@5.4.5):
@@ -8160,6 +8244,10 @@ snapshots:
       - esbuild
       - uglify-js
 
+  webrtc-adapter@9.0.1:
+    dependencies:
+      sdp: 3.2.0
+
   whatwg-url@5.0.0:
     dependencies:
       tr46: 0.0.3
@@ -8255,3 +8343,7 @@ snapshots:
   yaml@1.10.2: {}
 
   yocto-queue@0.1.0: {}
+
+  zxing-wasm@1.2.11:
+    dependencies:
+      '@types/emscripten': 1.39.13

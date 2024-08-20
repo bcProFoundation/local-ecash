@@ -1,41 +1,24 @@
 'use client';
+import Footer from '@/src/components/Footer/Footer';
+import Header from '@/src/components/Header/Header';
+import CustomToast from '@/src/components/Toast/CustomToast';
+import { getWalletMnemonic, useSliceSelector } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import { CheckCircleOutline } from '@mui/icons-material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { Accordion, AccordionDetails, AccordionSummary, Alert, Button } from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary, Alert, Button, Typography } from '@mui/material';
 import Link from 'next/link';
+import { useState } from 'react';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 const ContainerSetting = styled.div`
   padding: 1rem;
-  .setting-info {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    img {
-      align-self: center;
-      filter: drop-shadow(2px 4px 6px black);
-    }
-    .header-setting {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      .title {
-        margin-top: 1rem;
-      }
-      .subtitle {
-        span {
-          font-size: 12px;
-          color: #d5d5d5;
-        }
-      }
-    }
-  }
   .setting-content {
-    padding: 1rem 0;
+    padding: 0 0 1rem;
     .setting-item {
       margin-bottom: 1rem;
       .title {
-        padding: 1rem;
+        padding: 0 1rem;
         font-size: 16px;
         font-weight: 400;
         color: #edeff099;
@@ -44,14 +27,7 @@ const ContainerSetting = styled.div`
         align-self: center !important;
       }
     }
-    .seed-phrase {
-      text-align: center;
-      letter-spacing: 0.4px;
-      color: var(--color-primary);
-    }
-    button {
-      width: 100%;
-    }
+
     .address-string {
       font-size: 14px;
       font-weight: 500;
@@ -64,10 +40,34 @@ const ContainerSetting = styled.div`
   }
   .collapse-backup-seed {
     margin: 0 !important;
+    .MuiAccordionSummary-content {
+      margin: 0 0 0px !important;
+    }
+  }
+
+  .MuiCollapse-wrapper {
+    .MuiAccordionDetails-root {
+      padding: 0 16px 10px !important;
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      .mnemonic {
+        color: #edeff099;
+        text-align: center;
+      }
+      .btn-backup {
+        text-transform: capitalize;
+      }
+    }
+  }
+    
   }
 `;
 
 export default function Setting() {
+  const selectedMnemonic = useSliceSelector(getWalletMnemonic);
   // const mainButton = useMainButton();
   // const backButton = useBackButton();
   // const popUp = usePopup();
@@ -80,6 +80,12 @@ export default function Setting() {
   // useEffect(() => {
   //   backButton.on('click', onBackButtonClick);
   // }, [backButton]);
+
+  const [openToastCopySuccess, setOpenToastCopySuccess] = useState(false);
+
+  const handleOnCopy = () => {
+    setOpenToastCopySuccess(true);
+  };
 
   const onBackButtonClick = () => {
     // router.back();
@@ -131,17 +137,17 @@ export default function Setting() {
   };
 
   return (
-    <ContainerSetting>
-      <div className="setting-info">
-        <picture>
-          <img width={96} height={96} src="/setting.svg" alt="" />
-        </picture>
-        <div className="header-setting">
-          <h2 className="title">Setting</h2>
+    <>
+      <ContainerSetting>
+        <Header />
+        <div className="setting-info">
+          <Typography variant="h4" className="title">
+            Setting
+          </Typography>
         </div>
-      </div>
-      <div className="setting-content">
-        <div className="setting-item">
+        {/*TODO: Verify account*/}
+        <div className="setting-content">
+          {/* <div className="setting-item">
           <p className="title">Verify address</p>
           <Alert icon={<CheckCircleOutline className="ico-alert" fontSize="inherit" />} severity="warning">
             Please verify every 1 month to keep your address always updated on Telegram.
@@ -152,30 +158,46 @@ export default function Setting() {
             </AccordionSummary>
             <AccordionDetails>
               <p className="address-string">eCash:qp8ks7622cklc7c9pm2d3ktwzctack6njq6q83ed9x</p>
-              {/* <Button variant='linear' onClickItem={handleVerifyAddress}>Verify</LixiButton>	 */}
+              {/* <Button variant='linear' onClickItem={handleVerifyAddress}>Verify</LixiButton>	 
               <Button>Verify</Button>
             </AccordionDetails>
           </Accordion>
-        </div>
+        </div> */}
 
-        <div className="setting-item">
-          <p className="title">Backup seed phrase</p>
-          <Alert icon={<CheckCircleOutline className="ico-alert" fontSize="inherit" />} severity="warning">
-            Your seed phrase is the only way to restore your account. Write it down. Keep it safe.
-          </Alert>
-          <Accordion className="collapse-backup-seed">
-            <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
-              <p>Click to reveal seed phrase</p>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Link href="/backup">
-                <Button>Backup seed game</Button>
-              </Link>
-            </AccordionDetails>
-          </Accordion>
-        </div>
+          <div className="setting-item">
+            <p className="title">Backup your account</p>
+            <Alert icon={<CheckCircleOutline className="ico-alert" fontSize="inherit" />} severity="warning">
+              Your seed phrase is the only way to restore your account. Write it down. Keep it safe.
+            </Alert>
+            <Accordion className="collapse-backup-seed">
+              <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
+                <p>Click to reveal seed phrase</p>
+              </AccordionSummary>
+              <AccordionDetails>
+                <CopyToClipboard
+                  style={{
+                    display: 'inline-block',
+                    width: '100%',
+                    position: 'relative'
+                  }}
+                  text={selectedMnemonic}
+                  onCopy={handleOnCopy}
+                >
+                  <Typography variant="body2" className="mnemonic">
+                    {selectedMnemonic}
+                  </Typography>
+                </CopyToClipboard>
+                <Link href="/backup">
+                  <Button className="btn-backup" variant="outlined">
+                    Verify account
+                  </Button>
+                </Link>
+              </AccordionDetails>
+            </Accordion>
+          </div>
 
-        <div className="setting-item">
+          {/*TODO: delete account*/}
+          {/* <div className="setting-item">
           <p className="title">Delete account</p>
           <Alert icon={<CheckCircleOutline className="ico-alert" fontSize="inherit" />} severity="error">
             Delete your account in platform. You can import it later by seed phrase have been stored.
@@ -188,9 +210,10 @@ export default function Setting() {
               <Button onClick={handleDeleteAccount}>Delete</Button>
             </AccordionDetails>
           </Accordion>
-        </div>
+        </div> */}
 
-        <div className="setting-item">
+          {/*TODO: import account*/}
+          {/* <div className="setting-item">
           <p className="title">Import account</p>
           <Alert icon={<CheckCircleOutline className="ico-alert" fontSize="inherit" />} severity="info">
             Enter your recovery phrase (12 words) in the correct order. Separate each word with a single space only (no
@@ -206,8 +229,16 @@ export default function Setting() {
               </Link>
             </AccordionDetails>
           </Accordion>
+        </div> */}
         </div>
-      </div>
-    </ContainerSetting>
+        <CustomToast
+          isOpen={openToastCopySuccess}
+          handleClose={() => setOpenToastCopySuccess(false)}
+          content="Copy to clipboard"
+          type="info"
+        />
+      </ContainerSetting>
+      <Footer />
+    </>
   );
 }
