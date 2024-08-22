@@ -138,34 +138,36 @@ export class Escrow {
 }
 
 export const BuildReleaseTx = (
-  txid: string,
+  txids: { txid: string; value: number }[],
   amountToSend: number,
   escrowScript: Script,
   scriptSignatory: Signatory,
   recieverP2pkh: Script
 ) => {
   const ecc = new Ecc();
-  const actualAmount = amountToSend * Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
+  const amountSatoshi = amountToSend * Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
+
+  const utxos = txids.map(({ txid, value }) => {
+    return {
+      input: {
+        prevOut: {
+          txid,
+          outIdx: 0
+        },
+        signData: {
+          value: value,
+          redeemScript: escrowScript
+        }
+      },
+      signatory: scriptSignatory
+    };
+  });
 
   const txBuild = new TxBuilder({
-    inputs: [
-      {
-        input: {
-          prevOut: {
-            txid,
-            outIdx: 0
-          },
-          signData: {
-            value: actualAmount,
-            redeemScript: escrowScript
-          }
-        },
-        signatory: scriptSignatory
-      }
-    ],
+    inputs: utxos,
     outputs: [
       {
-        value: actualAmount,
+        value: amountSatoshi,
         script: recieverP2pkh
       }
     ]

@@ -32,6 +32,7 @@ import {
 import { TransitionProps } from '@mui/material/transitions';
 import { fromHex, shaRmd160 } from 'ecash-lib';
 import _ from 'lodash';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -213,14 +214,15 @@ const Transition = React.forwardRef(function Transition(
 const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const theme = useTheme();
   const { post }: { post: Post } = props;
+  const { data } = useSession();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
   const router = useRouter();
   const { useCreateEscrowOrderMutation, useGetModeratorAccountQuery, useGetRandomArbitratorAccountQuery } =
     escrowOrderApi;
   const [createOrderTrigger] = useCreateEscrowOrderMutation();
-  const { currentData: moderatorCurrentData } = useGetModeratorAccountQuery();
-  const { currentData: arbitratorCurrentData } = useGetRandomArbitratorAccountQuery();
+  const { currentData: moderatorCurrentData } = useGetModeratorAccountQuery({}, { skip: !data });
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
+  const { currentData: arbitratorCurrentData } = useGetRandomArbitratorAccountQuery({}, { skip: !data });
   const [paymentMethodId, setPaymentMethodId] = useState<number | undefined>();
   const {
     handleSubmit,
