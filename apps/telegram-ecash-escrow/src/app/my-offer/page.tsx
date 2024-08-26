@@ -1,9 +1,8 @@
 'use client';
 import Footer from '@/src/components/Footer/Footer';
-import OfferDetailInfo from '@/src/components/OfferDetailInfo/OfferDetailInfo';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
 import { TabType } from '@/src/store/constants';
-import { getSelectedAccount, offerApi, Post, useSliceSelector as useLixiSliceSelector } from '@bcpros/redux-store';
+import { getSelectedAccount, useSliceSelector as useLixiSliceSelector } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import { Add } from '@mui/icons-material';
 import { Box, Tab, Tabs, Typography } from '@mui/material';
@@ -82,11 +81,7 @@ const MyOfferPage = styled.div`
 
 export default function MyOffer() {
   const [value, setValue] = useState(0);
-  const { useAllOfferByPublicKeyQuery } = offerApi;
   const selectedAccount = useLixiSliceSelector(getSelectedAccount);
-  const { data } = useAllOfferByPublicKeyQuery({
-    publicKey: selectedAccount.publicKey!
-  });
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
@@ -115,11 +110,11 @@ export default function MyOffer() {
         </Tabs>
         <SwipeableViews index={value} onChangeIndex={handleChangeIndex}>
           <TabPanel value={value} index={0}>
-            <div className="list-item">
+            {/* <div className="list-item">
               {data?.allOfferByPublicKey.edges.map(edge => (
                 <OfferDetailInfo key={edge.node.id} post={edge.node.data as Post} />
               ))}
-            </div>
+            </div> */}
           </TabPanel>
           <TabPanel value={value} index={1}>
             <div className="list-item">

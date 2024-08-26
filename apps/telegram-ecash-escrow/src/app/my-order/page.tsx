@@ -1,6 +1,5 @@
 'use client';
 import Footer from '@/src/components/Footer/Footer';
-import OrderDetailInfo from '@/src/components/OrderDetailInfo/OrderDetailInfo';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
 import { TabType } from '@/src/store/constants';
 import styled from '@emotion/styled';
@@ -105,14 +104,14 @@ export default function MyOffer() {
         <SwipeableViews index={value} onChangeIndex={handleChangeIndex} disableLazyLoading={true}>
           <TabPanel value={value} index={0}>
             <div className="list-item">
-              <OrderDetailInfo />
-              <OrderDetailInfo />
+              {/* <OrderDetailInfo />
+              <OrderDetailInfo /> */}
             </div>
           </TabPanel>
           <TabPanel value={value} index={1}>
             <div className="list-item">
-              <OrderDetailInfo />
-              <OrderDetailInfo />
+              {/* <OrderDetailInfo />
+              <OrderDetailInfo /> */}
             </div>
           </TabPanel>
         </SwipeableViews>

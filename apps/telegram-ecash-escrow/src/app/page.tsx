@@ -9,7 +9,14 @@ import Footer from '@/src/components/Footer/Footer';
 import Header from '@/src/components/Header/Header';
 import OfferItem from '@/src/components/OfferItem/OfferItem';
 import TopSection from '@/src/components/TopSection/TopSection';
-import { TimelineQueryItem, useInfiniteOffersByScoreQuery } from '@bcpros/redux-store';
+import {
+  accountsApi,
+  getSelectedWalletPath,
+  TimelineQueryItem,
+  useInfiniteOffersByScoreQuery,
+  useSliceSelector as useLixiSliceSelector
+} from '@bcpros/redux-store';
+import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
@@ -79,8 +86,13 @@ const StyledBadge = styled(Badge)`
 
 export default function Home() {
   const prevRef = useRef(0);
+  const { data: sessionData } = useSession();
   const [visible, setVisible] = useState(true);
   const [open, setOpen] = useState<boolean>(false);
+  const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
+  const { useUpdateAccountTelegramUsernameMutation, useGetAccountByAddressQuery } = accountsApi;
+  const { currentData: accountQueryData } = useGetAccountByAddressQuery({ address: selectedWalletPath.xAddress });
+  const [createTriggerUpdateAccountTelegramUsername] = useUpdateAccountTelegramUsernameMutation();
 
   const { data, hasNext, isFetching, fetchNext } = useInfiniteOffersByScoreQuery({ first: 20 }, false);
 
@@ -94,7 +106,7 @@ export default function Home() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const handleScroll = (e) => {
+      const handleScroll = e => {
         const currentScrollPos = window.scrollY;
         setVisible(prevRef.current > currentScrollPos || currentScrollPos < 20);
         prevRef.current = currentScrollPos;
@@ -106,6 +118,16 @@ export default function Home() {
       };
     }
   }, []);
+
+  useEffect(() => {
+    sessionData &&
+      accountQueryData &&
+      accountQueryData?.getAccountByAddress.telegramUsername !== sessionData?.user.name &&
+      createTriggerUpdateAccountTelegramUsername({
+        telegramId: sessionData.user.id,
+        telegramUsername: sessionData.user.name
+      });
+  }, [sessionData]);
 
   return (
     <WrapHome>
@@ -137,7 +159,7 @@ export default function Home() {
                 scrollableTarget="scrollableDiv"
                 scrollThreshold={'100px'}
               >
-                {data.map((item) => {
+                {data.map(item => {
                   return <OfferItem timelineItem={item as TimelineQueryItem} />;
                 })}
               </InfiniteScroll>
@@ -155,7 +177,7 @@ export default function Home() {
       </Fade>
       <CreateOfferModal
         isOpen={open}
-        onDissmissModal={(value) => {
+        onDissmissModal={value => {
           setOpen(value);
         }}
       />
