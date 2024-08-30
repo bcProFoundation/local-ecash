@@ -16,11 +16,11 @@ import {
   getSelectedWalletPath,
   getWalletUtxos,
   useSliceSelector as useLixiSliceSelector,
-  WalletContext
+  WalletContextNode
 } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import { Alert, Button, Snackbar, Stack, Typography } from '@mui/material';
-import { SubscribeMsg, WsEndpoint } from 'chronik-client';
+import { MsgTxClient, WsEndpoint_InNode, WsMsgClient } from 'chronik-client';
 import { fromHex, Script, shaRmd160 } from 'ecash-lib';
 import cashaddr from 'ecashaddrjs';
 import _ from 'lodash';
@@ -61,7 +61,7 @@ const OrderDetail = () => {
   const [cancel, setCancel] = useState(false);
   const [loading, setLoading] = useState(false);
   const [copy, setCopy] = useState(false);
-  const [ws, setWs] = useState<WsEndpoint>();
+  const [ws, setWs] = useState<WsEndpoint_InNode>();
   const { useEscrowOrderQuery, useUpdateEscrowOrderStatusMutation } = escrowOrderApi;
   const { isLoading, currentData, isError, isSuccess } = useEscrowOrderQuery({ id: id! });
   const { useCreateDisputeMutation } = disputeApi;
@@ -69,7 +69,7 @@ const OrderDetail = () => {
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
   const walletUtxos = useLixiSliceSelector(getWalletUtxos);
   const [updateOrderTrigger] = useUpdateEscrowOrderStatusMutation();
-  const Wallet = useContext(WalletContext);
+  const Wallet = useContext(WalletContextNode);
   const { chronik } = Wallet;
 
   const updateOrderStatus = async (status: EscrowOrderStatus) => {
@@ -360,7 +360,7 @@ const OrderDetail = () => {
     }
   };
 
-  const chronikHandleWsMessage = async (msg: SubscribeMsg) => {
+  const chronikHandleWsMessage = async (msg: WsMsgClient) => {
     try {
       // get the message type
       const { type } = msg;
@@ -369,19 +369,19 @@ const OrderDetail = () => {
       // Dev note: Other chronik msg types
       // "BlockConnected", arrives as new blocks are found
       // "Confirmed", arrives as subscribed + seen txid is confirmed in a block
-      if (type !== 'AddedToMempool') {
+      if (type === 'Error') {
         return;
       }
 
       // get txid info
-      const txid = msg.txid;
+      const { txid } = msg as MsgTxClient;
       try {
         const escrowOrderAmount = currentData?.escrowOrder.amount * Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
         const escrowOrderTxids = currentData?.escrowOrder.escrowTxids;
         let currentAmount = _.sumBy(escrowOrderTxids, 'value');
 
-        const { outputs, slpTxData } = await chronik.tx(txid);
-        const startIndex: number = slpTxData ? 1 : 0;
+        const { outputs, tokenEntries } = await chronik.tx(txid);
+        const startIndex: number = tokenEntries.length !== 0 ? 1 : 0;
 
         // process each tx output
         for (let i = startIndex; i < outputs.length; i++) {
@@ -389,7 +389,7 @@ const OrderDetail = () => {
           const address = cashaddr.encodeOutputScript(scriptHex, 'ecash');
 
           if (address === currentData?.escrowOrder.escrowAddress && !_.some(escrowOrderTxids, { txid: txid })) {
-            const value = parseInt(outputs[i].value);
+            const value = outputs[i].value;
 
             await updateOrderTrigger({
               input: { orderId: id!, status: EscrowOrderStatus.Active, txid, value }
@@ -437,7 +437,7 @@ const OrderDetail = () => {
     await ws.waitForOpen();
     // Subscribe to scripts (on Lotus, current ABC payout address):
     // Will give a message on avg every 2 minutes
-    ws.subscribe(type as any, hash as string);
+    ws.subscribeToScript(type as any, hash as string);
 
     setWs(ws);
   };
@@ -457,8 +457,8 @@ const OrderDetail = () => {
       let currentAmount = _.sumBy(escrowOrderTxids, 'value');
 
       for (const tx of txs) {
-        const { outputs, slpTxData, txid } = tx;
-        const startIndex: number = slpTxData ? 1 : 0;
+        const { outputs, tokenEntries, txid } = tx;
+        const startIndex: number = tokenEntries.length !== 0 ? 1 : 0;
 
         // process each tx output
         for (let i = startIndex; i < outputs.length; i++) {
@@ -466,7 +466,7 @@ const OrderDetail = () => {
           const address = cashaddr.encodeOutputScript(scriptHex, 'ecash');
 
           if (address === currentData?.escrowOrder.escrowAddress && !_.some(escrowOrderTxids, { txid: txid })) {
-            const value = parseInt(outputs[i].value);
+            const value = outputs[i].value;
 
             await updateOrderTrigger({
               input: { orderId: id!, status: EscrowOrderStatus.Active, txid, value }

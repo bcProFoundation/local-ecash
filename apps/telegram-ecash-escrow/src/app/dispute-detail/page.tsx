@@ -11,7 +11,7 @@ import { COIN, coinInfo } from '@bcpros/lixi-models';
 import {
   DisputeStatus,
   EscrowOrderStatus,
-  WalletContext,
+  WalletContextNode,
   convertHashToEcashAddress,
   disputeApi,
   escrowOrderApi,
@@ -192,7 +192,7 @@ export default function MyOffer() {
   const { escrowOrder } = { ...escrowOrderQueryData };
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
   const [openReleaseModal, setOpenReleaseModal] = useState<boolean>(false);
-  const Wallet = useContext(WalletContext);
+  const Wallet = useContext(WalletContextNode);
   const [updateOrderTrigger] = useUpdateEscrowOrderStatusMutation();
   const { chronik } = Wallet;
 

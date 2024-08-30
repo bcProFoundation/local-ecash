@@ -106,7 +106,7 @@ export default function Home() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const handleScroll = e => {
+      const handleScroll = () => {
         const currentScrollPos = window.scrollY;
         setVisible(prevRef.current > currentScrollPos || currentScrollPos < 20);
         prevRef.current = currentScrollPos;
@@ -160,7 +160,7 @@ export default function Home() {
                 scrollThreshold={'100px'}
               >
                 {data.map(item => {
-                  return <OfferItem timelineItem={item as TimelineQueryItem} />;
+                  return <OfferItem key={item.id} timelineItem={item as TimelineQueryItem} />;
                 })}
               </InfiniteScroll>
             ) : (

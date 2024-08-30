@@ -6,10 +6,10 @@ import {
   BoostType,
   CreateBoostInput,
   TimelineQueryItem,
-  WalletContext,
+  WalletContextNode,
   boostApi,
   getSelectedWalletPath,
-  getWalletStatus,
+  getWalletStatusNode,
   useSliceSelector as useLixiSliceSelector,
   useXEC
 } from '@bcpros/redux-store';
@@ -121,14 +121,14 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
     }
   };
 
-  const Wallet = React.useContext(WalletContext);
+  const Wallet = React.useContext(WalletContextNode);
   const { chronik } = Wallet;
   const { sendXec } = useXEC();
   const { useCreateBoostMutation } = boostApi;
   const [createBoostTrigger] = useCreateBoostMutation();
 
   const selectedWallet = useLixiSliceSelector(getSelectedWalletPath);
-  const walletStatus = useLixiSliceSelector(getWalletStatus);
+  const walletStatusNode = useLixiSliceSelector(getWalletStatusNode);
 
   const [expanded, setExpanded] = React.useState(false);
 
@@ -137,7 +137,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
     const txid = await sendXec(
       chronik,
       selectedWallet?.fundingWif,
-      walletStatus?.slpBalancesAndUtxos?.nonSlpUtxos,
+      walletStatusNode?.slpBalancesAndUtxos?.nonSlpUtxos,
       coinInfo[COIN.XEC].defaultFee,
       '', //message
       false, //indicate send mode is one to one
