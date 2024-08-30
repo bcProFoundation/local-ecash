@@ -49,7 +49,7 @@ const OrderDetailInfo = ({ key, post }: { key: string; post: Post }) => {
         {post.offer?.message}
       </Typography>
       <div className="payment-group-btns">
-        {post.offer?.paymentMethods.map((method) => {
+        {post.offer?.paymentMethods.map(method => {
           return (
             <Button key={method.id} className="cash-in-btn" size="small" color="success" variant="outlined">
               {method.paymentMethod.name}

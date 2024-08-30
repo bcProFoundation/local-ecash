@@ -118,7 +118,7 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const FilterOfferModal: React.FC<FilterOfferModalProps> = (props) => {
+const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
 

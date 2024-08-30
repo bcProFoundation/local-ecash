@@ -87,7 +87,7 @@ const DisputeDetailInfo = () => {
         </Typography>
       </DisputeDetailInfoWrap>
 
-      <ResolveDisputeModal isOpen={isOpenModal} onDissmissModal={(value) => setIsOpenModal(value)} />
+      <ResolveDisputeModal isOpen={isOpenModal} onDissmissModal={value => setIsOpenModal(value)} />
     </>
   );
 };

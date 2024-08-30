@@ -100,7 +100,7 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const CreateOfferModal: React.FC<CreateOfferModalProps> = (props) => {
+const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   const { isOpen, onDissmissModal } = props;
   const dispatch = useLixiSliceDispatch();
   const { useCreateOfferMutation } = offerApi;
@@ -128,7 +128,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = (props) => {
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleCreateOffer = async (data) => {
+  const handleCreateOffer = async data => {
     setLoading(true);
 
     const minNum = parseFloat(data.min);
@@ -164,11 +164,11 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = (props) => {
       } else {
         let currentSelected = selectedOptions;
         // if choose other option, drop option 5
-        if (currentSelected.includes(5)) currentSelected = currentSelected.filter((item) => item !== 5);
+        if (currentSelected.includes(5)) currentSelected = currentSelected.filter(item => item !== 5);
         setSelectedOptions([...currentSelected, value]);
       }
     } else {
-      setSelectedOptions((pre) => (pre.length === 1 ? [1] : pre.filter((item) => item !== value))); //default choose 1
+      setSelectedOptions(pre => (pre.length === 1 ? [1] : pre.filter(item => item !== value))); //default choose 1
     }
   };
 
@@ -184,7 +184,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = (props) => {
             key={id}
             value={numId}
             checked={selectedOptions.includes(numId) || (numId === 1 && selectedOptions.length === 0)} //auto check option 1
-            onChange={(e) => handleChangeCheckBox(e, numId)}
+            onChange={e => handleChangeCheckBox(e, numId)}
           />
         }
       />
@@ -252,7 +252,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = (props) => {
                   value: /^-?[0-9]\d*\.?\d*$/,
                   message: 'Price is invalid!'
                 },
-                validate: (value) => {
+                validate: value => {
                   if (parseFloat(value) < 0) return 'Price must be greater than 0!';
 
                   return true;
@@ -290,7 +290,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = (props) => {
                   value: /^-?[0-9]\d*\.?\d*$/,
                   message: 'Minimum amount is invalid!'
                 },
-                validate: (value) => {
+                validate: value => {
                   const max = parseFloat(watch('max'));
 
                   if (parseFloat(value) < 0) return 'Minimum amount must be greater than 0!';
@@ -336,7 +336,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = (props) => {
                   value: /^-?[0-9]\d*\.?\d*$/,
                   message: 'Maximum amount is invalid!'
                 },
-                validate: (value) => {
+                validate: value => {
                   const min = parseFloat(watch('min'));
 
                   if (parseFloat(value) < 0) return 'Maximum amount must be greater than 0!';
@@ -370,7 +370,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = (props) => {
             <p className="title-payment-method">Payment Methods</p>
             <Box sx={{ display: 'flex', margin: '16px 0' }}>
               <FormGroup sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
-                {paymenthods.map((item) => CheckBoxUI(item.id, item.name))}
+                {paymenthods.map(item => CheckBoxUI(item.id, item.name))}
               </FormGroup>
             </Box>
           </Grid>
