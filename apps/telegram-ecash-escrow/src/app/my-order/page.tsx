@@ -1,6 +1,6 @@
 'use client';
+import OrderDetailInfo from '@/src/components/DetailInfo/OrderDetailInfo';
 import Footer from '@/src/components/Footer/Footer';
-import OrderDetailInfo from '@/src/components/OrderDetailInfo/OrderDetailInfo';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
 import { TabType } from '@/src/store/constants';
 import styled from '@emotion/styled';

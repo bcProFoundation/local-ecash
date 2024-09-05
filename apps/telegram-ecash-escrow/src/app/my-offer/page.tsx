@@ -1,14 +1,15 @@
 'use client';
+import CreateOfferModal from '@/src/components/CreateOfferModal/CreateOfferModal';
+import OfferDetailInfo from '@/src/components/DetailInfo/OfferDetailInfo';
 import Footer from '@/src/components/Footer/Footer';
-import OrderDetailInfo from '@/src/components/OrderDetailInfo/OrderDetailInfo';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
 import { TabType } from '@/src/store/constants';
+import { OfferStatus, useInfiniteMyOffersQuery } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
-import { Add } from '@mui/icons-material';
-import { Box, Tab, Tabs, Typography } from '@mui/material';
+import { Box, Skeleton, Tab, Tabs, Typography } from '@mui/material';
 import { useState } from 'react';
+import InfiniteScroll from 'react-infinite-scroll-component';
 import SwipeableViews from 'react-swipeable-views';
-import Fab from '../../components/Fab';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -62,10 +63,6 @@ const MyOfferPage = styled.div`
     padding: 16px;
   }
 
-  .MuiFab-root {
-    bottom: 10%;
-  }
-
   .list-item {
     div:not(.payment-group-btns) {
       border-bottom: 2px dashed rgba(255, 255, 255, 0.3);
@@ -77,17 +74,64 @@ const MyOfferPage = styled.div`
       }
     }
   }
+
+  .btn-create-offer {
+    position: fixed;
+    right: 5%;
+    bottom: 100px;
+    z-index: 1;
+    cursor: pointer;
+    background-color: rgb(255, 219, 209);
+    padding: 10px;
+    border-radius: 50%;
+    display: flex;
+  }
 `;
 
 export default function MyOffer() {
   const [value, setValue] = useState(0);
-
+  const [open, setOpen] = useState<boolean>(false);
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
   };
 
   const handleChangeIndex = (index: number) => {
     setValue(index);
+  };
+
+  const {
+    data: dataOfferActive,
+    hasNext: hasNextOfferActive,
+    isFetching: isFetchingOfferActive,
+    fetchNext: fetchNextOfferActive
+  } = useInfiniteMyOffersQuery({
+    first: 20,
+    offerStatus: OfferStatus.Active
+  });
+
+  const loadMoreItemsOfferActive = () => {
+    if (hasNextOfferActive && !isFetchingOfferActive) {
+      fetchNextOfferActive();
+    } else if (hasNextOfferActive) {
+      fetchNextOfferActive();
+    }
+  };
+
+  const {
+    data: dataOfferArchive,
+    hasNext: hasNextOfferArchive,
+    isFetching: isFetchingOfferArchive,
+    fetchNext: fetchNextOfferArchive
+  } = useInfiniteMyOffersQuery({
+    first: 20,
+    offerStatus: OfferStatus.Archive
+  });
+  const loadMoreItemsOfferArchive = () => {
+    if (hasNextOfferArchive && !isFetchingOfferArchive) {
+      fetchNextOfferArchive();
+    } else if (hasNextOfferArchive) {
+      fetchNextOfferArchive();
+    }
   };
 
   return (
@@ -110,19 +154,65 @@ export default function MyOffer() {
         <SwipeableViews index={value} onChangeIndex={handleChangeIndex}>
           <TabPanel value={value} index={0}>
             <div className="list-item">
-              <OrderDetailInfo />
-              <OrderDetailInfo />
+              {dataOfferActive.length > 0 ? (
+                <InfiniteScroll
+                  dataLength={dataOfferActive.length}
+                  next={loadMoreItemsOfferActive}
+                  hasMore={hasNextOfferActive}
+                  loader={
+                    <>
+                      <Skeleton variant="text" />
+                      <Skeleton variant="text" />
+                    </>
+                  }
+                  scrollableTarget="scrollableDiv"
+                  scrollThreshold={'100px'}
+                >
+                  {dataOfferActive.map((item) => {
+                    return <OfferDetailInfo timelineItem={item} key={item.id} />;
+                  })}
+                </InfiniteScroll>
+              ) : (
+                <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No offer here</Typography>
+              )}
             </div>
           </TabPanel>
           <TabPanel value={value} index={1}>
             <div className="list-item">
-              <OrderDetailInfo />
-              <OrderDetailInfo />
+              {dataOfferArchive.length > 0 ? (
+                <InfiniteScroll
+                  dataLength={dataOfferArchive.length}
+                  next={loadMoreItemsOfferArchive}
+                  hasMore={hasNextOfferArchive}
+                  loader={
+                    <>
+                      <Skeleton variant="text" />
+                      <Skeleton variant="text" />
+                    </>
+                  }
+                  scrollableTarget="scrollableDiv"
+                  scrollThreshold={'100px'}
+                >
+                  {dataOfferArchive.map((item) => {
+                    return <OfferDetailInfo timelineItem={item} key={item.id} />;
+                  })}
+                </InfiniteScroll>
+              ) : (
+                <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No offer archive</Typography>
+              )}
             </div>
           </TabPanel>
         </SwipeableViews>
 
-        <Fab route="/my-offer/new" icon={<Add />} />
+        <div className="btn-create-offer" onClick={() => setOpen(true)}>
+          <img src="/ico-create-post.svg" />
+        </div>
+        <CreateOfferModal
+          isOpen={open}
+          onDissmissModal={(value) => {
+            setOpen(value);
+          }}
+        />
       </MyOfferPage>
 
       <Footer />
