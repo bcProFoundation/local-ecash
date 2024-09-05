@@ -265,7 +265,7 @@ export default function ImportWallet() {
           autoHideDuration={3000}
           onClose={() =>
             setTimeout(() => {
-              router.push('/home');
+              router.push('/');
             })
           }
         >

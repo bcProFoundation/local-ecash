@@ -9,7 +9,16 @@ import Footer from '@/src/components/Footer/Footer';
 import Header from '@/src/components/Header/Header';
 import OfferItem from '@/src/components/OfferItem/OfferItem';
 import TopSection from '@/src/components/TopSection/TopSection';
-import { TimelineQueryItem, useInfiniteOffersByScoreQuery } from '@bcpros/redux-store';
+import {
+  OfferFilterInput,
+  TimelineQueryItem,
+  getOfferFilterConfig,
+  saveOfferFilterConfig,
+  useInfiniteOfferFilterQuery,
+  useInfiniteOffersByScoreQuery,
+  useSliceDispatch as useLixiSliceDispatch,
+  useSliceSelector as useLixiSliceSelector
+} from '@bcpros/redux-store';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
@@ -81,14 +90,30 @@ export default function Home() {
   const prevRef = useRef(0);
   const [visible, setVisible] = useState(true);
   const [open, setOpen] = useState<boolean>(false);
+  const dispatch = useLixiSliceDispatch();
+  const offerFilterConfig = useLixiSliceSelector(getOfferFilterConfig);
 
   const { data, hasNext, isFetching, fetchNext } = useInfiniteOffersByScoreQuery({ first: 20 }, false);
+  const {
+    data: dataFilter,
+    hasNext: hasNextFilter,
+    isFetching: isFetchingFilter,
+    fetchNext: fetchNextFilter
+  } = useInfiniteOfferFilterQuery({ first: 2, offerFilterInput: offerFilterConfig }, false);
 
   const loadMoreItems = () => {
     if (hasNext && !isFetching) {
       fetchNext();
     } else if (hasNext) {
       fetchNext();
+    }
+  };
+
+  const loadMoreItemsFilter = () => {
+    if (hasNextFilter && !isFetchingFilter) {
+      fetchNextFilter();
+    } else if (hasNextFilter) {
+      fetchNextFilter();
     }
   };
 
@@ -107,6 +132,16 @@ export default function Home() {
     }
   }, []);
 
+  //reset fitler when reload
+  useEffect(() => {
+    const offerFilterInput: OfferFilterInput = {
+      countryId: null,
+      stateId: null,
+      paymentMethodIds: []
+    };
+    dispatch(saveOfferFilterConfig(offerFilterInput));
+  }, []);
+
   return (
     <WrapHome>
       <HomePage>
@@ -123,7 +158,31 @@ export default function Home() {
             </StyledBadge>
           </div>
           <div className="offer-list">
-            {data.length > 0 ? (
+            {offerFilterConfig.countryId ||
+            offerFilterConfig.stateId ||
+            (offerFilterConfig.paymentMethodIds?.length ?? 0) > 0 ? (
+              dataFilter.length > 0 ? (
+                <InfiniteScroll
+                  dataLength={dataFilter.length}
+                  next={loadMoreItemsFilter}
+                  hasMore={hasNextFilter}
+                  loader={
+                    <>
+                      <Skeleton variant="text" />
+                      <Skeleton variant="text" />
+                    </>
+                  }
+                  scrollableTarget="scrollableDiv"
+                  scrollThreshold={'100px'}
+                >
+                  {dataFilter.map((item) => {
+                    return <OfferItem timelineItem={item as TimelineQueryItem} />;
+                  })}
+                </InfiniteScroll>
+              ) : (
+                <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No offer in your filter</Typography>
+              )
+            ) : data.length > 0 ? (
               <InfiniteScroll
                 dataLength={data.length}
                 next={loadMoreItems}
