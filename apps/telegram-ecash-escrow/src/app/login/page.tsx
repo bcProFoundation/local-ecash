@@ -79,7 +79,7 @@ export default function Home() {
             dispatch(generateAccount({ coin: 'XEC', telegramId: data.id.toString() }));
             signIn('telegram-login', { redirect: false }, data as any);
 
-            router.push('/home');
+            router.push('/');
           }
         }}
       />

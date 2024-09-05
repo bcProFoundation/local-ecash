@@ -104,7 +104,9 @@ type OfferItemProps = {
 
 export default function OfferItem({ timelineItem }: OfferItemProps) {
   const post = timelineItem?.data;
-  const { offer: offerData } = post;
+  const offerData = timelineItem?.data?.offer;
+  const countryName = offerData?.country?.name;
+  const stateName = offerData?.state?.name;
   const [open, setOpen] = useState<boolean>(false);
   const { status } = useSession();
   const askAuthorization = useAuthorization();
@@ -181,7 +183,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
     <OfferShowWrapItem>
       <div className="push-offer-wrap">
         <Typography variant="body2">
-          <span className="prefix">By: </span>Nghiacc 🍃
+          <span className="prefix">By: </span> {timelineItem?.data?.account?.name ?? ''}
         </Typography>
         <IconButton onClick={handleBoost}>
           <ArrowCircleUpRoundedIcon />
@@ -212,6 +214,10 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
             <Typography variant="body2">
               <span className="prefix">Price: </span>
               {offerData?.price}
+            </Typography>
+            <Typography variant="body2">
+              <span className="prefix">Location: </span>
+              {[stateName, countryName].filter(Boolean).join(', ')}
             </Typography>
             <div className="payment-group-btns">
               {offerData?.paymentMethods &&

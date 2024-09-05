@@ -4,8 +4,12 @@ import {
   Coin,
   CreateOfferInput,
   OfferType,
+  getAllCountries,
   getAllPaymentMethods,
+  getAllStates,
+  getCountries,
   getPaymenMethods,
+  getStates,
   offerApi,
   useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector
@@ -24,8 +28,12 @@ import {
   FormControl,
   FormControlLabel,
   FormGroup,
+  FormHelperText,
   Grid,
   IconButton,
+  InputLabel,
+  MenuItem,
+  Select,
   Slide,
   Snackbar,
   Stack,
@@ -66,7 +74,7 @@ const StyledDialog = styled(Dialog)`
 
   .payment-method {
     .title-payment-method {
-      margin: 10px 0 0;
+      margin: 0;
       font-size: 20px;
     }
   }
@@ -82,6 +90,11 @@ const StyledDialog = styled(Dialog)`
         color: white;
       }
     }
+  }
+
+  .title-location {
+    padding: 0 16px !important;
+    font-size: 20px;
   }
 `;
 
@@ -112,17 +125,22 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
     control,
     watch,
     reset,
+    setValue,
     formState: { errors }
   } = useForm({
     defaultValues: {
       price: '',
       message: '',
       min: '',
-      max: ''
+      max: '',
+      countryId: null,
+      stateId: null
     }
   });
 
   const paymenthods = useLixiSliceSelector(getAllPaymentMethods);
+  const countries = useLixiSliceSelector(getAllCountries);
+  const states = useLixiSliceSelector(getAllStates);
   const [selectedOptions, setSelectedOptions] = useState<number[]>([1]);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(false);
@@ -142,7 +160,9 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       paymentMethodIds: selectedOptions,
       publicKey: 'public key',
       coin: Coin.Xec,
-      type: OfferType.Sell
+      type: OfferType.Sell,
+      countryId: Number(data.countryId),
+      stateId: Number(data.stateId)
     };
     const offerCreated = await createOfferTrigger({ input: inputCreateOffer })
       .unwrap()
@@ -195,6 +215,11 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   useEffect(() => {
     if (paymenthods.length === 0) dispatch(getPaymenMethods());
   }, [paymenthods.length]);
+
+  //auto call country
+  useEffect(() => {
+    dispatch(getCountries());
+  }, []);
 
   return (
     <StyledDialog
@@ -373,6 +398,75 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                 {paymenthods.map(item => CheckBoxUI(item.id, item.name))}
               </FormGroup>
             </Box>
+          </Grid>
+          <Grid item xs={12} className="title-location">
+            <span>Location</span>
+          </Grid>
+          <Grid item xs={6}>
+            <Controller
+              name="countryId"
+              control={control}
+              rules={{
+                required: {
+                  value: true,
+                  message: 'Country is required!'
+                }
+              }}
+              render={({ field: { onChange, onBlur, value, name, ref } }) => (
+                <FormControl fullWidth>
+                  <InputLabel id="label-country">Country</InputLabel>
+                  <Select
+                    labelId="label-country"
+                    id="label-country"
+                    label="Country"
+                    value={value}
+                    onChange={e => {
+                      onChange(e);
+                      dispatch(getStates(Number(e.target.value ?? '0')));
+                      setValue('stateId', null);
+                    }}
+                  >
+                    {countries.map(country => (
+                      <MenuItem key={country.id} value={country.id}>
+                        {country.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
+            />
+            {errors && errors?.countryId && (
+              <FormHelperText error={true}>{errors.countryId.message as string}</FormHelperText>
+            )}
+          </Grid>
+          <Grid item xs={6}>
+            <Controller
+              name="stateId"
+              control={control}
+              render={({ field: { onChange, onBlur, value, name, ref } }) => (
+                <FormControl fullWidth>
+                  <InputLabel id="label-state">State</InputLabel>
+                  <Select
+                    value={value}
+                    labelId="label-state"
+                    name={name}
+                    onBlur={onBlur}
+                    id="label-state"
+                    label="State"
+                    onChange={onChange}
+                  >
+                    {states.map(state => (
+                      <MenuItem key={state.id} value={state.id}>
+                        {state.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
+            />
+            {errors && errors?.stateId && (
+              <FormHelperText error={true}>{errors.stateId.message as string}</FormHelperText>
+            )}
           </Grid>
         </Grid>
       </DialogContent>

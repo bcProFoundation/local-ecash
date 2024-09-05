@@ -1,6 +1,6 @@
 'use client';
 
-import OrderDetailInfo from '@/src/components/OrderDetailInfo/OrderDetailInfo';
+import OrderDetailInfo from '@/src/components/DetailInfo/OrderDetailInfo';
 import QRCode from '@/src/components/QRcode/QRcode';
 import TelegramButton from '@/src/components/TelegramButton/TelegramButton';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
