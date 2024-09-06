@@ -2,7 +2,7 @@
 
 import styled from '@emotion/styled';
 import CachedRoundedIcon from '@mui/icons-material/CachedRounded';
-import { Badge, Fade, Skeleton, Typography } from '@mui/material';
+import { Badge, Fade, Skeleton, Slide, Typography } from '@mui/material';
 
 import CreateOfferModal from '@/src/components/CreateOfferModal/CreateOfferModal';
 import Footer from '@/src/components/Footer/Footer';
@@ -12,8 +12,11 @@ import TopSection from '@/src/components/TopSection/TopSection';
 import {
   OfferFilterInput,
   TimelineQueryItem,
+  getNewPostAvailable,
   getOfferFilterConfig,
+  offerApi,
   saveOfferFilterConfig,
+  setNewPostAvailable,
   useInfiniteOfferFilterQuery,
   useInfiniteOffersByScoreQuery,
   useSliceDispatch as useLixiSliceDispatch,
@@ -79,10 +82,22 @@ const Section = styled.div`
 `;
 
 const StyledBadge = styled(Badge)`
-  .MuiBadge-badge {
-    background: #0f98f2;
-    color: white;
-    filter: drop-shadow(0px 0px 2px #0f98f2);
+  background: #0f98f2;
+  position: fixed;
+  z-index: 1;
+  left: 40%;
+  top: 1rem;
+  cursor: pointer;
+  padding: 8px 13px;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  color: white;
+  gap: 3px;
+
+  .refresh-text {
+    font-size: 14px;
+    font-weight: bold;
   }
 `;
 
@@ -92,14 +107,15 @@ export default function Home() {
   const [open, setOpen] = useState<boolean>(false);
   const dispatch = useLixiSliceDispatch();
   const offerFilterConfig = useLixiSliceSelector(getOfferFilterConfig);
+  const newPostAvailable = useLixiSliceSelector(getNewPostAvailable);
 
-  const { data, hasNext, isFetching, fetchNext } = useInfiniteOffersByScoreQuery({ first: 20 }, false);
+  const { data, hasNext, isFetching, fetchNext, refetch } = useInfiniteOffersByScoreQuery({ first: 20 }, false);
   const {
     data: dataFilter,
     hasNext: hasNextFilter,
     isFetching: isFetchingFilter,
     fetchNext: fetchNextFilter
-  } = useInfiniteOfferFilterQuery({ first: 2, offerFilterInput: offerFilterConfig }, false);
+  } = useInfiniteOfferFilterQuery({ first: 20, offerFilterInput: offerFilterConfig }, false);
 
   const loadMoreItems = () => {
     if (hasNext && !isFetching) {
@@ -117,6 +133,13 @@ export default function Home() {
     }
   };
 
+  const handleRefresh = () => {
+    dispatch(offerApi.api.util.resetApiState());
+    refetch();
+    dispatch(setNewPostAvailable(false));
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+  };
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const handleScroll = (e) => {
@@ -132,7 +155,7 @@ export default function Home() {
     }
   }, []);
 
-  //reset fitler when reload
+  //reset fitler and flag for new-post when reload
   useEffect(() => {
     const offerFilterInput: OfferFilterInput = {
       countryId: null,
@@ -140,10 +163,16 @@ export default function Home() {
       paymentMethodIds: []
     };
     dispatch(saveOfferFilterConfig(offerFilterInput));
+    dispatch(setNewPostAvailable(false));
   }, []);
 
   return (
     <WrapHome>
+      <Slide direction="down" in={newPostAvailable && visible}>
+        <StyledBadge className="badge-new-offer" color="info" onClick={handleRefresh}>
+          <CachedRoundedIcon color="action" /> <span className="refresh-text">Refresh</span>
+        </StyledBadge>
+      </Slide>
       <HomePage>
         <Header />
         <TopSection />
@@ -153,9 +182,6 @@ export default function Home() {
             <Typography className="title-offer" variant="body1">
               Offer Watchlist
             </Typography>
-            <StyledBadge className="badge-new-offer" badgeContent={4} color="info">
-              <CachedRoundedIcon color="action" />
-            </StyledBadge>
           </div>
           <div className="offer-list">
             {offerFilterConfig.countryId ||
