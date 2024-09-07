@@ -55,11 +55,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/counter
       '@bcpros/lixi-models':
-        specifier: ^1.2.5
-        version: 1.2.5(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(class-transformer@0.5.1)(graphql@16.8.1)(reflect-metadata@0.2.2)
+        specifier: ^1.2.7
+        version: 1.2.7(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(class-transformer@0.5.1)(graphql@16.8.1)(reflect-metadata@0.2.2)
       '@bcpros/redux-store':
-        specifier: ^1.2.5
-        version: 1.2.5(@abcpros/bitcore-lib-xpi@8.25.43)(@bcpros/xpi-js@4.0.6)(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(@rtk-query/graphql-request-base-query@2.3.1(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(graphql@16.8.1))(axios@1.7.2)(chronik-client@0.26.2)(class-transformer@0.5.1)(file-saver@2.0.5)(iron-session@8.0.1)(moment@2.30.1)(react-device-detect@2.2.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-intl-universal@2.11.1(react@18.3.1))(react-outside-call@0.2.0)(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1)(redux-persist-indexeddb-storage@1.0.4)(redux-persist@6.0.0(react@18.3.1)(redux@5.0.1))(redux-saga@1.3.0)(redux-thunk@3.1.0(redux@5.0.1))(redux@5.0.1)(reflect-metadata@0.2.2)
+        specifier: ^1.2.7
+        version: 1.2.7(@abcpros/bitcore-lib-xpi@8.25.43)(@bcpros/xpi-js@4.0.6)(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(@rtk-query/graphql-request-base-query@2.3.1(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(graphql@16.8.1))(axios@1.7.2)(chronik-client@0.26.2)(class-transformer@0.5.1)(file-saver@2.0.5)(iron-session@8.0.1)(moment@2.30.1)(react-device-detect@2.2.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-intl-universal@2.11.1(react@18.3.1))(react-outside-call@0.2.0)(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1)(redux-persist-indexeddb-storage@1.0.4)(redux-persist@6.0.0(react@18.3.1)(redux@5.0.1))(redux-saga@1.3.0)(redux-thunk@3.1.0(redux@5.0.1))(redux@5.0.1)(reflect-metadata@0.2.2)
       '@bcpros/xpi-js':
         specifier: 4.0.6
         version: 4.0.6
@@ -327,15 +327,15 @@ packages:
     resolution: {integrity: sha512-WaMsgi6Q8zMgMth93GvWPXkhAIEobfsIkLTacoVZoK1J0CevIPGYY2Vo5YvJGqyHqXM6P4ppOYGsIRU8MM9pFQ==}
     engines: {node: '>=6.9.0'}
 
-  '@bcpros/lixi-models@1.2.5':
-    resolution: {integrity: sha512-b0+rKy3uLmhv1Pe9mcCaGO/j+o+Ue5Gi7DteFhT4HFNOhNl2oMbj1KawT27xdEdHy5HMdrvItS3A+k2QSZ12DQ==}
+  '@bcpros/lixi-models@1.2.7':
+    resolution: {integrity: sha512-buUYr7YawRfm2lLbJako71xDhalroiZLw6W05ySymk+OaA5V0i0eosyBJcEwUiWP3vhOWD5ZZhPIqrl759vqrA==}
     engines: {node: '>=16'}
     peerDependencies:
       '@prisma/client': 5.12.1
       class-transformer: ^0.5.1
 
-  '@bcpros/redux-store@1.2.5':
-    resolution: {integrity: sha512-qKFwy7SUpHdFZPCC63+SgO5WWOc1UM+yGidtOuP4ROM0RzqaLS83ZYIVgacPb3rElGeP2pGHwtLxm9E645dtdg==}
+  '@bcpros/redux-store@1.2.7':
+    resolution: {integrity: sha512-Rxv1kArRWeAQvCLsDChk5NoAfMo9F92M4hshP9nwrIxgK7gvI+l/ix10AwaJkQj3tQlWU2vhMKji6CTu7XjY9Q==}
     peerDependencies:
       '@abcpros/bitcore-lib-xpi': '>=8.25.37'
       '@bcpros/xpi-js': 4.0.6
@@ -4048,7 +4048,7 @@ snapshots:
       '@babel/helper-validator-identifier': 7.24.6
       to-fast-properties: 2.0.0
 
-  '@bcpros/lixi-models@1.2.5(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(class-transformer@0.5.1)(graphql@16.8.1)(reflect-metadata@0.2.2)':
+  '@bcpros/lixi-models@1.2.7(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(class-transformer@0.5.1)(graphql@16.8.1)(reflect-metadata@0.2.2)':
     dependencies:
       '@nestjs/mapped-types': 2.0.5(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)
       '@prisma/client': 5.14.0
@@ -4064,10 +4064,10 @@ snapshots:
       - graphql
       - reflect-metadata
 
-  '@bcpros/redux-store@1.2.5(@abcpros/bitcore-lib-xpi@8.25.43)(@bcpros/xpi-js@4.0.6)(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(@rtk-query/graphql-request-base-query@2.3.1(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(graphql@16.8.1))(axios@1.7.2)(chronik-client@0.26.2)(class-transformer@0.5.1)(file-saver@2.0.5)(iron-session@8.0.1)(moment@2.30.1)(react-device-detect@2.2.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-intl-universal@2.11.1(react@18.3.1))(react-outside-call@0.2.0)(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1)(redux-persist-indexeddb-storage@1.0.4)(redux-persist@6.0.0(react@18.3.1)(redux@5.0.1))(redux-saga@1.3.0)(redux-thunk@3.1.0(redux@5.0.1))(redux@5.0.1)(reflect-metadata@0.2.2)':
+  '@bcpros/redux-store@1.2.7(@abcpros/bitcore-lib-xpi@8.25.43)(@bcpros/xpi-js@4.0.6)(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(@rtk-query/graphql-request-base-query@2.3.1(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(graphql@16.8.1))(axios@1.7.2)(chronik-client@0.26.2)(class-transformer@0.5.1)(file-saver@2.0.5)(iron-session@8.0.1)(moment@2.30.1)(react-device-detect@2.2.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-intl-universal@2.11.1(react@18.3.1))(react-outside-call@0.2.0)(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1)(redux-persist-indexeddb-storage@1.0.4)(redux-persist@6.0.0(react@18.3.1)(redux@5.0.1))(redux-saga@1.3.0)(redux-thunk@3.1.0(redux@5.0.1))(redux@5.0.1)(reflect-metadata@0.2.2)':
     dependencies:
       '@abcpros/bitcore-lib-xpi': 8.25.43
-      '@bcpros/lixi-models': 1.2.5(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(class-transformer@0.5.1)(graphql@16.8.1)(reflect-metadata@0.2.2)
+      '@bcpros/lixi-models': 1.2.7(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(class-transformer@0.5.1)(graphql@16.8.1)(reflect-metadata@0.2.2)
       '@bcpros/xpi-js': 4.0.6
       '@bitgo/utxo-lib': 9.40.0
       '@nestjs/mapped-types': 2.0.5(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)
@@ -6065,8 +6065,8 @@ snapshots:
       '@typescript-eslint/parser': 7.2.0(eslint@8.56.0)(typescript@5.4.5)
       eslint: 8.56.0
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.6.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1)(eslint@8.56.0)
-      eslint-plugin-import: 2.29.1(@typescript-eslint/parser@7.11.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0)
+      eslint-import-resolver-typescript: 3.6.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(@typescript-eslint/parser@7.11.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0))(eslint@8.56.0)
+      eslint-plugin-import: 2.29.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.4.5))(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(@typescript-eslint/parser@7.11.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0))(eslint@8.56.0))(eslint@8.56.0)
       eslint-plugin-jsx-a11y: 6.8.0(eslint@8.56.0)
       eslint-plugin-react: 7.34.2(eslint@8.56.0)
       eslint-plugin-react-hooks: 4.6.2(eslint@8.56.0)
@@ -6084,13 +6084,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1)(eslint@8.56.0):
+  eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(@typescript-eslint/parser@7.11.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0))(eslint@8.56.0):
     dependencies:
       debug: 4.3.4
       enhanced-resolve: 5.16.1
       eslint: 8.56.0
-      eslint-module-utils: 2.8.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1)(eslint@8.56.0))(eslint@8.56.0)
-      eslint-plugin-import: 2.29.1(@typescript-eslint/parser@7.11.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0)
+      eslint-module-utils: 2.8.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(@typescript-eslint/parser@7.11.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0))(eslint@8.56.0))(eslint@8.56.0)
+      eslint-plugin-import: 2.29.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.4.5))(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(@typescript-eslint/parser@7.11.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0))(eslint@8.56.0))(eslint@8.56.0)
       fast-glob: 3.3.2
       get-tsconfig: 4.7.5
       is-core-module: 2.13.1
@@ -6101,28 +6101,18 @@ snapshots:
       - eslint-import-resolver-webpack
       - supports-color
 
-  eslint-module-utils@2.8.1(@typescript-eslint/parser@7.11.0(eslint@8.56.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint@8.56.0):
-    dependencies:
-      debug: 3.2.7
-    optionalDependencies:
-      '@typescript-eslint/parser': 7.11.0(eslint@8.56.0)(typescript@5.4.5)
-      eslint: 8.56.0
-      eslint-import-resolver-node: 0.3.9
-    transitivePeerDependencies:
-      - supports-color
-
-  eslint-module-utils@2.8.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1)(eslint@8.56.0))(eslint@8.56.0):
+  eslint-module-utils@2.8.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(@typescript-eslint/parser@7.11.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0))(eslint@8.56.0))(eslint@8.56.0):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
       '@typescript-eslint/parser': 7.2.0(eslint@8.56.0)(typescript@5.4.5)
       eslint: 8.56.0
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.6.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1)(eslint@8.56.0)
+      eslint-import-resolver-typescript: 3.6.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(@typescript-eslint/parser@7.11.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0))(eslint@8.56.0)
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-import@2.29.1(@typescript-eslint/parser@7.11.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0):
+  eslint-plugin-import@2.29.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.4.5))(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(@typescript-eslint/parser@7.11.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0))(eslint@8.56.0))(eslint@8.56.0):
     dependencies:
       array-includes: 3.1.8
       array.prototype.findlastindex: 1.2.5
@@ -6132,7 +6122,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 8.56.0
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.8.1(@typescript-eslint/parser@7.11.0(eslint@8.56.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint@8.56.0)
+      eslint-module-utils: 2.8.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@7.2.0(eslint@8.56.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(@typescript-eslint/parser@7.11.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0))(eslint@8.56.0))(eslint@8.56.0)
       hasown: 2.0.2
       is-core-module: 2.13.1
       is-glob: 4.0.3
@@ -6143,7 +6133,7 @@ snapshots:
       semver: 6.3.1
       tsconfig-paths: 3.15.0
     optionalDependencies:
-      '@typescript-eslint/parser': 7.11.0(eslint@8.56.0)(typescript@5.4.5)
+      '@typescript-eslint/parser': 7.2.0(eslint@8.56.0)(typescript@5.4.5)
     transitivePeerDependencies:
       - eslint-import-resolver-typescript
       - eslint-import-resolver-webpack
