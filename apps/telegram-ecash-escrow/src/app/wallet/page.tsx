@@ -8,7 +8,7 @@ import CustomToast from '@/src/components/Toast/CustomToast';
 import { COIN } from '@bcpros/lixi-models';
 import {
   getSelectedWalletPath,
-  getWalletStatus,
+  getWalletStatusNode,
   parseCashAddressToPrefix,
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
@@ -85,7 +85,7 @@ const SendWrap = styled.div`
 `;
 
 export default function Wallet() {
-  const walletStatus = useLixiSliceSelector(getWalletStatus);
+  const walletStatusNode = useLixiSliceSelector(getWalletStatusNode);
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
 
   const [address, setAddress] = useState(parseCashAddressToPrefix(COIN.XEC, selectedWalletPath.cashAddress));
@@ -106,7 +106,7 @@ export default function Wallet() {
             <Typography variant="h5">Balance</Typography>
             <div className="amount">
               <Typography variant="h5">
-                {walletStatus.balances.totalBalance} <span className="coin-ticker">XEC</span>
+                {walletStatusNode.balances.totalBalance} <span className="coin-ticker">XEC</span>
               </Typography>
             </div>
           </div>

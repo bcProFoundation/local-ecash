@@ -4,7 +4,7 @@ import {
   generateAccount,
   importAccount,
   useSliceDispatch as useLixiSliceDispatch,
-  WalletContext
+  WalletContextNode
 } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
@@ -91,7 +91,7 @@ export default function ImportWallet() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(false);
-  const { getXecWalletPublicKey } = useContext(WalletContext);
+  const { getXecWalletPublicKey } = useContext(WalletContextNode);
   // const mainButton = useMainButton();
   // const backButton = useBackButton();
   // const popUp = usePopup();
@@ -256,7 +256,7 @@ export default function ImportWallet() {
           Create new wallet
         </Button>
       </div>
-      <Backdrop sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }} open={loading} onClick={handleClose}>
+      <Backdrop sx={{ color: '#fff', zIndex: theme => theme.zIndex.drawer + 1 }} open={loading} onClick={handleClose}>
         <CircularProgress color={'inherit'} />
       </Backdrop>
       <Stack>

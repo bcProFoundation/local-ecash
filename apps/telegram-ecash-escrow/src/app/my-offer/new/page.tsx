@@ -52,7 +52,15 @@ export default function NewOffer() {
     formState: { errors },
     control,
     watch
-  } = useForm();
+  } = useForm({
+    defaultValues: {
+      amount: '',
+      message: '',
+      min: '',
+      max: '',
+      paymentMethods: ''
+    }
+  });
   const dispatch = useLixiSliceDispatch();
   // const { useCreateOfferMutation } = offerApi;
   const paymentMethods = useLixiSliceSelector(getAllPaymentMethods);
@@ -62,7 +70,7 @@ export default function NewOffer() {
     if (paymentMethods.length === 0) dispatch(getPaymenMethods());
   }, [paymentMethods.length]);
 
-  const handleCreateOffer = async (data) => {
+  const handleCreateOffer = async data => {
     console.log('🚀 ~ handleCreateOffer ~ data:', data);
   };
 
@@ -85,7 +93,7 @@ export default function NewOffer() {
                   value: /^-?[0-9]\d*\.?\d*$/,
                   message: 'XEC amount is invalid!'
                 },
-                validate: (value) => {
+                validate: value => {
                   if (parseFloat(value) < 0) return 'XEC amount must be greater than 0!';
 
                   return true;
@@ -154,7 +162,7 @@ export default function NewOffer() {
                   value: /^-?[0-9]\d*\.?\d*$/,
                   message: 'Minimum amount is invalid!'
                 },
-                validate: (value) => {
+                validate: value => {
                   const max = parseFloat(watch('max'));
 
                   if (parseFloat(value) < 0) return 'Minimum amount must be greater than 0!';
@@ -200,7 +208,7 @@ export default function NewOffer() {
                   value: /^-?[0-9]\d*\.?\d*$/,
                   message: 'Maximum amount is invalid!'
                 },
-                validate: (value) => {
+                validate: value => {
                   const min = parseFloat(watch('min'));
 
                   if (parseFloat(value) < 0) return 'Maximum amount must be greater than 0!';
@@ -249,15 +257,15 @@ export default function NewOffer() {
 
         <Box sx={{ display: 'flex', margin: '16px 0' }}>
           <FormGroup sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
-            {paymentMethods.map((method) => (
+            {paymentMethods.map(method => (
               <FormControlLabel
                 key={method.id}
                 control={
                   <Controller
                     control={control}
-                    name={method.name}
+                    name={`paymentMethods`} // TODO: fix this
                     render={({ field: props }) => (
-                      <Checkbox {...props} checked={!!props.value} onChange={(e) => props.onChange(e.target.checked)} />
+                      <Checkbox {...props} checked={!!props.value} onChange={e => props.onChange(e.target.checked)} />
                     )}
                   />
                 }

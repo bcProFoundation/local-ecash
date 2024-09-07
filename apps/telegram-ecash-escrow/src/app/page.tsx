@@ -12,13 +12,16 @@ import TopSection from '@/src/components/TopSection/TopSection';
 import {
   OfferFilterInput,
   TimelineQueryItem,
+  accountsApi,
   getOfferFilterConfig,
+  getSelectedWalletPath,
   saveOfferFilterConfig,
   useInfiniteOfferFilterQuery,
   useInfiniteOffersByScoreQuery,
   useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
+import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
@@ -88,8 +91,13 @@ const StyledBadge = styled(Badge)`
 
 export default function Home() {
   const prevRef = useRef(0);
+  const { data: sessionData } = useSession();
   const [visible, setVisible] = useState(true);
   const [open, setOpen] = useState<boolean>(false);
+  const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
+  const { useUpdateAccountTelegramUsernameMutation, useGetAccountByAddressQuery } = accountsApi;
+  const { currentData: accountQueryData } = useGetAccountByAddressQuery({ address: selectedWalletPath.xAddress });
+  const [createTriggerUpdateAccountTelegramUsername] = useUpdateAccountTelegramUsernameMutation();
   const dispatch = useLixiSliceDispatch();
   const offerFilterConfig = useLixiSliceSelector(getOfferFilterConfig);
 
@@ -119,7 +127,7 @@ export default function Home() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const handleScroll = (e) => {
+      const handleScroll = () => {
         const currentScrollPos = window.scrollY;
         setVisible(prevRef.current > currentScrollPos || currentScrollPos < 20);
         prevRef.current = currentScrollPos;
@@ -131,6 +139,16 @@ export default function Home() {
       };
     }
   }, []);
+
+  useEffect(() => {
+    sessionData &&
+      accountQueryData &&
+      accountQueryData?.getAccountByAddress.telegramUsername !== sessionData?.user.name &&
+      createTriggerUpdateAccountTelegramUsername({
+        telegramId: sessionData.user.id,
+        telegramUsername: sessionData.user.name
+      });
+  }, [sessionData]);
 
   //reset fitler when reload
   useEffect(() => {
@@ -175,8 +193,8 @@ export default function Home() {
                   scrollableTarget="scrollableDiv"
                   scrollThreshold={'100px'}
                 >
-                  {dataFilter.map((item) => {
-                    return <OfferItem timelineItem={item as TimelineQueryItem} />;
+                  {dataFilter.map(item => {
+                    return <OfferItem key={item.id} timelineItem={item as TimelineQueryItem} />;
                   })}
                 </InfiniteScroll>
               ) : (
@@ -196,8 +214,8 @@ export default function Home() {
                 scrollableTarget="scrollableDiv"
                 scrollThreshold={'100px'}
               >
-                {data.map((item) => {
-                  return <OfferItem timelineItem={item as TimelineQueryItem} />;
+                {data.map(item => {
+                  return <OfferItem key={item.id} timelineItem={item as TimelineQueryItem} />;
                 })}
               </InfiniteScroll>
             ) : (
@@ -214,7 +232,7 @@ export default function Home() {
       </Fade>
       <CreateOfferModal
         isOpen={open}
-        onDissmissModal={(value) => {
+        onDissmissModal={value => {
           setOpen(value);
         }}
       />

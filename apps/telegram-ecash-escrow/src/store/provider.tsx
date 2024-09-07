@@ -5,7 +5,7 @@ import {
   AuthorizationProvider,
   ServiceWorkerProvider,
   SocketProvider,
-  WalletProvider,
+  WalletProviderNode,
   callConfig
 } from '@bcpros/redux-store';
 import { Box, CircularProgress } from '@mui/material';
@@ -71,13 +71,13 @@ const ReduxProvider: React.FC<ReduxProviderProps> = ({ children }) => {
         <PGate persistor={persistorRef.current} loading={<LoadingComponent />}>
           <SocketProvider>
             <ServiceWorkerProvider>
-              <WalletProvider>
+              <WalletProviderNode>
                 <AuthenticationProvider>
                   <AuthorizationProvider>
                     <OutsideCallConsumer config={callConfig}>{children}</OutsideCallConsumer>
                   </AuthorizationProvider>
                 </AuthenticationProvider>
-              </WalletProvider>
+              </WalletProviderNode>
             </ServiceWorkerProvider>
           </SocketProvider>
         </PGate>
