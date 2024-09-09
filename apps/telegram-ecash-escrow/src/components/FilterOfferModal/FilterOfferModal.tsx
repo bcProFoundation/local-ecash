@@ -135,7 +135,7 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const FilterOfferModal: React.FC<FilterOfferModalProps> = (props) => {
+const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -168,14 +168,14 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = (props) => {
     const isSelected = !!selectedOptionsPayment.includes(id);
     //select before => drop select
     if (isSelected) {
-      setSelectedOptionsPayment((pre) => pre.filter((item) => item !== id));
+      setSelectedOptionsPayment(pre => pre.filter(item => item !== id));
     } else {
       //select it
-      setSelectedOptionsPayment((pre) => [...pre, id]);
+      setSelectedOptionsPayment(pre => [...pre, id]);
     }
   };
 
-  const handleFilter = async (data) => {
+  const handleFilter = async data => {
     const { countryId, stateId } = data;
     const offerFilterInput: OfferFilterInput = {
       countryId: countryId && countryId,
@@ -215,9 +215,10 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = (props) => {
           <div className="filter-item">
             <Typography variant="body2">Payment method</Typography>
             <div className="content">
-              {paymenthods.map((item) => {
+              {paymenthods.map(item => {
                 return (
                   <Button
+                    key={item.id}
                     onClick={() => handleSelect(item.id)}
                     className={selectedOptionsPayment.includes(item.id) ? 'active' : ''}
                     size="small"
@@ -245,13 +246,15 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = (props) => {
                         id="label-country"
                         label="Country"
                         value={value}
-                        onChange={(e) => {
+                        onChange={e => {
                           onChange(e);
                           dispatch(getStates(Number(e.target.value ?? '0')));
                           setValue('stateId', null);
                         }}
+                        onBlur={onBlur}
+                        name={name}
                       >
-                        {countries.map((country) => (
+                        {countries.map(country => (
                           <MenuItem key={country.id} value={country.id}>
                             {country.name}
                           </MenuItem>
@@ -272,11 +275,13 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = (props) => {
                         labelId="label-state"
                         id="label-state"
                         label="State"
+                        name={name}
+                        onBlur={onBlur}
                         value={value}
                         onChange={onChange}
                         disabled={!getValues('countryId')}
                       >
-                        {states.map((state) => (
+                        {states.map(state => (
                           <MenuItem key={state.id} value={state.id}>
                             {state.name}
                           </MenuItem>

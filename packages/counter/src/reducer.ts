@@ -6,12 +6,12 @@ const initialState: CountState = {
   count: 0
 };
 
-export const counterReducer = createReducer(initialState, (builder) => {
+export const counterReducer = createReducer(initialState, builder => {
   builder
-    .addCase(increment, (state) => {
+    .addCase(increment, state => {
       state.count += 1;
     })
-    .addCase(decrement, (state) => {
+    .addCase(decrement, state => {
       state.count -= 1;
     });
 });

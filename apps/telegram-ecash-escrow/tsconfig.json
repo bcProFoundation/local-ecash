@@ -11,6 +11,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noImplicitAny": false,
+    "experimentalDecorators": true,
     "jsx": "preserve",
     "sourceMap": true,
     "plugins": [
@@ -25,7 +26,7 @@
     },
     "typeRoots": ["./src/@types", "./node_modules/@types"],
     "strict": false,
-    "strictNullChecks": true
+    "strictNullChecks": false
   },
   "types": ["redux-persist"],
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

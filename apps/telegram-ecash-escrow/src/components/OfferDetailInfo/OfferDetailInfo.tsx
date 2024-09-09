@@ -1,6 +1,6 @@
 'use client';
 
-import { EscrowOrder } from '@bcpros/redux-store';
+import { Post } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import { Button, Typography } from '@mui/material';
 
@@ -28,43 +28,34 @@ const OrderDetailWrap = styled.div`
   }
 `;
 
-const OrderDetailInfo = props => {
-  const { order }: { order: EscrowOrder } = props;
-
+const OrderDetailInfo = ({ key, post }: { key: string; post: Post }) => {
   return (
     <OrderDetailWrap>
       <Typography variant="body1">
-        <span className="prefix">No: </span>
-        {order.id}
+        <span className="prefix">No: </span> {post.id}
       </Typography>
       <Typography variant="body1">
-        <span className="prefix">Offer: </span>
-        {order.offer.message}
+        <span className="prefix">Offered At: </span>
+        {post.createdAt}
       </Typography>
       <Typography variant="body1">
-        <span className="prefix">Ordered by: </span>
-        {order.buyerAccount.telegramId}
+        <span className="prefix">Price: </span>Market price + 5%
       </Typography>
       <Typography variant="body1">
-        <span className="prefix">Ordered at: </span>
-        {order.createdAt.toLocaleString()}
-      </Typography>
-      <Typography variant="body1">
-        <span className="prefix">Price: </span>
-        {order.price}
-      </Typography>
-      <Typography variant="body1">
-        <span className="prefix">Amount: </span>
-        {order.amount}
+        <span className="prefix">Amount: </span>20M XEC
       </Typography>
       <Typography variant="body1">
         <span className="prefix">Message: </span>
-        {order.message}
+        {post.offer?.message}
       </Typography>
       <div className="payment-group-btns">
-        <Button className="cash-in-btn" size="small" color="success" variant="outlined">
-          {order.paymentMethod.name}
-        </Button>
+        {post.offer?.paymentMethods.map(method => {
+          return (
+            <Button key={method.id} className="cash-in-btn" size="small" color="success" variant="outlined">
+              {method.paymentMethod.name}
+            </Button>
+          );
+        })}
       </div>
     </OrderDetailWrap>
   );

@@ -31,6 +31,7 @@ type OfferItemProps = {
 
 const OfferDetailInfo = ({ timelineItem }: OfferItemProps) => {
   const offerData = timelineItem?.data.offer;
+
   return (
     <OfferDetailWrap>
       <Typography variant="body1">
@@ -48,7 +49,7 @@ const OfferDetailInfo = ({ timelineItem }: OfferItemProps) => {
       <div className="payment-group-btns">
         {offerData?.paymentMethods &&
           offerData.paymentMethods?.length > 0 &&
-          offerData.paymentMethods.map((item) => {
+          offerData.paymentMethods.map(item => {
             return (
               <Button size="small" color="success" variant="outlined" key={item.paymentMethod.name}>
                 {item.paymentMethod.name}

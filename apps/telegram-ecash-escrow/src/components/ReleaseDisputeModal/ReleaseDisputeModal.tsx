@@ -105,7 +105,7 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const ReleaseDisputeModal: React.FC<ReleaseDisputeModalProps> = (props) => {
+const ReleaseDisputeModal: React.FC<ReleaseDisputeModalProps> = props => {
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
   // const router = useRouter();

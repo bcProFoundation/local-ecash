@@ -6,10 +6,10 @@ import {
   BoostType,
   CreateBoostInput,
   TimelineQueryItem,
-  WalletContext,
+  WalletContextNode,
   boostApi,
   getSelectedWalletPath,
-  getWalletStatus,
+  getWalletStatusNode,
   useSliceSelector as useLixiSliceSelector,
   useXEC
 } from '@bcpros/redux-store';
@@ -103,6 +103,7 @@ type OfferItemProps = {
 };
 
 export default function OfferItem({ timelineItem }: OfferItemProps) {
+  const post = timelineItem?.data;
   const offerData = timelineItem?.data?.offer;
   const countryName = offerData?.country?.name;
   const stateName = offerData?.state?.name;
@@ -110,7 +111,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
   const { status } = useSession();
   const askAuthorization = useAuthorization();
 
-  const handleBuyClick = (e) => {
+  const handleBuyClick = e => {
     e.stopPropagation();
 
     if (status === 'loading') return;
@@ -122,14 +123,14 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
     }
   };
 
-  const Wallet = React.useContext(WalletContext);
-  const { XPI, chronik } = Wallet;
+  const Wallet = React.useContext(WalletContextNode);
+  const { chronik } = Wallet;
   const { sendXec } = useXEC();
   const { useCreateBoostMutation } = boostApi;
   const [createBoostTrigger] = useCreateBoostMutation();
 
   const selectedWallet = useLixiSliceSelector(getSelectedWalletPath);
-  const walletStatus = useLixiSliceSelector(getWalletStatus);
+  const walletStatusNode = useLixiSliceSelector(getWalletStatusNode);
 
   const [expanded, setExpanded] = React.useState(false);
 
@@ -138,7 +139,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
     const txid = await sendXec(
       chronik,
       selectedWallet?.fundingWif,
-      walletStatus?.slpBalancesAndUtxos?.nonSlpUtxos,
+      walletStatusNode?.slpBalancesAndUtxos?.nonSlpUtxos,
       coinInfo[COIN.XEC].defaultFee,
       '', //message
       false, //indicate send mode is one to one
@@ -170,9 +171,10 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
   }
 
   const ExpandMore = styled((props: ExpandMoreProps) => {
-    const { expand, ...other } = props;
+    const { ...other } = props;
+
     return <IconButton {...other} />;
-  })(({ theme, expand }) => ({
+  })(({ expand }) => ({
     transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
     marginLeft: 'auto'
   }));
@@ -220,9 +222,9 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
             <div className="payment-group-btns">
               {offerData?.paymentMethods &&
                 offerData.paymentMethods?.length > 0 &&
-                offerData.paymentMethods.map((item) => {
+                offerData.paymentMethods.map(item => {
                   return (
-                    <Button size="small" color="warning" variant="outlined">
+                    <Button size="small" color="warning" variant="outlined" key={item.paymentMethod.name}>
                       {item.paymentMethod.name}
                     </Button>
                   );
@@ -236,14 +238,14 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
             <span className="value">{timelineItem?.data?.boostScore?.boostScore}</span>
             <span className="coin">XEC</span>
           </Button>
-          <Button className="place-order-btn" color="success" variant="contained" onClick={(e) => handleBuyClick(e)}>
+          <Button className="place-order-btn" color="success" variant="contained" onClick={e => handleBuyClick(e)}>
             Buy
             <Image width={25} height={25} src="/eCash.svg" alt="" />
           </Button>
         </Typography>
       </CardWrapper>
 
-      <PlaceAnOrderModal isOpen={open} onDissmissModal={(value) => setOpen(value)} />
+      <PlaceAnOrderModal isOpen={open} onDissmissModal={value => setOpen(value)} post={post} />
     </React.Fragment>
   );
 }

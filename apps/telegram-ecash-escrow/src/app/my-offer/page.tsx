@@ -7,7 +7,7 @@ import { TabType } from '@/src/store/constants';
 import { OfferStatus, useInfiniteMyOffersQuery } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import { Box, Skeleton, Tab, Tabs, Typography } from '@mui/material';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import SwipeableViews from 'react-swipeable-views';
 
@@ -135,7 +135,7 @@ export default function MyOffer() {
   };
 
   return (
-    <>
+    <React.Fragment>
       <MyOfferPage>
         <TickerHeader hideIcon={true} title="My offers" />
 
@@ -168,7 +168,7 @@ export default function MyOffer() {
                   scrollableTarget="scrollableDiv"
                   scrollThreshold={'100px'}
                 >
-                  {dataOfferActive.map((item) => {
+                  {dataOfferActive.map(item => {
                     return <OfferDetailInfo timelineItem={item} key={item.id} />;
                   })}
                 </InfiniteScroll>
@@ -193,7 +193,7 @@ export default function MyOffer() {
                   scrollableTarget="scrollableDiv"
                   scrollThreshold={'100px'}
                 >
-                  {dataOfferArchive.map((item) => {
+                  {dataOfferArchive.map(item => {
                     return <OfferDetailInfo timelineItem={item} key={item.id} />;
                   })}
                 </InfiniteScroll>
@@ -209,13 +209,13 @@ export default function MyOffer() {
         </div>
         <CreateOfferModal
           isOpen={open}
-          onDissmissModal={(value) => {
+          onDissmissModal={value => {
             setOpen(value);
           }}
         />
       </MyOfferPage>
 
       <Footer />
-    </>
+    </React.Fragment>
   );
 }

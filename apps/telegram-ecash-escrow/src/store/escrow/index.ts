@@ -1,3 +1,5 @@
+import { COIN, coinInfo } from '@bcpros/lixi-models';
+import { calcFee } from '@bcpros/redux-store';
 import { Utxo } from 'chronik-client';
 import {
   ALL_BIP143,
@@ -22,12 +24,15 @@ import {
   OP_TOALTSTACK,
   P2PKHSignatory,
   Script,
+  Signatory,
   TxBuilder,
   UnsignedTxInput,
   fromHex,
   pushBytesOp,
   sha256,
-  shaRmd160
+  shaRmd160,
+  strToBytes,
+  toHex
 } from 'ecash-lib';
 import { ACTION } from './constant';
 
@@ -64,7 +69,7 @@ export class Escrow {
     const buyerPkh = shaRmd160(this.buyerPk);
     const arbiPkh = shaRmd160(this.arbiPk);
     const modPkh = shaRmd160(this.modPk);
-    const nonce = fromHex(Buffer.from(this.nonce, 'utf-8').toString('hex'));
+    const nonce = strToBytes(this.nonce);
 
     return Script.fromOps([
       OP_DUP, // We need to use the byte again afterwards
@@ -132,6 +137,45 @@ export class Escrow {
   }
 }
 
+export const BuildReleaseTx = (
+  txids: { txid: string; value: number }[],
+  amountToSend: number,
+  escrowScript: Script,
+  scriptSignatory: Signatory,
+  recieverP2pkh: Script
+) => {
+  const ecc = new Ecc();
+  const amountSatoshi = amountToSend * Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
+
+  const utxos = txids.map(({ txid, value }) => {
+    return {
+      input: {
+        prevOut: {
+          txid,
+          outIdx: 0
+        },
+        signData: {
+          value: value,
+          redeemScript: escrowScript
+        }
+      },
+      signatory: scriptSignatory
+    };
+  });
+
+  const txBuild = new TxBuilder({
+    inputs: utxos,
+    outputs: [
+      {
+        value: amountSatoshi,
+        script: recieverP2pkh
+      }
+    ]
+  });
+
+  return txBuild.sign(ecc, 1000, 546).ser();
+};
+
 export const SellerReleaseSignatory = (
   sellerSk: Uint8Array,
   sellerPk: Uint8Array,
@@ -140,7 +184,7 @@ export const SellerReleaseSignatory = (
 ) => {
   return (ecc: Ecc, input: UnsignedTxInput): Script => {
     const preimage = input.sigHashPreimage(ALL_BIP143);
-    const hexNonce = Buffer.from(nonce, 'utf-8').toString('hex');
+    const hexNonce = toHex(strToBytes(nonce));
     const message = ACTION.SELLER_RELEASE + hexNonce;
 
     const oracleMessage = sha256(fromHex(message)); // ACTION BYTE - 01 + NONCE - 48656c6c6f
@@ -262,7 +306,7 @@ export const sellerBuildDepositTx = (
   const sellerP2pkh = Script.p2pkh(shaRmd160(sellerPk));
   const escrowP2sh = Script.p2sh(shaRmd160(escrowScript.bytecode));
 
-  const utxos = sellerUtxos.map((utxo) => {
+  const utxos = sellerUtxos.map(utxo => {
     return {
       input: {
         prevOut: {
@@ -278,11 +322,14 @@ export const sellerBuildDepositTx = (
     };
   });
 
+  const fee = calcFee(sellerUtxos, undefined, coinInfo[COIN.XEC].defaultFee, undefined);
+  const actualAmount = amountToSend * Math.pow(10, coinInfo[COIN.XEC].cashDecimals) + fee;
+
   const txBuild = new TxBuilder({
     inputs: utxos,
     outputs: [
       {
-        value: amountToSend,
+        value: actualAmount,
         script: escrowP2sh
       },
       sellerP2pkh
@@ -300,7 +347,7 @@ export const buyerBuildDepositTx = (
 ): TxBuilder => {
   const buyerP2pkh = Script.p2pkh(shaRmd160(buyerPk));
 
-  const utxos = buyerUtxos.map((utxo) => {
+  const utxos = buyerUtxos.map(utxo => {
     return {
       input: {
         prevOut: {
@@ -342,7 +389,7 @@ export const sellerDepositAndBuildTx = (
   const sellerP2pkh = Script.p2pkh(shaRmd160(sellerPk));
   const escrowP2sh = Script.p2sh(shaRmd160(escrowScript.bytecode));
 
-  const utxos = sellerUtxos.map((utxo) => {
+  const utxos = sellerUtxos.map(utxo => {
     return {
       input: {
         prevOut: {

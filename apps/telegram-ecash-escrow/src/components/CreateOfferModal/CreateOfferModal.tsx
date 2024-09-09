@@ -113,7 +113,7 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const CreateOfferModal: React.FC<CreateOfferModalProps> = (props) => {
+const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   const { isOpen, onDissmissModal } = props;
   const dispatch = useLixiSliceDispatch();
   const { useCreateOfferMutation } = offerApi;
@@ -146,7 +146,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = (props) => {
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleCreateOffer = async (data) => {
+  const handleCreateOffer = async data => {
     setLoading(true);
 
     const minNum = parseFloat(data.min);
@@ -184,11 +184,11 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = (props) => {
       } else {
         let currentSelected = selectedOptions;
         // if choose other option, drop option 5
-        if (currentSelected.includes(5)) currentSelected = currentSelected.filter((item) => item !== 5);
+        if (currentSelected.includes(5)) currentSelected = currentSelected.filter(item => item !== 5);
         setSelectedOptions([...currentSelected, value]);
       }
     } else {
-      setSelectedOptions((pre) => (pre.length === 1 ? [1] : pre.filter((item) => item !== value))); //default choose 1
+      setSelectedOptions(pre => (pre.length === 1 ? [1] : pre.filter(item => item !== value))); //default choose 1
     }
   };
 
@@ -204,7 +204,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = (props) => {
             key={id}
             value={numId}
             checked={selectedOptions.includes(numId) || (numId === 1 && selectedOptions.length === 0)} //auto check option 1
-            onChange={(e) => handleChangeCheckBox(e, numId)}
+            onChange={e => handleChangeCheckBox(e, numId)}
           />
         }
       />
@@ -277,7 +277,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = (props) => {
                   value: /^-?[0-9]\d*\.?\d*$/,
                   message: 'Price is invalid!'
                 },
-                validate: (value) => {
+                validate: value => {
                   if (parseFloat(value) < 0) return 'Price must be greater than 0!';
 
                   return true;
@@ -315,7 +315,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = (props) => {
                   value: /^-?[0-9]\d*\.?\d*$/,
                   message: 'Minimum amount is invalid!'
                 },
-                validate: (value) => {
+                validate: value => {
                   const max = parseFloat(watch('max'));
 
                   if (parseFloat(value) < 0) return 'Minimum amount must be greater than 0!';
@@ -361,7 +361,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = (props) => {
                   value: /^-?[0-9]\d*\.?\d*$/,
                   message: 'Maximum amount is invalid!'
                 },
-                validate: (value) => {
+                validate: value => {
                   const min = parseFloat(watch('min'));
 
                   if (parseFloat(value) < 0) return 'Maximum amount must be greater than 0!';
@@ -395,7 +395,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = (props) => {
             <p className="title-payment-method">Payment Methods</p>
             <Box sx={{ display: 'flex', margin: '16px 0' }}>
               <FormGroup sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
-                {paymenthods.map((item) => CheckBoxUI(item.id, item.name))}
+                {paymenthods.map(item => CheckBoxUI(item.id, item.name))}
               </FormGroup>
             </Box>
           </Grid>
@@ -420,13 +420,13 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = (props) => {
                     id="label-country"
                     label="Country"
                     value={value}
-                    onChange={(e) => {
+                    onChange={e => {
                       onChange(e);
                       dispatch(getStates(Number(e.target.value ?? '0')));
                       setValue('stateId', null);
                     }}
                   >
-                    {countries.map((country) => (
+                    {countries.map(country => (
                       <MenuItem key={country.id} value={country.id}>
                         {country.name}
                       </MenuItem>
@@ -435,7 +435,9 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = (props) => {
                 </FormControl>
               )}
             />
-            {errors && errors?.countryId && <FormHelperText error={true}>{errors.countryId.message}</FormHelperText>}
+            {errors && errors?.countryId && (
+              <FormHelperText error={true}>{errors.countryId.message as string}</FormHelperText>
+            )}
           </Grid>
           <Grid item xs={6}>
             <Controller
@@ -444,8 +446,16 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = (props) => {
               render={({ field: { onChange, onBlur, value, name, ref } }) => (
                 <FormControl fullWidth>
                   <InputLabel id="label-state">State</InputLabel>
-                  <Select value={value} labelId="label-state" id="label-state" label="State" onChange={onChange}>
-                    {states.map((state) => (
+                  <Select
+                    value={value}
+                    labelId="label-state"
+                    name={name}
+                    onBlur={onBlur}
+                    id="label-state"
+                    label="State"
+                    onChange={onChange}
+                  >
+                    {states.map(state => (
                       <MenuItem key={state.id} value={state.id}>
                         {state.name}
                       </MenuItem>
@@ -454,7 +464,9 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = (props) => {
                 </FormControl>
               )}
             />
-            {errors && errors?.stateId && <FormHelperText error={true}>{errors.stateId.message}</FormHelperText>}
+            {errors && errors?.stateId && (
+              <FormHelperText error={true}>{errors.stateId.message as string}</FormHelperText>
+            )}
           </Grid>
         </Grid>
       </DialogContent>

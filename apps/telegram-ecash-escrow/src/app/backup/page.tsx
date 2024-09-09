@@ -54,7 +54,7 @@ export default function Backup() {
   const walletMnemonic = useLixiSliceSelector(getWalletMnemonic);
   const [mnemonicWordsConverted, setMnemonicWordsConverted] = useState<Array<BackupWordModel>>(
     walletMnemonic
-      ? walletMnemonic.split(' ').map((item) => {
+      ? walletMnemonic.split(' ').map(item => {
           return {
             word: item,
             isCorrect: true,
@@ -108,8 +108,8 @@ export default function Backup() {
 
   const fetchData = () => {
     fetch('/backup-word.txt')
-      .then((response) => response.text())
-      .then((data) => {
+      .then(response => response.text())
+      .then(data => {
         const result = data.split(/\r\n|\n/);
         setLibWord(result);
       });
@@ -142,7 +142,7 @@ export default function Backup() {
   const checkWord = async (word: string) => {
     if (countWord === 12) return;
     if (word === mnemonicWordsConverted[countWord].word) {
-      setMnemonicWordsConverted((prev) => {
+      setMnemonicWordsConverted(prev => {
         const updatedArray = [...prev];
         updatedArray[countWord] = {
           ...updatedArray[countWord],
@@ -160,7 +160,7 @@ export default function Backup() {
         createRandom(tempCount);
       }
     } else {
-      setMnemonicWordsConverted((prev) => {
+      setMnemonicWordsConverted(prev => {
         const updatedArray = [...prev];
         updatedArray[countWord] = {
           ...updatedArray[countWord],

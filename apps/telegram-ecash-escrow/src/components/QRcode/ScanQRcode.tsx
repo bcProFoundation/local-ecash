@@ -19,11 +19,11 @@ const ScanQRcode: React.FC<ScanQRcodeProps> = ({ isOpen, onDissmissModal, setAdd
       <StyledDialog open={isOpen} onClose={() => onDissmissModal(false)}>
         <div>
           <Scanner
-            onScan={(result) => {
+            onScan={result => {
               setAddress(result[0]?.rawValue ?? '');
               onDissmissModal(false);
             }}
-            onError={(err) => {
+            onError={err => {
               console.log(err);
             }}
           />

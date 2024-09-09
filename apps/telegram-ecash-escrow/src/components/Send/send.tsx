@@ -2,9 +2,9 @@
 
 import { COIN, coinInfo } from '@bcpros/lixi-models';
 import {
-  WalletContext,
+  WalletContextNode,
   getSelectedWalletPath,
-  getWalletStatus,
+  getWalletStatusNode,
   isValidCoinAddress,
   parseCashAddressToPrefix,
   useSliceSelector as useLixiSliceSelector,
@@ -41,9 +41,9 @@ interface SendComponentProps {}
 
 const SendComponent: React.FC<SendComponentProps> = ({}) => {
   const selectedWallet = useLixiSliceSelector(getSelectedWalletPath);
-  const walletStatus = useLixiSliceSelector(getWalletStatus);
-  const Wallet = React.useContext(WalletContext);
-  const { XPI, chronik } = Wallet;
+  const walletStatusNode = useLixiSliceSelector(getWalletStatusNode);
+  const Wallet = React.useContext(WalletContextNode);
+  const { chronik } = Wallet;
   const { sendXec } = useXEC();
 
   const {
@@ -64,15 +64,15 @@ const SendComponent: React.FC<SendComponentProps> = ({}) => {
   const [openToastSendSuccess, setOpenToastSendSuccess] = useState(false);
   const [linkSend, setLinkSend] = useState('');
 
-  const handleSendCoin = async (data) => {
+  const handleSendCoin = async data => {
     const { address, amount } = data;
-    const { type: typeXEC, hash: hashXEC } = cashaddr.decode(address, false);
+    const { hash: hashXEC } = cashaddr.decode(address, false);
     const recipientHash = Buffer.from(hashXEC).toString('hex');
 
     const link = await sendXec(
       chronik,
       selectedWallet?.fundingWif,
-      walletStatus?.slpBalancesAndUtxos?.nonSlpUtxos,
+      walletStatusNode?.slpBalancesAndUtxos?.nonSlpUtxos,
       coinInfo[COIN.XEC].defaultFee,
       '', //message
       false, //indicate send mode is one to one
@@ -101,10 +101,10 @@ const SendComponent: React.FC<SendComponentProps> = ({}) => {
               message: 'Address is required!'
             },
             validate: {
-              addressValid: (addr) => {
+              addressValid: addr => {
                 if (!isValidCoinAddress(COIN.XEC, addr)) return 'Invalid address!';
               },
-              notSendMySelf: (addr) => {
+              notSendMySelf: addr => {
                 if (addr === myAddress) return 'Cannot send to yourself!';
               }
             }
@@ -145,7 +145,7 @@ const SendComponent: React.FC<SendComponentProps> = ({}) => {
               value: /^-?[0-9]\d*\.?\d*$/,
               message: 'Amount is invalid!'
             },
-            validate: (value) => {
+            validate: value => {
               if (value < 5.46) return 'Amount must be greater than 5.46';
             }
           }}
@@ -173,10 +173,10 @@ const SendComponent: React.FC<SendComponentProps> = ({}) => {
       </Button>
       <ScanQRcode
         isOpen={openScan}
-        onDissmissModal={(value) => {
+        onDissmissModal={value => {
           setOpenScan(value);
         }}
-        setAddress={(value) => {
+        setAddress={value => {
           setValue('address', value);
         }}
       />
