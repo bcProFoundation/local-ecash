@@ -245,7 +245,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     const arbitratorId = arbitratorCurrentData.getRandomArbitratorAccount.id;
 
     const sellerPk = fromHex(post.account.publicKey);
-    const buyerPk = fromHex(selectedWalletPath.publicKey);
+    const buyerPk = fromHex(selectedWalletPath?.publicKey);
     const arbitratorPk = fromHex(arbitratorCurrentData.getRandomArbitratorAccount.publicKey);
     const moderatorPk = fromHex(moderatorCurrentData.getModeratorAccount.publicKey);
 

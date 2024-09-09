@@ -12,11 +12,12 @@ import TopSection from '@/src/components/TopSection/TopSection';
 import {
   OfferFilterInput,
   TimelineQueryItem,
+  accountsApi,
   getNewPostAvailable,
   getOfferFilterConfig,
-  offerApi,
-  accountsApi,
+  getPaymenMethods,
   getSelectedWalletPath,
+  offerApi,
   saveOfferFilterConfig,
   setNewPostAvailable,
   useInfiniteOfferFilterQuery,
@@ -28,6 +29,7 @@ import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
+import useAuthorization from '../components/Auth/use-authorization.hooks';
 
 const WrapHome = styled.div`
   .btn-create-offer {
@@ -111,11 +113,16 @@ export default function Home() {
   const [open, setOpen] = useState<boolean>(false);
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
   const { useUpdateAccountTelegramUsernameMutation, useGetAccountByAddressQuery } = accountsApi;
-  const { currentData: accountQueryData } = useGetAccountByAddressQuery({ address: selectedWalletPath.xAddress });
+  const { currentData: accountQueryData } = useGetAccountByAddressQuery(
+    { address: selectedWalletPath?.xAddress },
+    { skip: !selectedWalletPath?.xAddress }
+  );
   const [createTriggerUpdateAccountTelegramUsername] = useUpdateAccountTelegramUsernameMutation();
   const dispatch = useLixiSliceDispatch();
   const offerFilterConfig = useLixiSliceSelector(getOfferFilterConfig);
   const newPostAvailable = useLixiSliceSelector(getNewPostAvailable);
+  const { status } = useSession();
+  const askAuthorization = useAuthorization();
 
   const { data, hasNext, isFetching, fetchNext, refetch } = useInfiniteOffersByScoreQuery({ first: 20 }, false);
   const {
@@ -138,6 +145,15 @@ export default function Home() {
       fetchNextFilter();
     } else if (hasNextFilter) {
       fetchNextFilter();
+    }
+  };
+  const handleCreateOfferClick = e => {
+    if (status === 'loading') return;
+
+    if (status === 'unauthenticated') {
+      askAuthorization();
+    } else {
+      setOpen(true);
     }
   };
 
@@ -163,7 +179,6 @@ export default function Home() {
     }
   }, []);
 
-
   useEffect(() => {
     sessionData &&
       accountQueryData &&
@@ -183,6 +198,11 @@ export default function Home() {
     };
     dispatch(saveOfferFilterConfig(offerFilterInput));
     dispatch(setNewPostAvailable(false));
+  }, []);
+
+  //auto call paymentMethods
+  useEffect(() => {
+    dispatch(getPaymenMethods());
   }, []);
 
   return (
@@ -253,7 +273,7 @@ export default function Home() {
         <Image width={200} height={200} className="shape-reg-footer" src="/shape-reg-footer.svg" alt="" />
       </HomePage>
       <Fade in={visible}>
-        <div className="btn-create-offer" onClick={() => setOpen(true)}>
+        <div className="btn-create-offer" onClick={handleCreateOfferClick}>
           <img src="/ico-create-post.svg" />
         </div>
       </Fade>

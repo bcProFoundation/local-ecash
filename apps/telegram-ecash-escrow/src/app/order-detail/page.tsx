@@ -87,8 +87,8 @@ const OrderDetail = () => {
 
     try {
       const { amount } = currentData.escrowOrder;
-      const sellerSk = fromHex(selectedWalletPath.privateKey!);
-      const sellerPk = fromHex(selectedWalletPath.publicKey!);
+      const sellerSk = fromHex(selectedWalletPath?.privateKey!);
+      const sellerPk = fromHex(selectedWalletPath?.publicKey!);
       const script = Buffer.from(currentData?.escrowOrder.escrowScript as string, 'hex');
 
       const escrowScript = new Script(script);
@@ -111,8 +111,8 @@ const OrderDetail = () => {
 
     try {
       const { amount } = currentData.escrowOrder;
-      const sellerSk = fromHex(selectedWalletPath.privateKey!);
-      const sellerPk = fromHex(selectedWalletPath.publicKey!);
+      const sellerSk = fromHex(selectedWalletPath?.privateKey!);
+      const sellerPk = fromHex(selectedWalletPath?.publicKey!);
       const escrowTxids = currentData?.escrowOrder.escrowTxids;
       const buyerPk = fromHex(currentData?.escrowOrder.buyerAccount.publicKey as string);
       const buyerPkh = shaRmd160(buyerPk);
@@ -148,8 +148,8 @@ const OrderDetail = () => {
 
     try {
       const { amount } = currentData.escrowOrder;
-      const buyerSk = fromHex(selectedWalletPath.privateKey!);
-      const buyerPk = fromHex(selectedWalletPath.publicKey!);
+      const buyerSk = fromHex(selectedWalletPath?.privateKey!);
+      const buyerPk = fromHex(selectedWalletPath?.publicKey!);
       const escrowTxid = currentData?.escrowOrder.escrowTxids;
       const sellerPk = fromHex(currentData?.escrowOrder.sellerAccount.publicKey as string);
       const sellerPkh = shaRmd160(sellerPk);
@@ -182,7 +182,7 @@ const OrderDetail = () => {
     setLoading(true);
 
     const data: CreateDisputeInput = {
-      createdBy: selectedWalletPath.publicKey,
+      createdBy: selectedWalletPath?.publicKey,
       escrowOrderId: id!,
       reason: 'Cuz i like it'
     };
@@ -195,7 +195,7 @@ const OrderDetail = () => {
   };
 
   const escrowStatus = () => {
-    const isSeller = selectedWalletPath.hash160 === currentData?.escrowOrder.sellerAccount.hash160;
+    const isSeller = selectedWalletPath?.hash160 === currentData?.escrowOrder.sellerAccount.hash160;
 
     if (currentData?.escrowOrder.status === EscrowOrderStatus.Cancel) {
       return (
@@ -255,7 +255,7 @@ const OrderDetail = () => {
   };
 
   const escrowActionButtons = () => {
-    const isSeller = selectedWalletPath.hash160 === currentData?.escrowOrder.sellerAccount.hash160;
+    const isSeller = selectedWalletPath?.hash160 === currentData?.escrowOrder.sellerAccount.hash160;
 
     if (currentData?.escrowOrder.status === EscrowOrderStatus.Pending) {
       return isSeller ? (

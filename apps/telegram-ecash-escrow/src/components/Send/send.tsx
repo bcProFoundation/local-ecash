@@ -58,7 +58,7 @@ const SendComponent: React.FC<SendComponentProps> = ({}) => {
       amount: 0
     }
   });
-  const [myAddress, setMyAddress] = useState(parseCashAddressToPrefix(COIN.XEC, selectedWallet.cashAddress));
+  const [myAddress, setMyAddress] = useState(parseCashAddressToPrefix(COIN.XEC, selectedWallet?.cashAddress));
 
   const [openScan, setOpenScan] = useState(false);
   const [openToastSendSuccess, setOpenToastSendSuccess] = useState(false);

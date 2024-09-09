@@ -1,7 +1,7 @@
 'use client';
 
-import Footer from '@/src/components/Footer/Footer';
 import Header from '@/src/components/Header/Header';
+import AuthorizationLayout from '@/src/components/layout/AuthorizationLayout';
 import QRCode from '@/src/components/QRcode/QRcode';
 import SendComponent from '@/src/components/Send/send';
 import CustomToast from '@/src/components/Toast/CustomToast';
@@ -88,7 +88,7 @@ export default function Wallet() {
   const walletStatusNode = useLixiSliceSelector(getWalletStatusNode);
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
 
-  const [address, setAddress] = useState(parseCashAddressToPrefix(COIN.XEC, selectedWalletPath.cashAddress));
+  const [address, setAddress] = useState(parseCashAddressToPrefix(COIN.XEC, selectedWalletPath?.cashAddress));
   const [openReceive, setOpenReceive] = useState(true);
   const [openToastCopySuccess, setOpenToastCopySuccess] = useState(false);
 
@@ -98,58 +98,59 @@ export default function Wallet() {
 
   return (
     <>
-      <WrapWallet>
-        <Header />
+      <AuthorizationLayout>
+        <WrapWallet>
+          <Header />
 
-        <WrapContentWallet>
-          <div className="balance-amount">
-            <Typography variant="h5">Balance</Typography>
-            <div className="amount">
-              <Typography variant="h5">
-                {walletStatusNode.balances.totalBalance} <span className="coin-ticker">XEC</span>
-              </Typography>
+          <WrapContentWallet>
+            <div className="balance-amount">
+              <Typography variant="h5">Balance</Typography>
+              <div className="amount">
+                <Typography variant="h5">
+                  {walletStatusNode?.balances?.totalBalance ?? 0} <span className="coin-ticker">XEC</span>
+                </Typography>
+              </div>
             </div>
-          </div>
-          <div className="group-btn">
-            <Button color="success" variant="contained" className="btn-send" onClick={() => setOpenReceive(false)}>
-              Send
-            </Button>
-            <Button color="success" variant="contained" className="btn-receive" onClick={() => setOpenReceive(true)}>
-              Receive
-            </Button>
-          </div>
-          {openReceive ? (
-            <ReceiveWrap>
-              <CopyToClipboard
-                style={{
-                  display: 'inline-block',
-                  width: '100%',
-                  position: 'relative'
-                }}
-                text={address}
-                onCopy={handleOnCopy}
-              >
-                <div>
-                  <QRCode address={address} />
-                </div>
-              </CopyToClipboard>
-            </ReceiveWrap>
-          ) : (
-            <SendWrap>
-              <SendComponent />
-            </SendWrap>
-          )}
-        </WrapContentWallet>
-        <Image width={200} height={200} className="shape-reg-footer" src="/shape-reg-footer.svg" alt="" />
+            <div className="group-btn">
+              <Button color="success" variant="contained" className="btn-send" onClick={() => setOpenReceive(false)}>
+                Send
+              </Button>
+              <Button color="success" variant="contained" className="btn-receive" onClick={() => setOpenReceive(true)}>
+                Receive
+              </Button>
+            </div>
+            {openReceive ? (
+              <ReceiveWrap>
+                <CopyToClipboard
+                  style={{
+                    display: 'inline-block',
+                    width: '100%',
+                    position: 'relative'
+                  }}
+                  text={address}
+                  onCopy={handleOnCopy}
+                >
+                  <div>
+                    <QRCode address={address} />
+                  </div>
+                </CopyToClipboard>
+              </ReceiveWrap>
+            ) : (
+              <SendWrap>
+                <SendComponent />
+              </SendWrap>
+            )}
+          </WrapContentWallet>
+          <Image width={200} height={200} className="shape-reg-footer" src="/shape-reg-footer.svg" alt="" />
 
-        <CustomToast
-          isOpen={openToastCopySuccess}
-          handleClose={() => setOpenToastCopySuccess(false)}
-          content="Copy address to clipboard"
-          type="info"
-        />
-      </WrapWallet>
-      <Footer />
+          <CustomToast
+            isOpen={openToastCopySuccess}
+            handleClose={() => setOpenToastCopySuccess(false)}
+            content="Copy address to clipboard"
+            type="info"
+          />
+        </WrapWallet>
+      </AuthorizationLayout>
     </>
   );
 }

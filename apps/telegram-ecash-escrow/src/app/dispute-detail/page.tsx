@@ -201,7 +201,7 @@ export default function MyOffer() {
 
     const id = disputeQueryData?.dispute.escrowOrder.id;
     const status = EscrowOrderStatus.Complete;
-    const isArbi = selectedWalletPath.hash160 === escrowOrder.arbitratorAccount.hash160;
+    const isArbi = selectedWalletPath?.hash160 === escrowOrder.arbitratorAccount.hash160;
     const escrowTxids = escrowOrder?.escrowTxids;
     const buyerPk = fromHex(escrowOrder.buyerAccount.publicKey as string);
     const buyerPkh = shaRmd160(buyerPk);
@@ -213,8 +213,8 @@ export default function MyOffer() {
     if (isArbi) {
       try {
         const { amount } = escrowOrder;
-        const arbiSK = fromHex(selectedWalletPath.privateKey!);
-        const arbiPk = fromHex(selectedWalletPath.publicKey!);
+        const arbiSK = fromHex(selectedWalletPath?.privateKey!);
+        const arbiPk = fromHex(selectedWalletPath?.publicKey!);
 
         const arbiSignatory = ArbiReleaseSignatory(arbiSK, arbiPk, buyerPk, nonce);
 
@@ -235,8 +235,8 @@ export default function MyOffer() {
     } else {
       try {
         const { amount } = escrowOrder;
-        const modSk = fromHex(selectedWalletPath.privateKey!);
-        const modPk = fromHex(selectedWalletPath.publicKey!);
+        const modSk = fromHex(selectedWalletPath?.privateKey!);
+        const modPk = fromHex(selectedWalletPath?.publicKey!);
 
         const escrowScript = new Script(script);
         const modSignatory = ModReleaseSignatory(modSk, modPk, buyerPk, nonce);
@@ -265,7 +265,7 @@ export default function MyOffer() {
 
     const id = disputeQueryData?.dispute.escrowOrder.id;
     const status = EscrowOrderStatus.Complete;
-    const isArbi = selectedWalletPath.hash160 === escrowOrder.arbitratorAccount.hash160;
+    const isArbi = selectedWalletPath?.hash160 === escrowOrder.arbitratorAccount.hash160;
     const escrowTxids = escrowOrder?.escrowTxids;
     const sellerPk = fromHex(escrowOrder.sellerAccount.publicKey as string);
     const sellerPkh = shaRmd160(sellerPk);
@@ -277,8 +277,8 @@ export default function MyOffer() {
     if (isArbi) {
       try {
         const { amount } = escrowOrder;
-        const arbiSK = fromHex(selectedWalletPath.privateKey!);
-        const arbiPk = fromHex(selectedWalletPath.publicKey!);
+        const arbiSK = fromHex(selectedWalletPath?.privateKey!);
+        const arbiPk = fromHex(selectedWalletPath?.publicKey!);
 
         const arbiSignatory = ArbiReturnSignatory(arbiSK, arbiPk, sellerPk, nonce);
 
@@ -299,8 +299,8 @@ export default function MyOffer() {
     } else {
       try {
         const { amount } = escrowOrder;
-        const modSk = fromHex(selectedWalletPath.privateKey!);
-        const modPk = fromHex(selectedWalletPath.publicKey!);
+        const modSk = fromHex(selectedWalletPath?.privateKey!);
+        const modPk = fromHex(selectedWalletPath?.publicKey!);
 
         const escrowScript = new Script(script);
         const modSignatory = ModReturnSignatory(modSk, modPk, sellerPk, nonce);
@@ -326,8 +326,8 @@ export default function MyOffer() {
   };
 
   if (
-    escrowOrder?.arbitratorAccount.hash160 !== selectedWalletPath.hash160 &&
-    escrowOrder?.moderatorAccount.hash160 !== selectedWalletPath.hash160
+    escrowOrder?.arbitratorAccount.hash160 !== selectedWalletPath?.hash160 &&
+    escrowOrder?.moderatorAccount.hash160 !== selectedWalletPath?.hash160
   ) {
     return <div>Not allowed to view this dispute</div>;
   }
