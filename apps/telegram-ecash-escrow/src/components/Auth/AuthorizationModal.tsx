@@ -78,7 +78,7 @@ export const AuthorizationModal = ({ classStyle }: AuthorizationModalProps) => {
       aria-labelledby="child-modal-title"
       aria-describedby="child-modal-description"
     >
-      <Box sx={{ ...style, width: 400 }}>
+      <Box sx={{ ...style, width: 300 }}>
         <h2 style={{ color: 'white' }}>Log in to continue using app</h2>
         <Button onClick={() => handleLogIn()}>Log In</Button>
       </Box>

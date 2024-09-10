@@ -3,6 +3,7 @@ import { CheckCircleOutline } from '@mui/icons-material';
 import { Alert, Button, Typography } from '@mui/material';
 // import { useBackButton, useHapticFeedback, useMainButton, usePopup } from '@tma.js/sdk-react';
 import CustomToast from '@/src/components/Toast/CustomToast';
+import AuthorizationLayout from '@/src/components/layout/AuthorizationLayout';
 import { getWalletMnemonic, useSliceSelector as useLixiSliceSelector } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import { useRouter } from 'next/navigation';
@@ -116,13 +117,14 @@ export default function Backup() {
   };
 
   const createRandom = (tempCount?: number) => {
-    const randomList = [mnemonicWordsConverted[tempCount || countWord].word];
+    if (mnemonicWordsConverted.length === 0) return;
+    const randomList = [mnemonicWordsConverted[tempCount || countWord]?.word];
     for (let i = 0; i < 2; i++) {
       let isDone = true;
       while (isDone) {
         const randomNumber = Math.floor(Math.random() * libWord.length);
         const wordRandom = libWord[randomNumber];
-        if (wordRandom !== mnemonicWordsConverted[tempCount || countWord].word) {
+        if (wordRandom !== mnemonicWordsConverted[tempCount || countWord]?.word) {
           randomList.push(wordRandom);
           isDone = false;
         }
@@ -173,58 +175,60 @@ export default function Backup() {
   };
 
   return (
-    <ContainerBackupGame>
-      <div className="setting-info">
-        <Typography variant="h5">{!isPlayGame ? 'Your recovery phrase' : 'Verify your phrase'}</Typography>
-      </div>
-      <div className="setting-content">
-        <div className="setting-item">
-          <p className="title">
-            {!isPlayGame
-              ? `Your recovery key is composed of 12 randomly selected words. Please
-            carefully write down each word in the order it appears.`
-              : `Let check your wrote down the phrase correctly. Please select each word in the numbered order.`}
-          </p>
-          {!isPlayGame ? (
-            <Alert icon={<CheckCircleOutline className="ico-alert" fontSize="inherit" />} severity="warning">
-              Never share your recovery phrase with anyone, store it securely !
-            </Alert>
-          ) : (
-            <WordGuessContainer>
-              <div className="word-guess-title">{'Word #' + (countWord + 1 > 12 ? 12 : countWord + 1)}</div>
-              <div className="word-guess-content">
-                {randomListFinal &&
-                  randomListFinal.map((word, index) => {
-                    return (
-                      <div key={index} className="random-word" onClick={() => checkWord(word)}>
-                        {word}
-                      </div>
-                    );
-                  })}
-              </div>
-            </WordGuessContainer>
-          )}
+    <AuthorizationLayout>
+      <ContainerBackupGame>
+        <div className="setting-info">
+          <Typography variant="h5">{!isPlayGame ? 'Your recovery phrase' : 'Verify your phrase'}</Typography>
         </div>
+        <div className="setting-content">
+          <div className="setting-item">
+            <p className="title">
+              {!isPlayGame
+                ? `Your recovery key is composed of 12 randomly selected words. Please
+                carefully write down each word in the order it appears.`
+                : `Let check your wrote down the phrase correctly. Please select each word in the numbered order.`}
+            </p>
+            {!isPlayGame ? (
+              <Alert icon={<CheckCircleOutline className="ico-alert" fontSize="inherit" />} severity="warning">
+                Never share your recovery phrase with anyone, store it securely !
+              </Alert>
+            ) : (
+              <WordGuessContainer>
+                <div className="word-guess-title">{'Word #' + (countWord + 1 > 12 ? 12 : countWord + 1)}</div>
+                <div className="word-guess-content">
+                  {randomListFinal &&
+                    randomListFinal.map((word, index) => {
+                      return (
+                        <div key={index} className="random-word" onClick={() => checkWord(word)}>
+                          {word}
+                        </div>
+                      );
+                    })}
+                </div>
+              </WordGuessContainer>
+            )}
+          </div>
 
-        <BackupSeed mnemonicWords={mnemonicWordsConverted} isPlayGame={isPlayGame} />
-      </div>
-      {!isPlayGame && (
-        <Button
-          onClick={() => {
-            setIsPlayGame(true);
-          }}
-          variant="contained"
-          fullWidth
-        >
-          Continue
-        </Button>
-      )}
-      <CustomToast
-        isOpen={finished}
-        content="Congratulation!! Please store these seed in a secure place"
-        handleClose={() => setFinished(false)}
-        type="success"
-      />
-    </ContainerBackupGame>
+          <BackupSeed mnemonicWords={mnemonicWordsConverted} isPlayGame={isPlayGame} />
+        </div>
+        {!isPlayGame && (
+          <Button
+            onClick={() => {
+              setIsPlayGame(true);
+            }}
+            variant="contained"
+            fullWidth
+          >
+            Continue
+          </Button>
+        )}
+        <CustomToast
+          isOpen={finished}
+          content="Congratulation!! Please store these seed in a secure place"
+          handleClose={() => setFinished(false)}
+          type="success"
+        />
+      </ContainerBackupGame>
+    </AuthorizationLayout>
   );
 }

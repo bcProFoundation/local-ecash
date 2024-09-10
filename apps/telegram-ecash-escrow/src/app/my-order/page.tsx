@@ -1,10 +1,10 @@
 'use client';
-import Footer from '@/src/components/Footer/Footer';
+import AuthorizationLayout from '@/src/components/layout/AuthorizationLayout';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
 import { TabType } from '@/src/store/constants';
 import styled from '@emotion/styled';
 import { Box, Tab, Tabs, Typography } from '@mui/material';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import SwipeableViews from 'react-swipeable-views';
 
 interface TabPanelProps {
@@ -85,41 +85,47 @@ export default function MyOffer() {
 
   return (
     <>
-      <MyOrderPage>
-        <TickerHeader hideIcon={true} title="My orders" />
+      <AuthorizationLayout>
+        <MyOrderPage>
+          <TickerHeader hideIcon={true} title="My orders" />
 
-        <Tabs value={value} onChange={handleChange} indicatorColor="secondary" textColor="inherit" variant="fullWidth">
-          <Tab
-            label={TabType.ACTIVE}
-            id={`full-width-tab-${TabType.ACTIVE}`}
-            aria-controls={`full-width-tabpanel-${TabType.ACTIVE}`}
-          />
-          <Tab
-            label={TabType.ARCHIVED}
-            id={`full-width-tab-${TabType.ARCHIVED}`}
-            aria-controls={`full-width-tabpanel-${TabType.ARCHIVED}`}
-          />
-        </Tabs>
+          <Tabs
+            value={value}
+            onChange={handleChange}
+            indicatorColor="secondary"
+            textColor="inherit"
+            variant="fullWidth"
+          >
+            <Tab
+              label={TabType.ACTIVE}
+              id={`full-width-tab-${TabType.ACTIVE}`}
+              aria-controls={`full-width-tabpanel-${TabType.ACTIVE}`}
+            />
+            <Tab
+              label={TabType.ARCHIVED}
+              id={`full-width-tab-${TabType.ARCHIVED}`}
+              aria-controls={`full-width-tabpanel-${TabType.ARCHIVED}`}
+            />
+          </Tabs>
 
-        <SwipeableViews index={value} onChangeIndex={handleChangeIndex} disableLazyLoading={true}>
-          <TabPanel value={value} index={0}>
-            <div className="list-item">
-              {/* <OrderDetailInfo />
+          <SwipeableViews index={value} onChangeIndex={handleChangeIndex} disableLazyLoading={true}>
+            <TabPanel value={value} index={0}>
+              <div className="list-item">
+                {/* <OrderDetailInfo />
               <OrderDetailInfo /> */}
-            </div>
-          </TabPanel>
-          <TabPanel value={value} index={1}>
-            <div className="list-item">
-              {/* <OrderDetailInfo />
+              </div>
+            </TabPanel>
+            <TabPanel value={value} index={1}>
+              <div className="list-item">
+                {/* <OrderDetailInfo />
               <OrderDetailInfo /> */}
-            </div>
-          </TabPanel>
-        </SwipeableViews>
+              </div>
+            </TabPanel>
+          </SwipeableViews>
 
-        {/* <Fab route="/my-order/new" icon={<AddCircleOutline />} /> */}
-      </MyOrderPage>
-
-      <Footer />
+          {/* <Fab route="/my-order/new" icon={<AddCircleOutline />} /> */}
+        </MyOrderPage>
+      </AuthorizationLayout>
     </>
   );
 }

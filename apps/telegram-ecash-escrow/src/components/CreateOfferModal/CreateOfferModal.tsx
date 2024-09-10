@@ -8,7 +8,6 @@ import {
   getAllPaymentMethods,
   getAllStates,
   getCountries,
-  getPaymenMethods,
   getStates,
   offerApi,
   useSliceDispatch as useLixiSliceDispatch,
@@ -210,11 +209,6 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       />
     );
   };
-
-  //auto call paymentMethods
-  useEffect(() => {
-    if (paymenthods.length === 0) dispatch(getPaymenMethods());
-  }, [paymenthods.length]);
 
   //auto call country
   useEffect(() => {

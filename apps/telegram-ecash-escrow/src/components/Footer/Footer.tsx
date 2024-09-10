@@ -7,8 +7,10 @@ import InventoryOutlinedIcon from '@mui/icons-material/InventoryOutlined';
 import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined';
 import { IconButton, Popover, Slide, SvgIconTypeMap, Typography } from '@mui/material';
 import { OverridableComponent } from '@mui/material/OverridableComponent';
+import { useSession } from 'next-auth/react';
 import { usePathname, useRouter } from 'next/navigation';
 import React from 'react';
+import useAuthorization from '../Auth/use-authorization.hooks';
 
 const Tabs = styled.div`
   position: fixed;
@@ -83,6 +85,8 @@ type PropsFooter = {
 export default function Footer({ hidden = true }: PropsFooter) {
   const router = useRouter();
   const pathName = usePathname();
+  const { status } = useSession();
+  const askAuthorization = useAuthorization();
 
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
   const open = Boolean(anchorEl);
@@ -91,19 +95,34 @@ export default function Footer({ hidden = true }: PropsFooter) {
     setAnchorEl(anchorEl ? null : event.currentTarget);
   };
 
+  const handleIconClick = (pathName: string) => {
+    if (status === 'loading') return;
+
+    if (status === 'unauthenticated') {
+      askAuthorization();
+    } else {
+      router.push(pathName);
+    }
+  };
+
   const ItemAction = ({
     Icon,
     content,
-    navigateContent
+    navigateContent,
+    isAuthor
   }: {
     Icon: OverridableComponent<SvgIconTypeMap<{}, 'svg'>> & {
       muiName: string;
     };
     content: string;
     navigateContent: string;
+    isAuthor: boolean;
   }) => {
     return (
-      <div className="item-action" onClick={() => router.push(navigateContent)}>
+      <div
+        className="item-action"
+        onClick={() => (isAuthor ? handleIconClick(navigateContent) : router.push(navigateContent))}
+      >
         <IconButton>
           <Icon />
         </IconButton>
@@ -115,8 +134,8 @@ export default function Footer({ hidden = true }: PropsFooter) {
   const contentMoreAction = (
     <PopoverStyled>
       <div className="content-action">
-        <ItemAction Icon={SettingsOutlined} content="Setting" navigateContent="/setting" />
-        <ItemAction Icon={Wallet} content="Wallet" navigateContent="/wallet" />
+        <ItemAction Icon={SettingsOutlined} content="Setting" navigateContent="/setting" isAuthor={false} />
+        <ItemAction Icon={Wallet} content="Wallet" navigateContent="/wallet" isAuthor={true} />
       </div>
     </PopoverStyled>
   );
@@ -131,26 +150,25 @@ export default function Footer({ hidden = true }: PropsFooter) {
           <Typography variant="body2">Home</Typography>
         </TabMenu>
         <TabMenu className={`${pathName === '/my-offer' && 'active'}`}>
-          <IconButton onClick={() => router.push('/my-offer')}>
+          <IconButton onClick={() => handleIconClick('my-offer')}>
             <LocalOfferOutlinedIcon />
           </IconButton>
           <Typography variant="body2">Offers</Typography>
         </TabMenu>
         <TabMenu className={`${pathName === '/my-order' && 'active'}`}>
-          <IconButton onClick={() => router.push('/my-order')}>
+          <IconButton onClick={() => handleIconClick('my-order')}>
             <InventoryOutlinedIcon />
           </IconButton>
           <Typography variant="body2">Orders</Typography>
         </TabMenu>
         <TabMenu className={`${pathName === '/my-dispute' && 'active'}`}>
-          <IconButton onClick={() => router.push('/my-dispute')}>
+          <IconButton onClick={() => handleIconClick('my-dispute')}>
             <GavelOutlinedIcon />
           </IconButton>
           <Typography variant="body2">Dispute</Typography>
         </TabMenu>
         <TabMenu aria-owns={open ? 'mouse-over-popover' : undefined} aria-haspopup="true" onClick={handlePopoverOpen}>
           <IconButton>
-            {/* <SettingsOutlined /> */}
             <Menu />
           </IconButton>
           <Typography variant="body2">Menu</Typography>
