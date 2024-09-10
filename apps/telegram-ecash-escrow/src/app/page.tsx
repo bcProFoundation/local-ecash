@@ -111,7 +111,11 @@ export default function Home() {
   const [open, setOpen] = useState<boolean>(false);
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
   const { useUpdateAccountTelegramUsernameMutation, useGetAccountByAddressQuery } = accountsApi;
-  const { currentData: accountQueryData } = useGetAccountByAddressQuery({ address: selectedWalletPath.xAddress });
+  const { currentData: accountQueryData } = useGetAccountByAddressQuery(
+    { address: selectedWalletPath?.xAddress },
+    { skip: !selectedWalletPath }
+  );
+
   const [createTriggerUpdateAccountTelegramUsername] = useUpdateAccountTelegramUsernameMutation();
   const dispatch = useLixiSliceDispatch();
   const offerFilterConfig = useLixiSliceSelector(getOfferFilterConfig);
