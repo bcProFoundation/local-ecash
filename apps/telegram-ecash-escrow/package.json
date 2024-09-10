@@ -12,8 +12,8 @@
   "dependencies": {
     "@abcpros/bitcore-lib-xpi": "^8.25.43",
     "@bcpros/counter": "workspace:*",
-    "@bcpros/lixi-models": "^1.2.7",
-    "@bcpros/redux-store": "^1.2.7",
+    "@bcpros/lixi-models": "^1.2.9",
+    "@bcpros/redux-store": "^1.2.9",
     "@bcpros/xpi-js": "4.0.6",
     "@emotion/cache": "^11.11.0",
     "@emotion/react": "^11.11.4",
