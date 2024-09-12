@@ -260,7 +260,6 @@ export default function Home() {
                   </>
                 }
                 scrollableTarget="scrollableDiv"
-                scrollThreshold={'100px'}
               >
                 {data.map(item => {
                   return <OfferItem key={item.id} timelineItem={item as TimelineQueryItem} />;

@@ -10,11 +10,10 @@ import {
   CreateDisputeInput,
   disputeApi,
   DisputeStatus,
-  EscrowOrder,
   escrowOrderApi,
   EscrowOrderStatus,
   getSelectedWalletPath,
-  getWalletUtxos,
+  getWalletUtxosNode,
   useSliceSelector as useLixiSliceSelector,
   WalletContextNode
 } from '@bcpros/redux-store';
@@ -67,7 +66,7 @@ const OrderDetail = () => {
   const { useCreateDisputeMutation } = disputeApi;
   const [createDisputeTrigger] = useCreateDisputeMutation();
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
-  const walletUtxos = useLixiSliceSelector(getWalletUtxos);
+  const walletUtxos = useLixiSliceSelector(getWalletUtxosNode);
   const [updateOrderTrigger] = useUpdateEscrowOrderStatusMutation();
   const Wallet = useContext(WalletContextNode);
   const { chronik } = Wallet;
@@ -197,7 +196,7 @@ const OrderDetail = () => {
   const escrowStatus = () => {
     const isSeller = selectedWalletPath?.hash160 === currentData?.escrowOrder.sellerAccount.hash160;
 
-    if (currentData?.escrowOrder.status === EscrowOrderStatus.Cancel) {
+    if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Cancel) {
       return (
         <Typography variant="body1" color="red" align="center">
           Order has been cancelled
@@ -205,7 +204,7 @@ const OrderDetail = () => {
       );
     }
 
-    if (currentData?.escrowOrder.status === EscrowOrderStatus.Pending) {
+    if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Pending) {
       return (
         <Typography variant="body1" color="red" align="center">
           Awaiting order to be accepted
@@ -213,7 +212,7 @@ const OrderDetail = () => {
       );
     }
 
-    if (currentData?.escrowOrder.status === EscrowOrderStatus.Active) {
+    if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Active) {
       return isSeller ? (
         <Typography variant="body1" color="red" align="center">
           Please escrow the order
@@ -233,7 +232,7 @@ const OrderDetail = () => {
       );
     }
 
-    if (currentData?.escrowOrder.status === EscrowOrderStatus.Escrow) {
+    if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Escrow) {
       return isSeller ? (
         <Typography variant="body1" color="red" align="center">
           Only release the escrow when you have received the goods
@@ -245,7 +244,7 @@ const OrderDetail = () => {
       );
     }
 
-    if (currentData?.escrowOrder.status === EscrowOrderStatus.Complete) {
+    if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Complete) {
       return (
         <Typography variant="body1" color="red" align="center">
           Order has been completed
@@ -257,7 +256,7 @@ const OrderDetail = () => {
   const escrowActionButtons = () => {
     const isSeller = selectedWalletPath?.hash160 === currentData?.escrowOrder.sellerAccount.hash160;
 
-    if (currentData?.escrowOrder.status === EscrowOrderStatus.Pending) {
+    if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Pending) {
       return isSeller ? (
         <div className="group-button-wrap">
           <Button
@@ -290,7 +289,7 @@ const OrderDetail = () => {
       );
     }
 
-    if (currentData?.escrowOrder.status === EscrowOrderStatus.Active) {
+    if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Active) {
       return isSeller ? (
         <div className="group-button-wrap">
           <Button
@@ -323,7 +322,7 @@ const OrderDetail = () => {
     }
 
     //TODO: Add an modal before create a dispute
-    if (currentData?.escrowOrder.status === EscrowOrderStatus.Escrow) {
+    if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Escrow) {
       if (currentData.escrowOrder.dispute) {
         return;
       }
@@ -401,7 +400,10 @@ const OrderDetail = () => {
           }
         }
 
-        if (escrowOrderAmount <= currentAmount && currentData?.escrowOrder.status === EscrowOrderStatus.Active) {
+        if (
+          escrowOrderAmount <= currentAmount &&
+          currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Active
+        ) {
           return await updateOrderTrigger({ input: { orderId: id!, status: EscrowOrderStatus.Escrow } })
             .unwrap()
             .catch(() => setError(true));
@@ -479,7 +481,10 @@ const OrderDetail = () => {
         }
       }
 
-      if (escrowOrderAmount <= currentAmount && currentData?.escrowOrder.status === EscrowOrderStatus.Active) {
+      if (
+        escrowOrderAmount <= currentAmount &&
+        currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Active
+      ) {
         return await updateOrderTrigger({ input: { orderId: id!, status: EscrowOrderStatus.Escrow } })
           .unwrap()
           .catch(() => setError(true));
@@ -490,7 +495,7 @@ const OrderDetail = () => {
   };
 
   const escrowAddress = () => {
-    const isActive = currentData?.escrowOrder.status === EscrowOrderStatus.Active;
+    const isActive = currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Active;
     const currentAmount =
       _.sumBy(currentData?.escrowOrder.escrowTxids, 'value') / Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
 
@@ -511,7 +516,7 @@ const OrderDetail = () => {
   }, [isSuccess]);
 
   useEffect(() => {
-    !ws && currentData?.escrowOrder.status === EscrowOrderStatus.Active && subcribeToEscrow();
+    !ws && currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Active && subcribeToEscrow();
   }, [currentData]);
 
   if (_.isEmpty(id) || _.isNil(id) || isError) {
@@ -524,7 +529,7 @@ const OrderDetail = () => {
     <OrderDetailPage>
       <TickerHeader title="Order detail" />
       <OrderDetailContent>
-        <OrderDetailInfo order={currentData.escrowOrder as EscrowOrder} />
+        <OrderDetailInfo item={currentData.escrowOrder} />
         <br />
         {escrowStatus()}
         <br />

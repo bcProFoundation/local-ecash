@@ -1,6 +1,6 @@
 'use client';
 
-import { TimelineQueryItem } from '@bcpros/redux-store';
+import { PostQueryItem, TimelineQueryItem } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import { Button, Typography } from '@mui/material';
 
@@ -30,7 +30,8 @@ type OfferItemProps = {
 };
 
 const OfferDetailInfo = ({ timelineItem }: OfferItemProps) => {
-  const offerData = timelineItem?.data.offer;
+  const postData = timelineItem?.data as PostQueryItem;
+  const offerData = postData?.postOffer;
 
   return (
     <OfferDetailWrap>
