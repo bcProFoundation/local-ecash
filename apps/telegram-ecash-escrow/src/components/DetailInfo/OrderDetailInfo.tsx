@@ -43,7 +43,7 @@ const OrderDetailInfo = props => {
       </Typography>
       <Typography variant="body1">
         <span className="prefix">Ordered by: </span>
-        {order.buyerAccount.telegramId}
+        {order.buyerAccount.telegramUsername}
       </Typography>
       <Typography variant="body1">
         <span className="prefix">Ordered at: </span>

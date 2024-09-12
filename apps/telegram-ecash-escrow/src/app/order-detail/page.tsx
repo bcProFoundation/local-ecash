@@ -14,7 +14,7 @@ import {
   escrowOrderApi,
   EscrowOrderStatus,
   getSelectedWalletPath,
-  getWalletUtxos,
+  getWalletUtxosNode,
   useSliceSelector as useLixiSliceSelector,
   WalletContextNode
 } from '@bcpros/redux-store';
@@ -67,7 +67,7 @@ const OrderDetail = () => {
   const { useCreateDisputeMutation } = disputeApi;
   const [createDisputeTrigger] = useCreateDisputeMutation();
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
-  const walletUtxos = useLixiSliceSelector(getWalletUtxos);
+  const walletUtxos = useLixiSliceSelector(getWalletUtxosNode);
   const [updateOrderTrigger] = useUpdateEscrowOrderStatusMutation();
   const Wallet = useContext(WalletContextNode);
   const { chronik } = Wallet;
@@ -530,7 +530,14 @@ const OrderDetail = () => {
         <br />
         {escrowActionButtons()}
         <hr />
-        <TelegramButton />
+        <TelegramButton
+          escrowOrderId={id}
+          username={
+            selectedWalletPath.hash160 === currentData?.escrowOrder.sellerAccount.hash160
+              ? currentData?.escrowOrder.buyerAccount.telegramUsername
+              : currentData?.escrowOrder.sellerAccount.telegramUsername
+          }
+        />
         {escrowAddress()}
       </OrderDetailContent>
 
