@@ -14,7 +14,7 @@ export const StyledRawQRCode = styled(RawQRCode)`
 
 interface QRCodeProps {
   address: string;
-  amount?: number;
+  amount?: string;
 }
 
 const QRCode: React.FC<QRCodeProps> = ({ address, amount }) => {
