@@ -7,7 +7,6 @@ import {
   getAllCountries,
   getAllPaymentMethods,
   getAllStates,
-  getCountries,
   getStates,
   offerApi,
   useSliceDispatch as useLixiSliceDispatch,
@@ -41,7 +40,7 @@ import {
   useTheme
 } from '@mui/material';
 import { TransitionProps } from '@mui/material/transitions';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 const StyledDialog = styled(Dialog)`
@@ -49,6 +48,13 @@ const StyledDialog = styled(Dialog)`
     background-image: url('/bg-dialog.svg');
     background-repeat: no-repeat;
     background-size: cover;
+    width: 500px;
+    height: 100vh;
+    max-height: 100%;
+    margin: 0;
+    @media (max-width: 576px) {
+      width: 100%;
+    }
   }
 
   .back-btn {
@@ -125,6 +131,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
     watch,
     reset,
     setValue,
+    getValues,
     formState: { errors }
   } = useForm({
     defaultValues: {
@@ -209,11 +216,6 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       />
     );
   };
-
-  //auto call country
-  useEffect(() => {
-    dispatch(getCountries());
-  }, []);
 
   return (
     <StyledDialog
@@ -312,7 +314,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                 validate: value => {
                   const max = parseFloat(watch('max'));
 
-                  if (parseFloat(value) < 0) return 'Minimum amount must be greater than 0!';
+                  if (parseFloat(value) < 5.46) return 'Minimum amount must be greater than 5.46!';
                   if (parseFloat(value) >= max) return 'Minimum amount must be less than maximum amount!';
 
                   return true;
@@ -448,6 +450,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                     id="label-state"
                     label="State"
                     onChange={onChange}
+                    disabled={!getValues('countryId')}
                   >
                     {states.map(state => (
                       <MenuItem key={state.id} value={state.id}>

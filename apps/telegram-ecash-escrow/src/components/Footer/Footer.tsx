@@ -11,6 +11,7 @@ import { useSession } from 'next-auth/react';
 import { usePathname, useRouter } from 'next/navigation';
 import React from 'react';
 import useAuthorization from '../Auth/use-authorization.hooks';
+import { WrapFooter } from '../layout/MobileLayout';
 
 const Tabs = styled.div`
   position: fixed;
@@ -141,54 +142,56 @@ export default function Footer({ hidden = true }: PropsFooter) {
   );
 
   return (
-    <Slide direction="up" in={hidden}>
-      <Tabs>
-        <TabMenu className={`${pathName === '/' && 'active'}`}>
-          <IconButton onClick={() => router.push('/')}>
-            <HomeOutlined />
-          </IconButton>
-          <Typography variant="body2">Home</Typography>
-        </TabMenu>
-        <TabMenu className={`${pathName === '/my-offer' && 'active'}`}>
-          <IconButton onClick={() => handleIconClick('my-offer')}>
-            <LocalOfferOutlinedIcon />
-          </IconButton>
-          <Typography variant="body2">Offers</Typography>
-        </TabMenu>
-        <TabMenu className={`${pathName === '/my-order' && 'active'}`}>
-          <IconButton onClick={() => handleIconClick('my-order')}>
-            <InventoryOutlinedIcon />
-          </IconButton>
-          <Typography variant="body2">Orders</Typography>
-        </TabMenu>
-        <TabMenu className={`${pathName === '/my-dispute' && 'active'}`}>
-          <IconButton onClick={() => handleIconClick('my-dispute')}>
-            <GavelOutlinedIcon />
-          </IconButton>
-          <Typography variant="body2">Dispute</Typography>
-        </TabMenu>
-        <TabMenu aria-owns={open ? 'mouse-over-popover' : undefined} aria-haspopup="true" onClick={handlePopoverOpen}>
-          <IconButton>
-            <Menu />
-          </IconButton>
-          <Typography variant="body2">Menu</Typography>
-          <Popover
-            id="menu-popover"
-            open={open}
-            anchorEl={anchorEl}
-            anchorOrigin={{
-              vertical: 'top',
-              horizontal: 'right'
-            }}
-            transformOrigin={{
-              vertical: 'bottom',
-              horizontal: 'right'
-            }}
-          >
-            {contentMoreAction}
-          </Popover>
-        </TabMenu>
-      </Tabs>
-    </Slide>
+    <WrapFooter>
+      <Slide direction="up" in={hidden} className="Footer-content">
+        <Tabs>
+          <TabMenu className={`${pathName === '/' && 'active'}`}>
+            <IconButton onClick={() => router.push('/')}>
+              <HomeOutlined />
+            </IconButton>
+            <Typography variant="body2">Home</Typography>
+          </TabMenu>
+          <TabMenu className={`${pathName === '/my-offer' && 'active'}`}>
+            <IconButton onClick={() => handleIconClick('my-offer')}>
+              <LocalOfferOutlinedIcon />
+            </IconButton>
+            <Typography variant="body2">Offers</Typography>
+          </TabMenu>
+          <TabMenu className={`${pathName === '/my-order' && 'active'}`}>
+            <IconButton onClick={() => handleIconClick('my-order')}>
+              <InventoryOutlinedIcon />
+            </IconButton>
+            <Typography variant="body2">Orders</Typography>
+          </TabMenu>
+          <TabMenu className={`${pathName === '/my-dispute' && 'active'}`}>
+            <IconButton onClick={() => handleIconClick('my-dispute')}>
+              <GavelOutlinedIcon />
+            </IconButton>
+            <Typography variant="body2">Dispute</Typography>
+          </TabMenu>
+          <TabMenu aria-owns={open ? 'mouse-over-popover' : undefined} aria-haspopup="true" onClick={handlePopoverOpen}>
+            <IconButton>
+              <Menu />
+            </IconButton>
+            <Typography variant="body2">Menu</Typography>
+            <Popover
+              id="menu-popover"
+              open={open}
+              anchorEl={anchorEl}
+              anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'right'
+              }}
+              transformOrigin={{
+                vertical: 'bottom',
+                horizontal: 'right'
+              }}
+            >
+              {contentMoreAction}
+            </Popover>
+          </TabMenu>
+        </Tabs>
+      </Slide>
+    </WrapFooter>
   );
 }

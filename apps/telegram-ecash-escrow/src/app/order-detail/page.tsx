@@ -1,7 +1,6 @@
 'use client';
 
 import OrderDetailInfo from '@/src/components/DetailInfo/OrderDetailInfo';
-import QRCode from '@/src/components/QRcode/QRcode';
 import TelegramButton from '@/src/components/TelegramButton/TelegramButton';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
 import { BuildReleaseTx, BuyerReturnSignatory, sellerBuildDepositTx, SellerReleaseSignatory } from '@/src/store/escrow';
@@ -15,6 +14,8 @@ import {
   EscrowOrderStatus,
   getSelectedWalletPath,
   getWalletUtxos,
+  openModal,
+  useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector,
   WalletContextNode
 } from '@bcpros/redux-store';
@@ -25,7 +26,7 @@ import { fromHex, Script, shaRmd160 } from 'ecash-lib';
 import cashaddr from 'ecashaddrjs';
 import _ from 'lodash';
 import { useSearchParams } from 'next/navigation';
-import React, { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 
 const OrderDetailPage = styled.div`
   min-height: 100vh;
@@ -53,6 +54,7 @@ const OrderDetailContent = styled.div`
 `;
 //TODO: Fix tx fee
 const OrderDetail = () => {
+  const dispatch = useLixiSliceDispatch();
   const search = useSearchParams();
   const id = search!.get('id');
   const [error, setError] = useState(false);
@@ -489,21 +491,15 @@ const OrderDetail = () => {
     }
   };
 
-  const escrowAddress = () => {
-    const isActive = currentData?.escrowOrder.status === EscrowOrderStatus.Active;
+  const handleOpenQRcodeModal = () => {
     const currentAmount =
       _.sumBy(currentData?.escrowOrder.escrowTxids, 'value') / Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
-
-    if (isActive) {
-      return (
-        <React.Fragment>
-          <QRCode
-            address={currentData?.escrowOrder.escrowAddress}
-            amount={currentData?.escrowOrder.amount - currentAmount}
-          />
-        </React.Fragment>
-      );
-    }
+    dispatch(
+      openModal('QRcodeModal', {
+        address: currentData?.escrowOrder.escrowAddress,
+        amount: currentData?.escrowOrder.amount - currentAmount
+      })
+    );
   };
 
   useEffect(() => {
@@ -529,9 +525,13 @@ const OrderDetail = () => {
         {escrowStatus()}
         <br />
         {escrowActionButtons()}
+        {currentData?.escrowOrder.status === EscrowOrderStatus.Active && (
+          <Button onClick={handleOpenQRcodeModal} variant="contained" style={{ width: '100%' }}>
+            Open QRcode
+          </Button>
+        )}
         <hr />
         <TelegramButton />
-        {escrowAddress()}
       </OrderDetailContent>
 
       <Stack zIndex={999}>

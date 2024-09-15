@@ -5,7 +5,6 @@ import {
   getAllCountries,
   getAllPaymentMethods,
   getAllStates,
-  getPaymenMethods,
   getStates,
   saveOfferFilterConfig,
   useSliceDispatch as useLixiSliceDispatch,
@@ -31,7 +30,7 @@ import {
   useTheme
 } from '@mui/material';
 import { TransitionProps } from '@mui/material/transitions';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 interface FilterOfferModalProps {
@@ -45,6 +44,13 @@ const StyledDialog = styled(Dialog)`
     background-image: url('/bg-dialog.svg');
     background-repeat: no-repeat;
     background-size: cover;
+    width: 500px;
+    height: 100vh;
+    max-height: 100%;
+    margin: 0;
+    @media (max-width: 576px) {
+      width: 100%;
+    }
   }
 
   .MuiIconButton-root {
@@ -148,8 +154,8 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
     formState: { errors }
   } = useForm({
     defaultValues: {
-      countryId: null,
-      stateId: null
+      country: null,
+      state: null
     }
   });
   const [selectedOptionsPayment, setSelectedOptionsPayment] = useState<number[]>([]);
@@ -158,11 +164,6 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
   const paymenthods = useLixiSliceSelector(getAllPaymentMethods);
   const countries = useLixiSliceSelector(getAllCountries);
   const states = useLixiSliceSelector(getAllStates);
-
-  //auto call paymentMethods
-  useEffect(() => {
-    if (paymenthods.length === 0) dispatch(getPaymenMethods());
-  }, [paymenthods.length]);
 
   const handleSelect = (id: number) => {
     const isSelected = !!selectedOptionsPayment.includes(id);
@@ -176,10 +177,13 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
   };
 
   const handleFilter = async data => {
-    const { countryId, stateId } = data;
+    const { country, state } = data;
+    const [countryId, countryName] = country ? country.split(':') : [0, ''];
+    const [stateId, stateName] = state ? state.split(':') : [0, ''];
+
     const offerFilterInput: OfferFilterInput = {
-      countryId: countryId && countryId,
-      stateId: stateId && stateId,
+      countryId: countryId && Number(countryId),
+      stateId: stateId && Number(stateId),
       paymentMethodIds: selectedOptionsPayment
     };
 
@@ -192,7 +196,9 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
     setSelectedOptionsPayment([]);
     const offerFilterInput: OfferFilterInput = {
       countryId: null,
+      countryName: '',
       stateId: null,
+      stateName: '',
       paymentMethodIds: []
     };
 
@@ -236,7 +242,7 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
             <div className="content">
               <Grid item xs={6}>
                 <Controller
-                  name="countryId"
+                  name="country"
                   control={control}
                   render={({ field: { onChange, onBlur, value, name, ref } }) => (
                     <FormControl fullWidth>
@@ -247,15 +253,16 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
                         label="Country"
                         value={value}
                         onChange={e => {
+                          const stateId = Number(e.target.value.split(':')[0] ?? '0');
                           onChange(e);
-                          dispatch(getStates(Number(e.target.value ?? '0')));
-                          setValue('stateId', null);
+                          dispatch(getStates(stateId));
+                          setValue('state', null);
                         }}
                         onBlur={onBlur}
                         name={name}
                       >
                         {countries.map(country => (
-                          <MenuItem key={country.id} value={country.id}>
+                          <MenuItem key={country.id} value={`${country.id}:${country.name}`}>
                             {country.name}
                           </MenuItem>
                         ))}
@@ -266,7 +273,7 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
               </Grid>
               <Grid item xs={6}>
                 <Controller
-                  name="stateId"
+                  name="state"
                   control={control}
                   render={({ field: { onChange, onBlur, value, name, ref } }) => (
                     <FormControl fullWidth>
@@ -279,10 +286,10 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
                         onBlur={onBlur}
                         value={value}
                         onChange={onChange}
-                        disabled={!getValues('countryId')}
+                        disabled={!getValues('country')}
                       >
                         {states.map(state => (
-                          <MenuItem key={state.id} value={state.id}>
+                          <MenuItem key={state.id} value={`${state.id}:${state.name}`}>
                             {state.name}
                           </MenuItem>
                         ))}

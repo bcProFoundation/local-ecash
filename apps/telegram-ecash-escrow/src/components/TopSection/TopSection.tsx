@@ -1,5 +1,6 @@
 'use client';
 
+import { getOfferFilterConfig, useSliceSelector as useLixiSliceSelector } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import { FilterAltOutlined } from '@mui/icons-material';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
@@ -29,6 +30,9 @@ const TopSectionWrap = styled.div`
 const TopSection: React.FC = () => {
   const [open, setOpen] = useState<boolean>(false);
 
+  const offerFilterConfig = useLixiSliceSelector(getOfferFilterConfig);
+  const { countryName, stateName } = offerFilterConfig;
+
   return (
     <>
       <TopSectionWrap>
@@ -37,13 +41,14 @@ const TopSection: React.FC = () => {
             <IconButton size="large">
               <LocationOnOutlinedIcon />
             </IconButton>
-            <Typography variant="body2">HCM, Vietnam</Typography>
+            <Typography variant="body2">
+              {stateName || countryName ? [stateName, countryName].filter(Boolean).join(', ') : 'All the world'}
+            </Typography>
           </div>
           <div onClick={() => setOpen(true)}>
             <IconButton>
               <FilterAltOutlined />
             </IconButton>
-            <Typography variant="body2">Bank transfer</Typography>
           </div>
         </div>
       </TopSectionWrap>

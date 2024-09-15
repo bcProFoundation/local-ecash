@@ -13,6 +13,7 @@ import {
   OfferFilterInput,
   TimelineQueryItem,
   accountsApi,
+  getCountries,
   getNewPostAvailable,
   getOfferFilterConfig,
   getPaymenMethods,
@@ -26,15 +27,15 @@ import {
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
 import { useSession } from 'next-auth/react';
-import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import useAuthorization from '../components/Auth/use-authorization.hooks';
+import MobileLayout from '../components/layout/MobileLayout';
 
 const WrapHome = styled.div`
   .btn-create-offer {
     position: fixed;
-    right: 5%;
+    right: calc((100% - 576px) / 2 + 75px);
     bottom: 100px;
     z-index: 1;
     cursor: pointer;
@@ -47,18 +48,9 @@ const WrapHome = styled.div`
 
 const HomePage = styled.div`
   position: relative;
-  background-image: url('/shape-reg.svg');
-  background-repeat: no-repeat;
   padding: 1rem;
   padding-bottom: 56px;
   min-height: 100svh;
-
-  .shape-reg-footer {
-    position: absolute;
-    z-index: -1;
-    bottom: 0;
-    right: 0;
-  }
 
   .MuiButton-root {
     text-transform: none;
@@ -188,50 +180,75 @@ export default function Home() {
         telegramId: sessionData.user.id,
         telegramUsername: sessionData.user.name
       });
-  }, [sessionData]);
+  }, [sessionData, accountQueryData?.getAccountByAddress]);
 
   //reset fitler and flag for new-post when reload
   useEffect(() => {
     const offerFilterInput: OfferFilterInput = {
       countryId: null,
+      countryName: '',
       stateId: null,
+      stateName: '',
       paymentMethodIds: []
     };
     dispatch(saveOfferFilterConfig(offerFilterInput));
     dispatch(setNewPostAvailable(false));
   }, []);
 
-  //auto call paymentMethods
+  //auto call paymentMethods and countries
   useEffect(() => {
     dispatch(getPaymenMethods());
+    dispatch(getCountries());
   }, []);
 
   return (
-    <WrapHome>
-      <Slide direction="down" in={newPostAvailable && visible}>
-        <StyledBadge className="badge-new-offer" color="info" onClick={handleRefresh}>
-          <CachedRoundedIcon color="action" /> <span className="refresh-text">Refresh</span>
-        </StyledBadge>
-      </Slide>
-      <HomePage>
-        <Header />
-        <TopSection />
+    <MobileLayout>
+      <WrapHome>
+        <Slide direction="down" in={newPostAvailable && visible}>
+          <StyledBadge className="badge-new-offer" color="info" onClick={handleRefresh}>
+            <CachedRoundedIcon color="action" /> <span className="refresh-text">Refresh</span>
+          </StyledBadge>
+        </Slide>
+        <HomePage>
+          <Header />
+          <TopSection />
 
-        <Section>
-          <div className="content-wrap">
-            <Typography className="title-offer" variant="body1">
-              Offer Watchlist
-            </Typography>
-          </div>
-          <div className="offer-list">
-            {offerFilterConfig.countryId ||
-            offerFilterConfig.stateId ||
-            (offerFilterConfig.paymentMethodIds?.length ?? 0) > 0 ? (
-              dataFilter.length > 0 ? (
+          <Section>
+            <div className="content-wrap">
+              <Typography className="title-offer" variant="body1">
+                Offer Watchlist
+              </Typography>
+            </div>
+            <div className="offer-list">
+              {offerFilterConfig.countryId ||
+              offerFilterConfig.stateId ||
+              (offerFilterConfig.paymentMethodIds?.length ?? 0) > 0 ? (
+                dataFilter.length > 0 ? (
+                  <InfiniteScroll
+                    dataLength={dataFilter.length}
+                    next={loadMoreItemsFilter}
+                    hasMore={hasNextFilter}
+                    loader={
+                      <>
+                        <Skeleton variant="text" />
+                        <Skeleton variant="text" />
+                      </>
+                    }
+                    scrollableTarget="scrollableDiv"
+                    scrollThreshold={'100px'}
+                  >
+                    {dataFilter.map(item => {
+                      return <OfferItem key={item.id} timelineItem={item as TimelineQueryItem} />;
+                    })}
+                  </InfiniteScroll>
+                ) : (
+                  <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No offer in your filter</Typography>
+                )
+              ) : data.length > 0 ? (
                 <InfiniteScroll
-                  dataLength={dataFilter.length}
-                  next={loadMoreItemsFilter}
-                  hasMore={hasNextFilter}
+                  dataLength={data.length}
+                  next={loadMoreItems}
+                  hasMore={hasNext}
                   loader={
                     <>
                       <Skeleton variant="text" />
@@ -241,50 +258,29 @@ export default function Home() {
                   scrollableTarget="scrollableDiv"
                   scrollThreshold={'100px'}
                 >
-                  {dataFilter.map(item => {
+                  {data.map(item => {
                     return <OfferItem key={item.id} timelineItem={item as TimelineQueryItem} />;
                   })}
                 </InfiniteScroll>
               ) : (
-                <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No offer in your filter</Typography>
-              )
-            ) : data.length > 0 ? (
-              <InfiniteScroll
-                dataLength={data.length}
-                next={loadMoreItems}
-                hasMore={hasNext}
-                loader={
-                  <>
-                    <Skeleton variant="text" />
-                    <Skeleton variant="text" />
-                  </>
-                }
-                scrollableTarget="scrollableDiv"
-                scrollThreshold={'100px'}
-              >
-                {data.map(item => {
-                  return <OfferItem key={item.id} timelineItem={item as TimelineQueryItem} />;
-                })}
-              </InfiniteScroll>
-            ) : (
-              <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No offer here</Typography>
-            )}
+                <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No offer here</Typography>
+              )}
+            </div>
+          </Section>
+        </HomePage>
+        <Fade in={visible}>
+          <div className="btn-create-offer" onClick={handleCreateOfferClick}>
+            <img src="/ico-create-post.svg" />
           </div>
-        </Section>
-        <Image width={200} height={200} className="shape-reg-footer" src="/shape-reg-footer.svg" alt="" />
-      </HomePage>
-      <Fade in={visible}>
-        <div className="btn-create-offer" onClick={handleCreateOfferClick}>
-          <img src="/ico-create-post.svg" />
-        </div>
-      </Fade>
-      <CreateOfferModal
-        isOpen={open}
-        onDissmissModal={value => {
-          setOpen(value);
-        }}
-      />
-      <Footer hidden={visible} />
-    </WrapHome>
+        </Fade>
+        <CreateOfferModal
+          isOpen={open}
+          onDissmissModal={value => {
+            setOpen(value);
+          }}
+        />
+        <Footer hidden={visible} />
+      </WrapHome>
+    </MobileLayout>
   );
 }

@@ -2,6 +2,7 @@
 
 import Header from '@/src/components/Header/Header';
 import AuthorizationLayout from '@/src/components/layout/AuthorizationLayout';
+import MobileLayout from '@/src/components/layout/MobileLayout';
 import QRCode from '@/src/components/QRcode/QRcode';
 import SendComponent from '@/src/components/Send/send';
 import CustomToast from '@/src/components/Toast/CustomToast';
@@ -97,7 +98,7 @@ export default function Wallet() {
   };
 
   return (
-    <>
+    <MobileLayout>
       <AuthorizationLayout>
         <WrapWallet>
           <Header />
@@ -151,6 +152,6 @@ export default function Wallet() {
           />
         </WrapWallet>
       </AuthorizationLayout>
-    </>
+    </MobileLayout>
   );
 }

@@ -49,6 +49,13 @@ const StyledDialog = styled(Dialog)`
     background-image: url('/bg-dialog.svg');
     background-repeat: no-repeat;
     background-size: cover;
+    width: 500px;
+    height: 100vh;
+    max-height: 100%;
+    margin: 0;
+    @media (max-width: 576px) {
+      width: 100%;
+    }
   }
 
   .MuiIconButton-root {
