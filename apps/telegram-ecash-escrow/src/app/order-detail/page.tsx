@@ -1,6 +1,7 @@
 'use client';
 
 import OrderDetailInfo from '@/src/components/DetailInfo/OrderDetailInfo';
+import MobileLayout from '@/src/components/layout/MobileLayout';
 import TelegramButton from '@/src/components/TelegramButton/TelegramButton';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
 import { BuildReleaseTx, BuyerReturnSignatory, sellerBuildDepositTx, SellerReleaseSignatory } from '@/src/store/escrow';
@@ -517,6 +518,7 @@ const OrderDetail = () => {
   if (isLoading) return <div>Loading...</div>;
 
   return (
+    <MobileLayout>
     <OrderDetailPage>
       <TickerHeader title="Order detail" />
       <OrderDetailContent>
@@ -592,6 +594,7 @@ const OrderDetail = () => {
         </Snackbar>
       </Stack>
     </OrderDetailPage>
+    </MobileLayout>
   );
 };
 
