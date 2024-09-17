@@ -5,6 +5,7 @@ import {
   BoostForType,
   BoostType,
   CreateBoostInput,
+  PostQueryItem,
   TimelineQueryItem,
   WalletContextNode,
   boostApi,
@@ -103,8 +104,8 @@ type OfferItemProps = {
 };
 
 export default function OfferItem({ timelineItem }: OfferItemProps) {
-  const post = timelineItem?.data;
-  const offerData = timelineItem?.data?.offer;
+  const post = timelineItem?.data as PostQueryItem;
+  const offerData = post?.postOffer;
   const countryName = offerData?.country?.name;
   const stateName = offerData?.state?.name;
   const [open, setOpen] = useState<boolean>(false);
@@ -183,7 +184,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
     <OfferShowWrapItem>
       <div className="push-offer-wrap">
         <Typography variant="body2">
-          <span className="prefix">By: </span> {timelineItem?.data?.account?.name ?? ''}
+          <span className="prefix">By: </span> {post.account?.name ?? ''}
         </Typography>
         <IconButton onClick={handleBoost}>
           <ArrowCircleUpRoundedIcon />
@@ -235,7 +236,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
 
         <Typography className="boost-buy">
           <Button className="place-order-btn boost-value">
-            <span className="value">{timelineItem?.data?.boostScore?.boostScore}</span>
+            <span className="value">{post?.boostScore?.boostScore}</span>
             <span className="coin">XEC</span>
           </Button>
           <Button className="place-order-btn" color="success" variant="contained" onClick={e => handleBuyClick(e)}>
