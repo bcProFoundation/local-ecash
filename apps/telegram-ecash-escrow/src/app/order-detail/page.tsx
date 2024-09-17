@@ -7,6 +7,7 @@ import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
 import { BuildReleaseTx, BuyerReturnSignatory, sellerBuildDepositTx, SellerReleaseSignatory } from '@/src/store/escrow';
 import { COIN, coinInfo, TX_HISTORY_COUNT } from '@bcpros/lixi-models';
 import {
+  cashMethodsNode,
   CreateDisputeInput,
   disputeApi,
   DisputeStatus,
@@ -55,6 +56,7 @@ const OrderDetailContent = styled.div`
 const OrderDetail = () => {
   const search = useSearchParams();
   const id = search!.get('id');
+  const { calcFeeEscrow } = cashMethodsNode;
   const [error, setError] = useState(false);
   const [escrow, setEscrow] = useState(false);
   const [release, setRelease] = useState(false);
@@ -87,18 +89,16 @@ const OrderDetail = () => {
 
     try {
       const { amount } = currentData.escrowOrder;
-      const sellerSk = fromHex(selectedWalletPath?.privateKey!);
-      const sellerPk = fromHex(selectedWalletPath?.publicKey!);
+      const sellerSk = fromHex(selectedWalletPath?.privateKey);
+      const sellerPk = fromHex(selectedWalletPath?.publicKey);
       const script = Buffer.from(currentData?.escrowOrder.escrowScript as string, 'hex');
 
       const escrowScript = new Script(script);
 
       const txBuild = sellerBuildDepositTx(walletUtxos, sellerSk, sellerPk, amount, escrowScript);
 
-      (await chronik.broadcastTx(txBuild)).txid;
-
       // show snackbar
-      setEscrow(true);
+      await chronik.broadcastTx(txBuild).then(() => setEscrow(true));
     } catch (e) {
       console.log(e);
     }
@@ -111,8 +111,8 @@ const OrderDetail = () => {
 
     try {
       const { amount } = currentData.escrowOrder;
-      const sellerSk = fromHex(selectedWalletPath?.privateKey!);
-      const sellerPk = fromHex(selectedWalletPath?.publicKey!);
+      const sellerSk = fromHex(selectedWalletPath?.privateKey);
+      const sellerPk = fromHex(selectedWalletPath?.publicKey);
       const escrowTxids = currentData?.escrowOrder.escrowTxids;
       const buyerPk = fromHex(currentData?.escrowOrder.buyerAccount.publicKey as string);
       const buyerPkh = shaRmd160(buyerPk);
@@ -148,8 +148,8 @@ const OrderDetail = () => {
 
     try {
       const { amount } = currentData.escrowOrder;
-      const buyerSk = fromHex(selectedWalletPath?.privateKey!);
-      const buyerPk = fromHex(selectedWalletPath?.publicKey!);
+      const buyerSk = fromHex(selectedWalletPath?.privateKey);
+      const buyerPk = fromHex(selectedWalletPath?.publicKey);
       const escrowTxid = currentData?.escrowOrder.escrowTxids;
       const sellerPk = fromHex(currentData?.escrowOrder.sellerAccount.publicKey as string);
       const sellerPkh = shaRmd160(sellerPk);
@@ -376,10 +376,6 @@ const OrderDetail = () => {
       // get txid info
       const { txid } = msg as MsgTxClient;
       try {
-        const escrowOrderAmount = currentData?.escrowOrder.amount * Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
-        const escrowOrderTxids = currentData?.escrowOrder.escrowTxids;
-        let currentAmount = _.sumBy(escrowOrderTxids, 'value');
-
         const { outputs, tokenEntries } = await chronik.tx(txid);
         const startIndex: number = tokenEntries.length !== 0 ? 1 : 0;
 
@@ -388,23 +384,15 @@ const OrderDetail = () => {
           const scriptHex = outputs[i].outputScript;
           const address = cashaddr.encodeOutputScript(scriptHex, 'ecash');
 
-          if (address === currentData?.escrowOrder.escrowAddress && !_.some(escrowOrderTxids, { txid: txid })) {
+          if (address === currentData?.escrowOrder.escrowAddress) {
             const value = outputs[i].value;
 
             await updateOrderTrigger({
-              input: { orderId: id!, status: EscrowOrderStatus.Active, txid, value }
+              input: { orderId: id!, status: EscrowOrderStatus.Active, txid, value, outIdx: i }
             })
               .unwrap()
               .catch(() => setError(true));
-
-            currentAmount += value;
           }
-        }
-
-        if (escrowOrderAmount <= currentAmount && currentData?.escrowOrder.status === EscrowOrderStatus.Active) {
-          return await updateOrderTrigger({ input: { orderId: id!, status: EscrowOrderStatus.Escrow } })
-            .unwrap()
-            .catch(() => setError(true));
         }
       } catch (err) {
         // In this case, no notification
@@ -469,7 +457,7 @@ const OrderDetail = () => {
             const value = outputs[i].value;
 
             await updateOrderTrigger({
-              input: { orderId: id!, status: EscrowOrderStatus.Active, txid, value }
+              input: { orderId: id!, status: EscrowOrderStatus.Active, txid, value, outIdx: i }
             })
               .unwrap()
               .catch(() => setError(true));
@@ -489,18 +477,24 @@ const OrderDetail = () => {
     }
   };
 
-  const escrowAddress = () => {
+  const escrowQRAddress = () => {
     const isActive = currentData?.escrowOrder.status === EscrowOrderStatus.Active;
-    const currentAmount =
-      _.sumBy(currentData?.escrowOrder.escrowTxids, 'value') / Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
+    const script = Buffer.from(currentData?.escrowOrder.escrowScript as string, 'hex');
+    const escrowScript = new Script(script);
+    const feeInSatoshi = calcFeeEscrow(
+      currentData?.escrowOrder.escrowTxids.length,
+      2, //always 2 for worst case scenerio
+      coinInfo[COIN.XEC].defaultFee,
+      undefined,
+      escrowScript.bytecode.length
+    );
+    const estimatedFee = feeInSatoshi / Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
+    const estimatedAmount = (currentData?.escrowOrder.amount + estimatedFee).toFixed(2);
 
     if (isActive) {
       return (
         <React.Fragment>
-          <QRCode
-            address={currentData?.escrowOrder.escrowAddress}
-            amount={currentData?.escrowOrder.amount - currentAmount}
-          />
+          <QRCode address={currentData?.escrowOrder.escrowAddress} amount={estimatedAmount} />
         </React.Fragment>
       );
     }
@@ -513,6 +507,22 @@ const OrderDetail = () => {
   useEffect(() => {
     !ws && currentData?.escrowOrder.status === EscrowOrderStatus.Active && subcribeToEscrow();
   }, [currentData]);
+
+  const updateEscrowAmount = async () => {
+    const escrowOrderAmount = currentData?.escrowOrder.amount * Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
+    const escrowOrderTxids = currentData?.escrowOrder.escrowTxids;
+    const currentAmount = _.sumBy(escrowOrderTxids, 'value');
+
+    if (escrowOrderAmount <= currentAmount && currentData?.escrowOrder.status === EscrowOrderStatus.Active) {
+      return await updateOrderTrigger({ input: { orderId: id!, status: EscrowOrderStatus.Escrow } })
+        .unwrap()
+        .catch(() => setError(true));
+    }
+  };
+
+  useEffect(() => {
+    currentData?.escrowOrder.escrowTxids.length > 0 && updateEscrowAmount();
+  }, [currentData?.escrowOrder.escrowTxids]);
 
   if (_.isEmpty(id) || _.isNil(id) || isError) {
     return <div>Invalid order id</div>;
@@ -538,7 +548,7 @@ const OrderDetail = () => {
               : currentData?.escrowOrder.sellerAccount.telegramUsername
           }
         />
-        {escrowAddress()}
+        {escrowQRAddress()}
       </OrderDetailContent>
 
       <Stack zIndex={999}>
