@@ -1,11 +1,11 @@
 'use client';
+import MobileLayout from '@/src/components/layout/MobileLayout';
 import { axiosClient, generateAccount, useSliceDispatch as useLixiSliceDispatch } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
-import { Box, Skeleton } from '@mui/material';
+import { Box, Skeleton, Typography } from '@mui/material';
 import { LoginButton, TelegramAuthData } from '@telegram-auth/react';
 import { signIn, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import React from 'react';
 
 function LoadingPlaceholder() {
   return (
@@ -51,38 +51,58 @@ const FunctionalBar = styled.div`
   row-gap: 0.5rem;
 `;
 
+const WrapLoginPage = styled.div`
+  background-color: rgba(255, 255, 255, 0.08);
+  margin-top: 40%;
+  padding: 20px;
+  border-radius: 25px;
+`;
+
 export default function Home() {
   const { status } = useSession();
   const router = useRouter();
   const dispatch = useLixiSliceDispatch();
 
   if (status === 'loading') {
-    return <LoadingPlaceholder />;
+    return (
+      <MobileLayout>
+        <LoadingPlaceholder />
+      </MobileLayout>
+    );
   }
 
   if (status === 'authenticated') {
-    return <h1 style={{ color: 'white' }}>You already signed in</h1>;
+    return (
+      <MobileLayout>
+        <Typography variant="h4" margin={'10px 20px'}>
+          You already signed in
+        </Typography>
+      </MobileLayout>
+    );
   }
 
   return (
-    <React.Fragment>
-      <h1 style={{ color: 'white' }}>Please login</h1>
-      <LoginButton
-        botUsername={process.env.NEXT_PUBLIC_BOT_USERNAME!}
-        onAuthCallback={async (data: TelegramAuthData) => {
-          try {
-            await axiosClient.get(`/api/accounts/telegram/${data.id}`);
-            signIn('telegram-login', { redirect: false }, data as any);
+    <MobileLayout>
+      <WrapLoginPage>
+        <Typography variant="h5">Welcome to Local-ecash</Typography>
+        <h2 style={{ color: 'white' }}>Please login to continue</h2>
+        <LoginButton
+          botUsername={process.env.NEXT_PUBLIC_BOT_USERNAME!}
+          onAuthCallback={async (data: TelegramAuthData) => {
+            try {
+              await axiosClient.get(`/api/accounts/telegram/${data.id}`);
+              signIn('telegram-login', { redirect: false }, data as any);
 
-            router.push(`/import?id=${data.id}`);
-          } catch {
-            dispatch(generateAccount({ coin: 'XEC', telegramId: data.id.toString() }));
-            signIn('telegram-login', { redirect: false }, data as any);
+              router.push(`/import?id=${data.id}`);
+            } catch {
+              dispatch(generateAccount({ coin: 'XEC', telegramId: data.id.toString() }));
+              signIn('telegram-login', { redirect: false }, data as any);
 
-            router.push('/');
-          }
-        }}
-      />
-    </React.Fragment>
+              router.push('/');
+            }
+          }}
+        />
+      </WrapLoginPage>
+    </MobileLayout>
   );
 }

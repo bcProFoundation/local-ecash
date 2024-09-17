@@ -1,4 +1,6 @@
 'use client';
+import MobileLayout from '@/src/components/layout/MobileLayout';
+import CustomToast from '@/src/components/Toast/CustomToast';
 import {
   axiosClient,
   generateAccount,
@@ -10,17 +12,15 @@ import styled from '@emotion/styled';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import QrCodeScannerOutlinedIcon from '@mui/icons-material/QrCodeScannerOutlined';
 import {
-  Alert,
   Backdrop,
   Button,
   CircularProgress,
   FormControl,
   IconButton,
   InputAdornment,
-  Snackbar,
   Stack,
   TextField,
-  Tooltip
+  Typography
 } from '@mui/material';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -29,27 +29,14 @@ import { Controller, useForm } from 'react-hook-form';
 
 const ContainerImportWallet = styled.div`
   padding: 1rem;
-  .receive-info {
+  .header-receive {
     display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    img {
-      align-self: center;
-      filter: drop-shadow(2px 4px 6px black);
-    }
-    .header-receive {
+    justify-content: space-between;
+    align-items: baseline;
+    .title-icon {
       display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      .title {
-        margin-top: 1rem;
-      }
-      .subtitle {
-        span {
-          font-size: 12px;
-          color: #d5d5d5;
-        }
-      }
+      align-items: center;
+      gap: 5px;
     }
   }
   .coin-address {
@@ -74,6 +61,15 @@ const ContainerImportWallet = styled.div`
   }
   .receive-form {
     padding: 1rem 0;
+    .title {
+      margin: 0 0 10px 0;
+    }
+    .btn-import,
+    .btn-create {
+      font-weight: bold;
+      width: 100%;
+      margin-top: 3px;
+    }
   }
 `;
 
@@ -168,118 +164,130 @@ export default function ImportWallet() {
   };
 
   const handleClose = () => {
+    setTimeout(() => {
+      router.push('/');
+    });
     setSuccess(false);
   };
 
   if (status === 'unauthenticated') {
     return (
-      <div>
-        <h1 style={{ color: 'white' }}>Please sign in to continue</h1>
-        <Button onClick={() => router.push('/login')}>Login</Button>
-      </div>
+      <MobileLayout>
+        <div>
+          <Typography variant="h1">Please sign in to continue</Typography>
+          <Button onClick={() => router.push('/login')}>Login</Button>
+        </div>
+      </MobileLayout>
     );
   }
 
   if (status === 'authenticated' && data.user.id !== id) {
     return (
-      <div>
-        <h1 style={{ color: 'white' }}>You are not authorized to access this page</h1>
-      </div>
+      <MobileLayout>
+        <div>
+          <h1 style={{ color: 'white' }}>You are not authorized to access this page</h1>
+        </div>
+      </MobileLayout>
     );
   }
 
   return (
-    <ContainerImportWallet>
-      <div className="receive-info">
-        <picture>
-          <img width={96} height={96} src="/import.svg" alt="" />
-        </picture>
+    <MobileLayout>
+      <ContainerImportWallet>
         <div className="header-receive">
-          <h2 className="title" style={{ color: 'white' }}>
-            Import
-          </h2>
-          <Tooltip title={'Test'}>
-            <IconButton>
-              <InfoOutlinedIcon />
-            </IconButton>
-          </Tooltip>
+          <div className="title-icon">
+            <h2 className="title" style={{ color: 'white' }}>
+              Import
+            </h2>
+            <picture>
+              <img width={24} height={24} src="/import.svg" alt="" />
+            </picture>
+          </div>
+          <IconButton>
+            <InfoOutlinedIcon />
+          </IconButton>
         </div>
-      </div>
-      <div className="receive-form">
-        <p className="title" style={{ color: 'white' }}>
-          We detected telegram account already exists. Please import your mnemonic seed phrase to continue.
-        </p>
-        <FormControl fullWidth={true}>
-          <Controller
-            name="recoveryPhrase"
-            control={control}
-            defaultValue=""
-            rules={{ required: true }}
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextField
-                onChange={onChange}
-                onBlur={onBlur}
-                value={value}
-                disabled={loading || success}
-                id="recoveryPhrase"
-                label="Recovery phrase"
-                placeholder="Enter your recovery phrase (12 words) in the correct order. Separate each word with a single space only (no commas or any other punctuation)."
-                color="primary"
-                variant="outlined"
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <div onClick={scanQRCode}>
-                        <QrCodeScannerOutlinedIcon />
-                      </div>
-                    </InputAdornment>
-                  )
-                }}
-                required
-                multiline
-                rows={5}
-                error={errors.recoveryPhrase && true}
-                helperText={errors.recoveryPhrase && 'Valid mnemonic seed phrase required'}
-              />
-            )}
+        <div className="receive-form">
+          <p className="title" style={{ color: 'white' }}>
+            We detected telegram account already exists. Please import your mnemonic seed phrase to continue.
+          </p>
+          <FormControl fullWidth={true}>
+            <Controller
+              name="recoveryPhrase"
+              control={control}
+              defaultValue=""
+              rules={{ required: true }}
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextField
+                  onChange={onChange}
+                  onBlur={onBlur}
+                  value={value}
+                  disabled={loading || success}
+                  id="recoveryPhrase"
+                  label="Recovery phrase"
+                  placeholder="Enter your recovery phrase (12 words) in the correct order. Separate each word with a single space only (no commas or any other punctuation)."
+                  color="primary"
+                  variant="outlined"
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <div onClick={scanQRCode}>
+                          <QrCodeScannerOutlinedIcon />
+                        </div>
+                      </InputAdornment>
+                    )
+                  }}
+                  required
+                  multiline
+                  rows={5}
+                  error={errors.recoveryPhrase && true}
+                  helperText={errors.recoveryPhrase && 'Valid mnemonic seed phrase required'}
+                />
+              )}
+            />
+          </FormControl>
+          <Button
+            className="btn-import"
+            variant="contained"
+            onClick={handleSubmit(importWallet)}
+            disabled={loading || success}
+          >
+            Import
+          </Button>
+        </div>
+        <div className="receive-form">
+          <p className="title" style={{ color: 'white' }}>
+            I forgot my wallet recovery phrase. Create me a new one.
+          </p>
+          <Button
+            className="btn-create"
+            variant="contained"
+            onClick={() => handleCreateNewWallet()}
+            disabled={loading || success}
+          >
+            Create new wallet
+          </Button>
+        </div>
+        <Backdrop sx={{ color: '#fff', zIndex: theme => theme.zIndex.drawer + 1 }} open={loading} onClick={handleClose}>
+          <CircularProgress color={'inherit'} />
+        </Backdrop>
+        <Stack>
+          <CustomToast
+            isOpen={success}
+            handleClose={handleClose}
+            content="Import wallet success - Redirecting to home..."
+            type="success"
+            autoHideDuration={3000}
           />
-        </FormControl>
-        <Button onClick={handleSubmit(importWallet)} disabled={loading || success}>
-          Import
-        </Button>
-      </div>
-      <div className="receive-form">
-        <p className="title" style={{ color: 'white' }}>
-          I forgot my wallet recovery phrase. Create me a new one.
-        </p>
-        <Button onClick={() => handleCreateNewWallet()} disabled={loading || success}>
-          Create new wallet
-        </Button>
-      </div>
-      <Backdrop sx={{ color: '#fff', zIndex: theme => theme.zIndex.drawer + 1 }} open={loading} onClick={handleClose}>
-        <CircularProgress color={'inherit'} />
-      </Backdrop>
-      <Stack>
-        <Snackbar
-          open={success}
-          autoHideDuration={3000}
-          onClose={() =>
-            setTimeout(() => {
-              router.push('/');
-            })
-          }
-        >
-          <Alert onClose={handleClose} severity="success" variant="filled" sx={{ width: '100%' }}>
-            Import wallet success - Redirecting to home...
-          </Alert>
-        </Snackbar>
-
-        <Snackbar open={error} autoHideDuration={4000} onClose={() => setError(false)}>
-          <Alert onClose={handleClose} severity="error" variant="filled" sx={{ width: '100%' }}>
-            Import wallet failed — Please check your mnemonic seed phrase
-          </Alert>
-        </Snackbar>
-      </Stack>
-    </ContainerImportWallet>
+          <CustomToast
+            isOpen={error}
+            handleClose={() => setError(false)}
+            content=" Import wallet failed — Please check your mnemonic seed phrase!!"
+            type="error"
+            autoHideDuration={2000}
+          />
+        </Stack>
+      </ContainerImportWallet>
+    </MobileLayout>
   );
 }

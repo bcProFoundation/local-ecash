@@ -9,6 +9,7 @@ interface CustomToastProps {
   type: AlertColor;
   isLink?: boolean;
   linkDescription?: string;
+  autoHideDuration?: number;
   handleClose: () => void;
 }
 
@@ -18,13 +19,14 @@ const CustomToast: React.FC<CustomToastProps> = ({
   isLink = false,
   content,
   linkDescription,
-  type
+  type,
+  autoHideDuration
 }) => {
   return (
     <>
       <Snackbar
         open={isOpen}
-        autoHideDuration={1200}
+        autoHideDuration={autoHideDuration ?? 1200}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
         onClose={handleClose}
       >

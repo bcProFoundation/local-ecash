@@ -2,6 +2,7 @@
 import DisputeDetailInfo from '@/src/components/DisputeDetailInfo/DisputeDetailInfo';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
 import AuthorizationLayout from '@/src/components/layout/AuthorizationLayout';
+import MobileLayout from '@/src/components/layout/MobileLayout';
 import { TabType } from '@/src/store/constants';
 import { DisputeStatus, useInfiniteMyDisputeQuery } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
@@ -125,7 +126,7 @@ export default function MyOffer() {
   };
 
   return (
-    <>
+    <MobileLayout>
       <AuthorizationLayout>
         <MyDisputePage>
           <TickerHeader hideIcon={true} title="My disputes" />
@@ -204,6 +205,6 @@ export default function MyOffer() {
           {/* <Fab route="/my-offer/new" icon={<Add />} /> */}
         </MyDisputePage>
       </AuthorizationLayout>
-    </>
+    </MobileLayout>
   );
 }

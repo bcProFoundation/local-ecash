@@ -33,6 +33,7 @@ const QRCode: React.FC<QRCodeProps> = ({ address, amount }) => {
         includeMargin
         value={amount ? `${address}?amount=${amount}` : address}
         renderAs={'svg'}
+        className="Qrcode"
       />
       <Typography variant="body1" align="center">
         {formatAddress(address)}

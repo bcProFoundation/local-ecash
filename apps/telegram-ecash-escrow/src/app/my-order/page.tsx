@@ -1,6 +1,7 @@
 'use client';
 import OrderDetailInfo from '@/src/components/DetailInfo/OrderDetailInfo';
 import AuthorizationLayout from '@/src/components/layout/AuthorizationLayout';
+import MobileLayout from '@/src/components/layout/MobileLayout';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
 import { TabType } from '@/src/store/constants';
 import { EscrowOrderQueryItem, EscrowOrderStatus, useInfiniteMyEscrowOrderQuery } from '@bcpros/redux-store';
@@ -122,7 +123,7 @@ export default function MyOffer() {
   };
 
   return (
-    <>
+    <MobileLayout>
       <AuthorizationLayout>
         <MyOrderPage>
           <TickerHeader hideIcon={true} title="My orders" />
@@ -201,6 +202,6 @@ export default function MyOffer() {
           {/* <Fab route="/my-order/new" icon={<AddCircleOutline />} /> */}
         </MyOrderPage>
       </AuthorizationLayout>
-    </>
+    </MobileLayout>
   );
 }

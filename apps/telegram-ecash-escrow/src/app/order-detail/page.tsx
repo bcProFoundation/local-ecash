@@ -1,7 +1,7 @@
 'use client';
 
 import OrderDetailInfo from '@/src/components/DetailInfo/OrderDetailInfo';
-import QRCode from '@/src/components/QRcode/QRcode';
+import MobileLayout from '@/src/components/layout/MobileLayout';
 import TelegramButton from '@/src/components/TelegramButton/TelegramButton';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
 import { BuildReleaseTx, BuyerReturnSignatory, sellerBuildDepositTx, SellerReleaseSignatory } from '@/src/store/escrow';
@@ -14,6 +14,8 @@ import {
   EscrowOrderStatus,
   getSelectedWalletPath,
   getWalletUtxosNode,
+  openModal,
+  useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector,
   WalletContextNode
 } from '@bcpros/redux-store';
@@ -24,7 +26,7 @@ import { fromHex, Script, shaRmd160 } from 'ecash-lib';
 import cashaddr from 'ecashaddrjs';
 import _ from 'lodash';
 import { useSearchParams } from 'next/navigation';
-import React, { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 
 const OrderDetailPage = styled.div`
   min-height: 100vh;
@@ -52,6 +54,7 @@ const OrderDetailContent = styled.div`
 `;
 //TODO: Fix tx fee
 const OrderDetail = () => {
+  const dispatch = useLixiSliceDispatch();
   const search = useSearchParams();
   const id = search!.get('id');
   const [error, setError] = useState(false);
@@ -494,21 +497,15 @@ const OrderDetail = () => {
     }
   };
 
-  const escrowAddress = () => {
-    const isActive = currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Active;
+  const handleOpenQRcodeModal = () => {
     const currentAmount =
       _.sumBy(currentData?.escrowOrder.escrowTxids, 'value') / Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
-
-    if (isActive) {
-      return (
-        <React.Fragment>
-          <QRCode
-            address={currentData?.escrowOrder.escrowAddress}
-            amount={currentData?.escrowOrder.amount - currentAmount}
-          />
-        </React.Fragment>
-      );
-    }
+    dispatch(
+      openModal('QRcodeModal', {
+        address: currentData?.escrowOrder.escrowAddress,
+        amount: currentData?.escrowOrder.amount - currentAmount
+      })
+    );
   };
 
   useEffect(() => {
@@ -526,84 +523,90 @@ const OrderDetail = () => {
   if (isLoading) return <div>Loading...</div>;
 
   return (
-    <OrderDetailPage>
-      <TickerHeader title="Order detail" />
-      <OrderDetailContent>
-        <OrderDetailInfo item={currentData.escrowOrder} />
-        <br />
-        {escrowStatus()}
-        <br />
-        {escrowActionButtons()}
-        <hr />
-        <TelegramButton
-          escrowOrderId={id}
-          username={
-            selectedWalletPath.hash160 === currentData?.escrowOrder.sellerAccount.hash160
-              ? currentData?.escrowOrder.buyerAccount.telegramUsername
-              : currentData?.escrowOrder.sellerAccount.telegramUsername
-          }
-        />
-        {escrowAddress()}
-      </OrderDetailContent>
+    <MobileLayout>
+      <OrderDetailPage>
+        <TickerHeader title="Order detail" />
+        <OrderDetailContent>
+          <OrderDetailInfo item={currentData.escrowOrder} />
+          <br />
+          {escrowStatus()}
+          <br />
+          {escrowActionButtons()}
+          {currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Active && (
+            <Button onClick={handleOpenQRcodeModal} variant="contained" style={{ width: '100%' }}>
+              Open QRcode
+            </Button>
+          )}
+          <hr />
+          <TelegramButton
+            escrowOrderId={id}
+            username={
+              selectedWalletPath.hash160 === currentData?.escrowOrder.sellerAccount.hash160
+                ? currentData?.escrowOrder.buyerAccount.telegramUsername
+                : currentData?.escrowOrder.sellerAccount.telegramUsername
+            }
+          />
+        </OrderDetailContent>
 
-      <Stack zIndex={999}>
-        <Snackbar open={error} autoHideDuration={3500} onClose={() => setError(false)}>
-          <Alert severity="error" variant="filled" sx={{ width: '100%' }}>
-            Order&apos;s status update failed
-          </Alert>
-        </Snackbar>
+        <Stack zIndex={999}>
+          <Snackbar open={error} autoHideDuration={3500} onClose={() => setError(false)}>
+            <Alert severity="error" variant="filled" sx={{ width: '100%' }}>
+              Order&apos;s status update failed
+            </Alert>
+          </Snackbar>
 
-        <Snackbar open={escrow} autoHideDuration={3500} onClose={() => setEscrow(false)}>
-          <Alert severity="success" variant="filled" sx={{ width: '100%' }}>
-            Order escrowed successfully
-            <br />
-            {/* Always get the latest txid from array */}
-            <a
-              href={`${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${currentData?.escrowOrder.escrowTxids[currentData?.escrowOrder.escrowTxids.length - 1]?.txid}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              View transaction
-            </a>
-          </Alert>
-        </Snackbar>
+          <Snackbar open={escrow} autoHideDuration={3500} onClose={() => setEscrow(false)}>
+            <Alert severity="success" variant="filled" sx={{ width: '100%' }}>
+              Order escrowed successfully
+              <br />
+              {/* Always get the latest txid from array */}
+              <a
+                href={`${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${currentData?.escrowOrder.escrowTxids[currentData?.escrowOrder.escrowTxids.length - 1]?.txid}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                View transaction
+              </a>
+            </Alert>
+          </Snackbar>
 
-        <Snackbar open={release} autoHideDuration={3500} onClose={() => setRelease(false)}>
-          <Alert severity="success" variant="filled" sx={{ width: '100%' }}>
-            Order released successfully
-            <br />
-            <a
-              href={`${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${currentData?.escrowOrder.releaseTxid}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              View transaction
-            </a>
-          </Alert>
-        </Snackbar>
+          <Snackbar open={release} autoHideDuration={3500} onClose={() => setRelease(false)}>
+            <Alert severity="success" variant="filled" sx={{ width: '100%' }}>
+              Order released successfully
+              <br />
+              <a
+                href={`${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${currentData?.escrowOrder.releaseTxid}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                View transaction
+              </a>
+            </Alert>
+          </Snackbar>
 
-        <Snackbar open={cancel} autoHideDuration={3500} onClose={() => setCancel(false)}>
-          <Alert severity="success" variant="filled" sx={{ width: '100%' }}>
-            Order cancelled successfully. Funds have been returned to the buyer
-            <br />
-            <a
-              href={`${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${currentData?.escrowOrder.returnTxid}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              View transaction
-            </a>
-          </Alert>
-        </Snackbar>
+          <Snackbar open={cancel} autoHideDuration={3500} onClose={() => setCancel(false)}>
+            <Alert severity="success" variant="filled" sx={{ width: '100%' }}>
+              Order cancelled successfully. Funds have been returned to the buyer
+              <br />
+              <a
+                href={`${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${currentData?.escrowOrder.returnTxid}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                View transaction
+              </a>
+            </Alert>
+          </Snackbar>
 
-        <Snackbar open={copy} autoHideDuration={3500} onClose={() => setCopy(false)}>
-          <Alert severity="success" variant="filled" sx={{ width: '100%' }}>
-            Address copied to clipboard
-            <br />
-          </Alert>
-        </Snackbar>
-      </Stack>
-    </OrderDetailPage>
+          <Snackbar open={copy} autoHideDuration={3500} onClose={() => setCopy(false)}>
+            <Alert severity="success" variant="filled" sx={{ width: '100%' }}>
+              Address copied to clipboard
+              <br />
+            </Alert>
+          </Snackbar>
+        </Stack>
+      </OrderDetailPage>
+    </MobileLayout>
   );
 };
 

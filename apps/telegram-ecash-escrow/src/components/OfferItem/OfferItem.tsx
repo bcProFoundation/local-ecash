@@ -184,7 +184,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
     <OfferShowWrapItem>
       <div className="push-offer-wrap">
         <Typography variant="body2">
-          <span className="prefix">By: </span> {post.account?.name ?? ''}
+          <span className="prefix">By: </span> {post?.account?.telegramUsername ?? ''}
         </Typography>
         <IconButton onClick={handleBoost}>
           <ArrowCircleUpRoundedIcon />

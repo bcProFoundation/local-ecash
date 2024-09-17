@@ -2,6 +2,7 @@
 import CreateOfferModal from '@/src/components/CreateOfferModal/CreateOfferModal';
 import OfferDetailInfo from '@/src/components/DetailInfo/OfferDetailInfo';
 import AuthorizationLayout from '@/src/components/layout/AuthorizationLayout';
+import MobileLayout from '@/src/components/layout/MobileLayout';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
 import { TabType } from '@/src/store/constants';
 import { OfferStatus, useInfiniteMyOffersQuery } from '@bcpros/redux-store';
@@ -38,9 +39,6 @@ function TabPanel(props: TabPanelProps) {
 
 const MyOfferPage = styled.div`
   min-height: 100vh;
-  background-image: url('/bg-dialog.svg');
-  background-repeat: no-repeat;
-  background-size: cover;
   padding-bottom: 56px;
 
   .MuiTab-root {
@@ -77,7 +75,7 @@ const MyOfferPage = styled.div`
 
   .btn-create-offer {
     position: fixed;
-    right: 5%;
+    right: calc((100% - 576px) / 2 + 75px);
     bottom: 100px;
     z-index: 1;
     cursor: pointer;
@@ -136,7 +134,7 @@ export default function MyOffer() {
   };
 
   return (
-    <React.Fragment>
+    <MobileLayout>
       <AuthorizationLayout>
         <MyOfferPage>
           <TickerHeader hideIcon={true} title="My offers" />
@@ -223,6 +221,6 @@ export default function MyOffer() {
           />
         </MyOfferPage>
       </AuthorizationLayout>
-    </React.Fragment>
+    </MobileLayout>
   );
 }

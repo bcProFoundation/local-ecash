@@ -1,6 +1,7 @@
 'use client';
 import Footer from '@/src/components/Footer/Footer';
 import Header from '@/src/components/Header/Header';
+import MobileLayout from '@/src/components/layout/MobileLayout';
 import CustomToast from '@/src/components/Toast/CustomToast';
 import { getWalletMnemonic, useSliceSelector } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
@@ -137,7 +138,7 @@ export default function Setting() {
   };
 
   return (
-    <>
+    <MobileLayout>
       <ContainerSetting>
         <Header />
         <div className="setting-info">
@@ -239,6 +240,6 @@ export default function Setting() {
         />
       </ContainerSetting>
       <Footer />
-    </>
+    </MobileLayout>
   );
 }
