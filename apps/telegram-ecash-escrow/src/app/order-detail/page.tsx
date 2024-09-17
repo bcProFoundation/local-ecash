@@ -10,11 +10,10 @@ import {
   CreateDisputeInput,
   disputeApi,
   DisputeStatus,
-  EscrowOrder,
   escrowOrderApi,
   EscrowOrderStatus,
   getSelectedWalletPath,
-  getWalletUtxos,
+  getWalletUtxosNode,
   openModal,
   useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector,
@@ -70,7 +69,7 @@ const OrderDetail = () => {
   const { useCreateDisputeMutation } = disputeApi;
   const [createDisputeTrigger] = useCreateDisputeMutation();
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
-  const walletUtxos = useLixiSliceSelector(getWalletUtxos);
+  const walletUtxos = useLixiSliceSelector(getWalletUtxosNode);
   const [updateOrderTrigger] = useUpdateEscrowOrderStatusMutation();
   const Wallet = useContext(WalletContextNode);
   const { chronik } = Wallet;
@@ -200,7 +199,7 @@ const OrderDetail = () => {
   const escrowStatus = () => {
     const isSeller = selectedWalletPath?.hash160 === currentData?.escrowOrder.sellerAccount.hash160;
 
-    if (currentData?.escrowOrder.status === EscrowOrderStatus.Cancel) {
+    if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Cancel) {
       return (
         <Typography variant="body1" color="red" align="center">
           Order has been cancelled
@@ -208,7 +207,7 @@ const OrderDetail = () => {
       );
     }
 
-    if (currentData?.escrowOrder.status === EscrowOrderStatus.Pending) {
+    if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Pending) {
       return (
         <Typography variant="body1" color="red" align="center">
           Awaiting order to be accepted
@@ -216,7 +215,7 @@ const OrderDetail = () => {
       );
     }
 
-    if (currentData?.escrowOrder.status === EscrowOrderStatus.Active) {
+    if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Active) {
       return isSeller ? (
         <Typography variant="body1" color="red" align="center">
           Please escrow the order
@@ -236,7 +235,7 @@ const OrderDetail = () => {
       );
     }
 
-    if (currentData?.escrowOrder.status === EscrowOrderStatus.Escrow) {
+    if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Escrow) {
       return isSeller ? (
         <Typography variant="body1" color="red" align="center">
           Only release the escrow when you have received the goods
@@ -248,7 +247,7 @@ const OrderDetail = () => {
       );
     }
 
-    if (currentData?.escrowOrder.status === EscrowOrderStatus.Complete) {
+    if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Complete) {
       return (
         <Typography variant="body1" color="red" align="center">
           Order has been completed
@@ -260,7 +259,7 @@ const OrderDetail = () => {
   const escrowActionButtons = () => {
     const isSeller = selectedWalletPath?.hash160 === currentData?.escrowOrder.sellerAccount.hash160;
 
-    if (currentData?.escrowOrder.status === EscrowOrderStatus.Pending) {
+    if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Pending) {
       return isSeller ? (
         <div className="group-button-wrap">
           <Button
@@ -293,7 +292,7 @@ const OrderDetail = () => {
       );
     }
 
-    if (currentData?.escrowOrder.status === EscrowOrderStatus.Active) {
+    if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Active) {
       return isSeller ? (
         <div className="group-button-wrap">
           <Button
@@ -326,7 +325,7 @@ const OrderDetail = () => {
     }
 
     //TODO: Add an modal before create a dispute
-    if (currentData?.escrowOrder.status === EscrowOrderStatus.Escrow) {
+    if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Escrow) {
       if (currentData.escrowOrder.dispute) {
         return;
       }
@@ -404,7 +403,10 @@ const OrderDetail = () => {
           }
         }
 
-        if (escrowOrderAmount <= currentAmount && currentData?.escrowOrder.status === EscrowOrderStatus.Active) {
+        if (
+          escrowOrderAmount <= currentAmount &&
+          currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Active
+        ) {
           return await updateOrderTrigger({ input: { orderId: id!, status: EscrowOrderStatus.Escrow } })
             .unwrap()
             .catch(() => setError(true));
@@ -482,7 +484,10 @@ const OrderDetail = () => {
         }
       }
 
-      if (escrowOrderAmount <= currentAmount && currentData?.escrowOrder.status === EscrowOrderStatus.Active) {
+      if (
+        escrowOrderAmount <= currentAmount &&
+        currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Active
+      ) {
         return await updateOrderTrigger({ input: { orderId: id!, status: EscrowOrderStatus.Escrow } })
           .unwrap()
           .catch(() => setError(true));
@@ -508,7 +513,7 @@ const OrderDetail = () => {
   }, [isSuccess]);
 
   useEffect(() => {
-    !ws && currentData?.escrowOrder.status === EscrowOrderStatus.Active && subcribeToEscrow();
+    !ws && currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Active && subcribeToEscrow();
   }, [currentData]);
 
   if (_.isEmpty(id) || _.isNil(id) || isError) {
@@ -519,81 +524,88 @@ const OrderDetail = () => {
 
   return (
     <MobileLayout>
-    <OrderDetailPage>
-      <TickerHeader title="Order detail" />
-      <OrderDetailContent>
-        <OrderDetailInfo order={currentData.escrowOrder as EscrowOrder} />
-        <br />
-        {escrowStatus()}
-        <br />
-        {escrowActionButtons()}
-        {currentData?.escrowOrder.status === EscrowOrderStatus.Active && (
-          <Button onClick={handleOpenQRcodeModal} variant="contained" style={{ width: '100%' }}>
-            Open QRcode
-          </Button>
-        )}
-        <hr />
-        <TelegramButton />
-      </OrderDetailContent>
+      <OrderDetailPage>
+        <TickerHeader title="Order detail" />
+        <OrderDetailContent>
+          <OrderDetailInfo item={currentData.escrowOrder} />
+          <br />
+          {escrowStatus()}
+          <br />
+          {escrowActionButtons()}
+          {currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Active && (
+            <Button onClick={handleOpenQRcodeModal} variant="contained" style={{ width: '100%' }}>
+              Open QRcode
+            </Button>
+          )}
+          <hr />
+          <TelegramButton
+            escrowOrderId={id}
+            username={
+              selectedWalletPath.hash160 === currentData?.escrowOrder.sellerAccount.hash160
+                ? currentData?.escrowOrder.buyerAccount.telegramUsername
+                : currentData?.escrowOrder.sellerAccount.telegramUsername
+            }
+          />
+        </OrderDetailContent>
 
-      <Stack zIndex={999}>
-        <Snackbar open={error} autoHideDuration={3500} onClose={() => setError(false)}>
-          <Alert severity="error" variant="filled" sx={{ width: '100%' }}>
-            Order&apos;s status update failed
-          </Alert>
-        </Snackbar>
+        <Stack zIndex={999}>
+          <Snackbar open={error} autoHideDuration={3500} onClose={() => setError(false)}>
+            <Alert severity="error" variant="filled" sx={{ width: '100%' }}>
+              Order&apos;s status update failed
+            </Alert>
+          </Snackbar>
 
-        <Snackbar open={escrow} autoHideDuration={3500} onClose={() => setEscrow(false)}>
-          <Alert severity="success" variant="filled" sx={{ width: '100%' }}>
-            Order escrowed successfully
-            <br />
-            {/* Always get the latest txid from array */}
-            <a
-              href={`${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${currentData?.escrowOrder.escrowTxids[currentData?.escrowOrder.escrowTxids.length - 1]?.txid}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              View transaction
-            </a>
-          </Alert>
-        </Snackbar>
+          <Snackbar open={escrow} autoHideDuration={3500} onClose={() => setEscrow(false)}>
+            <Alert severity="success" variant="filled" sx={{ width: '100%' }}>
+              Order escrowed successfully
+              <br />
+              {/* Always get the latest txid from array */}
+              <a
+                href={`${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${currentData?.escrowOrder.escrowTxids[currentData?.escrowOrder.escrowTxids.length - 1]?.txid}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                View transaction
+              </a>
+            </Alert>
+          </Snackbar>
 
-        <Snackbar open={release} autoHideDuration={3500} onClose={() => setRelease(false)}>
-          <Alert severity="success" variant="filled" sx={{ width: '100%' }}>
-            Order released successfully
-            <br />
-            <a
-              href={`${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${currentData?.escrowOrder.releaseTxid}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              View transaction
-            </a>
-          </Alert>
-        </Snackbar>
+          <Snackbar open={release} autoHideDuration={3500} onClose={() => setRelease(false)}>
+            <Alert severity="success" variant="filled" sx={{ width: '100%' }}>
+              Order released successfully
+              <br />
+              <a
+                href={`${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${currentData?.escrowOrder.releaseTxid}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                View transaction
+              </a>
+            </Alert>
+          </Snackbar>
 
-        <Snackbar open={cancel} autoHideDuration={3500} onClose={() => setCancel(false)}>
-          <Alert severity="success" variant="filled" sx={{ width: '100%' }}>
-            Order cancelled successfully. Funds have been returned to the buyer
-            <br />
-            <a
-              href={`${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${currentData?.escrowOrder.returnTxid}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              View transaction
-            </a>
-          </Alert>
-        </Snackbar>
+          <Snackbar open={cancel} autoHideDuration={3500} onClose={() => setCancel(false)}>
+            <Alert severity="success" variant="filled" sx={{ width: '100%' }}>
+              Order cancelled successfully. Funds have been returned to the buyer
+              <br />
+              <a
+                href={`${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${currentData?.escrowOrder.returnTxid}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                View transaction
+              </a>
+            </Alert>
+          </Snackbar>
 
-        <Snackbar open={copy} autoHideDuration={3500} onClose={() => setCopy(false)}>
-          <Alert severity="success" variant="filled" sx={{ width: '100%' }}>
-            Address copied to clipboard
-            <br />
-          </Alert>
-        </Snackbar>
-      </Stack>
-    </OrderDetailPage>
+          <Snackbar open={copy} autoHideDuration={3500} onClose={() => setCopy(false)}>
+            <Alert severity="success" variant="filled" sx={{ width: '100%' }}>
+              Address copied to clipboard
+              <br />
+            </Alert>
+          </Snackbar>
+        </Stack>
+      </OrderDetailPage>
     </MobileLayout>
   );
 };

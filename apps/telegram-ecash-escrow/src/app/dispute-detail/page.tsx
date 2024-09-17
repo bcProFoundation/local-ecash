@@ -182,9 +182,12 @@ export default function MyOffer() {
   const [error, setError] = useState(false);
   const [release, setRelease] = useState(false);
   const [cancel, setCancel] = useState(false);
+  const [request, setRequest] = useState(false);
+  const [requestFail, setRequestFail] = useState(false);
   const { useDisputeQuery } = disputeApi;
-  const { useEscrowOrderQuery, useUpdateEscrowOrderStatusMutation } = escrowOrderApi;
-  const { isLoading, currentData: disputeQueryData, isError } = useDisputeQuery({ id: id! });
+  const { useEscrowOrderQuery, useUpdateEscrowOrderStatusMutation, useLazyArbiRequestTelegramChatQuery } =
+    escrowOrderApi;
+  const { isLoading: isLoadingDispute, currentData: disputeQueryData, isError } = useDisputeQuery({ id: id! });
   const { currentData: escrowOrderQueryData } = useEscrowOrderQuery(
     { id: disputeQueryData?.dispute.escrowOrder.id },
     { skip: !disputeQueryData?.dispute.escrowOrder.id }
@@ -194,6 +197,7 @@ export default function MyOffer() {
   const [openReleaseModal, setOpenReleaseModal] = useState<boolean>(false);
   const Wallet = useContext(WalletContextNode);
   const [updateOrderTrigger] = useUpdateEscrowOrderStatusMutation();
+  const [trigger, { isFetching, isLoading }] = useLazyArbiRequestTelegramChatQuery();
   const { chronik } = Wallet;
 
   const handleArbiModReleaseEscrow = async () => {
@@ -325,6 +329,17 @@ export default function MyOffer() {
     setLoading(false);
   };
 
+  const handleTelegramClick = async (username, publicKey) => {
+    if (username && username.includes('@')) {
+      const url = `https://t.me/${username.substring(1)}`;
+      window.open(url, '_blank');
+    } else {
+      await trigger({ escrowOrderId: escrowOrder?.id, requestChatPublicKey: publicKey })
+        .then(() => setRequest(true))
+        .catch(() => setRequestFail(true));
+    }
+  };
+
   if (
     escrowOrder?.arbitratorAccount.hash160 !== selectedWalletPath?.hash160 &&
     escrowOrder?.moderatorAccount.hash160 !== selectedWalletPath?.hash160
@@ -336,7 +351,7 @@ export default function MyOffer() {
     return <div>Invalid dispute id</div>;
   }
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoadingDispute) return <div>Loading...</div>;
 
   return (
     <React.Fragment>
@@ -374,11 +389,29 @@ export default function MyOffer() {
           </Typography>
         </DisputeDetailInfoWrap>
         <div className="group-btn-chat">
-          <Button className="chat-btn" color="inherit" variant="text" style={{ color: 'white' }}>
+          <Button
+            className="chat-btn"
+            color="inherit"
+            variant="text"
+            style={{ color: 'white' }}
+            onClick={() =>
+              handleTelegramClick(escrowOrder.sellerAccount.telegramUsername, escrowOrder.sellerAccount.publicKey)
+            }
+            disabled={isLoading || isFetching}
+          >
             Chat with seller
             <Image width={32} height={32} alt="" src={'/ico-telegram.svg'} />
           </Button>
-          <Button className="chat-btn" color="inherit" variant="text" style={{ color: 'white' }}>
+          <Button
+            className="chat-btn"
+            color="inherit"
+            variant="text"
+            style={{ color: 'white' }}
+            onClick={() =>
+              handleTelegramClick(escrowOrder.buyerAccount.telegramUsername, escrowOrder.buyerAccount.publicKey)
+            }
+            disabled={isLoading || isFetching}
+          >
             Chat with buyer
             <Image width={32} height={32} alt="" src={'/ico-telegram.svg'} />
           </Button>
@@ -494,6 +527,18 @@ export default function MyOffer() {
             >
               View transaction
             </a>
+          </Alert>
+        </Snackbar>
+
+        <Snackbar open={request} autoHideDuration={3500} onClose={() => setRequest(false)}>
+          <Alert severity="success" variant="filled" sx={{ width: '100%' }}>
+            Chat requested!
+          </Alert>
+        </Snackbar>
+
+        <Snackbar open={requestFail} autoHideDuration={3500} onClose={() => setRequestFail(false)}>
+          <Alert severity="error" variant="filled" sx={{ width: '100%' }}>
+            Failed to request chat...
           </Alert>
         </Snackbar>
       </Stack>

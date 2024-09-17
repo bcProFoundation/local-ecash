@@ -1,11 +1,14 @@
 'use client';
+import OrderDetailInfo from '@/src/components/DetailInfo/OrderDetailInfo';
 import AuthorizationLayout from '@/src/components/layout/AuthorizationLayout';
 import MobileLayout from '@/src/components/layout/MobileLayout';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
 import { TabType } from '@/src/store/constants';
+import { EscrowOrderQueryItem, EscrowOrderStatus, useInfiniteMyEscrowOrderQuery } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
-import { Box, Tab, Tabs, Typography } from '@mui/material';
+import { Box, Skeleton, Tab, Tabs, Typography } from '@mui/material';
 import React, { useState } from 'react';
+import InfiniteScroll from 'react-infinite-scroll-component';
 import SwipeableViews from 'react-swipeable-views';
 
 interface TabPanelProps {
@@ -84,6 +87,41 @@ export default function MyOffer() {
     setValue(index);
   };
 
+  const {
+    data: dataOrderActive,
+    hasNext: hasNextOrderActive,
+    isFetching: isFetchingOrderActive,
+    fetchNext: fetchNextOrderActive
+  } = useInfiniteMyEscrowOrderQuery(
+    {
+      first: 20,
+      escrowOrderStatus: EscrowOrderStatus.Active
+    },
+    false
+  );
+  const {
+    data: dataOrderUnactive,
+    hasNext: hasNextOrderUnactive,
+    isFetching: isFetchingOrderUnactive,
+    fetchNext: fetchNextOrderUnactive
+  } = useInfiniteMyEscrowOrderQuery({ escrowOrderStatus: EscrowOrderStatus.Complete, first: 20 }, false);
+
+  const loadMoreItemsOrderActive = () => {
+    if (hasNextOrderActive && !isFetchingOrderActive) {
+      fetchNextOrderActive();
+    } else if (hasNextOrderActive) {
+      fetchNextOrderActive();
+    }
+  };
+
+  const loadMoreItemsOrderUnactive = () => {
+    if (hasNextOrderUnactive && !isFetchingOrderUnactive) {
+      fetchNextOrderUnactive();
+    } else if (hasNextOrderUnactive) {
+      fetchNextOrderUnactive();
+    }
+  };
+
   return (
     <MobileLayout>
       <AuthorizationLayout>
@@ -109,17 +147,54 @@ export default function MyOffer() {
             />
           </Tabs>
 
-          <SwipeableViews index={value} onChangeIndex={handleChangeIndex} disableLazyLoading={true}>
+          <SwipeableViews index={value} onChangeIndex={handleChangeIndex}>
             <TabPanel value={value} index={0}>
               <div className="list-item">
-                {/* <OrderDetailInfo />
-              <OrderDetailInfo /> */}
+                {dataOrderActive.length > 0 ? (
+                  <InfiniteScroll
+                    dataLength={dataOrderActive.length}
+                    next={loadMoreItemsOrderActive}
+                    hasMore={hasNextOrderActive}
+                    loader={
+                      <>
+                        <Skeleton variant="text" />
+                        <Skeleton variant="text" />
+                      </>
+                    }
+                    scrollableTarget="scrollableDiv"
+                  >
+                    {dataOrderActive.map(item => {
+                      return <OrderDetailInfo item={item.data as EscrowOrderQueryItem} key={item.id} />;
+                    })}
+                  </InfiniteScroll>
+                ) : (
+                  <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No order here</Typography>
+                )}
               </div>
             </TabPanel>
             <TabPanel value={value} index={1}>
               <div className="list-item">
-                {/* <OrderDetailInfo />
-              <OrderDetailInfo /> */}
+                {dataOrderUnactive.length > 0 ? (
+                  <InfiniteScroll
+                    dataLength={dataOrderUnactive.length}
+                    next={loadMoreItemsOrderUnactive}
+                    hasMore={hasNextOrderUnactive}
+                    loader={
+                      <>
+                        <Skeleton variant="text" />
+                        <Skeleton variant="text" />
+                      </>
+                    }
+                    scrollableTarget="scrollableDiv"
+                    scrollThreshold={'100px'}
+                  >
+                    {dataOrderUnactive.map(item => {
+                      return <OrderDetailInfo item={item.data as EscrowOrderQueryItem} key={item.id} />;
+                    })}
+                  </InfiniteScroll>
+                ) : (
+                  <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No order here</Typography>
+                )}
               </div>
             </TabPanel>
           </SwipeableViews>

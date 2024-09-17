@@ -7,7 +7,7 @@ import {
   convertHashToEcashAddress,
   escrowOrderApi,
   getSelectedWalletPath,
-  Post,
+  PostQueryItem,
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
@@ -220,7 +220,7 @@ const Transition = React.forwardRef(function Transition(
 
 const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const theme = useTheme();
-  const { post }: { post: Post } = props;
+  const { post }: { post: PostQueryItem } = props;
   const { data } = useSession();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
   const router = useRouter();
@@ -338,7 +338,12 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                     message: 'XEC amount is invalid!'
                   },
                   validate: value => {
-                    if (parseFloat(value) < 0) return 'XEC amount must be greater than 0!';
+                    const numberValue = parseFloat(value);
+                    const minValue = post.postOffer.orderLimitMin;
+                    const maxValue = post.postOffer.orderLimitMax;
+                    if (numberValue < 0) return 'XEC amount must be greater than 0!';
+                    if (numberValue < minValue || numberValue > maxValue)
+                      return `XEC amount must between ${minValue}-${maxValue}`;
 
                     return true;
                   }
@@ -350,7 +355,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                     value={value}
                     name={name}
                     inputRef={ref}
-                    placeholder={post.offer.orderLimitMin + ' - ' + post.offer.orderLimitMax}
+                    placeholder={post.postOffer.orderLimitMin + ' - ' + post.postOffer.orderLimitMax}
                     className="form-input"
                     id="amount"
                     label="Amount"
@@ -397,7 +402,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
             </Grid>
           </Grid>
           <RadioGroup className="payment-method-wrap" name="payment-method-groups" defaultValue="cash-in-person">
-            {post.offer.paymentMethods.map(item => {
+            {post.postOffer.paymentMethods.map(item => {
               return (
                 <FormControlLabel
                   onClick={() => {

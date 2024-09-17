@@ -1,6 +1,6 @@
 'use client';
 
-import { EscrowOrder } from '@bcpros/redux-store';
+import { EscrowOrderQueryItem } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import { Button, Typography } from '@mui/material';
 
@@ -28,9 +28,12 @@ const OrderDetailWrap = styled.div`
   }
 `;
 
-const OrderDetailInfo = props => {
-  const { order }: { order: EscrowOrder } = props;
+type OrderItemProps = {
+  item?: EscrowOrderQueryItem;
+};
 
+const OrderDetailInfo = ({ item }: OrderItemProps) => {
+  const order = item;
   return (
     <OrderDetailWrap>
       <Typography variant="body1">
@@ -39,11 +42,11 @@ const OrderDetailInfo = props => {
       </Typography>
       <Typography variant="body1">
         <span className="prefix">Offer: </span>
-        {order.offer.message}
+        {order.escrowOffer.message}
       </Typography>
       <Typography variant="body1">
         <span className="prefix">Ordered by: </span>
-        {order.buyerAccount.telegramId}
+        {order.buyerAccount.telegramUsername}
       </Typography>
       <Typography variant="body1">
         <span className="prefix">Ordered at: </span>

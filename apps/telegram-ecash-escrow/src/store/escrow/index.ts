@@ -1,6 +1,6 @@
 import { COIN, coinInfo } from '@bcpros/lixi-models';
 import { calcFee } from '@bcpros/redux-store';
-import { Utxo } from 'chronik-client';
+import { Utxo_InNode } from 'chronik-client';
 import {
   ALL_BIP143,
   Ecc,
@@ -296,7 +296,7 @@ export const ModReturnSignatory = (modSk: Uint8Array, modPk: Uint8Array, sellerP
 };
 
 export const sellerBuildDepositTx = (
-  sellerUtxos: Array<Utxo & { address: string }>,
+  sellerUtxos: Array<Utxo_InNode & { address: string }>,
   sellerSk: Uint8Array,
   sellerPk: Uint8Array,
   amountToSend: number,
@@ -322,6 +322,7 @@ export const sellerBuildDepositTx = (
     };
   });
 
+  //@ts-ignore
   const fee = calcFee(sellerUtxos, undefined, coinInfo[COIN.XEC].defaultFee, undefined);
   const actualAmount = amountToSend * Math.pow(10, coinInfo[COIN.XEC].cashDecimals) + fee;
 
@@ -340,7 +341,7 @@ export const sellerBuildDepositTx = (
 };
 
 export const buyerBuildDepositTx = (
-  buyerUtxos: Array<Utxo & { address: string }>,
+  buyerUtxos: Array<Utxo_InNode & { address: string }>,
   buyerSk: Uint8Array,
   buyerPk: Uint8Array,
   advancePaymentAmount: number
@@ -378,7 +379,7 @@ export const buyerBuildDepositTx = (
 };
 
 export const sellerDepositAndBuildTx = (
-  sellerUtxos: Array<Utxo & { address: string }>,
+  sellerUtxos: Array<Utxo_InNode & { address: string }>,
   sellerSk: Uint8Array,
   sellerPk: Uint8Array,
   depositAmount: number,

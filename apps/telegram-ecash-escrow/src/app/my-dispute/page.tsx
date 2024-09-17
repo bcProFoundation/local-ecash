@@ -4,12 +4,12 @@ import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
 import AuthorizationLayout from '@/src/components/layout/AuthorizationLayout';
 import MobileLayout from '@/src/components/layout/MobileLayout';
 import { TabType } from '@/src/store/constants';
+import { DisputeStatus, useInfiniteMyDisputeQuery } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
-import { Add } from '@mui/icons-material';
-import { Box, Tab, Tabs, Typography } from '@mui/material';
+import { Box, Skeleton, Tab, Tabs, Typography } from '@mui/material';
 import React, { useState } from 'react';
+import InfiniteScroll from 'react-infinite-scroll-component';
 import SwipeableViews from 'react-swipeable-views';
-import Fab from '../../components/Fab';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -91,6 +91,40 @@ export default function MyOffer() {
     setValue(index);
   };
 
+  const {
+    data: dataDisputeActive,
+    hasNext: hasNextDisputeActive,
+    isFetching: isFetchingDisputeActive,
+    fetchNext: fetchNextDisputeActive
+  } = useInfiniteMyDisputeQuery({
+    first: 20,
+    disputeStatus: DisputeStatus.Active
+  });
+  const {
+    data: dataDisputeResolved,
+    hasNext: hasNextDisputeResolved,
+    isFetching: isFetchingDisputeResolved,
+    fetchNext: fetchNextDisputeResolved
+  } = useInfiniteMyDisputeQuery({
+    first: 20,
+    disputeStatus: DisputeStatus.Resolved
+  });
+
+  const loadMoreItemsDisputeActive = () => {
+    if (hasNextDisputeActive && !isFetchingDisputeActive) {
+      fetchNextDisputeActive();
+    } else if (hasNextDisputeActive) {
+      fetchNextDisputeActive();
+    }
+  };
+  const loadMoreItemsDisputeResolved = () => {
+    if (hasNextDisputeResolved && !isFetchingDisputeResolved) {
+      fetchNextDisputeResolved();
+    } else if (hasNextDisputeResolved) {
+      fetchNextDisputeResolved();
+    }
+  };
+
   return (
     <MobileLayout>
       <AuthorizationLayout>
@@ -118,19 +152,57 @@ export default function MyOffer() {
           <SwipeableViews index={value} onChangeIndex={handleChangeIndex}>
             <TabPanel value={value} index={0}>
               <div className="list-item">
-                <DisputeDetailInfo />
-                <DisputeDetailInfo />
+                {dataDisputeActive.length > 0 ? (
+                  <InfiniteScroll
+                    dataLength={dataDisputeActive.length}
+                    next={loadMoreItemsDisputeActive}
+                    hasMore={hasNextDisputeActive}
+                    loader={
+                      <>
+                        <Skeleton variant="text" />
+                        <Skeleton variant="text" />
+                      </>
+                    }
+                    scrollableTarget="scrollableDiv"
+                    scrollThreshold={'100px'}
+                  >
+                    {dataDisputeActive.map(item => {
+                      return <DisputeDetailInfo timelineItem={item} key={item.id} />;
+                    })}
+                  </InfiniteScroll>
+                ) : (
+                  <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No offer here</Typography>
+                )}
               </div>
             </TabPanel>
             <TabPanel value={value} index={1}>
               <div className="list-item">
-                <DisputeDetailInfo />
-                <DisputeDetailInfo />
+                {dataDisputeResolved.length > 0 ? (
+                  <InfiniteScroll
+                    dataLength={dataDisputeResolved.length}
+                    next={loadMoreItemsDisputeResolved}
+                    hasMore={hasNextDisputeResolved}
+                    loader={
+                      <>
+                        <Skeleton variant="text" />
+                        <Skeleton variant="text" />
+                      </>
+                    }
+                    scrollableTarget="scrollableDiv"
+                    scrollThreshold={'100px'}
+                  >
+                    {dataDisputeResolved.map(item => {
+                      return <DisputeDetailInfo timelineItem={item} key={item.id} />;
+                    })}
+                  </InfiniteScroll>
+                ) : (
+                  <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No offer here</Typography>
+                )}
               </div>
             </TabPanel>
           </SwipeableViews>
 
-          <Fab route="/my-offer/new" icon={<Add />} />
+          {/* <Fab route="/my-offer/new" icon={<Add />} /> */}
         </MyDisputePage>
       </AuthorizationLayout>
     </MobileLayout>
