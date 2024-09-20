@@ -12,7 +12,6 @@ import {
   DisputeStatus,
   EscrowOrderStatus,
   WalletContextNode,
-  convertHashToEcashAddress,
   disputeApi,
   escrowOrderApi,
   getSelectedWalletPath,
@@ -173,7 +172,7 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export default function MyOffer() {
+export default function DisputeDetail() {
   const search = useSearchParams();
   const id = search!.get('id');
   const theme = useTheme();
@@ -187,7 +186,11 @@ export default function MyOffer() {
   const { useDisputeQuery } = disputeApi;
   const { useEscrowOrderQuery, useUpdateEscrowOrderStatusMutation, useLazyArbiRequestTelegramChatQuery } =
     escrowOrderApi;
-  const { isLoading: isLoadingDispute, currentData: disputeQueryData, isError } = useDisputeQuery({ id: id! });
+  const {
+    isLoading: isLoadingDispute,
+    currentData: disputeQueryData,
+    isError
+  } = useDisputeQuery({ id: id! }, { skip: !id });
   const { currentData: escrowOrderQueryData } = useEscrowOrderQuery(
     { id: disputeQueryData?.dispute.escrowOrder.id },
     { skip: !disputeQueryData?.dispute.escrowOrder.id }
@@ -217,8 +220,8 @@ export default function MyOffer() {
     if (isArbi) {
       try {
         const { amount } = escrowOrder;
-        const arbiSK = fromHex(selectedWalletPath?.privateKey!);
-        const arbiPk = fromHex(selectedWalletPath?.publicKey!);
+        const arbiSK = fromHex(selectedWalletPath?.privateKey);
+        const arbiPk = fromHex(selectedWalletPath?.publicKey);
 
         const arbiSignatory = ArbiReleaseSignatory(arbiSK, arbiPk, buyerPk, nonce);
 
@@ -239,8 +242,8 @@ export default function MyOffer() {
     } else {
       try {
         const { amount } = escrowOrder;
-        const modSk = fromHex(selectedWalletPath?.privateKey!);
-        const modPk = fromHex(selectedWalletPath?.publicKey!);
+        const modSk = fromHex(selectedWalletPath?.privateKey);
+        const modPk = fromHex(selectedWalletPath?.publicKey);
 
         const escrowScript = new Script(script);
         const modSignatory = ModReleaseSignatory(modSk, modPk, buyerPk, nonce);
@@ -268,7 +271,7 @@ export default function MyOffer() {
     setLoading(true);
 
     const id = disputeQueryData?.dispute.escrowOrder.id;
-    const status = EscrowOrderStatus.Complete;
+    const status = EscrowOrderStatus.Cancel;
     const isArbi = selectedWalletPath?.hash160 === escrowOrder.arbitratorAccount.hash160;
     const escrowTxids = escrowOrder?.escrowTxids;
     const sellerPk = fromHex(escrowOrder.sellerAccount.publicKey as string);
@@ -281,10 +284,10 @@ export default function MyOffer() {
     if (isArbi) {
       try {
         const { amount } = escrowOrder;
-        const arbiSK = fromHex(selectedWalletPath?.privateKey!);
-        const arbiPk = fromHex(selectedWalletPath?.publicKey!);
+        const arbiSk = fromHex(selectedWalletPath?.privateKey);
+        const arbiPk = fromHex(selectedWalletPath?.publicKey);
 
-        const arbiSignatory = ArbiReturnSignatory(arbiSK, arbiPk, sellerPk, nonce);
+        const arbiSignatory = ArbiReturnSignatory(arbiSk, arbiPk, sellerPk, nonce);
 
         const txBuild = BuildReleaseTx(escrowTxids, amount, escrowScript, arbiSignatory, sellerP2pkh);
 
@@ -303,8 +306,8 @@ export default function MyOffer() {
     } else {
       try {
         const { amount } = escrowOrder;
-        const modSk = fromHex(selectedWalletPath?.privateKey!);
-        const modPk = fromHex(selectedWalletPath?.publicKey!);
+        const modSk = fromHex(selectedWalletPath?.privateKey);
+        const modPk = fromHex(selectedWalletPath?.publicKey);
 
         const escrowScript = new Script(script);
         const modSignatory = ModReturnSignatory(modSk, modPk, sellerPk, nonce);
@@ -355,7 +358,7 @@ export default function MyOffer() {
 
   return (
     <React.Fragment>
-      <TickerHeader title="Order detail" />
+      <TickerHeader title="Dispute detail" />
       <ResolveDisputeWrap>
         <DisputeDetailInfoWrap>
           <Typography variant="body1">
@@ -372,11 +375,11 @@ export default function MyOffer() {
           </Typography>
           <Typography variant="body1">
             <span className="prefix">Seller: </span>
-            {convertHashToEcashAddress(escrowOrder.sellerAccount.hash160)}
+            {escrowOrder.sellerAccount.telegramUsername}
           </Typography>
           <Typography variant="body1">
             <span className="prefix">Buyer: </span>
-            {convertHashToEcashAddress(escrowOrder.buyerAccount.hash160)}
+            {escrowOrder.buyerAccount.telegramUsername}
           </Typography>
           <Typography>
             <span className="prefix">Escrow Address: </span>
@@ -385,7 +388,8 @@ export default function MyOffer() {
             </a>
           </Typography>
           <Typography variant="body1" className="amount-escrowed">
-            {escrowOrder.amount} XEC escrowed!
+            <span className="prefix">Escrowed amount: </span>
+            {escrowOrder.amount} XEC
           </Typography>
         </DisputeDetailInfoWrap>
         <div className="group-btn-chat">
@@ -442,7 +446,7 @@ export default function MyOffer() {
           <ReleaseDisputeWrap>
             <div className="seller-release">
               <Typography textAlign="center" variant="body1">
-                Are you sure you want to release {escrowOrder?.amount} XEC to Seller
+                Are you sure you want to return {escrowOrder?.amount} XEC to Seller ?
               </Typography>
               {/* <TextField
                 className="form-input"
@@ -468,7 +472,7 @@ export default function MyOffer() {
             <hr />
             <div className="buyer-release">
               <Typography textAlign="center" variant="body1">
-                Are you sure you want to release {escrowOrder?.amount} XEC to Buyer
+                Are you sure you want to release {escrowOrder?.amount} XEC to Buyer ?
               </Typography>
               {/* <TextField
                 className="form-input"
@@ -518,7 +522,7 @@ export default function MyOffer() {
 
         <Snackbar open={cancel} autoHideDuration={3500} onClose={() => setCancel(false)}>
           <Alert severity="success" variant="filled" sx={{ width: '100%' }}>
-            Order cancelled successfully. Funds have been returned to the buyer
+            Order cancelled successfully. Funds have been returned to the seller
             <br />
             <a
               href={`${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${escrowOrder?.returnTxid}`}

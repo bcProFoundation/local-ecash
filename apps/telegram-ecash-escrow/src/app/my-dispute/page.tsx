@@ -80,7 +80,7 @@ const MyDisputePage = styled.div`
   }
 `;
 
-export default function MyOffer() {
+export default function MyDispute() {
   const [value, setValue] = useState(0);
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {

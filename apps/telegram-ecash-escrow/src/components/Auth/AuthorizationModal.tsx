@@ -68,6 +68,7 @@ export const AuthorizationModal = ({ classStyle }: AuthorizationModalProps) => {
 
   const handleLogIn = () => {
     dispatch(closeModal());
+    //TODO: remove existing account before login
     router.push('/login');
   };
 

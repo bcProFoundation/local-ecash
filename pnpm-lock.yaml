@@ -55,11 +55,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/counter
       '@bcpros/lixi-models':
-        specifier: ^1.2.7
-        version: 1.2.7(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(class-transformer@0.5.1)(graphql@16.8.1)(reflect-metadata@0.2.2)
+        specifier: ^1.2.14
+        version: 1.2.14(@nestjs/common@10.4.3(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(class-transformer@0.5.1)(graphql@16.8.1)(reflect-metadata@0.2.2)
       '@bcpros/redux-store':
-        specifier: ^1.2.7
-        version: 1.2.7(@abcpros/bitcore-lib-xpi@8.25.43)(@bcpros/xpi-js@4.0.6)(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(@rtk-query/graphql-request-base-query@2.3.1(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(graphql@16.8.1))(axios@1.7.2)(chronik-client@0.26.2)(class-transformer@0.5.1)(file-saver@2.0.5)(iron-session@8.0.1)(moment@2.30.1)(react-device-detect@2.2.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-intl-universal@2.11.1(react@18.3.1))(react-outside-call@0.2.0)(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1)(redux-persist-indexeddb-storage@1.0.4)(redux-persist@6.0.0(react@18.3.1)(redux@5.0.1))(redux-saga@1.3.0)(redux-thunk@3.1.0(redux@5.0.1))(redux@5.0.1)(reflect-metadata@0.2.2)
+        specifier: ^1.2.14
+        version: 1.2.14(@abcpros/bitcore-lib-xpi@8.25.43)(@bcpros/xpi-js@4.0.6)(@nestjs/common@10.4.3(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(@rtk-query/graphql-request-base-query@2.3.1(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(graphql@16.8.1))(axios@1.7.2)(chronik-client@0.26.2)(class-transformer@0.5.1)(file-saver@2.0.5)(iron-session@8.0.1)(moment@2.30.1)(react-device-detect@2.2.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-intl-universal@2.11.1(react@18.3.1))(react-outside-call@0.2.0)(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1)(redux-persist-indexeddb-storage@1.0.4)(redux-persist@6.0.0(react@18.3.1)(redux@5.0.1))(redux-saga@1.3.0)(redux-thunk@3.1.0(redux@5.0.1))(redux@5.0.1)(reflect-metadata@0.2.2)
       '@bcpros/xpi-js':
         specifier: 4.0.6
         version: 4.0.6
@@ -327,15 +327,15 @@ packages:
     resolution: {integrity: sha512-WaMsgi6Q8zMgMth93GvWPXkhAIEobfsIkLTacoVZoK1J0CevIPGYY2Vo5YvJGqyHqXM6P4ppOYGsIRU8MM9pFQ==}
     engines: {node: '>=6.9.0'}
 
-  '@bcpros/lixi-models@1.2.7':
-    resolution: {integrity: sha512-buUYr7YawRfm2lLbJako71xDhalroiZLw6W05ySymk+OaA5V0i0eosyBJcEwUiWP3vhOWD5ZZhPIqrl759vqrA==}
+  '@bcpros/lixi-models@1.2.14':
+    resolution: {integrity: sha512-hxJqpjH+B9bNGZI6pVmU5WWFqrO7YLNl2FcSvCGHgjOK/Cl1EL+RW3UlHy27CHYWvwwz1li5NjbvlugYBbtygQ==}
     engines: {node: '>=16'}
     peerDependencies:
       '@prisma/client': 5.12.1
       class-transformer: ^0.5.1
 
-  '@bcpros/redux-store@1.2.7':
-    resolution: {integrity: sha512-Rxv1kArRWeAQvCLsDChk5NoAfMo9F92M4hshP9nwrIxgK7gvI+l/ix10AwaJkQj3tQlWU2vhMKji6CTu7XjY9Q==}
+  '@bcpros/redux-store@1.2.14':
+    resolution: {integrity: sha512-YIWZM4t2RqxCBkIRkoUkp6sIWqXnLq4dFDJDILTk+m8BCtyFDDIlb1FQZiYHgJzwIKr/Oit7Ta/bN/z9hEdt2Q==}
     peerDependencies:
       '@abcpros/bitcore-lib-xpi': '>=8.25.37'
       '@bcpros/xpi-js': 4.0.6
@@ -734,8 +734,8 @@ packages:
       '@types/react':
         optional: true
 
-  '@nestjs/common@10.3.10':
-    resolution: {integrity: sha512-H8k0jZtxk1IdtErGDmxFRy0PfcOAUg41Prrqpx76DQusGGJjsaovs1zjXVD1rZWaVYchfT1uczJ6L4Kio10VNg==}
+  '@nestjs/common@10.4.3':
+    resolution: {integrity: sha512-4hbLd3XIJubHSylYd/1WSi4VQvG68KM/ECYpMDqA3k3J1/T17SAg40sDoq3ZoO5OZgU0xuNyjuISdOTjs11qVg==}
     peerDependencies:
       class-transformer: '*'
       class-validator: '*'
@@ -1052,8 +1052,8 @@ packages:
   '@types/use-sync-external-store@0.0.3':
     resolution: {integrity: sha512-EwmlvuaxPNej9+T4v5AuBPJa2x2UOJVdjCtDHgcDqitUeOtjnJKJ+apYjVcAoBEMjKW1VVFGZLUb5+qqa09XFA==}
 
-  '@types/validator@13.12.0':
-    resolution: {integrity: sha512-nH45Lk7oPIJ1RVOF6JgFI6Dy0QpHEzq4QecZhvguxYPDwT8c93prCMqAtiIttm39voZ+DDR+qkNnMpJmMBRqag==}
+  '@types/validator@13.12.2':
+    resolution: {integrity: sha512-6SlHBzUW8Jhf3liqrGGXyTJSIFe4nqlJ5A5KaMZ2l/vbM3Wh3KSybots/wfWVzNLK4D1NZluDlSQIbIEPx6oyA==}
 
   '@types/ws@8.5.10':
     resolution: {integrity: sha512-vmQSUcfalpIq0R9q7uTo2lXs6eGIpt9wtnLdMv9LVpIjCA/+ufZRozlVoVelIYixx1ugCBKDhn89vnsEGOCx9A==}
@@ -2612,8 +2612,8 @@ packages:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
     engines: {node: '>= 0.8.0'}
 
-  libphonenumber-js@1.11.5:
-    resolution: {integrity: sha512-TwHR5BZxGRODtAfz03szucAkjT5OArXr+94SMtAM2pYXIlQNVMrxvb6uSCbnaJJV6QXEyICk7+l6QPgn72WHhg==}
+  libphonenumber-js@1.11.8:
+    resolution: {integrity: sha512-0fv/YKpJBAgXKy0kaS3fnqoUVN8901vUYAKIGD/MWZaDfhJt1nZjPL3ZzdZBt/G8G8Hw2J1xOIrXWdNHFHPAvg==}
 
   lie@3.1.1:
     resolution: {integrity: sha512-RiNhHysUjhrDQntfYSfY4MU24coXXdEOgw9WGcKHNeEwffDYbF//u87M1EWaMGzuFoSbqW0C9C6lEEhDOAswfw==}
@@ -3698,8 +3698,8 @@ packages:
   tslib@2.6.2:
     resolution: {integrity: sha512-AEYxH93jGFPn/a2iVAwW87VuUIkR1FVUKB77NwMF7nBTDkDrrT/Hpt/IrCJ0QXhW27jTBDcf5ZY7w6RiqTMw2Q==}
 
-  tslib@2.6.3:
-    resolution: {integrity: sha512-xNvxJEOUiWPGhUuUdQgAJPKOOJfGnIyKySOc09XkKsgdUV/3E2zvwZYdejjmRgPCgcym1juLH3226yA7sEFJKQ==}
+  tslib@2.7.0:
+    resolution: {integrity: sha512-gLXCKdN1/j47AiHiOkJN69hJmcbGTHI0ImLmbYLHykhgeN0jVGola9yVjFgzCUklsZQMW55o+dW7IXv3RCXDzA==}
 
   turbo-darwin-64@2.0.12:
     resolution: {integrity: sha512-NAgfgbXxX/JScWQmmQnGbPuFZq7LIswHfcMk5JwyBXQM/xmklNOxxac7MnGGIOf19Z2f6S3qHy17VIj0SeGfnA==}
@@ -4048,9 +4048,9 @@ snapshots:
       '@babel/helper-validator-identifier': 7.24.6
       to-fast-properties: 2.0.0
 
-  '@bcpros/lixi-models@1.2.7(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(class-transformer@0.5.1)(graphql@16.8.1)(reflect-metadata@0.2.2)':
+  '@bcpros/lixi-models@1.2.14(@nestjs/common@10.4.3(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(class-transformer@0.5.1)(graphql@16.8.1)(reflect-metadata@0.2.2)':
     dependencies:
-      '@nestjs/mapped-types': 2.0.5(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)
+      '@nestjs/mapped-types': 2.0.5(@nestjs/common@10.4.3(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)
       '@prisma/client': 5.14.0
       bignumber.js: 9.1.2
       class-transformer: 0.5.1
@@ -4064,13 +4064,13 @@ snapshots:
       - graphql
       - reflect-metadata
 
-  '@bcpros/redux-store@1.2.7(@abcpros/bitcore-lib-xpi@8.25.43)(@bcpros/xpi-js@4.0.6)(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(@rtk-query/graphql-request-base-query@2.3.1(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(graphql@16.8.1))(axios@1.7.2)(chronik-client@0.26.2)(class-transformer@0.5.1)(file-saver@2.0.5)(iron-session@8.0.1)(moment@2.30.1)(react-device-detect@2.2.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-intl-universal@2.11.1(react@18.3.1))(react-outside-call@0.2.0)(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1)(redux-persist-indexeddb-storage@1.0.4)(redux-persist@6.0.0(react@18.3.1)(redux@5.0.1))(redux-saga@1.3.0)(redux-thunk@3.1.0(redux@5.0.1))(redux@5.0.1)(reflect-metadata@0.2.2)':
+  '@bcpros/redux-store@1.2.14(@abcpros/bitcore-lib-xpi@8.25.43)(@bcpros/xpi-js@4.0.6)(@nestjs/common@10.4.3(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(@rtk-query/graphql-request-base-query@2.3.1(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(graphql@16.8.1))(axios@1.7.2)(chronik-client@0.26.2)(class-transformer@0.5.1)(file-saver@2.0.5)(iron-session@8.0.1)(moment@2.30.1)(react-device-detect@2.2.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-intl-universal@2.11.1(react@18.3.1))(react-outside-call@0.2.0)(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1)(redux-persist-indexeddb-storage@1.0.4)(redux-persist@6.0.0(react@18.3.1)(redux@5.0.1))(redux-saga@1.3.0)(redux-thunk@3.1.0(redux@5.0.1))(redux@5.0.1)(reflect-metadata@0.2.2)':
     dependencies:
       '@abcpros/bitcore-lib-xpi': 8.25.43
-      '@bcpros/lixi-models': 1.2.7(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(class-transformer@0.5.1)(graphql@16.8.1)(reflect-metadata@0.2.2)
+      '@bcpros/lixi-models': 1.2.14(@nestjs/common@10.4.3(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(class-transformer@0.5.1)(graphql@16.8.1)(reflect-metadata@0.2.2)
       '@bcpros/xpi-js': 4.0.6
       '@bitgo/utxo-lib': 9.40.0
-      '@nestjs/mapped-types': 2.0.5(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)
+      '@nestjs/mapped-types': 2.0.5(@nestjs/common@10.4.3(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)
       '@prisma/client': 5.14.0
       '@reduxjs/toolkit': 2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1)
       '@rtk-query/graphql-request-base-query': 2.3.1(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(graphql@16.8.1)
@@ -4693,20 +4693,20 @@ snapshots:
     optionalDependencies:
       '@types/react': 18.3.3
 
-  '@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1)':
+  '@nestjs/common@10.4.3(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1)':
     dependencies:
       iterare: 1.2.1
       reflect-metadata: 0.2.2
       rxjs: 7.8.1
-      tslib: 2.6.3
+      tslib: 2.7.0
       uid: 2.0.2
     optionalDependencies:
       class-transformer: 0.5.1
       class-validator: 0.14.1
 
-  '@nestjs/mapped-types@2.0.5(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)':
+  '@nestjs/mapped-types@2.0.5(@nestjs/common@10.4.3(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)':
     dependencies:
-      '@nestjs/common': 10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1)
+      '@nestjs/common': 10.4.3(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1)
       reflect-metadata: 0.2.2
     optionalDependencies:
       class-transformer: 0.5.1
@@ -4972,7 +4972,7 @@ snapshots:
 
   '@types/use-sync-external-store@0.0.3': {}
 
-  '@types/validator@13.12.0': {}
+  '@types/validator@13.12.2': {}
 
   '@types/ws@8.5.10':
     dependencies:
@@ -5648,8 +5648,8 @@ snapshots:
 
   class-validator@0.14.1:
     dependencies:
-      '@types/validator': 13.12.0
-      libphonenumber-js: 1.11.5
+      '@types/validator': 13.12.2
+      libphonenumber-js: 1.11.8
       validator: 13.12.0
 
   cli-cursor@4.0.0:
@@ -6556,7 +6556,7 @@ snapshots:
   graphql-scalars@1.23.0(graphql@16.8.1):
     dependencies:
       graphql: 16.8.1
-      tslib: 2.6.3
+      tslib: 2.6.2
 
   graphql@16.8.1: {}
 
@@ -6901,7 +6901,7 @@ snapshots:
       prelude-ls: 1.2.1
       type-check: 0.4.0
 
-  libphonenumber-js@1.11.5: {}
+  libphonenumber-js@1.11.8: {}
 
   lie@3.1.1:
     dependencies:
@@ -7630,7 +7630,7 @@ snapshots:
 
   rxjs@7.8.1:
     dependencies:
-      tslib: 2.6.3
+      tslib: 2.6.2
 
   safe-array-concat@1.1.2:
     dependencies:
@@ -8036,7 +8036,7 @@ snapshots:
 
   tslib@2.6.2: {}
 
-  tslib@2.6.3: {}
+  tslib@2.7.0: {}
 
   turbo-darwin-64@2.0.12:
     optional: true
