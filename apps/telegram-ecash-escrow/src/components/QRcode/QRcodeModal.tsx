@@ -15,6 +15,13 @@ const WrapQrCode = styled.div`
   .Qrcode {
     border-radius: 0;
   }
+  width: 500px;
+  height: 100vh;
+  max-height: 100%;
+  margin: 0;
+  @media (max-width: 576px) {
+    width: 100%;
+  }
 `;
 
 const WrapModal = styled(Modal)`

@@ -1,5 +1,5 @@
 import { COIN, coinInfo } from '@bcpros/lixi-models';
-import { calcFee } from '@bcpros/redux-store';
+import { cashMethodsNode } from '@bcpros/redux-store';
 import { Utxo_InNode } from 'chronik-client';
 import {
   ALL_BIP143,
@@ -137,8 +137,10 @@ export class Escrow {
   }
 }
 
+const { calcFeeEscrow } = cashMethodsNode;
+
 export const BuildReleaseTx = (
-  txids: { txid: string; value: number }[],
+  txids: { txid: string; value: number; outIdx: number }[],
   amountToSend: number,
   escrowScript: Script,
   scriptSignatory: Signatory,
@@ -147,12 +149,12 @@ export const BuildReleaseTx = (
   const ecc = new Ecc();
   const amountSatoshi = amountToSend * Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
 
-  const utxos = txids.map(({ txid, value }) => {
+  const utxos = txids.map(({ txid, value, outIdx }) => {
     return {
       input: {
         prevOut: {
           txid,
-          outIdx: 0
+          outIdx
         },
         signData: {
           value: value,
@@ -280,7 +282,7 @@ export const ModReturnSignatory = (modSk: Uint8Array, modPk: Uint8Array, sellerP
   return (ecc: Ecc, input: UnsignedTxInput): Script => {
     const preimage = input.sigHashPreimage(ALL_BIP143);
     const hexNonce = Buffer.from(nonce, 'utf-8').toString('hex');
-    const message = ACTION.MOD_RELEASE + hexNonce;
+    const message = ACTION.MOD_RETURN + hexNonce;
 
     const oracleMessage = sha256(fromHex(message)); // ACTION BYTE - 01 + NONCE - 48656c6c6f
     const oracleSig = ecc.ecdsaSign(modSk, oracleMessage);
@@ -322,8 +324,7 @@ export const sellerBuildDepositTx = (
     };
   });
 
-  //@ts-ignore
-  const fee = calcFee(sellerUtxos, undefined, coinInfo[COIN.XEC].defaultFee, undefined);
+  const fee = calcFeeEscrow(1, 2, coinInfo[COIN.XEC].defaultFee, 0, escrowScript.bytecode.length);
   const actualAmount = amountToSend * Math.pow(10, coinInfo[COIN.XEC].cashDecimals) + fee;
 
   const txBuild = new TxBuilder({
