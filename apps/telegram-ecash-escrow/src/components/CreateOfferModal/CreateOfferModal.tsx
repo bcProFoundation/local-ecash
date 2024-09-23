@@ -164,7 +164,6 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       orderLimitMin: minNum,
       orderLimitMax: maxNum,
       paymentMethodIds: selectedOptions,
-      publicKey: 'public key',
       coin: Coin.Xec,
       type: OfferType.Sell,
       countryId: Number(data.countryId),
