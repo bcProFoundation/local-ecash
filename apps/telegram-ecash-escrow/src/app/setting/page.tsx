@@ -8,6 +8,7 @@ import styled from '@emotion/styled';
 import { CheckCircleOutline } from '@mui/icons-material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Accordion, AccordionDetails, AccordionSummary, Alert, Button, Typography } from '@mui/material';
+import { signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
@@ -92,6 +93,10 @@ export default function Setting() {
     // router.back();
     //   backButton.hide();
     //   mainButton.hide();
+  };
+
+  const handleSignOut = () => {
+    signOut({ redirect: true, callbackUrl: '/' });
   };
 
   const handleDeleteAccount = () => {
@@ -193,6 +198,21 @@ export default function Setting() {
                     Verify account
                   </Button>
                 </Link>
+              </AccordionDetails>
+            </Accordion>
+          </div>
+
+          <div className="setting-item">
+            <p className="title">Delete account</p>
+            <Alert icon={<CheckCircleOutline className="ico-alert" fontSize="inherit" />} severity="error">
+              Sign out of the current session
+            </Alert>
+            <Accordion className="collapse-backup-seed">
+              <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
+                <p>Click to reveal sign out</p>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Button onClick={() => handleSignOut()}>Sign Out</Button>
               </AccordionDetails>
             </Accordion>
           </div>

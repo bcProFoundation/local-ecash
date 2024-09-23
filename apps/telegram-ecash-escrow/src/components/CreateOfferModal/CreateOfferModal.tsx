@@ -139,8 +139,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       message: '',
       min: '',
       max: '',
-      countryId: null,
-      stateId: null
+      countryId: undefined,
+      stateId: undefined
     }
   });
 
@@ -170,13 +170,12 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       countryId: Number(data.countryId),
       stateId: Number(data.stateId)
     };
-    const offerCreated = await createOfferTrigger({ input: inputCreateOffer })
+    await createOfferTrigger({ input: inputCreateOffer })
       .unwrap()
+      .then(() => setSuccess(true))
       .catch(() => {
         setError(true);
       });
-
-    offerCreated && setSuccess(true);
 
     setLoading(false);
   };
@@ -218,266 +217,267 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   };
 
   return (
-    <StyledDialog
-      fullScreen={fullScreen}
-      open={isOpen}
-      onClose={() => onDissmissModal(false)}
-      TransitionComponent={Transition}
-    >
-      <IconButton className="back-btn" onClick={() => onDissmissModal(false)}>
-        <ChevronLeft />
-      </IconButton>
-      <DialogTitle>Create an offer</DialogTitle>
-      <DialogContent>
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <Controller
-              name="message"
-              control={control}
-              rules={{
-                required: {
-                  value: true,
-                  message: 'Message is required!'
-                }
-              }}
-              render={({ field: { onChange, onBlur, value, name, ref } }) => (
-                <FormControl fullWidth={true}>
-                  <TextField
-                    className="form-input"
-                    onChange={onChange}
-                    onBlur={onBlur}
-                    value={value}
-                    name={name}
-                    inputRef={ref}
-                    id="message"
-                    label="Message"
-                    defaultValue="I want to buy 20M XEC in cash"
-                    error={errors.message && true}
-                    helperText={errors.message && (errors.message?.message as string)}
-                    variant="standard"
-                  />
-                </FormControl>
-              )}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <Controller
-              name="price"
-              control={control}
-              rules={{
-                required: {
-                  value: true,
-                  message: 'Price is required!'
-                },
-                pattern: {
-                  value: /^-?[0-9]\d*\.?\d*$/,
-                  message: 'Price is invalid!'
-                },
-                validate: value => {
-                  if (parseFloat(value) < 0) return 'Price must be greater than 0!';
+    <React.Fragment>
+      <StyledDialog
+        fullScreen={fullScreen}
+        open={isOpen}
+        onClose={() => onDissmissModal(false)}
+        TransitionComponent={Transition}
+      >
+        <IconButton className="back-btn" onClick={() => onDissmissModal(false)}>
+          <ChevronLeft />
+        </IconButton>
+        <DialogTitle>Create an offer</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <Controller
+                name="message"
+                control={control}
+                rules={{
+                  required: {
+                    value: true,
+                    message: 'Message is required!'
+                  }
+                }}
+                render={({ field: { onChange, onBlur, value, name, ref } }) => (
+                  <FormControl fullWidth={true}>
+                    <TextField
+                      className="form-input"
+                      onChange={onChange}
+                      onBlur={onBlur}
+                      value={value}
+                      name={name}
+                      inputRef={ref}
+                      id="message"
+                      label="Message"
+                      error={errors.message && true}
+                      helperText={errors.message && (errors.message?.message as string)}
+                      variant="standard"
+                    />
+                  </FormControl>
+                )}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Controller
+                name="price"
+                control={control}
+                rules={{
+                  required: {
+                    value: true,
+                    message: 'Price is required!'
+                  },
+                  pattern: {
+                    value: /^-?[0-9]\d*\.?\d*$/,
+                    message: 'Price is invalid!'
+                  },
+                  validate: value => {
+                    if (parseFloat(value) < 0) return 'Price must be greater than 0!';
 
-                  return true;
-                }
-              }}
-              render={({ field: { onChange, onBlur, value, name, ref } }) => (
-                <FormControl fullWidth={true}>
-                  <TextField
-                    id="payment-amount"
-                    label="Price"
-                    onChange={onChange}
-                    color="info"
-                    onBlur={onBlur}
-                    value={value}
-                    name={name}
-                    inputRef={ref}
-                    error={errors.price ? true : false}
-                    helperText={errors.price && (errors.price?.message as string)}
-                    variant="standard"
-                  />
-                </FormControl>
-              )}
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <Controller
-              name="min"
-              control={control}
-              rules={{
-                required: {
-                  value: true,
-                  message: 'Minimum is required!'
-                },
-                pattern: {
-                  value: /^-?[0-9]\d*\.?\d*$/,
-                  message: 'Minimum amount is invalid!'
-                },
-                validate: value => {
-                  const max = parseFloat(watch('max'));
+                    return true;
+                  }
+                }}
+                render={({ field: { onChange, onBlur, value, name, ref } }) => (
+                  <FormControl fullWidth={true}>
+                    <TextField
+                      id="payment-amount"
+                      label="Price"
+                      onChange={onChange}
+                      color="info"
+                      onBlur={onBlur}
+                      value={value}
+                      name={name}
+                      inputRef={ref}
+                      error={errors.price ? true : false}
+                      helperText={errors.price && (errors.price?.message as string)}
+                      variant="standard"
+                    />
+                  </FormControl>
+                )}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <Controller
+                name="min"
+                control={control}
+                rules={{
+                  required: {
+                    value: true,
+                    message: 'Minimum is required!'
+                  },
+                  pattern: {
+                    value: /^-?[0-9]\d*\.?\d*$/,
+                    message: 'Minimum amount is invalid!'
+                  },
+                  validate: value => {
+                    const max = parseFloat(watch('max'));
 
-                  if (parseFloat(value) < 5.46) return 'Minimum amount must be greater than 5.46!';
-                  if (parseFloat(value) >= max) return 'Minimum amount must be less than maximum amount!';
+                    if (parseFloat(value) < 5.46) return 'Minimum amount must be greater than 5.46!';
+                    if (parseFloat(value) >= max) return 'Minimum amount must be less than maximum amount!';
 
-                  return true;
-                }
-              }}
-              render={({ field: { onChange, onBlur, value, name, ref } }) => (
-                <FormControl fullWidth={true}>
-                  <TextField
-                    onChange={onChange}
-                    onBlur={onBlur}
-                    value={value}
-                    type="number"
-                    name={name}
-                    inputRef={ref}
-                    className="form-input"
-                    id="min"
-                    label="Order limit (USD)"
-                    placeholder="Min order limit (USD)"
-                    error={errors.min && true}
-                    helperText={errors.min && (errors.min?.message as string)}
-                    variant="standard"
-                  />
-                </FormControl>
-              )}
-            />
-          </Grid>
-          <Grid item xs={1}>
-            <h2 style={{ color: 'white' }}>to</h2>
-          </Grid>
-          <Grid item xs={5}>
-            <Controller
-              name="max"
-              control={control}
-              rules={{
-                required: {
-                  value: true,
-                  message: 'Maximum is required!'
-                },
-                pattern: {
-                  value: /^-?[0-9]\d*\.?\d*$/,
-                  message: 'Maximum amount is invalid!'
-                },
-                validate: value => {
-                  const min = parseFloat(watch('min'));
+                    return true;
+                  }
+                }}
+                render={({ field: { onChange, onBlur, value, name, ref } }) => (
+                  <FormControl fullWidth={true}>
+                    <TextField
+                      onChange={onChange}
+                      onBlur={onBlur}
+                      value={value}
+                      type="number"
+                      name={name}
+                      inputRef={ref}
+                      className="form-input"
+                      id="min"
+                      label="Order limit (USD)"
+                      placeholder="Min order limit (USD)"
+                      error={errors.min && true}
+                      helperText={errors.min && (errors.min?.message as string)}
+                      variant="standard"
+                    />
+                  </FormControl>
+                )}
+              />
+            </Grid>
+            <Grid item xs={1}>
+              <h2 style={{ color: 'white' }}>to</h2>
+            </Grid>
+            <Grid item xs={5}>
+              <Controller
+                name="max"
+                control={control}
+                rules={{
+                  required: {
+                    value: true,
+                    message: 'Maximum is required!'
+                  },
+                  pattern: {
+                    value: /^-?[0-9]\d*\.?\d*$/,
+                    message: 'Maximum amount is invalid!'
+                  },
+                  validate: value => {
+                    const min = parseFloat(watch('min'));
 
-                  if (parseFloat(value) < 0) return 'Maximum amount must be greater than 0!';
-                  if (parseFloat(value) <= min) return 'Maximum amount must be greater than minimum amount!';
+                    if (parseFloat(value) < 0) return 'Maximum amount must be greater than 0!';
+                    if (parseFloat(value) <= min) return 'Maximum amount must be greater than minimum amount!';
 
-                  return true;
-                }
-              }}
-              render={({ field: { onChange, onBlur, value, name, ref } }) => (
-                <FormControl fullWidth={true}>
-                  <TextField
-                    onChange={onChange}
-                    onBlur={onBlur}
-                    value={value}
-                    name={name}
-                    type="number"
-                    inputRef={ref}
-                    className="form-input"
-                    id="max"
-                    label=" "
-                    placeholder="Max order limit (USD)"
-                    error={errors.max && true}
-                    helperText={errors.max && (errors.max?.message as string)}
-                    variant="standard"
-                  />
-                </FormControl>
+                    return true;
+                  }
+                }}
+                render={({ field: { onChange, onBlur, value, name, ref } }) => (
+                  <FormControl fullWidth={true}>
+                    <TextField
+                      onChange={onChange}
+                      onBlur={onBlur}
+                      value={value}
+                      name={name}
+                      type="number"
+                      inputRef={ref}
+                      className="form-input"
+                      id="max"
+                      label=" "
+                      placeholder="Max order limit (USD)"
+                      error={errors.max && true}
+                      helperText={errors.max && (errors.max?.message as string)}
+                      variant="standard"
+                    />
+                  </FormControl>
+                )}
+              />
+            </Grid>
+            <Grid item xs={12} className="payment-method">
+              <p className="title-payment-method">Payment Methods</p>
+              <Box sx={{ display: 'flex', margin: '16px 0' }}>
+                <FormGroup sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                  {paymenthods.map(item => CheckBoxUI(item.id, item.name))}
+                </FormGroup>
+              </Box>
+            </Grid>
+            <Grid item xs={12} className="title-location">
+              <span>Location</span>
+            </Grid>
+            <Grid item xs={6}>
+              <Controller
+                name="countryId"
+                control={control}
+                rules={{
+                  required: {
+                    value: true,
+                    message: 'Country is required!'
+                  }
+                }}
+                render={({ field: { onChange, onBlur, value, name, ref } }) => (
+                  <FormControl fullWidth>
+                    <InputLabel id="label-country">Country</InputLabel>
+                    <Select
+                      labelId="label-country"
+                      id="label-country"
+                      label="Country"
+                      value={value}
+                      onChange={e => {
+                        onChange(e);
+                        dispatch(getStates(Number(e.target.value ?? '0')));
+                        setValue('stateId', null);
+                      }}
+                    >
+                      {countries.map(country => (
+                        <MenuItem key={country.id} value={country.id}>
+                          {country.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
+              />
+              {errors && errors?.countryId && (
+                <FormHelperText error={true}>{errors.countryId.message as string}</FormHelperText>
               )}
-            />
-          </Grid>
-          <Grid item xs={12} className="payment-method">
-            <p className="title-payment-method">Payment Methods</p>
-            <Box sx={{ display: 'flex', margin: '16px 0' }}>
-              <FormGroup sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
-                {paymenthods.map(item => CheckBoxUI(item.id, item.name))}
-              </FormGroup>
-            </Box>
-          </Grid>
-          <Grid item xs={12} className="title-location">
-            <span>Location</span>
-          </Grid>
-          <Grid item xs={6}>
-            <Controller
-              name="countryId"
-              control={control}
-              rules={{
-                required: {
-                  value: true,
-                  message: 'Country is required!'
-                }
-              }}
-              render={({ field: { onChange, onBlur, value, name, ref } }) => (
-                <FormControl fullWidth>
-                  <InputLabel id="label-country">Country</InputLabel>
-                  <Select
-                    labelId="label-country"
-                    id="label-country"
-                    label="Country"
-                    value={value}
-                    onChange={e => {
-                      onChange(e);
-                      dispatch(getStates(Number(e.target.value ?? '0')));
-                      setValue('stateId', null);
-                    }}
-                  >
-                    {countries.map(country => (
-                      <MenuItem key={country.id} value={country.id}>
-                        {country.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+            </Grid>
+            <Grid item xs={6}>
+              <Controller
+                name="stateId"
+                control={control}
+                render={({ field: { onChange, onBlur, value, name, ref } }) => (
+                  <FormControl fullWidth>
+                    <InputLabel id="label-state">State</InputLabel>
+                    <Select
+                      value={value}
+                      labelId="label-state"
+                      name={name}
+                      onBlur={onBlur}
+                      id="label-state"
+                      label="State"
+                      onChange={onChange}
+                      disabled={!getValues('countryId')}
+                    >
+                      {states.map(state => (
+                        <MenuItem key={state.id} value={state.id}>
+                          {state.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
+              />
+              {errors && errors?.stateId && (
+                <FormHelperText error={true}>{errors.stateId.message as string}</FormHelperText>
               )}
-            />
-            {errors && errors?.countryId && (
-              <FormHelperText error={true}>{errors.countryId.message as string}</FormHelperText>
-            )}
+            </Grid>
           </Grid>
-          <Grid item xs={6}>
-            <Controller
-              name="stateId"
-              control={control}
-              render={({ field: { onChange, onBlur, value, name, ref } }) => (
-                <FormControl fullWidth>
-                  <InputLabel id="label-state">State</InputLabel>
-                  <Select
-                    value={value}
-                    labelId="label-state"
-                    name={name}
-                    onBlur={onBlur}
-                    id="label-state"
-                    label="State"
-                    onChange={onChange}
-                    disabled={!getValues('countryId')}
-                  >
-                    {states.map(state => (
-                      <MenuItem key={state.id} value={state.id}>
-                        {state.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              )}
-            />
-            {errors && errors?.stateId && (
-              <FormHelperText error={true}>{errors.stateId.message as string}</FormHelperText>
-            )}
-          </Grid>
-        </Grid>
-      </DialogContent>
-      <DialogActions>
-        <Button
-          className="confirm-btn"
-          color="info"
-          variant="contained"
-          onClick={handleSubmit(handleCreateOffer)}
-          disabled={loading || success}
-        >
-          Create offer
-        </Button>
-      </DialogActions>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            className="confirm-btn"
+            color="info"
+            variant="contained"
+            onClick={handleSubmit(handleCreateOffer)}
+            disabled={loading || success}
+          >
+            Create offer
+          </Button>
+        </DialogActions>
+      </StyledDialog>
 
       <Stack zIndex={999}>
         <Snackbar
@@ -502,7 +502,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
           </Alert>
         </Snackbar>
       </Stack>
-    </StyledDialog>
+    </React.Fragment>
   );
 };
 

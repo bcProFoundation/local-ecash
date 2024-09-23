@@ -13,6 +13,7 @@ import {
 import styled from '@emotion/styled';
 import { ChevronLeft } from '@mui/icons-material';
 import {
+  Alert,
   Button,
   Dialog,
   DialogActions,
@@ -23,7 +24,9 @@ import {
   IconButton,
   Radio,
   RadioGroup,
+  Skeleton,
   Slide,
+  Snackbar,
   TextField,
   Typography,
   useMediaQuery,
@@ -220,16 +223,25 @@ const Transition = React.forwardRef(function Transition(
 
 const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const theme = useTheme();
-  const { post }: { post: PostQueryItem } = props;
+  const { post, isOpen }: { post: PostQueryItem; isOpen: boolean } = props;
   const { data } = useSession();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
+  const [arbiDataError, setArbiDataError] = useState(false);
   const router = useRouter();
   const { useCreateEscrowOrderMutation, useGetModeratorAccountQuery, useGetRandomArbitratorAccountQuery } =
     escrowOrderApi;
   const [createOrderTrigger] = useCreateEscrowOrderMutation();
-  const { currentData: moderatorCurrentData } = useGetModeratorAccountQuery({}, { skip: !data });
+  const {
+    currentData: moderatorCurrentData,
+    isLoading: moderatorIsLoading,
+    isError: moderatorIsError
+  } = useGetModeratorAccountQuery({}, { skip: !data || !isOpen });
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
-  const { currentData: arbitratorCurrentData } = useGetRandomArbitratorAccountQuery({}, { skip: !data });
+  const {
+    currentData: arbitratorCurrentData,
+    isLoading: arbitratorIsLoading,
+    isError: arbitratorIsError
+  } = useGetRandomArbitratorAccountQuery({}, { skip: !data || !isOpen });
   const [paymentMethodId, setPaymentMethodId] = useState<number | undefined>();
   const {
     handleSubmit,
@@ -240,6 +252,12 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   } = useForm();
 
   const handleCreateEscrowOrder = async data => {
+    if (moderatorIsError || arbitratorIsError) {
+      setArbiDataError(true);
+
+      return;
+    }
+
     if (!paymentMethodId) {
       setError('paymentMethod', { message: 'Payment method is required!' });
 
@@ -291,135 +309,153 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   };
 
   return (
-    <StyledDialog
-      fullScreen={fullScreen}
-      open={props.isOpen}
-      onClose={() => props.onDissmissModal!(false)}
-      TransitionComponent={Transition}
-    >
-      <IconButton className="back-btn" onClick={() => props.onDissmissModal!(false)}>
-        <ChevronLeft />
-      </IconButton>
-      <DialogTitle>Place an order</DialogTitle>
-      <Typography className="offer-info" variant="body2">
-        <span>{`Offer Id: ${post.id}`}</span>
-        <br />
-        <span>{`By: ${post.account.name} • posted on: ${new Date(post.createdAt).toLocaleString()}`}</span>
-      </Typography>
-      {moderatorCurrentData?.getModeratorAccount && arbitratorCurrentData?.getRandomArbitratorAccount && (
+    <React.Fragment>
+      <StyledDialog
+        fullScreen={fullScreen}
+        open={props.isOpen}
+        onClose={() => props.onDissmissModal!(false)}
+        TransitionComponent={Transition}
+      >
+        <IconButton className="back-btn" onClick={() => props.onDissmissModal!(false)}>
+          <ChevronLeft />
+        </IconButton>
+        <DialogTitle>Place an order</DialogTitle>
         <Typography className="offer-info" variant="body2">
-          <span>Moderator: {moderatorCurrentData?.getModeratorAccount.name}</span>
+          <span>{`Offer Id: ${post.id}`}</span>
           <br />
-          <span>{convertHashToEcashAddress(moderatorCurrentData?.getModeratorAccount.hash160)}</span>
+          <span>{`By: ${post.account.telegramUsername} • posted on: ${new Date(post.createdAt).toLocaleString()}`}</span>
         </Typography>
-      )}
-      {arbitratorCurrentData?.getRandomArbitratorAccount && (
-        <Typography className="offer-info" variant="body2">
-          <span>Arbitrator: {arbitratorCurrentData?.getRandomArbitratorAccount.name}</span>
-          <br />
-          <span>{convertHashToEcashAddress(arbitratorCurrentData?.getRandomArbitratorAccount.hash160)}</span>
-        </Typography>
-      )}
-      <DialogContent>
-        <PlaceAnOrderWrap>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <Controller
-                name="amount"
-                control={control}
-                defaultValue={''}
-                rules={{
-                  required: {
-                    value: true,
-                    message: 'XEC amount is required!'
-                  },
-                  pattern: {
-                    value: /^-?[0-9]\d*\.?\d*$/,
-                    message: 'XEC amount is invalid!'
-                  },
-                  validate: value => {
-                    const numberValue = parseFloat(value);
-                    const minValue = post.postOffer.orderLimitMin;
-                    const maxValue = post.postOffer.orderLimitMax;
-                    if (numberValue < 0) return 'XEC amount must be greater than 0!';
-                    if (numberValue < minValue || numberValue > maxValue)
-                      return `XEC amount must between ${minValue}-${maxValue}`;
+        {moderatorIsLoading ? (
+          <Typography className="offer-info" variant="body2">
+            <Skeleton animation="wave" />
+            <Skeleton animation="wave" />
+          </Typography>
+        ) : (
+          moderatorCurrentData?.getModeratorAccount && (
+            <Typography className="offer-info" variant="body2">
+              <span>Moderator: {moderatorCurrentData?.getModeratorAccount.telegramUsername}</span>
+              <br />
+              <span>{convertHashToEcashAddress(moderatorCurrentData?.getModeratorAccount.hash160)}</span>
+            </Typography>
+          )
+        )}
 
-                    return true;
-                  }
-                }}
-                render={({ field: { onChange, onBlur, value, name, ref } }) => (
-                  <TextField
-                    onChange={onChange}
-                    onBlur={onBlur}
-                    value={value}
-                    name={name}
-                    inputRef={ref}
-                    placeholder={post.postOffer.orderLimitMin + ' - ' + post.postOffer.orderLimitMax}
-                    className="form-input"
-                    id="amount"
-                    label="Amount"
-                    variant="outlined"
-                    error={errors.amount ? true : false}
-                    helperText={errors.amount && (errors.amount?.message as string)}
-                    InputProps={{
-                      endAdornment: <Typography variant="subtitle1">XEC</Typography>
-                    }}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Controller
-                name="message"
-                control={control}
-                defaultValue={''}
-                rules={{
-                  validate: value => {
-                    return _.isEmpty(value) ? 'Should include a message' : true;
-                  }
-                }}
-                render={({ field: { onChange, onBlur, value, name, ref } }) => (
-                  <TextField
-                    onChange={onChange}
-                    onBlur={onBlur}
-                    value={value}
-                    name={name}
-                    inputRef={ref}
-                    className="form-input"
-                    id="message"
-                    label="Message"
-                    variant="outlined"
-                    error={errors.message ? true : false}
-                    helperText={
-                      errors.message
-                        ? (errors.message?.message as string)
-                        : `* Escrow's order has message has higher acceptance rate`
+        {arbitratorIsLoading ? (
+          <Typography className="offer-info" variant="body2">
+            <Skeleton animation="wave" />
+            <Skeleton animation="wave" />
+          </Typography>
+        ) : (
+          arbitratorCurrentData?.getRandomArbitratorAccount && (
+            <Typography className="offer-info" variant="body2">
+              <span>Arbitrator: {arbitratorCurrentData?.getRandomArbitratorAccount.telegramUsername}</span>
+              <br />
+              <span>{convertHashToEcashAddress(arbitratorCurrentData?.getRandomArbitratorAccount.hash160)}</span>
+            </Typography>
+          )
+        )}
+        <DialogContent>
+          <PlaceAnOrderWrap>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <Controller
+                  name="amount"
+                  control={control}
+                  defaultValue={''}
+                  rules={{
+                    required: {
+                      value: true,
+                      message: 'XEC amount is required!'
+                    },
+                    pattern: {
+                      value: /^-?[0-9]\d*\.?\d*$/,
+                      message: 'XEC amount is invalid!'
+                    },
+                    validate: value => {
+                      const numberValue = parseFloat(value);
+                      const minValue = post.postOffer.orderLimitMin;
+                      const maxValue = post.postOffer.orderLimitMax;
+                      if (numberValue < 0) return 'XEC amount must be greater than 0!';
+                      if (numberValue < minValue || numberValue > maxValue)
+                        return `XEC amount must between ${minValue}-${maxValue}`;
+
+                      return true;
                     }
-                  />
-                )}
-              />
-            </Grid>
-          </Grid>
-          <RadioGroup className="payment-method-wrap" name="payment-method-groups" defaultValue="cash-in-person">
-            {post.postOffer.paymentMethods.map(item => {
-              return (
-                <FormControlLabel
-                  onClick={() => {
-                    clearErrors('paymentMethod');
-                    setPaymentMethodId(item.paymentMethod.id);
                   }}
-                  key={item.paymentMethod.name}
-                  value={item.paymentMethod.name}
-                  checked={paymentMethodId === item.paymentMethod.id}
-                  control={<Radio />}
-                  label={item.paymentMethod.name}
+                  render={({ field: { onChange, onBlur, value, name, ref } }) => (
+                    <TextField
+                      onChange={onChange}
+                      onBlur={onBlur}
+                      value={value}
+                      name={name}
+                      inputRef={ref}
+                      placeholder={post.postOffer.orderLimitMin + ' - ' + post.postOffer.orderLimitMax}
+                      className="form-input"
+                      id="amount"
+                      label="Amount"
+                      variant="outlined"
+                      error={errors.amount ? true : false}
+                      helperText={errors.amount && (errors.amount?.message as string)}
+                      InputProps={{
+                        endAdornment: <Typography variant="subtitle1">XEC</Typography>
+                      }}
+                    />
+                  )}
                 />
-              );
-            })}
-            {errors.paymentMethod && <Typography color="error">{errors?.paymentMethod?.message as string}</Typography>}
-          </RadioGroup>
-          {/* <div className="disclaim-wrap">
+              </Grid>
+              <Grid item xs={12}>
+                <Controller
+                  name="message"
+                  control={control}
+                  defaultValue={''}
+                  rules={{
+                    validate: value => {
+                      return _.isEmpty(value) ? 'Should include a message' : true;
+                    }
+                  }}
+                  render={({ field: { onChange, onBlur, value, name, ref } }) => (
+                    <TextField
+                      onChange={onChange}
+                      onBlur={onBlur}
+                      value={value}
+                      name={name}
+                      inputRef={ref}
+                      className="form-input"
+                      id="message"
+                      label="Message"
+                      variant="outlined"
+                      error={errors.message ? true : false}
+                      helperText={
+                        errors.message
+                          ? (errors.message?.message as string)
+                          : `* Escrow's order has message has higher acceptance rate`
+                      }
+                    />
+                  )}
+                />
+              </Grid>
+            </Grid>
+            <RadioGroup className="payment-method-wrap" name="payment-method-groups" defaultValue="cash-in-person">
+              {post.postOffer.paymentMethods.map(item => {
+                return (
+                  <FormControlLabel
+                    onClick={() => {
+                      clearErrors('paymentMethod');
+                      setPaymentMethodId(item.paymentMethod.id);
+                    }}
+                    key={item.paymentMethod.name}
+                    value={item.paymentMethod.name}
+                    checked={paymentMethodId === item.paymentMethod.id}
+                    control={<Radio />}
+                    label={item.paymentMethod.name}
+                  />
+                );
+              })}
+              {errors.paymentMethod && (
+                <Typography color="error">{errors?.paymentMethod?.message as string}</Typography>
+              )}
+            </RadioGroup>
+            {/* <div className="disclaim-wrap">
             <Typography className="lable" variant="body2">
               Disclaim
             </Typography>
@@ -451,20 +487,26 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
               </div>
             </div>
           </div> */}
-        </PlaceAnOrderWrap>
-      </DialogContent>
-      <DialogActions>
-        <Button
-          className="confirm-btn"
-          color="info"
-          variant="contained"
-          onClick={handleSubmit(handleCreateEscrowOrder)}
-          autoFocus
-        >
-          Create
-        </Button>
-      </DialogActions>
-    </StyledDialog>
+          </PlaceAnOrderWrap>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            className="confirm-btn"
+            color="info"
+            variant="contained"
+            onClick={handleSubmit(handleCreateEscrowOrder)}
+            autoFocus
+          >
+            Create
+          </Button>
+        </DialogActions>
+      </StyledDialog>
+      <Snackbar open={arbiDataError} autoHideDuration={3500} onClose={() => setArbiDataError(false)}>
+        <Alert severity="error" variant="filled" sx={{ width: '100%' }}>
+          Can&apos;t get arbi/mod data
+        </Alert>
+      </Snackbar>
+    </React.Fragment>
   );
 };
 

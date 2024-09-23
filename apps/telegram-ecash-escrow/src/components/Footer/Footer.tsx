@@ -93,7 +93,13 @@ export default function Footer({ hidden = true }: PropsFooter) {
   const open = Boolean(anchorEl);
 
   const handlePopoverOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(anchorEl ? null : event.currentTarget);
+    if (status === 'loading') return;
+
+    if (status === 'unauthenticated') {
+      askAuthorization();
+    } else {
+      setAnchorEl(anchorEl ? null : event.currentTarget);
+    }
   };
 
   const handleIconClick = (pathName: string) => {

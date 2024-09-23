@@ -2,7 +2,18 @@
 
 import styled from '@emotion/styled';
 import CachedRoundedIcon from '@mui/icons-material/CachedRounded';
-import { Badge, Fade, Skeleton, Slide, Typography } from '@mui/material';
+import {
+  Backdrop,
+  Badge,
+  Button,
+  Fade,
+  Skeleton,
+  Slide,
+  Stack,
+  Typography,
+  useMediaQuery,
+  useTheme
+} from '@mui/material';
 
 import CreateOfferModal from '@/src/components/CreateOfferModal/CreateOfferModal';
 import Footer from '@/src/components/Footer/Footer';
@@ -26,7 +37,7 @@ import {
   useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
-import { useSession } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import { useEffect, useRef, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import useAuthorization from '../components/Auth/use-authorization.hooks';
@@ -35,7 +46,6 @@ import MobileLayout from '../components/layout/MobileLayout';
 const WrapHome = styled.div`
   .btn-create-offer {
     position: fixed;
-    right: calc((100% - 576px) / 2 + 75px);
     bottom: 100px;
     z-index: 1;
     cursor: pointer;
@@ -100,10 +110,12 @@ const StyledBadge = styled(Badge)`
 
 export default function Home() {
   const prevRef = useRef(0);
+  const theme = useTheme();
   const { data: sessionData } = useSession();
   const [visible, setVisible] = useState(true);
   const [open, setOpen] = useState<boolean>(false);
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
+  const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
   const { useUpdateAccountTelegramUsernameMutation, useGetAccountByAddressQuery } = accountsApi;
   const { currentData: accountQueryData } = useGetAccountByAddressQuery(
     { address: selectedWalletPath?.xAddress },
@@ -201,6 +213,24 @@ export default function Home() {
     dispatch(getCountries());
   }, []);
 
+  if (selectedWalletPath === null && sessionData) {
+    return (
+      <Backdrop sx={theme => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })} open={true}>
+        <Stack>
+          <Typography variant="h5" align="center">
+            No wallet detected
+          </Typography>
+          <Typography variant="body1" align="center">
+            Please sign out and try again!
+          </Typography>
+          <Button variant="contained" style={{ marginTop: '15px' }} onClick={() => signOut()}>
+            Sign Out
+          </Button>
+        </Stack>
+      </Backdrop>
+    );
+  }
+
   return (
     <MobileLayout>
       <WrapHome>
@@ -269,8 +299,14 @@ export default function Home() {
           </Section>
         </HomePage>
         <Fade in={visible}>
-          <div className="btn-create-offer" onClick={handleCreateOfferClick}>
-            <img src="/ico-create-post.svg" />
+          <div
+            className="btn-create-offer"
+            onClick={handleCreateOfferClick}
+            style={{
+              right: fullScreen ? `calc((100% - 576px) / 3.5 + 75px)` : `calc((100% - 576px) / 2 + 75px)`
+            }}
+          >
+            <img src="/ico-create-post.svg" alt="create-post-ico" />
           </div>
         </Fade>
         <CreateOfferModal
