@@ -17,6 +17,7 @@ import React from 'react';
 export default function AuthorizationLayout({ children }: { children: React.ReactNode }) {
   const { status } = useSession();
   const router = useRouter();
+
   return (
     <React.Fragment>
       {status === 'authenticated' ? (

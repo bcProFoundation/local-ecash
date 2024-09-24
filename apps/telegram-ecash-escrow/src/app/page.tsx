@@ -223,7 +223,11 @@ export default function Home() {
           <Typography variant="body1" align="center">
             Please sign out and try again!
           </Typography>
-          <Button variant="contained" style={{ marginTop: '15px' }} onClick={() => signOut()}>
+          <Button
+            variant="contained"
+            style={{ marginTop: '15px' }}
+            onClick={() => signOut({ redirect: true, callbackUrl: '/' })}
+          >
             Sign Out
           </Button>
         </Stack>

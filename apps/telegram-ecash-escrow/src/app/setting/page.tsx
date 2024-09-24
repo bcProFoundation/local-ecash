@@ -3,12 +3,25 @@ import Footer from '@/src/components/Footer/Footer';
 import Header from '@/src/components/Header/Header';
 import MobileLayout from '@/src/components/layout/MobileLayout';
 import CustomToast from '@/src/components/Toast/CustomToast';
-import { getWalletMnemonic, useSliceSelector } from '@bcpros/redux-store';
+import {
+  getSelectedWalletPath,
+  getWalletMnemonic,
+  useSliceSelector as useLixiSliceSelector
+} from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import { CheckCircleOutline } from '@mui/icons-material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { Accordion, AccordionDetails, AccordionSummary, Alert, Button, Typography } from '@mui/material';
-import { signOut } from 'next-auth/react';
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Alert,
+  Backdrop,
+  Button,
+  Stack,
+  Typography
+} from '@mui/material';
+import { signOut, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
@@ -69,7 +82,9 @@ const ContainerSetting = styled.div`
 `;
 
 export default function Setting() {
-  const selectedMnemonic = useSliceSelector(getWalletMnemonic);
+  const { data: sessionData } = useSession();
+  const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
+  const selectedMnemonic = useLixiSliceSelector(getWalletMnemonic);
   // const mainButton = useMainButton();
   // const backButton = useBackButton();
   // const popUp = usePopup();
@@ -141,6 +156,28 @@ export default function Setting() {
     //     console.log(err);
     //   });
   };
+
+  if (selectedWalletPath === null && sessionData) {
+    return (
+      <Backdrop sx={theme => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })} open={true}>
+        <Stack>
+          <Typography variant="h5" align="center">
+            No wallet detected
+          </Typography>
+          <Typography variant="body1" align="center">
+            Please sign out and try again!
+          </Typography>
+          <Button
+            variant="contained"
+            style={{ marginTop: '15px' }}
+            onClick={() => signOut({ redirect: true, callbackUrl: '/' })}
+          >
+            Sign Out
+          </Button>
+        </Stack>
+      </Backdrop>
+    );
+  }
 
   return (
     <MobileLayout>

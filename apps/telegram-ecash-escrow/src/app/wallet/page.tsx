@@ -5,7 +5,6 @@ import AuthorizationLayout from '@/src/components/layout/AuthorizationLayout';
 import MobileLayout from '@/src/components/layout/MobileLayout';
 import QRCode from '@/src/components/QRcode/QRcode';
 import SendComponent from '@/src/components/Send/send';
-import CustomToast from '@/src/components/Toast/CustomToast';
 import { COIN } from '@bcpros/lixi-models';
 import {
   getSelectedWalletPath,
@@ -14,10 +13,10 @@ import {
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
-import { Button, Typography } from '@mui/material';
+import { Backdrop, Button, Stack, Typography } from '@mui/material';
+import { signOut, useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { useState } from 'react';
-import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 const WrapWallet = styled.div`
   position: relative;
@@ -86,16 +85,34 @@ const SendWrap = styled.div`
 `;
 
 export default function Wallet() {
+  const { data: sessionData } = useSession();
   const walletStatusNode = useLixiSliceSelector(getWalletStatusNode);
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
 
   const [address, setAddress] = useState(parseCashAddressToPrefix(COIN.XEC, selectedWalletPath?.cashAddress));
   const [openReceive, setOpenReceive] = useState(true);
-  const [openToastCopySuccess, setOpenToastCopySuccess] = useState(false);
 
-  const handleOnCopy = () => {
-    setOpenToastCopySuccess(true);
-  };
+  if (selectedWalletPath === null && sessionData) {
+    return (
+      <Backdrop sx={theme => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })} open={true}>
+        <Stack>
+          <Typography variant="h5" align="center">
+            No wallet detected
+          </Typography>
+          <Typography variant="body1" align="center">
+            Please sign out and try again!
+          </Typography>
+          <Button
+            variant="contained"
+            style={{ marginTop: '15px' }}
+            onClick={() => signOut({ redirect: true, callbackUrl: '/' })}
+          >
+            Sign Out
+          </Button>
+        </Stack>
+      </Backdrop>
+    );
+  }
 
   return (
     <MobileLayout>
@@ -122,19 +139,7 @@ export default function Wallet() {
             </div>
             {openReceive ? (
               <ReceiveWrap>
-                <CopyToClipboard
-                  style={{
-                    display: 'inline-block',
-                    width: '100%',
-                    position: 'relative'
-                  }}
-                  text={address}
-                  onCopy={handleOnCopy}
-                >
-                  <div>
-                    <QRCode address={address} />
-                  </div>
-                </CopyToClipboard>
+                <QRCode address={address} />
               </ReceiveWrap>
             ) : (
               <SendWrap>
@@ -143,13 +148,6 @@ export default function Wallet() {
             )}
           </WrapContentWallet>
           <Image width={200} height={200} className="shape-reg-footer" src="/shape-reg-footer.svg" alt="" />
-
-          <CustomToast
-            isOpen={openToastCopySuccess}
-            handleClose={() => setOpenToastCopySuccess(false)}
-            content="Copy address to clipboard"
-            type="info"
-          />
         </WrapWallet>
       </AuthorizationLayout>
     </MobileLayout>

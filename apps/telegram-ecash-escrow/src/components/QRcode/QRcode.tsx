@@ -26,7 +26,7 @@ const QRCode: React.FC<QRCodeProps> = ({ address, amount }) => {
   };
 
   return (
-    <React.Fragment>
+    <Stack style={{ margin: 'auto' }}>
       <StyledRawQRCode
         width={'100%'}
         height={'75%'}
@@ -50,7 +50,7 @@ const QRCode: React.FC<QRCodeProps> = ({ address, amount }) => {
           </Alert>
         </Snackbar>
       </Stack>
-    </React.Fragment>
+    </Stack>
   );
 };
 
