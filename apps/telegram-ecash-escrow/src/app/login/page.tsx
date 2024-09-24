@@ -91,14 +91,14 @@ export default function Home() {
           onAuthCallback={async (data: TelegramAuthData) => {
             try {
               await axiosClient.get(`/api/accounts/telegram/${data.id}`);
-              signIn('telegram-login', { redirect: false }, data as any);
+              signIn('telegram-login', { redirect: true, callbackUrl: `/import?id=${data.id}` }, data as any);
 
-              router.push(`/import?id=${data.id}`);
+              // router.push(``);
             } catch {
               dispatch(generateAccount({ coin: 'XEC', telegramId: data.id.toString() }));
-              signIn('telegram-login', { redirect: false }, data as any);
+              signIn('telegram-login', { redirect: false, callbackUrl: '/' }, data as any);
 
-              router.push('/');
+              // router.push('/');
             }
           }}
         />

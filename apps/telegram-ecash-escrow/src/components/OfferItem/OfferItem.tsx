@@ -18,6 +18,7 @@ import styled from '@emotion/styled';
 import ArrowCircleUpRoundedIcon from '@mui/icons-material/ArrowCircleUpRounded';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Button, Card, CardContent, Collapse, IconButton, IconButtonProps, Typography } from '@mui/material';
+import _ from 'lodash';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import React, { useState } from 'react';
@@ -79,9 +80,6 @@ const CardWrapper = styled(Card)`
     .boost-value {
       gap: 3px;
       align-items: center;
-      .coin {
-        font-size: 12px;
-      }
     }
   }
 `;
@@ -174,7 +172,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
   const ExpandMore = styled((props: ExpandMoreProps) => {
     const { ...other } = props;
 
-    return <IconButton {...other} />;
+    return <IconButton {..._.omit(other, 'expand')} />;
   })(({ expand }) => ({
     transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
     marginLeft: 'auto'
