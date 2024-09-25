@@ -90,7 +90,7 @@ const Section = styled.div`
 
 const StyledBadge = styled(Badge)`
   background: #0f98f2;
-  position: fixed;
+  position: absolute;
   z-index: 1;
   left: 40%;
   top: 1rem;
@@ -115,7 +115,7 @@ export default function Home() {
   const [visible, setVisible] = useState(true);
   const [open, setOpen] = useState<boolean>(false);
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
-  const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
+  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
   const { useUpdateAccountTelegramUsernameMutation, useGetAccountByAddressQuery } = accountsApi;
   const { currentData: accountQueryData } = useGetAccountByAddressQuery(
     { address: selectedWalletPath?.xAddress },
@@ -307,7 +307,7 @@ export default function Home() {
             className="btn-create-offer"
             onClick={handleCreateOfferClick}
             style={{
-              right: fullScreen ? `calc((100% - 576px) / 3.5 + 75px)` : `calc((100% - 576px) / 2 + 75px)`
+              right: fullScreen ? `calc((100% - 576px) / 4.5 + 75px)` : `calc((100% - 576px) / 2 + 75px)`
             }}
           >
             <img src="/ico-create-post.svg" alt="create-post-ico" />

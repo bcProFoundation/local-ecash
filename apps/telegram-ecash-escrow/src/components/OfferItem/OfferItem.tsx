@@ -197,9 +197,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
           <span className="prefix">Min / max: </span>
           {offerData?.orderLimitMin} XEC - {offerData?.orderLimitMax} XEC
         </Typography>
-        <ExpandMore expand={expanded} onClick={handleExpandClick} aria-expanded={expanded} aria-label="show more">
-          <ExpandMoreIcon />
-        </ExpandMore>
+        <ExpandMoreIcon onClick={handleExpandClick} style={{ cursor: 'pointer' }} />
       </div>
     </OfferShowWrapItem>
   );

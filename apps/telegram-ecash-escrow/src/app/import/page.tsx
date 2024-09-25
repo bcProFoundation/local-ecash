@@ -1,6 +1,7 @@
 'use client';
 import MobileLayout from '@/src/components/layout/MobileLayout';
 import CustomToast from '@/src/components/Toast/CustomToast';
+import { AccountType, COIN, GenerateAccountType, ImportAccountType } from '@bcpros/lixi-models';
 import {
   axiosClient,
   generateAccount,
@@ -138,7 +139,11 @@ export default function ImportWallet() {
         }
       });
 
-      dispatch(importAccount(recoveryPhrase));
+      const dataImportAccount: ImportAccountType = {
+        mnemonic: recoveryPhrase,
+        coin: COIN.XEC
+      };
+      dispatch(importAccount(dataImportAccount));
 
       setSuccess(true);
     } catch (e) {
@@ -153,7 +158,12 @@ export default function ImportWallet() {
     try {
       await axiosClient.get(`/api/accounts/telegram/unlink/${id}`);
 
-      dispatch(generateAccount({ coin: 'XEC', telegramId: id!.toString() }));
+      const dataGenerateAccount: GenerateAccountType = {
+        coin: COIN.XEC,
+        telegramId: id!.toString(),
+        accountType: AccountType.NORMAL
+      };
+      dispatch(generateAccount(dataGenerateAccount));
 
       setSuccess(true);
     } catch (e) {
