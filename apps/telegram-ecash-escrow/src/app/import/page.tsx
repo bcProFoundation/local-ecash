@@ -5,8 +5,10 @@ import { AccountType, COIN, GenerateAccountType, ImportAccountType } from '@bcpr
 import {
   axiosClient,
   generateAccount,
+  getSelectedWalletPath,
   importAccount,
   useSliceDispatch as useLixiSliceDispatch,
+  useSliceSelector as useLixiSliceSelector,
   WalletContextNode
 } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
@@ -25,7 +27,7 @@ import {
 } from '@mui/material';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 const ContainerImportWallet = styled.div`
@@ -89,6 +91,7 @@ export default function ImportWallet() {
   const [error, setError] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(false);
   const { getXecWalletPublicKey } = useContext(WalletContextNode);
+  const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
   // const mainButton = useMainButton();
   // const backButton = useBackButton();
   // const popUp = usePopup();
@@ -125,6 +128,10 @@ export default function ImportWallet() {
     //   scanner.close();
     // });
   };
+
+  useEffect(() => {
+    selectedWalletPath && router.push('/');
+  }, [selectedWalletPath]);
 
   const importWallet = async (data: { recoveryPhrase: string }) => {
     const { recoveryPhrase } = data;
@@ -171,13 +178,6 @@ export default function ImportWallet() {
     }
 
     setLoading(false);
-  };
-
-  const handleClose = () => {
-    setTimeout(() => {
-      router.push('/');
-    });
-    setSuccess(false);
   };
 
   if (status === 'unauthenticated') {
@@ -278,16 +278,15 @@ export default function ImportWallet() {
             Create new wallet
           </Button>
         </div>
-        <Backdrop sx={{ color: '#fff', zIndex: theme => theme.zIndex.drawer + 1 }} open={loading} onClick={handleClose}>
+        <Backdrop sx={{ color: '#fff', zIndex: theme => theme.zIndex.drawer + 1 }} open={loading}>
           <CircularProgress color={'inherit'} />
         </Backdrop>
         <Stack>
           <CustomToast
             isOpen={success}
-            handleClose={handleClose}
+            handleClose={() => setSuccess(false)}
             content="Import wallet success - Redirecting to home..."
             type="success"
-            autoHideDuration={3000}
           />
           <CustomToast
             isOpen={error}
