@@ -392,17 +392,6 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
           <Grid item xs={12} className="title-location">
             <span>Location</span>
           </Grid>
-          <Grid item xs={12} className="payment-method">
-            <p className="title-payment-method">Payment Methods</p>
-            <Box sx={{ display: 'flex', margin: '16px 0' }}>
-              <FormGroup sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
-                {paymenthods.map(item => CheckBoxUI(item.id, item.name))}
-              </FormGroup>
-            </Box>
-          </Grid>
-          <Grid item xs={12} className="title-location">
-            <span>Location</span>
-          </Grid>
           <Grid item xs={6}>
             <Controller
               name="country"
