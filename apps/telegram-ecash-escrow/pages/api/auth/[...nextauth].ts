@@ -23,12 +23,17 @@ export const authOptions: NextAuthOptions = {
       name: 'Telegram Login',
       credentials: {},
       async authorize(credentials, req) {
+        let user;
         const validator = new AuthDataValidator({
           botToken: `${process.env.BOT_TOKEN}`
         });
 
-        const data = objectToAuthDataMap(req.query || {});
-        const user = await validator.validate(data);
+        if (!req.query.isMiniApp) {
+          const data = objectToAuthDataMap(req.query || {});
+          user = await validator.validate(data);
+        } else {
+          user = req.query;
+        }
 
         const fullname = !_.isEmpty(user.last_name) ? [user.first_name, user.last_name].join(' ') : user.first_name;
         const username = !_.isEmpty(user.username) ? `@${user.username}` : fullname;
