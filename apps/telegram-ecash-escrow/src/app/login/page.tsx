@@ -6,7 +6,6 @@ import styled from '@emotion/styled';
 import { Box, Skeleton, Typography } from '@mui/material';
 import { LoginButton, TelegramAuthData } from '@telegram-auth/react';
 import { signIn, useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 
 function LoadingPlaceholder() {
   return (
@@ -59,9 +58,8 @@ const WrapLoginPage = styled.div`
   border-radius: 25px;
 `;
 
-export default function Home() {
+export default function Login() {
   const { status } = useSession();
-  const router = useRouter();
   const dispatch = useLixiSliceDispatch();
 
   if (status === 'loading') {
@@ -93,8 +91,6 @@ export default function Home() {
             try {
               await axiosClient.get(`/api/accounts/telegram/${data.id}`);
               signIn('telegram-login', { redirect: true, callbackUrl: `/import?id=${data.id}` }, data as any);
-
-              // router.push(``);
             } catch {
               const dataGenerateAccount: GenerateAccountType = {
                 coin: COIN.XEC,
@@ -103,7 +99,6 @@ export default function Home() {
               };
               dispatch(generateAccount(dataGenerateAccount));
               signIn('telegram-login', { redirect: false, callbackUrl: '/' }, data as any);
-              // router.push('/');
             }
           }}
         />

@@ -291,7 +291,7 @@ export default function ImportWallet() {
           <CustomToast
             isOpen={error}
             handleClose={() => setError(false)}
-            content=" Import wallet failed — Please check your mnemonic seed phrase!!"
+            content="Import wallet failed — Please check your mnemonic seed phrase!!"
             type="error"
             autoHideDuration={2000}
           />

@@ -24,6 +24,7 @@ import {
   OfferFilterInput,
   TimelineQueryItem,
   accountsApi,
+  axiosClient,
   getCountries,
   getNewPostAvailable,
   getOfferFilterConfig,
@@ -38,10 +39,12 @@ import {
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
 import { signOut, useSession } from 'next-auth/react';
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import useAuthorization from '../components/Auth/use-authorization.hooks';
+import MiniAppBackdrop from '../components/Common/MiniAppBackdrop';
 import MobileLayout from '../components/layout/MobileLayout';
+import { TelegramMiniAppContext } from '../store/telegram-mini-app-provider';
 
 const WrapHome = styled.div`
   .btn-create-offer {
@@ -112,6 +115,8 @@ export default function Home() {
   const prevRef = useRef(0);
   const theme = useTheme();
   const { data: sessionData } = useSession();
+  const { launchParams } = useContext(TelegramMiniAppContext);
+  const [mismatchAccount, setMismatchAccount] = useState(false);
   const [visible, setVisible] = useState(true);
   const [open, setOpen] = useState<boolean>(false);
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
@@ -152,7 +157,7 @@ export default function Home() {
       fetchNextFilter();
     }
   };
-  const handleCreateOfferClick = e => {
+  const handleCreateOfferClick = () => {
     if (status === 'loading') return;
 
     if (status === 'unauthenticated') {
@@ -213,7 +218,24 @@ export default function Home() {
     dispatch(getCountries());
   }, []);
 
-  if (selectedWalletPath === null && sessionData) {
+  useEffect(() => {
+    if (selectedWalletPath && sessionData) {
+      (async () => {
+        try {
+          await axiosClient.get(`/api/accounts/telegram`, {
+            params: {
+              telegramId: sessionData.user.id,
+              publicKey: selectedWalletPath.publicKey
+            }
+          });
+        } catch (error) {
+          setMismatchAccount(true);
+        }
+      })();
+    }
+  }, [selectedWalletPath, sessionData]);
+
+  if (selectedWalletPath === null && sessionData && !launchParams) {
     return (
       <Backdrop sx={theme => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })} open={true}>
         <Stack>
@@ -235,8 +257,31 @@ export default function Home() {
     );
   }
 
+  if (mismatchAccount) {
+    return (
+      <Backdrop sx={theme => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })} open={true}>
+        <Stack>
+          <Typography variant="h5" align="center">
+            Mismatch Telegram account with current wallet
+          </Typography>
+          <Typography variant="body1" align="center">
+            Please sign out and try again!
+          </Typography>
+          <Button
+            variant="contained"
+            style={{ marginTop: '15px' }}
+            onClick={() => signOut({ redirect: true, callbackUrl: '/' })}
+          >
+            Sign Out
+          </Button>
+        </Stack>
+      </Backdrop>
+    );
+  }
+
   return (
     <MobileLayout>
+      <MiniAppBackdrop />
       <WrapHome>
         <Slide direction="down" in={newPostAvailable && visible}>
           <StyledBadge className="badge-new-offer" color="info" onClick={handleRefresh}>
