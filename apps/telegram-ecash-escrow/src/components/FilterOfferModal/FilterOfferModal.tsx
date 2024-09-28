@@ -13,6 +13,8 @@ import {
 import styled from '@emotion/styled';
 import { CloseOutlined } from '@mui/icons-material';
 import {
+  Autocomplete,
+  Box,
   Button,
   Dialog,
   DialogActions,
@@ -21,10 +23,8 @@ import {
   FormControl,
   Grid,
   IconButton,
-  InputLabel,
-  MenuItem,
-  Select,
   Slide,
+  TextField,
   Typography,
   useMediaQuery,
   useTheme
@@ -178,12 +178,12 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
 
   const handleFilter = async data => {
     const { country, state } = data;
-    const [countryId, countryName] = country ? country.split(':') : [0, ''];
-    const [stateId, stateName] = state ? state.split(':') : [0, ''];
 
     const offerFilterInput: OfferFilterInput = {
-      countryId: countryId && Number(countryId),
-      stateId: stateId && Number(stateId),
+      countryId: country && country.id,
+      stateId: state && state.id,
+      countryName: country && country.name,
+      stateName: state && state.name,
       paymentMethodIds: selectedOptionsPayment
     };
 
@@ -246,27 +246,29 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
                   control={control}
                   render={({ field: { onChange, onBlur, value, name, ref } }) => (
                     <FormControl fullWidth>
-                      <InputLabel id="label-country">Country</InputLabel>
-                      <Select
-                        labelId="label-country"
-                        id="label-country"
-                        label="Country"
+                      <Autocomplete
+                        id="country-select"
+                        options={countries}
+                        autoHighlight
+                        getOptionLabel={option => (option ? option.name : '')}
                         value={value}
-                        onChange={e => {
-                          const stateId = Number(e.target.value.split(':')[0] ?? '0');
-                          onChange(e);
-                          dispatch(getStates(stateId));
-                          setValue('state', null);
+                        onChange={(e, value) => {
+                          onChange(value);
+                          if (value) {
+                            dispatch(getStates(value.id));
+                            setValue('state', null);
+                          }
                         }}
-                        onBlur={onBlur}
-                        name={name}
-                      >
-                        {countries.map(country => (
-                          <MenuItem key={country.id} value={`${country.id}:${country.name}`}>
-                            {country.name}
-                          </MenuItem>
-                        ))}
-                      </Select>
+                        renderOption={(props, option) => {
+                          const { ...optionProps } = props;
+                          return (
+                            <Box {...optionProps} key={option.id} component="li">
+                              {option.name}
+                            </Box>
+                          );
+                        }}
+                        renderInput={params => <TextField {...params} label="Country" />}
+                      />
                     </FormControl>
                   )}
                 />
@@ -277,23 +279,28 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
                   control={control}
                   render={({ field: { onChange, onBlur, value, name, ref } }) => (
                     <FormControl fullWidth>
-                      <InputLabel id="label-state">State</InputLabel>
-                      <Select
-                        labelId="label-state"
-                        id="label-state"
-                        label="State"
-                        name={name}
-                        onBlur={onBlur}
+                      <Autocomplete
+                        id="state-select"
+                        options={states}
+                        autoHighlight
+                        getOptionLabel={option => (option ? option.name : '')}
                         value={value}
-                        onChange={onChange}
+                        onChange={(e, value) => {
+                          if (value) {
+                            onChange(value);
+                          }
+                        }}
                         disabled={!getValues('country')}
-                      >
-                        {states.map(state => (
-                          <MenuItem key={state.id} value={`${state.id}:${state.name}`}>
-                            {state.name}
-                          </MenuItem>
-                        ))}
-                      </Select>
+                        renderOption={(props, option) => {
+                          const { ...optionProps } = props;
+                          return (
+                            <Box {...optionProps} key={option.id} component="li">
+                              {option.name}
+                            </Box>
+                          );
+                        }}
+                        renderInput={params => <TextField {...params} label="State" />}
+                      />
                     </FormControl>
                   )}
                 />
