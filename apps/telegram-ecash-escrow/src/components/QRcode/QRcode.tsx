@@ -15,9 +15,10 @@ export const StyledRawQRCode = styled(RawQRCode)`
 interface QRCodeProps {
   address: string;
   amount?: number;
+  width?: string;
 }
 
-const QRCode: React.FC<QRCodeProps> = ({ address, amount }) => {
+const QRCode: React.FC<QRCodeProps> = ({ address, amount, width }) => {
   const [copy, setCopy] = useState(false);
   const formatAddress = (address: string) => {
     if (!address) return;
@@ -28,7 +29,7 @@ const QRCode: React.FC<QRCodeProps> = ({ address, amount }) => {
   return (
     <Stack style={{ margin: 'auto' }}>
       <StyledRawQRCode
-        width={'100%'}
+        width={width ? width : '100%'}
         height={'75%'}
         includeMargin
         value={amount ? `${address}?amount=${amount}` : address}

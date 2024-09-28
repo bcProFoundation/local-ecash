@@ -1,5 +1,6 @@
 'use client';
 import MobileLayout from '@/src/components/layout/MobileLayout';
+import { AccountType, COIN, GenerateAccountType } from '@bcpros/lixi-models';
 import { axiosClient, generateAccount, useSliceDispatch as useLixiSliceDispatch } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import { Box, Skeleton, Typography } from '@mui/material';
@@ -91,7 +92,12 @@ export default function Login() {
               await axiosClient.get(`/api/accounts/telegram/${data.id}`);
               signIn('telegram-login', { redirect: true, callbackUrl: `/import?id=${data.id}` }, data as any);
             } catch {
-              dispatch(generateAccount({ coin: 'XEC', telegramId: data.id.toString() }));
+              const dataGenerateAccount: GenerateAccountType = {
+                coin: COIN.XEC,
+                telegramId: data.id!.toString(),
+                accountType: AccountType.NORMAL
+              };
+              dispatch(generateAccount(dataGenerateAccount));
               signIn('telegram-login', { redirect: false, callbackUrl: '/' }, data as any);
             }
           }}
