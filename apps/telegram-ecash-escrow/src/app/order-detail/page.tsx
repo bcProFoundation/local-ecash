@@ -1,5 +1,6 @@
 'use client';
 
+import MiniAppBackdrop from '@/src/components/Common/MiniAppBackdrop';
 import OrderDetailInfo from '@/src/components/DetailInfo/OrderDetailInfo';
 import MobileLayout from '@/src/components/layout/MobileLayout';
 import TelegramButton from '@/src/components/TelegramButton/TelegramButton';
@@ -21,7 +22,7 @@ import {
   WalletContextNode
 } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
-import { Alert, Button, Snackbar, Stack, Typography } from '@mui/material';
+import { Alert, Backdrop, Button, CircularProgress, Snackbar, Stack, Typography } from '@mui/material';
 import { MsgTxClient, WsEndpoint_InNode, WsMsgClient } from 'chronik-client';
 import { fromHex, Script, shaRmd160 } from 'ecash-lib';
 import cashaddr from 'ecashaddrjs';
@@ -56,6 +57,7 @@ const OrderDetailContent = styled.div`
 //TODO: Fix tx fee
 const OrderDetail = () => {
   const dispatch = useLixiSliceDispatch();
+  const token = sessionStorage.getItem('Authorization');
   const search = useSearchParams();
   const id = search!.get('id');
   const router = useRouter();
@@ -67,7 +69,10 @@ const OrderDetail = () => {
   const [loading, setLoading] = useState(false);
   const [ws, setWs] = useState<WsEndpoint_InNode>();
   const { useEscrowOrderQuery, useUpdateEscrowOrderStatusMutation } = escrowOrderApi;
-  const { isLoading, currentData, isError, isSuccess } = useEscrowOrderQuery({ id: id! }, { skip: !id });
+  const { isLoading, currentData, isError, isSuccess, isUninitialized } = useEscrowOrderQuery(
+    { id: id! },
+    { skip: !id || !token }
+  );
   const { useCreateDisputeMutation } = disputeApi;
   const [createDisputeTrigger] = useCreateDisputeMutation();
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
@@ -579,29 +584,35 @@ const OrderDetail = () => {
   }, [currentData?.escrowOrder.escrowTxids]);
 
   if (_.isEmpty(id) || _.isNil(id) || isError) {
-    return <div>Invalid order id</div>;
+    return <div style={{ color: 'white' }}>Invalid order id</div>;
   }
-
-  if (isLoading) return <div>Loading...</div>;
 
   return (
     <MobileLayout>
+      {(isLoading || isUninitialized) && (
+        <Backdrop sx={theme => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })} open={true}>
+          <CircularProgress color="inherit" />
+        </Backdrop>
+      )}
+      <MiniAppBackdrop />
       <OrderDetailPage>
-        <TickerHeader title="Order detail" />
-        <OrderDetailContent>
-          <OrderDetailInfo item={currentData?.escrowOrder} />
-          <br />
-          {escrowStatus()}
-          <br />
-          {escrowActionButtons()}
-          {(currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Active ||
-            currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Escrow) && (
-            <Button onClick={handleOpenQRcodeModal} variant="contained" style={{ width: '100%' }}>
-              Open QRcode
-            </Button>
-          )}
-          {telegramButton()}
-        </OrderDetailContent>
+        <TickerHeader title="Order Detail" />
+        {currentData?.escrowOrder && (
+          <OrderDetailContent>
+            <OrderDetailInfo item={currentData?.escrowOrder} />
+            <br />
+            {escrowStatus()}
+            <br />
+            {escrowActionButtons()}
+            {(currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Active ||
+              currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Escrow) && (
+              <Button onClick={handleOpenQRcodeModal} variant="contained" style={{ width: '100%' }}>
+                Open QRcode
+              </Button>
+            )}
+            {telegramButton()}
+          </OrderDetailContent>
+        )}
 
         <Stack zIndex={999}>
           <Snackbar open={error} autoHideDuration={3500} onClose={() => setError(false)}>

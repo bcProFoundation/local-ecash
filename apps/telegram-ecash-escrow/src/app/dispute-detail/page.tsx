@@ -1,4 +1,5 @@
 'use client';
+import MiniAppBackdrop from '@/src/components/Common/MiniAppBackdrop';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
 import {
   ArbiReleaseSignatory,
@@ -21,7 +22,9 @@ import styled from '@emotion/styled';
 import { ChevronLeft } from '@mui/icons-material';
 import {
   Alert,
+  Backdrop,
   Button,
+  CircularProgress,
   Dialog,
   DialogContent,
   DialogTitle,
@@ -176,6 +179,7 @@ export default function DisputeDetail() {
   const search = useSearchParams();
   const id = search!.get('id');
   const theme = useTheme();
+  const token = sessionStorage.getItem('Authorization');
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -189,8 +193,9 @@ export default function DisputeDetail() {
   const {
     isLoading: isLoadingDispute,
     currentData: disputeQueryData,
+    isUninitialized: isUninitializedDispute,
     isError
-  } = useDisputeQuery({ id: id! }, { skip: !id });
+  } = useDisputeQuery({ id: id! }, { skip: !id || !token });
   const { currentData: escrowOrderQueryData } = useEscrowOrderQuery(
     { id: disputeQueryData?.dispute.escrowOrder.id },
     { skip: !disputeQueryData?.dispute.escrowOrder.id }
@@ -358,79 +363,91 @@ export default function DisputeDetail() {
 
   return (
     <React.Fragment>
+      {(isLoadingDispute || isUninitializedDispute) && (
+        <Backdrop sx={theme => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })} open={true}>
+          <CircularProgress color="inherit" />
+        </Backdrop>
+      )}
+      <MiniAppBackdrop />
       <TickerHeader title="Dispute detail" />
-      <ResolveDisputeWrap>
-        <DisputeDetailInfoWrap>
-          <Typography variant="body1">
-            <span className="prefix">Dispute by: </span>
-            {disputeQueryData?.dispute.createdBy === escrowOrder.sellerAccount.publicKey ? 'Seller' : 'Buyer'}
-          </Typography>
-          <Typography variant="body1">
-            <span className="prefix">Order Id: </span>
-            {escrowOrder?.id}
-          </Typography>
-          <Typography variant="body1">
-            <span className="prefix">Created At: </span>
-            {new Date(escrowOrder?.createdAt).toLocaleString()}
-          </Typography>
-          <Typography variant="body1">
-            <span className="prefix">Seller: </span>
-            {escrowOrder.sellerAccount.telegramUsername}
-          </Typography>
-          <Typography variant="body1">
-            <span className="prefix">Buyer: </span>
-            {escrowOrder.buyerAccount.telegramUsername}
-          </Typography>
-          <Typography>
-            <span className="prefix">Escrow Address: </span>
-            <a href={`${coinInfo[COIN.XEC].blockExplorerUrl}/address/${escrowOrder.escrowAddress}`} target="_blank">
-              {escrowOrder.escrowAddress}
-            </a>
-          </Typography>
-          <Typography variant="body1" className="amount-escrowed">
-            <span className="prefix">Escrowed amount: </span>
-            {escrowOrder.amount} XEC
-          </Typography>
-        </DisputeDetailInfoWrap>
-        <div className="group-btn-chat">
+
+      {disputeQueryData?.dispute && (
+        <React.Fragment>
+          {' '}
+          <ResolveDisputeWrap>
+            <DisputeDetailInfoWrap>
+              <Typography variant="body1">
+                <span className="prefix">Dispute by: </span>
+                {disputeQueryData?.dispute.createdBy === escrowOrder.sellerAccount.publicKey ? 'Seller' : 'Buyer'}
+              </Typography>
+              <Typography variant="body1">
+                <span className="prefix">Order Id: </span>
+                {escrowOrder?.id}
+              </Typography>
+              <Typography variant="body1">
+                <span className="prefix">Created At: </span>
+                {new Date(escrowOrder?.createdAt).toLocaleString()}
+              </Typography>
+              <Typography variant="body1">
+                <span className="prefix">Seller: </span>
+                {escrowOrder.sellerAccount.telegramUsername}
+              </Typography>
+              <Typography variant="body1">
+                <span className="prefix">Buyer: </span>
+                {escrowOrder.buyerAccount.telegramUsername}
+              </Typography>
+              <Typography>
+                <span className="prefix">Escrow Address: </span>
+                <a href={`${coinInfo[COIN.XEC].blockExplorerUrl}/address/${escrowOrder.escrowAddress}`} target="_blank">
+                  {escrowOrder.escrowAddress}
+                </a>
+              </Typography>
+              <Typography variant="body1" className="amount-escrowed">
+                <span className="prefix">Escrowed amount: </span>
+                {escrowOrder.amount} XEC
+              </Typography>
+            </DisputeDetailInfoWrap>
+            <div className="group-btn-chat">
+              <Button
+                className="chat-btn"
+                color="inherit"
+                variant="text"
+                style={{ color: 'white' }}
+                onClick={() =>
+                  handleTelegramClick(escrowOrder.sellerAccount.telegramUsername, escrowOrder.sellerAccount.publicKey)
+                }
+                disabled={isLoading || isFetching}
+              >
+                Chat with seller
+                <Image width={32} height={32} alt="" src={'/ico-telegram.svg'} />
+              </Button>
+              <Button
+                className="chat-btn"
+                color="inherit"
+                variant="text"
+                style={{ color: 'white' }}
+                onClick={() =>
+                  handleTelegramClick(escrowOrder.buyerAccount.telegramUsername, escrowOrder.buyerAccount.publicKey)
+                }
+                disabled={isLoading || isFetching}
+              >
+                Chat with buyer
+                <Image width={32} height={32} alt="" src={'/ico-telegram.svg'} />
+              </Button>
+            </div>
+          </ResolveDisputeWrap>
           <Button
-            className="chat-btn"
-            color="inherit"
-            variant="text"
-            style={{ color: 'white' }}
-            onClick={() =>
-              handleTelegramClick(escrowOrder.sellerAccount.telegramUsername, escrowOrder.sellerAccount.publicKey)
-            }
-            disabled={isLoading || isFetching}
+            className="resolve-btn"
+            color="info"
+            variant="contained"
+            fullWidth
+            onClick={() => setOpenReleaseModal(true)}
+            disabled={escrowOrder?.dispute.status === DisputeStatus.Resolved}
           >
-            Chat with seller
-            <Image width={32} height={32} alt="" src={'/ico-telegram.svg'} />
+            {escrowOrder?.dispute.status === DisputeStatus.Resolved ? 'The dispute has been resolved' : 'Resolve'}
           </Button>
-          <Button
-            className="chat-btn"
-            color="inherit"
-            variant="text"
-            style={{ color: 'white' }}
-            onClick={() =>
-              handleTelegramClick(escrowOrder.buyerAccount.telegramUsername, escrowOrder.buyerAccount.publicKey)
-            }
-            disabled={isLoading || isFetching}
-          >
-            Chat with buyer
-            <Image width={32} height={32} alt="" src={'/ico-telegram.svg'} />
-          </Button>
-        </div>
-      </ResolveDisputeWrap>
-      <Button
-        className="resolve-btn"
-        color="info"
-        variant="contained"
-        fullWidth
-        onClick={() => setOpenReleaseModal(true)}
-        disabled={escrowOrder?.dispute.status === DisputeStatus.Resolved}
-      >
-        {escrowOrder?.dispute.status === DisputeStatus.Resolved ? 'The dispute has been resolved' : 'Resolve'}
-      </Button>
+        </React.Fragment>
+      )}
 
       <StyledReleaseDialog
         fullScreen={fullScreen}

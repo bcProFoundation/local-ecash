@@ -34,6 +34,7 @@ type OrderItemProps = {
 
 const OrderDetailInfo = ({ item }: OrderItemProps) => {
   const order = item;
+
   return (
     <OrderDetailWrap>
       <Typography variant="body1">
