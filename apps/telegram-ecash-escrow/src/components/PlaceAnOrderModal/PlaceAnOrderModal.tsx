@@ -13,7 +13,6 @@ import {
 import styled from '@emotion/styled';
 import { ChevronLeft } from '@mui/icons-material';
 import {
-  Alert,
   Button,
   Dialog,
   DialogActions,
@@ -26,7 +25,6 @@ import {
   RadioGroup,
   Skeleton,
   Slide,
-  Snackbar,
   TextField,
   Typography,
   useMediaQuery,
@@ -39,6 +37,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import CustomToast from '../Toast/CustomToast';
 
 interface PlaceAnOrderModalProps {
   isOpen: boolean;
@@ -507,11 +506,13 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
           </Button>
         </DialogActions>
       </StyledDialog>
-      <Snackbar open={arbiDataError} autoHideDuration={3500} onClose={() => setArbiDataError(false)}>
-        <Alert severity="error" variant="filled" sx={{ width: '100%' }}>
-          Can&apos;t get arbi/mod data
-        </Alert>
-      </Snackbar>
+      <CustomToast
+        isOpen={arbiDataError}
+        content="Can't get arbi/mod data"
+        handleClose={() => setArbiDataError(false)}
+        type="error"
+        autoHideDuration={3500}
+      />
     </React.Fragment>
   );
 };

@@ -2,10 +2,11 @@
 
 import styled from '@emotion/styled';
 import { CopyAllOutlined } from '@mui/icons-material';
-import { Alert, Button, Snackbar, Stack, Typography } from '@mui/material';
+import { Button, Stack, Typography } from '@mui/material';
 import RawQRCode from 'qrcode.react';
 import React, { useState } from 'react';
 import CopyToClipboard from 'react-copy-to-clipboard';
+import CustomToast from '../Toast/CustomToast';
 
 export const StyledRawQRCode = styled(RawQRCode)`
   cursor: pointer;
@@ -27,7 +28,7 @@ const QRCode: React.FC<QRCodeProps> = ({ address, amount, width }) => {
   };
 
   return (
-    <Stack style={{ margin: 'auto' }}>
+    <Stack style={{ margin: 'auto', alignItems: 'center' }}>
       <StyledRawQRCode
         width={width ? width : '100%'}
         height={'75%'}
@@ -43,14 +44,12 @@ const QRCode: React.FC<QRCodeProps> = ({ address, amount, width }) => {
         </CopyToClipboard>
       </Typography>
 
-      <Stack>
-        <Snackbar open={copy} autoHideDuration={3500} onClose={() => setCopy(false)}>
-          <Alert severity="success" variant="filled" sx={{ width: '100%' }}>
-            Address copied to clipboard
-            <br />
-          </Alert>
-        </Snackbar>
-      </Stack>
+      <CustomToast
+        isOpen={copy}
+        content="Address copied to clipboard"
+        handleClose={() => setCopy(false)}
+        type="success"
+      />
     </Stack>
   );
 };
