@@ -222,6 +222,7 @@ const Transition = React.forwardRef(function Transition(
 
 const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const theme = useTheme();
+  const [loading, setLoading] = useState(false);
   const { post, isOpen }: { post: PostQueryItem; isOpen: boolean } = props;
   const { data } = useSession();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
@@ -251,6 +252,8 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   } = useForm();
 
   const handleCreateEscrowOrder = async data => {
+    setLoading(true);
+
     if (moderatorIsError || arbitratorIsError) {
       setArbiDataError(true);
 
@@ -305,6 +308,8 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     } catch (e) {
       console.log(e);
     }
+
+    setLoading(false);
   };
 
   return (
@@ -495,6 +500,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
             variant="contained"
             onClick={handleSubmit(handleCreateEscrowOrder)}
             autoFocus
+            disabled={loading}
           >
             Create
           </Button>
