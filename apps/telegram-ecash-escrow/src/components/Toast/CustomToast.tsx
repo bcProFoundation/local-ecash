@@ -29,10 +29,11 @@ const CustomToast: React.FC<CustomToastProps> = ({
         autoHideDuration={autoHideDuration ?? 1200}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
         onClose={handleClose}
+        style={{ maxWidth: '450px' }}
       >
         <Alert onClose={handleClose} variant="filled" severity={type} sx={{ width: '100%' }}>
           {isLink ? (
-            <a href={linkDescription} target="_blank">
+            <a href={linkDescription} target="_blank" style={{ color: '#fff', textDecoration: 'none' }}>
               {content}
             </a>
           ) : (

@@ -1,40 +1,36 @@
 'use client';
+import MobileLayout from '@/src/components/layout/MobileLayout';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
-import {
-  ArbiReleaseSignatory,
-  ArbiReturnSignatory,
-  BuildReleaseTx,
-  ModReleaseSignatory,
-  ModReturnSignatory
-} from '@/src/store/escrow';
+import CustomToast from '@/src/components/Toast/CustomToast';
+import { ArbiReturnSignatory, BuildReleaseTx, ModReturnSignatory } from '@/src/store/escrow';
 import { COIN, coinInfo } from '@bcpros/lixi-models';
 import {
-  DisputeStatus,
-  EscrowOrderStatus,
-  WalletContextNode,
   disputeApi,
+  DisputeStatus,
   escrowOrderApi,
+  EscrowOrderStatus,
   getSelectedWalletPath,
-  useSliceSelector as useLixiSliceSelector
+  parseCashAddressToPrefix,
+  useSliceSelector as useLixiSliceSelector,
+  WalletContextNode
 } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import { ChevronLeft } from '@mui/icons-material';
 import {
-  Alert,
   Button,
   Dialog,
   DialogContent,
   DialogTitle,
   IconButton,
   Slide,
-  Snackbar,
   Stack,
+  TextField,
   Typography,
   useMediaQuery,
   useTheme
 } from '@mui/material';
 import { TransitionProps } from '@mui/material/transitions';
-import { Script, fromHex, shaRmd160 } from 'ecash-lib';
+import { fromHex, Script, shaRmd160 } from 'ecash-lib';
 import _ from 'lodash';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
@@ -48,19 +44,6 @@ const DisputeDetailInfoWrap = styled.div`
   .prefix {
     font-size: 14px;
     color: #79869b;
-  }
-
-  .cash-in-btn {
-    margin-right: 8px;
-    border-radius: 16px;
-    font-size: 12px;
-    text-transform: none;
-  }
-
-  .bank-transfer-btn {
-    border-radius: 16px;
-    font-size: 12px;
-    text-transform: none;
   }
 
   .amount-escrowed {
@@ -92,9 +75,16 @@ const ResolveDisputeWrap = styled.div`
       justify-content: flex-start;
       text-transform: none;
       gap: 8px;
-      padding: 8px 0;
+      padding: 10px;
+      color: #fff;
       font-weight: 600;
     }
+  }
+
+  .resolve-btn {
+    margin-top: 15px;
+    color: #fff;
+    font-weight: 600;
   }
 `;
 
@@ -103,6 +93,13 @@ const StyledReleaseDialog = styled(Dialog)`
     background-image: url('/bg-dialog.svg');
     background-repeat: no-repeat;
     background-size: cover;
+    width: 500px;
+    height: 100vh;
+    max-height: 100%;
+    margin: 0;
+    @media (max-width: 576px) {
+      width: 100%;
+    }
   }
 
   .MuiIconButton-root {
@@ -128,7 +125,6 @@ const StyledReleaseDialog = styled(Dialog)`
     position: absolute;
     left: 8px;
     top: 20px;
-    // border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 12px;
 
     svg {
@@ -154,11 +150,11 @@ const ReleaseDisputeWrap = styled.div`
     }
 
     .disclaim-buyer {
-      color: #29b6f6;
+      color: #f57c00;
     }
 
     .disclaim-seller {
-      color: #f44336;
+      color: #29b6f6;
     }
   }
 `;
@@ -177,12 +173,20 @@ export default function DisputeDetail() {
   const id = search!.get('id');
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
+  const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
+  const Wallet = useContext(WalletContextNode);
+  const { chronik } = Wallet;
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
-  const [release, setRelease] = useState(false);
-  const [cancel, setCancel] = useState(false);
+  const [releaseByArb, setReleaseByArb] = useState(false);
+  const [returnByArb, setReturnByArb] = useState(false);
   const [request, setRequest] = useState(false);
   const [requestFail, setRequestFail] = useState(false);
+  const [openReleaseModal, setOpenReleaseModal] = useState<boolean>(false);
+  const [validTextToRelease, setValidTextToRelease] = useState('');
+  const [validTextToReturn, setValidTextToReturn] = useState('');
+
   const { useDisputeQuery } = disputeApi;
   const { useEscrowOrderQuery, useUpdateEscrowOrderStatusMutation, useLazyArbiRequestTelegramChatQuery } =
     escrowOrderApi;
@@ -196,133 +200,79 @@ export default function DisputeDetail() {
     { skip: !disputeQueryData?.dispute.escrowOrder.id }
   );
   const { escrowOrder } = { ...escrowOrderQueryData };
-  const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
-  const [openReleaseModal, setOpenReleaseModal] = useState<boolean>(false);
-  const Wallet = useContext(WalletContextNode);
   const [updateOrderTrigger] = useUpdateEscrowOrderStatusMutation();
   const [trigger, { isFetching, isLoading }] = useLazyArbiRequestTelegramChatQuery();
-  const { chronik } = Wallet;
 
-  const handleArbiModReleaseEscrow = async () => {
+  const handleArbModReleaseReturn = async (spenderPkStr: string, status: EscrowOrderStatus) => {
     setLoading(true);
 
     const id = disputeQueryData?.dispute.escrowOrder.id;
-    const status = EscrowOrderStatus.Complete;
-    const isArbi = selectedWalletPath?.hash160 === escrowOrder.arbitratorAccount.hash160;
     const escrowTxids = escrowOrder?.escrowTxids;
-    const buyerPk = fromHex(escrowOrder.buyerAccount.publicKey as string);
-    const buyerPkh = shaRmd160(buyerPk);
-    const buyerP2pkh = Script.p2pkh(buyerPkh);
+    const isArbi = selectedWalletPath?.hash160 === escrowOrder.arbitratorAccount.hash160;
+
     const nonce = escrowOrder.nonce as string;
     const script = Buffer.from(escrowOrder.escrowScript as string, 'hex');
     const escrowScript = new Script(script);
+    const spenderPk = fromHex(spenderPkStr);
+    const spenderPkh = shaRmd160(spenderPk);
+    const spenderP2pkh = Script.p2pkh(spenderPkh);
+
+    const { amount } = escrowOrder;
+    const arbModAddress = parseCashAddressToPrefix(COIN.XEC, selectedWalletPath?.cashAddress);
+    const disputeFee = calDisputeFee(amount);
 
     if (isArbi) {
       try {
-        const { amount } = escrowOrder;
-        const arbiSK = fromHex(selectedWalletPath?.privateKey);
-        const arbiPk = fromHex(selectedWalletPath?.publicKey);
-
-        const arbiSignatory = ArbiReleaseSignatory(arbiSK, arbiPk, buyerPk, nonce);
-
-        const txBuild = BuildReleaseTx(escrowTxids, amount, escrowScript, arbiSignatory, buyerP2pkh);
-
-        const txid = (await chronik.broadcastTx(txBuild)).txid;
-
-        // update order status to escrow
-        await updateOrderTrigger({ input: { orderId: id, status, txid } })
-          .unwrap()
-          .catch(() => setError(true));
-
-        // show snackbar
-        setRelease(true);
-      } catch (e) {
-        console.log(e);
-      }
-    } else {
-      try {
-        const { amount } = escrowOrder;
-        const modSk = fromHex(selectedWalletPath?.privateKey);
-        const modPk = fromHex(selectedWalletPath?.publicKey);
-
-        const escrowScript = new Script(script);
-        const modSignatory = ModReleaseSignatory(modSk, modPk, buyerPk, nonce);
-
-        const txBuild = BuildReleaseTx(escrowTxids, amount, escrowScript, modSignatory, buyerP2pkh);
-
-        const txid = (await chronik.broadcastTx(txBuild)).txid;
-
-        // update order status to escrow
-        await updateOrderTrigger({ input: { orderId: id, status, txid } })
-          .unwrap()
-          .catch(() => setError(true));
-
-        // show snackbar
-        setRelease(true);
-      } catch (e) {
-        console.log(e);
-      }
-    }
-
-    setLoading(false);
-  };
-
-  const handleArbiModReturnEscrow = async () => {
-    setLoading(true);
-
-    const id = disputeQueryData?.dispute.escrowOrder.id;
-    const status = EscrowOrderStatus.Cancel;
-    const isArbi = selectedWalletPath?.hash160 === escrowOrder.arbitratorAccount.hash160;
-    const escrowTxids = escrowOrder?.escrowTxids;
-    const sellerPk = fromHex(escrowOrder.sellerAccount.publicKey as string);
-    const sellerPkh = shaRmd160(sellerPk);
-    const sellerP2pkh = Script.p2pkh(sellerPkh);
-    const nonce = escrowOrder.nonce as string;
-    const script = Buffer.from(escrowOrder.escrowScript as string, 'hex');
-    const escrowScript = new Script(script);
-
-    if (isArbi) {
-      try {
-        const { amount } = escrowOrder;
         const arbiSk = fromHex(selectedWalletPath?.privateKey);
         const arbiPk = fromHex(selectedWalletPath?.publicKey);
 
-        const arbiSignatory = ArbiReturnSignatory(arbiSk, arbiPk, sellerPk, nonce);
+        const arbiSignatory = ArbiReturnSignatory(arbiSk, arbiPk, spenderPk, nonce);
 
-        const txBuild = BuildReleaseTx(escrowTxids, amount, escrowScript, arbiSignatory, sellerP2pkh);
+        const txBuild = BuildReleaseTx(
+          escrowTxids,
+          amount,
+          escrowScript,
+          arbiSignatory,
+          spenderP2pkh,
+          arbModAddress,
+          disputeFee
+        );
 
         const txid = (await chronik.broadcastTx(txBuild)).txid;
 
         // update order status to escrow
         await updateOrderTrigger({ input: { orderId: id, status, txid } })
           .unwrap()
+          .then(() => setReturnByArb(true))
           .catch(() => setError(true));
-
-        // show snackbar
-        setCancel(true);
       } catch (e) {
         console.log(e);
       }
     } else {
       try {
-        const { amount } = escrowOrder;
         const modSk = fromHex(selectedWalletPath?.privateKey);
         const modPk = fromHex(selectedWalletPath?.publicKey);
 
         const escrowScript = new Script(script);
-        const modSignatory = ModReturnSignatory(modSk, modPk, sellerPk, nonce);
+        const modSignatory = ModReturnSignatory(modSk, modPk, spenderPk, nonce);
 
-        const txBuild = BuildReleaseTx(escrowTxids, amount, escrowScript, modSignatory, sellerP2pkh);
+        const txBuild = BuildReleaseTx(
+          escrowTxids,
+          amount,
+          escrowScript,
+          modSignatory,
+          spenderP2pkh,
+          arbModAddress,
+          disputeFee
+        );
 
         const txid = (await chronik.broadcastTx(txBuild)).txid;
 
         // update order status to escrow
         await updateOrderTrigger({ input: { orderId: id, status, txid } })
           .unwrap()
+          .then(() => setReturnByArb(true))
           .catch(() => setError(true));
-
-        // show snackbar
-        setCancel(true);
       } catch (e) {
         console.log(e);
       }
@@ -330,6 +280,20 @@ export default function DisputeDetail() {
 
     setOpenReleaseModal(false);
     setLoading(false);
+  };
+
+  const handleArbiModReleaseEscrow = async () => {
+    const status = EscrowOrderStatus.Complete;
+    const buyerPk = escrowOrder.buyerAccount.publicKey;
+
+    handleArbModReleaseReturn(buyerPk, status);
+  };
+
+  const handleArbiModReturnEscrow = async () => {
+    const status = EscrowOrderStatus.Cancel;
+    const sellerPk = escrowOrder.sellerAccount.publicKey;
+
+    handleArbModReleaseReturn(sellerPk, status);
   };
 
   const handleTelegramClick = async (username, publicKey) => {
@@ -341,6 +305,12 @@ export default function DisputeDetail() {
         .then(() => setRequest(true))
         .catch(() => setRequestFail(true));
     }
+  };
+
+  const calDisputeFee = (amount: number) => {
+    const fee1Percent = parseFloat((amount / 100).toFixed(2));
+    const dustXEC = coinInfo[COIN.XEC].dustSats / Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
+    return Math.max(fee1Percent, dustXEC);
   };
 
   if (
@@ -357,7 +327,7 @@ export default function DisputeDetail() {
   if (isLoadingDispute) return <div>Loading...</div>;
 
   return (
-    <React.Fragment>
+    <MobileLayout>
       <TickerHeader title="Dispute detail" />
       <ResolveDisputeWrap>
         <DisputeDetailInfoWrap>
@@ -365,6 +335,12 @@ export default function DisputeDetail() {
             <span className="prefix">Dispute by: </span>
             {disputeQueryData?.dispute.createdBy === escrowOrder.sellerAccount.publicKey ? 'Seller' : 'Buyer'}
           </Typography>
+          {disputeQueryData?.dispute?.reason && (
+            <Typography variant="body1">
+              <span className="prefix">Reason: </span>
+              {disputeQueryData.dispute.reason}
+            </Typography>
+          )}
           <Typography variant="body1">
             <span className="prefix">Order Id: </span>
             {escrowOrder?.id}
@@ -383,21 +359,33 @@ export default function DisputeDetail() {
           </Typography>
           <Typography>
             <span className="prefix">Escrow Address: </span>
-            <a href={`${coinInfo[COIN.XEC].blockExplorerUrl}/address/${escrowOrder.escrowAddress}`} target="_blank">
-              {escrowOrder.escrowAddress}
+            <a
+              style={{
+                color: 'cornflowerblue',
+                wordWrap: 'break-word',
+                maxWidth: '100%',
+                display: 'inline-block'
+              }}
+              href={`${coinInfo[COIN.XEC].blockExplorerUrl}/address/${escrowOrder.escrowAddress}`}
+              target="_blank"
+            >
+              <span>{escrowOrder.escrowAddress}</span>
             </a>
           </Typography>
           <Typography variant="body1" className="amount-escrowed">
             <span className="prefix">Escrowed amount: </span>
-            {escrowOrder.amount} XEC
+            {escrowOrder.amount} {COIN.XEC}
+          </Typography>
+          <Typography variant="body1" className="amount-seller">
+            <span className="prefix">Dispute fee by seller: </span>
+            {calDisputeFee(escrowOrder.amount)} {COIN.XEC}
           </Typography>
         </DisputeDetailInfoWrap>
         <div className="group-btn-chat">
           <Button
             className="chat-btn"
-            color="inherit"
-            variant="text"
-            style={{ color: 'white' }}
+            color="info"
+            variant="contained"
             onClick={() =>
               handleTelegramClick(escrowOrder.sellerAccount.telegramUsername, escrowOrder.sellerAccount.publicKey)
             }
@@ -408,9 +396,8 @@ export default function DisputeDetail() {
           </Button>
           <Button
             className="chat-btn"
-            color="inherit"
-            variant="text"
-            style={{ color: 'white' }}
+            color="info"
+            variant="contained"
             onClick={() =>
               handleTelegramClick(escrowOrder.buyerAccount.telegramUsername, escrowOrder.buyerAccount.publicKey)
             }
@@ -420,17 +407,17 @@ export default function DisputeDetail() {
             <Image width={32} height={32} alt="" src={'/ico-telegram.svg'} />
           </Button>
         </div>
+        <Button
+          className="resolve-btn"
+          color="primary"
+          variant="contained"
+          fullWidth
+          onClick={() => setOpenReleaseModal(true)}
+          disabled={escrowOrder?.dispute.status === DisputeStatus.Resolved}
+        >
+          {escrowOrder?.dispute.status === DisputeStatus.Resolved ? 'The dispute has been resolved' : 'Resolve'}
+        </Button>
       </ResolveDisputeWrap>
-      <Button
-        className="resolve-btn"
-        color="info"
-        variant="contained"
-        fullWidth
-        onClick={() => setOpenReleaseModal(true)}
-        disabled={escrowOrder?.dispute.status === DisputeStatus.Resolved}
-      >
-        {escrowOrder?.dispute.status === DisputeStatus.Resolved ? 'The dispute has been resolved' : 'Resolve'}
-      </Button>
 
       <StyledReleaseDialog
         fullScreen={fullScreen}
@@ -441,111 +428,110 @@ export default function DisputeDetail() {
         <IconButton className="back-btn" onClick={() => setOpenReleaseModal(false)}>
           <ChevronLeft />
         </IconButton>
-        <DialogTitle>Release Dispute</DialogTitle>
+        <DialogTitle>Resolve Dispute</DialogTitle>
         <DialogContent>
           <ReleaseDisputeWrap>
             <div className="seller-release">
               <Typography textAlign="center" variant="body1">
-                Are you sure you want to return {escrowOrder?.amount} XEC to Seller ?
+                Are you sure you want to return {escrowOrder?.amount} XEC to Seller:{' '}
+                {escrowOrder?.sellerAccount?.telegramUsername} ?
               </Typography>
-              {/* <TextField
-                className="form-input"
+              <TextField
                 id="input-seller"
-                label="Type seller Telegram username to release 20M XEC to @seller1"
-                defaultValue="ericson"
-                // helperText="helper text here."
-                variant="standard"
-              /> */}
+                placeholder={`Type ${escrowOrder?.sellerAccount?.telegramUsername} to return`}
+                onChange={e => {
+                  setValidTextToReturn(e?.target?.value);
+                }}
+                variant="outlined"
+              />
               <Button
                 variant="contained"
                 color="info"
                 onClick={() => handleArbiModReturnEscrow()}
                 autoFocus
-                disabled={loading}
+                disabled={loading || validTextToReturn !== escrowOrder?.sellerAccount?.telegramUsername}
               >
                 Return to Seller
               </Button>
-              {/* <Typography className="disclaim-seller" textAlign="center" variant="body2">
-                Collect 200k XEC dispute fees from buyer
-              </Typography> */}
+              <Typography className="disclaim-seller" textAlign="center" variant="body2">
+                *You will collect {calDisputeFee(escrowOrder?.amount)} {COIN.XEC} (dispute fees) from seller
+              </Typography>
             </div>
             <hr />
             <div className="buyer-release">
               <Typography textAlign="center" variant="body1">
-                Are you sure you want to release {escrowOrder?.amount} XEC to Buyer ?
+                Are you sure you want to release {escrowOrder?.amount} XEC to Buyer:{' '}
+                {escrowOrder?.buyerAccount?.telegramUsername} ?
               </Typography>
-              {/* <TextField
-                className="form-input"
+              <TextField
                 id="input-buyer"
-                label="Type buyer Telegram username to release 20M XEC to @buyer1"
-                defaultValue="nghiacc"
-                // helperText="helper text here."
-                variant="standard"
-              /> */}
+                placeholder={`Type ${escrowOrder?.buyerAccount?.telegramUsername} to release`}
+                onChange={e => {
+                  setValidTextToRelease(e?.target?.value);
+                }}
+                variant="outlined"
+              />
               <Button
                 variant="contained"
-                color="error"
+                color="warning"
                 onClick={() => handleArbiModReleaseEscrow()}
                 autoFocus
-                disabled={loading}
+                disabled={loading || validTextToRelease !== escrowOrder?.buyerAccount?.telegramUsername}
               >
                 Release to Buyer
               </Button>
-              {/* <Typography className="disclaim-buyer" textAlign="center" variant="body2">
-                Collect 200k XEC dispute fees from seller
-              </Typography> */}
+              <Typography className="disclaim-buyer" textAlign="center" variant="body2">
+                *You will collect {calDisputeFee(escrowOrder?.amount)} {COIN.XEC} (dispute fees) from seller
+              </Typography>
             </div>
           </ReleaseDisputeWrap>
         </DialogContent>
       </StyledReleaseDialog>
 
       <Stack zIndex={999}>
-        <Snackbar open={error} autoHideDuration={3500} onClose={() => setError(false)}>
-          <Alert severity="error" variant="filled" sx={{ width: '100%' }}>
-            Order&apos;s status update failed
-          </Alert>
-        </Snackbar>
+        <CustomToast
+          isOpen={error}
+          content="Order's status update failed"
+          handleClose={() => setError(false)}
+          type="error"
+          autoHideDuration={3500}
+        />
 
-        <Snackbar open={release} autoHideDuration={3500} onClose={() => setRelease(false)}>
-          <Alert severity="success" variant="filled" sx={{ width: '100%' }}>
-            Order released successfully
-            <br />
-            <a
-              href={`${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${escrowOrder?.releaseTxid}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              View transaction
-            </a>
-          </Alert>
-        </Snackbar>
+        <CustomToast
+          isOpen={releaseByArb}
+          content="Order release to buyer successfully. Click here to see transaction!"
+          handleClose={() => setReleaseByArb(false)}
+          type="success"
+          autoHideDuration={3500}
+          isLink={true}
+          linkDescription={`${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${escrowOrder?.releaseTxid}`}
+        />
 
-        <Snackbar open={cancel} autoHideDuration={3500} onClose={() => setCancel(false)}>
-          <Alert severity="success" variant="filled" sx={{ width: '100%' }}>
-            Order cancelled successfully. Funds have been returned to the seller
-            <br />
-            <a
-              href={`${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${escrowOrder?.returnTxid}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              View transaction
-            </a>
-          </Alert>
-        </Snackbar>
+        <CustomToast
+          isOpen={returnByArb}
+          content="Order return to seller successfully. Click here to see transaction!"
+          handleClose={() => setReturnByArb(false)}
+          type="success"
+          autoHideDuration={3500}
+          isLink={true}
+          linkDescription={`${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${escrowOrder?.returnTxid}`}
+        />
 
-        <Snackbar open={request} autoHideDuration={3500} onClose={() => setRequest(false)}>
-          <Alert severity="success" variant="filled" sx={{ width: '100%' }}>
-            Chat requested!
-          </Alert>
-        </Snackbar>
-
-        <Snackbar open={requestFail} autoHideDuration={3500} onClose={() => setRequestFail(false)}>
-          <Alert severity="error" variant="filled" sx={{ width: '100%' }}>
-            Failed to request chat...
-          </Alert>
-        </Snackbar>
+        <CustomToast
+          isOpen={request}
+          content="Chat requested!"
+          handleClose={() => setRequest(false)}
+          type="info"
+          autoHideDuration={3500}
+        />
+        <CustomToast
+          isOpen={requestFail}
+          content="Failed to request chat..."
+          handleClose={() => setRequestFail(false)}
+          type="info"
+          autoHideDuration={3500}
+        />
       </Stack>
-    </React.Fragment>
+    </MobileLayout>
   );
 }

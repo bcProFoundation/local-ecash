@@ -1,5 +1,4 @@
 import { COIN, coinInfo } from '@bcpros/lixi-models';
-import { cashMethodsNode } from '@bcpros/redux-store';
 import { Utxo_InNode } from 'chronik-client';
 import {
   ALL_BIP143,
@@ -34,6 +33,7 @@ import {
   strToBytes,
   toHex
 } from 'ecash-lib';
+import cashaddr from 'ecashaddrjs';
 import { ACTION } from './constant';
 
 export class Escrow {
@@ -137,17 +137,18 @@ export class Escrow {
   }
 }
 
-const { calcFeeEscrow } = cashMethodsNode;
-
 export const BuildReleaseTx = (
   txids: { txid: string; value: number; outIdx: number }[],
   amountToSend: number,
   escrowScript: Script,
   scriptSignatory: Signatory,
-  recieverP2pkh: Script
+  receiverP2pkh: Script,
+  changeAddress = '',
+  disputeFee = 0
 ) => {
   const ecc = new Ecc();
   const amountSatoshi = amountToSend * Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
+  const disputeSatoshi = disputeFee * Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
 
   const utxos = txids.map(({ txid, value, outIdx }) => {
     return {
@@ -165,17 +166,30 @@ export const BuildReleaseTx = (
     };
   });
 
+  let changeP2pkh;
+  if (changeAddress) {
+    const { type: typeXEC, hash: hashXEC } = cashaddr.decode(changeAddress, false);
+    const changeHash = Buffer.from(hashXEC).toString('hex');
+    changeP2pkh = Script.p2pkh(fromHex(changeHash));
+  }
+
   const txBuild = new TxBuilder({
     inputs: utxos,
     outputs: [
       {
         value: amountSatoshi,
-        script: recieverP2pkh
+        script: receiverP2pkh
+      },
+      {
+        value: disputeSatoshi,
+        script: changeAddress ? changeP2pkh : receiverP2pkh
       }
     ]
   });
 
-  return txBuild.sign(ecc, 1000, 546).ser();
+  const feeInSatsPerKByte = coinInfo[COIN.XEC].defaultFee * 1000;
+  const roundedFeeInSatsPerKByte = parseInt(feeInSatsPerKByte.toFixed(0));
+  return txBuild.sign(ecc, roundedFeeInSatsPerKByte, 546).ser();
 };
 
 export const SellerReleaseSignatory = (
@@ -324,21 +338,23 @@ export const sellerBuildDepositTx = (
     };
   });
 
-  const fee = calcFeeEscrow(1, 2, coinInfo[COIN.XEC].defaultFee, 0, escrowScript.bytecode.length);
-  const actualAmount = amountToSend * Math.pow(10, coinInfo[COIN.XEC].cashDecimals) + fee;
+  const amountSats = amountToSend * Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
 
   const txBuild = new TxBuilder({
     inputs: utxos,
     outputs: [
       {
-        value: actualAmount,
+        value: amountSats,
         script: escrowP2sh
       },
       sellerP2pkh
     ]
   });
 
-  return txBuild.sign(ecc, 1000, 546).ser();
+  const feeInSatsPerKByte = coinInfo[COIN.XEC].defaultFee * 1000;
+  const roundedFeeInSatsPerKByte = parseInt(feeInSatsPerKByte.toFixed(0));
+
+  return txBuild.sign(ecc, roundedFeeInSatsPerKByte, 546).ser();
 };
 
 export const buyerBuildDepositTx = (
