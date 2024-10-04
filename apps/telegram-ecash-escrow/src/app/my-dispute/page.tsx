@@ -167,7 +167,7 @@ export default function MyDispute() {
                     })}
                   </InfiniteScroll>
                 ) : (
-                  <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No offer here</Typography>
+                  <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No dispute yet</Typography>
                 )}
               </div>
             </TabPanel>

@@ -55,7 +55,7 @@ const SendComponent: React.FC<SendComponentProps> = ({}) => {
   } = useForm({
     defaultValues: {
       address: '',
-      amount: 0
+      amount: undefined
     }
   });
   const [myAddress, setMyAddress] = useState(parseCashAddressToPrefix(COIN.XEC, selectedWallet?.cashAddress));
@@ -146,7 +146,7 @@ const SendComponent: React.FC<SendComponentProps> = ({}) => {
               message: 'Amount is invalid!'
             },
             validate: value => {
-              if (value < 5.46) return 'Amount must be greater than 5.46';
+              if (value <= 5.46) return 'Amount must be greater than 5.46 XEC';
             }
           }}
           render={({ field: { onChange, onBlur, value, name, ref } }) => (

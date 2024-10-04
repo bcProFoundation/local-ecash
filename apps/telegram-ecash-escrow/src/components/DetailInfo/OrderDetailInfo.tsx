@@ -3,11 +3,13 @@
 import { EscrowOrderQueryItem } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import { Button, Typography } from '@mui/material';
+import { useRouter } from 'next/navigation';
 
 const OrderDetailWrap = styled.div`
   display: flex;
   flex-direction: column;
   gap: 8px;
+  cursor: pointer;
 
   .prefix {
     font-size: 14px;
@@ -34,9 +36,10 @@ type OrderItemProps = {
 
 const OrderDetailInfo = ({ item }: OrderItemProps) => {
   const order = item;
+  const router = useRouter();
 
   return (
-    <OrderDetailWrap>
+    <OrderDetailWrap onClick={() => router.push(`/order-detail?id=${order.id}`)}>
       <Typography variant="body1">
         <span className="prefix">No: </span>
         {order.id}

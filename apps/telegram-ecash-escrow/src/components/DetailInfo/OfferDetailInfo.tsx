@@ -3,11 +3,13 @@
 import { PostQueryItem, TimelineQueryItem } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import { Button, Typography } from '@mui/material';
+import { useRouter } from 'next/navigation';
 
 const OfferDetailWrap = styled.div`
   display: flex;
   flex-direction: column;
   gap: 8px;
+  cursor: pointer;
 
   .prefix {
     font-size: 14px;
@@ -30,11 +32,12 @@ type OfferItemProps = {
 };
 
 const OfferDetailInfo = ({ timelineItem }: OfferItemProps) => {
+  const router = useRouter();
   const postData = timelineItem?.data as PostQueryItem;
   const offerData = postData?.postOffer;
 
   return (
-    <OfferDetailWrap>
+    <OfferDetailWrap onClick={() => router.push(`/offer-detail?id=${offerData.postId}`)}>
       <Typography variant="body1">
         <span className="prefix">Message: </span>
         {offerData?.message}
