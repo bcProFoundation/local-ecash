@@ -156,7 +156,8 @@ const OrderDetail = () => {
         escrowScript,
         currentData?.escrowOrder.buyerDepositTx
       );
-      const txid = (await chronik.broadcastTx(txBuild)).txid;
+
+      const { txid } = await chronik.broadcastTx(txBuild);
 
       if (txid) {
         //update status
@@ -200,10 +201,11 @@ const OrderDetail = () => {
     const GNCAddress = process.env.NEXT_PUBLIC_ADDRESS_GNC;
 
     const changeAddress = _.isEmpty(address) || _.isNil(address) ? GNCAddress : address;
-    handleSellerReleaseEscrow(EscrowOrderStatus.Complete, changeAddress);
+    const isGNCAddress = changeAddress === GNCAddress;
+    handleSellerReleaseEscrow(EscrowOrderStatus.Complete, changeAddress, isGNCAddress);
   };
 
-  const handleSellerReleaseEscrow = async (status: EscrowOrderStatus, changeAddress: string) => {
+  const handleSellerReleaseEscrow = async (status: EscrowOrderStatus, changeAddress: string, isGNCAddress: boolean) => {
     setLoading(true);
 
     try {
@@ -231,7 +233,8 @@ const OrderDetail = () => {
         buyerP2pkh,
         changeAddress,
         disputeFee,
-        isBuyerDeposit
+        isBuyerDeposit,
+        isGNCAddress
       );
 
       const txid = (await chronik.broadcastTx(txBuild)).txid;
@@ -328,15 +331,7 @@ const OrderDetail = () => {
       );
     }
 
-    if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Pending && !isSeller && !isArbiOrMod) {
-      return (
-        <Typography variant="body1" color="#FFBF00" align="center">
-          Awaiting order to be accepted
-        </Typography>
-      );
-    }
-
-    if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Active) {
+    if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Pending) {
       return isSeller ? (
         <Typography variant="body1" color="#FFBF00" align="center" component={'div'}>
           {checkSellerEnoughFund() ? (
@@ -423,39 +418,6 @@ const OrderDetail = () => {
             Decline
           </Button>
           <Button
-            color="primary"
-            variant="contained"
-            onClick={() => updateOrderStatus(EscrowOrderStatus.Active)}
-            disabled={loading}
-          >
-            Accept
-          </Button>
-        </div>
-      ) : (
-        <Button
-          color="warning"
-          variant="contained"
-          fullWidth
-          onClick={() => updateOrderStatus(EscrowOrderStatus.Cancel)}
-          disabled={loading}
-        >
-          Cancel
-        </Button>
-      );
-    }
-
-    if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Active) {
-      return isSeller ? (
-        <div className="group-button-wrap">
-          <Button
-            color="warning"
-            variant="contained"
-            onClick={() => updateOrderStatus(EscrowOrderStatus.Cancel)}
-            disabled={loading}
-          >
-            Decline
-          </Button>
-          <Button
             disabled={!checkSellerEnoughFund()}
             color="success"
             variant="contained"
@@ -477,7 +439,6 @@ const OrderDetail = () => {
       );
     }
 
-    //TODO: Add an modal before create a dispute
     if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Escrow) {
       if (currentData?.escrowOrder.dispute || isArbiOrMod) {
         return;

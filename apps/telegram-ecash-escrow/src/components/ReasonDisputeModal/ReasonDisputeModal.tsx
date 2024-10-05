@@ -25,7 +25,7 @@ import {
   useTheme
 } from '@mui/material';
 import { TransitionProps } from '@mui/material/transitions';
-import React from 'react';
+import React, { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 const StyledDialog = styled(Dialog)`
@@ -93,6 +93,7 @@ const ReasonDisputeModal: React.FC<ReasonDisputeModalProps> = ({ id }: ReasonDis
   const dispatch = useLixiSliceDispatch();
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
+  const [loading, setLoading] = useState(false);
 
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
 
@@ -113,6 +114,7 @@ const ReasonDisputeModal: React.FC<ReasonDisputeModalProps> = ({ id }: ReasonDis
   };
 
   const handleCreateDispute = async data => {
+    setLoading(true);
     const dataCreateDispute: CreateDisputeInput = {
       createdBy: selectedWalletPath?.publicKey,
       escrowOrderId: id!,
@@ -122,6 +124,7 @@ const ReasonDisputeModal: React.FC<ReasonDisputeModalProps> = ({ id }: ReasonDis
     await createDisputeTrigger({ input: dataCreateDispute })
       .unwrap()
       .then(() => handleCloseModal());
+    setLoading(false);
   };
 
   return (
@@ -165,6 +168,7 @@ const ReasonDisputeModal: React.FC<ReasonDisputeModalProps> = ({ id }: ReasonDis
           color="info"
           variant="contained"
           onClick={handleSubmit(handleCreateDispute)}
+          disabled={loading}
         >
           Create Dispute
         </Button>

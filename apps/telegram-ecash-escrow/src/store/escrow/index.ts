@@ -29,6 +29,7 @@ import {
   Tx,
   TxBuilder,
   TxBuilderInput,
+  TxBuilderOutput,
   TxOutput,
   UnsignedTxInput,
   fromHex,
@@ -143,15 +144,91 @@ export class Escrow {
   }
 }
 
+export const WithdrawFund = (
+  myUtxos: Array<UtxoInNode>,
+  mySk: Uint8Array,
+  myPk: Uint8Array,
+  withdrawHash: string,
+  sendAmount: number,
+  GNCAddress: string,
+  donateAmount: number
+): Uint8Array => {
+  const ecc = new Ecc();
+  const myP2pkh = Script.p2pkh(shaRmd160(myPk));
+  const withdrawP2pkh = Script.p2pkh(fromHex(withdrawHash));
+
+  const sendAmountSats = convertXECToSatoshi(sendAmount);
+  const donateAmountSats = convertXECToSatoshi(donateAmount);
+
+  const utxos = myUtxos.map(utxo => {
+    return {
+      input: {
+        prevOut: {
+          outIdx: utxo.outIdx,
+          txid: utxo.txid
+        },
+        signData: {
+          value: Number(utxo.value),
+          outputScript: myP2pkh
+        }
+      },
+      signatory: P2PKHSignatory(mySk, myPk, ALL_BIP143)
+    };
+  });
+
+  let donateP2pkhHOrP2sh;
+  if (GNCAddress) {
+    const { type: typeXEC, hash: hashXEC } = cashaddr.decode(GNCAddress, false);
+    const changeHash = Buffer.from(hashXEC).toString('hex');
+    donateP2pkhHOrP2sh = Script.p2pkh(fromHex(changeHash));
+
+    //process for GNC address
+    if (typeXEC.toUpperCase() === 'P2SH') {
+      donateP2pkhHOrP2sh = Script.p2sh(fromHex(changeHash));
+    }
+  }
+
+  const outputsToSend: TxBuilderOutput[] = donateP2pkhHOrP2sh
+    ? [
+        {
+          value: sendAmountSats,
+          script: withdrawP2pkh
+        },
+        {
+          value: donateAmountSats,
+          script: donateP2pkhHOrP2sh
+        },
+        myP2pkh
+      ]
+    : [
+        {
+          value: sendAmountSats,
+          script: withdrawP2pkh
+        },
+        myP2pkh
+      ];
+
+  const txBuild = new TxBuilder({
+    inputs: utxos,
+    outputs: [...outputsToSend]
+  });
+
+  const feeInSatsPerKByte = coinInfo[COIN.XEC].defaultFee * 1000;
+  const roundedFeeInSatsPerKByte = parseInt(feeInSatsPerKByte.toFixed(0));
+
+  return txBuild.sign(ecc, roundedFeeInSatsPerKByte, coinInfo[COIN.XEC].etokenSats).ser();
+};
+
 export const BuildReleaseTx = (
   txids: { txid: string; value: number; outIdx: number }[],
   amountToSend: number,
   escrowScript: Script,
   scriptSignatory: Signatory,
   receiverP2pkh: Script,
-  changeAddress = '',
-  disputeFee = 0,
-  isBuyerDeposit = false
+  changeAddress: string,
+  disputeFee: number,
+  isBuyerDeposit: boolean,
+  isGNCAddress = false
 ) => {
   const ecc = new Ecc();
   const amountSatoshi = convertXECToSatoshi(amountToSend);
@@ -173,11 +250,16 @@ export const BuildReleaseTx = (
     };
   });
 
-  let changeP2pkh;
+  let changeP2pkhHOrP2sh;
   if (changeAddress) {
     const { type: typeXEC, hash: hashXEC } = cashaddr.decode(changeAddress, false);
     const changeHash = Buffer.from(hashXEC).toString('hex');
-    changeP2pkh = Script.p2pkh(fromHex(changeHash));
+    changeP2pkhHOrP2sh = Script.p2pkh(fromHex(changeHash));
+
+    //process for GNC address
+    if (isGNCAddress && typeXEC.toUpperCase() === 'P2SH') {
+      changeP2pkhHOrP2sh = Script.p2sh(fromHex(changeHash));
+    }
   }
 
   let txBuild;
@@ -192,7 +274,7 @@ export const BuildReleaseTx = (
         },
         {
           value: disputeSatoshi,
-          script: changeAddress ? changeP2pkh : receiverP2pkh
+          script: changeAddress ? changeP2pkhHOrP2sh : receiverP2pkh
         }
       ]
     });
@@ -206,7 +288,7 @@ export const BuildReleaseTx = (
         },
         {
           value: disputeSatoshi,
-          script: changeAddress ? changeP2pkh : receiverP2pkh
+          script: changeAddress ? changeP2pkhHOrP2sh : receiverP2pkh
         }
       ]
     });
@@ -342,7 +424,7 @@ export const sellerBuildDepositTx = (
   sellerPk: Uint8Array,
   amountToSend: number,
   escrowScript: Script,
-  buyerDepositTx: String
+  buyerDepositTx: string
 ): { txBuild: Uint8Array; utxoRemoved: UtxoInNodeInput } => {
   const ecc = new Ecc();
   const sellerP2pkh = Script.p2pkh(shaRmd160(sellerPk));
