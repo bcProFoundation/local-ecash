@@ -1,5 +1,6 @@
 'use client';
 
+import MiniAppBackdrop from '@/src/components/Common/MiniAppBackdrop';
 import OrderDetailInfo from '@/src/components/DetailInfo/OrderDetailInfo';
 import MobileLayout from '@/src/components/layout/MobileLayout';
 import QRCode from '@/src/components/QRcode/QRcode';
@@ -24,7 +25,18 @@ import {
   WalletContextNode
 } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
-import { Button, FormControl, FormControlLabel, Radio, RadioGroup, Stack, TextField, Typography } from '@mui/material';
+import {
+  Backdrop,
+  Button,
+  CircularProgress,
+  FormControl,
+  FormControlLabel,
+  Radio,
+  RadioGroup,
+  Stack,
+  TextField,
+  Typography
+} from '@mui/material';
 import { fromHex, Script, shaRmd160 } from 'ecash-lib';
 import cashaddr from 'ecashaddrjs';
 import _ from 'lodash';
@@ -68,6 +80,7 @@ const ActionStatusRelease = styled.div`
 
 const OrderDetail = () => {
   const dispatch = useLixiSliceDispatch();
+  const token = sessionStorage.getItem('Authorization');
   const search = useSearchParams();
   const id = search!.get('id');
   const router = useRouter();
@@ -85,7 +98,10 @@ const OrderDetail = () => {
   const [loading, setLoading] = useState(false);
 
   const { useEscrowOrderQuery, useUpdateEscrowOrderStatusMutation } = escrowOrderApi;
-  const { isLoading, currentData, isError } = useEscrowOrderQuery({ id: id! }, { skip: !id });
+  const { isLoading, currentData, isError, isSuccess, isUninitialized } = useEscrowOrderQuery(
+    { id: id! },
+    { skip: !id || !token }
+  );
   const [updateOrderTrigger] = useUpdateEscrowOrderStatusMutation();
 
   const [optionDonate, setOptionDonate] = useState(1);
@@ -598,6 +614,7 @@ const OrderDetail = () => {
   const calDisputeFee = useMemo(() => {
     const fee1Percent = parseFloat((currentData?.escrowOrder.amount / 100).toFixed(2));
     const dustXEC = coinInfo[COIN.XEC].dustSats / Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
+
     return Math.max(fee1Percent, dustXEC);
   }, [currentData?.escrowOrder.amount]);
 
@@ -605,6 +622,7 @@ const OrderDetail = () => {
     const fee1Percent = calDisputeFee;
     const totalBalance = parseFloat(walletStatusNode.balances.totalBalance);
     const totalBalanceFormat = totalBalance.toLocaleString('de-DE');
+
     return (
       <div style={{ color: 'white' }}>
         <p>
@@ -618,30 +636,36 @@ const OrderDetail = () => {
         </p>
         <p style={{ fontWeight: 'bold' }}>
           Total: {totalAmountWithDepositAndEscrowFee().toLocaleString('de-DE')} {COIN.XEC}
-          <span style={{ fontSize: '14px', color: 'gray' }}> (Excluding miner's fees)</span>
+          <span style={{ fontSize: '14px', color: 'gray' }}> (Excluding miner&apos;s fees)</span>
         </p>
       </div>
     );
   };
 
   if (_.isEmpty(id) || _.isNil(id) || isError) {
-    return <div>Invalid order id</div>;
+    return <div style={{ color: 'white' }}>Invalid order id</div>;
   }
-
-  if (isLoading) return <div>Loading...</div>;
 
   return (
     <MobileLayout>
+      {(isLoading || isUninitialized) && (
+        <Backdrop sx={theme => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })} open={true}>
+          <CircularProgress color="inherit" />
+        </Backdrop>
+      )}
+      <MiniAppBackdrop />
       <OrderDetailPage>
-        <TickerHeader title="Order detail" />
-        <OrderDetailContent>
-          <OrderDetailInfo item={currentData?.escrowOrder} />
-          <br />
-          {escrowStatus()}
-          <br />
-          {escrowActionButtons()}
-          {telegramButton()}
-        </OrderDetailContent>
+        <TickerHeader title="Order Detail" />
+        {currentData?.escrowOrder && (
+          <OrderDetailContent>
+            <OrderDetailInfo item={currentData?.escrowOrder} />
+            <br />
+            {escrowStatus()}
+            <br />
+            {escrowActionButtons()}
+            {telegramButton()}
+          </OrderDetailContent>
+        )}
 
         <Stack zIndex={999}>
           <CustomToast

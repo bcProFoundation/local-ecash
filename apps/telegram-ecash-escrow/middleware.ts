@@ -13,9 +13,9 @@ export const config = {
     '/my-offer',
     '/my-order',
     '/my-dispute',
-    '/order-detail',
+    // '/order-detail',
     '/wallet',
-    '/dispute-detail',
+    // '/dispute-detail',
     '/import'
   ]
 };
