@@ -220,6 +220,7 @@ export default function DisputeDetail() {
     const { amount } = escrowOrder;
     const arbModAddress = parseCashAddressToPrefix(COIN.XEC, selectedWalletPath?.cashAddress);
     const disputeFee = calDisputeFee(amount);
+    const isBuyerDeposit = escrowOrder.buyerDepositTx ? true : false;
 
     if (isArbi) {
       try {
@@ -235,7 +236,8 @@ export default function DisputeDetail() {
           arbiSignatory,
           spenderP2pkh,
           arbModAddress,
-          disputeFee
+          disputeFee,
+          isBuyerDeposit
         );
 
         const txid = (await chronik.broadcastTx(txBuild)).txid;
@@ -253,7 +255,6 @@ export default function DisputeDetail() {
         const modSk = fromHex(selectedWalletPath?.privateKey);
         const modPk = fromHex(selectedWalletPath?.publicKey);
 
-        const escrowScript = new Script(script);
         const modSignatory = ModReturnSignatory(modSk, modPk, spenderPk, nonce);
 
         const txBuild = BuildReleaseTx(

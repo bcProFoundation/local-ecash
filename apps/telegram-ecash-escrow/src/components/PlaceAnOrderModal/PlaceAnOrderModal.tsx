@@ -1,19 +1,25 @@
 'use client';
 
-import { Escrow } from '@/src/store/escrow';
-import { CreateEscrowOrderInput } from '@bcpros/lixi-models';
+import { buyerDepositFee, Escrow, splitUtxos } from '@/src/store/escrow';
+import { convertXECToSatoshi, estimatedFee } from '@/src/store/util';
+import { COIN, coinInfo, CreateEscrowOrderInput } from '@bcpros/lixi-models';
 import {
   convertEscrowScriptHashToEcashAddress,
   convertHashToEcashAddress,
   escrowOrderApi,
   getSelectedWalletPath,
+  getWalletUtxosNode,
+  parseCashAddressToPrefix,
   PostQueryItem,
-  useSliceSelector as useLixiSliceSelector
+  useSliceSelector as useLixiSliceSelector,
+  UtxoInNodeInput,
+  WalletContextNode
 } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import { ChevronLeft } from '@mui/icons-material';
 import {
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
@@ -31,12 +37,13 @@ import {
   useTheme
 } from '@mui/material';
 import { TransitionProps } from '@mui/material/transitions';
-import { fromHex, shaRmd160 } from 'ecash-lib';
+import { fromHex, Script, shaRmd160 } from 'ecash-lib';
 import _ from 'lodash';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import React, { useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import QRCode from '../QRcode/QRcode';
 import CustomToast from '../Toast/CustomToast';
 
 interface PlaceAnOrderModalProps {
@@ -222,38 +229,58 @@ const Transition = React.forwardRef(function Transition(
 
 const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const theme = useTheme();
+  const router = useRouter();
   const { post, isOpen }: { post: PostQueryItem; isOpen: boolean } = props;
   const { data } = useSession();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
+  const Wallet = useContext(WalletContextNode);
+  const { chronik } = Wallet;
+
   const [arbiDataError, setArbiDataError] = useState(false);
-  const router = useRouter();
-  const { useCreateEscrowOrderMutation, useGetModeratorAccountQuery, useGetRandomArbitratorAccountQuery } =
-    escrowOrderApi;
+  const [loading, setLoading] = useState(false);
+  const [paymentMethodId, setPaymentMethodId] = useState<number | undefined>();
+  const [totalValidAmount, setTotalValidAmount] = useState<number>(0);
+  const [totalValidUtxos, setTotalValidUtxos] = useState([]);
+
+  const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
+  const utxos = useLixiSliceSelector(getWalletUtxosNode);
+
+  const {
+    useCreateEscrowOrderMutation,
+    useGetModeratorAccountQuery,
+    useGetRandomArbitratorAccountQuery,
+    useFilterUtxosMutation
+  } = escrowOrderApi;
   const [createOrderTrigger] = useCreateEscrowOrderMutation();
+  const [filterUtxos] = useFilterUtxosMutation();
+
   const {
     currentData: moderatorCurrentData,
     isLoading: moderatorIsLoading,
     isError: moderatorIsError
   } = useGetModeratorAccountQuery({}, { skip: !data || !isOpen });
-  const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
   const {
     currentData: arbitratorCurrentData,
     isLoading: arbitratorIsLoading,
     isError: arbitratorIsError
   } = useGetRandomArbitratorAccountQuery({}, { skip: !data || !isOpen });
-  const [paymentMethodId, setPaymentMethodId] = useState<number | undefined>();
+
   const {
     handleSubmit,
     formState: { errors },
     setError,
     clearErrors,
-    control
+    control,
+    watch
   } = useForm();
 
+  const amountValue = watch('amount');
+  const isBuyerDeposit = watch('isDepositFee');
+
   const handleCreateEscrowOrder = async data => {
+    setLoading(true);
     if (moderatorIsError || arbitratorIsError) {
       setArbiDataError(true);
-
       return;
     }
 
@@ -263,13 +290,14 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
       return;
     }
 
-    const { amount, message }: { amount: string; message: string } = data;
+    const { amount, message, isDepositFee }: { amount: string; message: string; isDepositFee: boolean } = data;
     const sellerId = post.accountId;
     const moderatorId = moderatorCurrentData.getModeratorAccount.id;
     const arbitratorId = arbitratorCurrentData.getRandomArbitratorAccount.id;
 
     const sellerPk = fromHex(post.account.publicKey);
     const buyerPk = fromHex(selectedWalletPath?.publicKey);
+    const buyerSk = fromHex(selectedWalletPath?.privateKey);
     const arbitratorPk = fromHex(arbitratorCurrentData.getRandomArbitratorAccount.publicKey);
     const moderatorPk = fromHex(moderatorCurrentData.getModeratorAccount.publicKey);
 
@@ -283,6 +311,36 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
         modPk: moderatorPk,
         nonce
       });
+      const scriptSmartContract = escrowScript.script();
+
+      //split utxos is here and broadcast, then find output have same value. Then build tx
+      let hexTxBuyerDeposit = null;
+      let foundUtxo: UtxoInNodeInput;
+      const depositFeeSats = convertXECToSatoshi(calDisputeFee);
+      if (isDepositFee) {
+        const txBuildSplitUtxo = splitUtxos(totalValidUtxos, buyerSk, buyerPk, depositFeeSats);
+        const txidSplit = (await chronik.broadcastTx(txBuildSplitUtxo)).txid;
+        const detailTxidSplit = await chronik.tx(txidSplit);
+        const outputDetailTxidSplit = detailTxidSplit.outputs;
+
+        for (let i = 0; i < outputDetailTxidSplit.length; i++) {
+          const thisOutput = outputDetailTxidSplit[i];
+          if (thisOutput.value === depositFeeSats) {
+            foundUtxo = {
+              txid: txidSplit,
+              outIdx: i,
+              value: thisOutput.value
+            };
+            break;
+          }
+        }
+        if (!foundUtxo) throw new Error('No suitable UTXO found!');
+
+        const totalAmountEscrow =
+          Number(amount) + calDisputeFee * 2 + estimatedFee(Buffer.from(scriptSmartContract.bytecode).toString('hex'));
+        const scriptEscrow = new Script(scriptSmartContract.bytecode);
+        hexTxBuyerDeposit = buyerDepositFee(foundUtxo, buyerSk, buyerPk, totalAmountEscrow, scriptEscrow);
+      }
 
       const escrowAddress = convertEscrowScriptHashToEcashAddress(shaRmd160(escrowScript.script().bytecode));
 
@@ -297,7 +355,9 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
         price: 1000,
         paymentMethodId: paymentMethodId,
         postId: post.id,
-        message: message
+        message: message,
+        buyerDepositTx: hexTxBuyerDeposit,
+        utxoInProcess: foundUtxo
       };
 
       const result = await createOrderTrigger({ input: data }).unwrap();
@@ -305,7 +365,58 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     } catch (e) {
       console.log(e);
     }
+    setLoading(false);
   };
+
+  const calDisputeFee = useMemo(() => {
+    const fee1Percent = parseFloat((Number(amountValue || 0) / 100).toFixed(2));
+    const dustXEC = coinInfo[COIN.XEC].dustSats / Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
+    return Math.max(fee1Percent, dustXEC);
+  }, [amountValue]);
+
+  const checkBuyerEnoughFund = () => {
+    return totalValidAmount > calDisputeFee;
+  };
+
+  const InfoEscrow = () => {
+    const fee1Percent = calDisputeFee;
+    const totalBalanceFormat = totalValidAmount.toLocaleString('de-DE');
+    return (
+      <div style={{ color: 'white' }}>
+        <p>
+          Your wallet: {totalBalanceFormat} {COIN.XEC}
+        </p>
+        <p>
+          Dispute fee (1%): {fee1Percent.toLocaleString('de-DE')} {COIN.XEC}
+        </p>
+      </div>
+    );
+  };
+
+  //call to validate utxos
+  useEffect(() => {
+    if (utxos.length === 0) return;
+    const listUtxos: UtxoInNodeInput[] = utxos.map(item => {
+      return {
+        txid: item.outpoint.txid,
+        outIdx: item.outpoint.outIdx,
+        value: item.value
+      };
+    });
+
+    const funcFilterUtxos = async () => {
+      try {
+        const listFilterUtxos = await filterUtxos({ input: listUtxos }).unwrap();
+        const totalValueUtxos = listFilterUtxos.filterUtxos.reduce((acc, item) => acc + item.value, 0);
+        setTotalValidUtxos(listFilterUtxos.filterUtxos);
+        setTotalValidAmount(totalValueUtxos / Math.pow(10, coinInfo[COIN.XEC].cashDecimals));
+      } catch (error) {
+        console.error('Error filtering UTXOs:', error);
+      }
+    };
+
+    funcFilterUtxos();
+  }, [utxos]);
 
   return (
     <React.Fragment>
@@ -454,38 +565,34 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                 <Typography color="error">{errors?.paymentMethod?.message as string}</Typography>
               )}
             </RadioGroup>
-            {/* <div className="disclaim-wrap">
-            <Typography className="lable" variant="body2">
-              Disclaim
-            </Typography>
-
-            <Typography className="title" variant="body2">
-              Some seller may require dispute fees to accept your order.
-            </Typography>
-            <FormControlLabel control={<Checkbox defaultChecked />} label="I want to deposit dispute fees (1%)." />
-
-            <div className="deposit-wrap">
-              <div className="deposit-info">
-                <Typography variant="body2">Deposit address</Typography>
-                <Typography className="deposit-status" variant="body2">
-                  200k XEC deposited
-                </Typography>
-              </div>
-
-              <div className="address-code">
-                <IconButton className="qr-code">
-                  <QrCode2Outlined />
-                </IconButton>
-              </div>
-
-              <div className="address-string">
-                <span>c7c9pm2d3ktwzct....</span>
-                <IconButton>
-                  <ContentCopy />
-                </IconButton>
-              </div>
+            <div className="disclaim-wrap">
+              <Typography className="title" variant="body2">
+                *Some seller may require dispute fees to accept your order.
+              </Typography>
+              <Controller
+                name="isDepositFee"
+                control={control}
+                defaultValue={false}
+                render={({ field: { onChange, onBlur, value, ref } }) => (
+                  <FormControlLabel
+                    control={<Checkbox onChange={onChange} onBlur={onBlur} checked={value} inputRef={ref} />}
+                    label={`I want to deposit dispute fees (1%): ${calDisputeFee} XEC`}
+                  />
+                )}
+              />
+              {isBuyerDeposit && (
+                <div>
+                  {InfoEscrow()}
+                  {!checkBuyerEnoughFund() && (
+                    <QRCode
+                      address={parseCashAddressToPrefix(COIN.XEC, selectedWalletPath?.cashAddress)}
+                      amount={calDisputeFee}
+                      width="60%"
+                    />
+                  )}
+                </div>
+              )}
             </div>
-          </div> */}
           </PlaceAnOrderWrap>
         </DialogContent>
         <DialogActions>
@@ -495,6 +602,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
             variant="contained"
             onClick={handleSubmit(handleCreateEscrowOrder)}
             autoFocus
+            disabled={(isBuyerDeposit && !checkBuyerEnoughFund()) || loading}
           >
             Create
           </Button>

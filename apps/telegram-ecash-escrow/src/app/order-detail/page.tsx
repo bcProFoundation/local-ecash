@@ -7,9 +7,9 @@ import TelegramButton from '@/src/components/TelegramButton/TelegramButton';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
 import CustomToast from '@/src/components/Toast/CustomToast';
 import { BuildReleaseTx, BuyerReturnSignatory, sellerBuildDepositTx, SellerReleaseSignatory } from '@/src/store/escrow';
+import { estimatedFee } from '@/src/store/util';
 import { COIN, coinInfo } from '@bcpros/lixi-models';
 import {
-  cashMethodsNode,
   DisputeStatus,
   escrowOrderApi,
   EscrowOrderStatus,
@@ -71,7 +71,6 @@ const OrderDetail = () => {
   const search = useSearchParams();
   const id = search!.get('id');
   const router = useRouter();
-  const { calcFeeEscrow } = cashMethodsNode;
 
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
   const walletUtxos = useLixiSliceSelector(getWalletUtxosNode);
@@ -126,15 +125,22 @@ const OrderDetail = () => {
 
     try {
       const amount = totalAmountWithDepositAndEscrowFee();
+
       const sellerSk = fromHex(selectedWalletPath?.privateKey);
       const sellerPk = fromHex(selectedWalletPath?.publicKey);
       const script = Buffer.from(currentData?.escrowOrder.escrowScript as string, 'hex');
 
       const escrowScript = new Script(script);
 
-      const txBuild = sellerBuildDepositTx(walletUtxos, sellerSk, sellerPk, amount, escrowScript);
-
-      const { txid } = await chronik.broadcastTx(txBuild);
+      const { txBuild, utxoRemoved } = sellerBuildDepositTx(
+        walletUtxos,
+        sellerSk,
+        sellerPk,
+        amount,
+        escrowScript,
+        currentData?.escrowOrder.buyerDepositTx
+      );
+      const txid = (await chronik.broadcastTx(txBuild)).txid;
 
       if (txid) {
         //update status
@@ -151,7 +157,14 @@ const OrderDetail = () => {
           if (address === currentData?.escrowOrder.escrowAddress) {
             const value = outputs[i].value;
             await updateOrderTrigger({
-              input: { orderId: id!, status: EscrowOrderStatus.Escrow, txid, value, outIdx: i }
+              input: {
+                orderId: id!,
+                status: EscrowOrderStatus.Escrow,
+                txid,
+                value,
+                outIdx: i,
+                utxoInNodeOfBuyer: utxoRemoved
+              }
             })
               .unwrap()
               .then(() => setEscrow(true))
@@ -168,9 +181,9 @@ const OrderDetail = () => {
 
   const handleRelease = data => {
     const { address } = data;
-    const GNCAddress = 'ecash:qzvz45ep6erjnvmpe39gwv0d7dthnlj5tc3f8hafda'; //change it to GNC address
+    const GNCAddress = process.env.NEXT_PUBLIC_ADDRESS_GNC;
 
-    const changeAddress = address === '' ? GNCAddress : address;
+    const changeAddress = _.isEmpty(address) || _.isNil(address) ? GNCAddress : address;
     handleSellerReleaseEscrow(EscrowOrderStatus.Complete, changeAddress);
   };
 
@@ -180,6 +193,7 @@ const OrderDetail = () => {
     try {
       const { amount } = currentData?.escrowOrder;
       const disputeFee = calDisputeFee;
+      const isBuyerDeposit = currentData?.escrowOrder.buyerDepositTx ? true : false;
 
       const sellerSk = fromHex(selectedWalletPath?.privateKey);
       const sellerPk = fromHex(selectedWalletPath?.publicKey);
@@ -200,7 +214,8 @@ const OrderDetail = () => {
         sellerSignatory,
         buyerP2pkh,
         changeAddress,
-        disputeFee
+        disputeFee,
+        isBuyerDeposit
       );
 
       const txid = (await chronik.broadcastTx(txBuild)).txid;
@@ -222,7 +237,9 @@ const OrderDetail = () => {
 
     try {
       const { amount } = currentData?.escrowOrder;
+      const buyerAddress = parseCashAddressToPrefix(COIN.XEC, selectedWalletPath?.cashAddress);
       const disputeFee = calDisputeFee;
+      const isBuyerDeposit = currentData?.escrowOrder.buyerDepositTx ? true : false;
 
       const buyerSk = fromHex(selectedWalletPath?.privateKey);
       const buyerPk = fromHex(selectedWalletPath?.publicKey);
@@ -236,7 +253,16 @@ const OrderDetail = () => {
       const escrowScript = new Script(script);
       const buyerSignatory = BuyerReturnSignatory(buyerSk, buyerPk, sellerPk, nonce);
 
-      const txBuild = BuildReleaseTx(escrowTxid, amount, escrowScript, buyerSignatory, sellerP2pkh, '', disputeFee);
+      const txBuild = BuildReleaseTx(
+        escrowTxid,
+        amount,
+        escrowScript,
+        buyerSignatory,
+        sellerP2pkh,
+        isBuyerDeposit ? buyerAddress : null,
+        disputeFee,
+        isBuyerDeposit
+      );
 
       const txid = (await chronik.broadcastTx(txBuild)).txid;
 
@@ -264,7 +290,7 @@ const OrderDetail = () => {
 
     if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Cancel) {
       return (
-        <Typography variant="body1" color="red" align="center">
+        <Typography variant="body1" color="#FFBF00" align="center">
           Order has been cancelled
         </Typography>
       );
@@ -272,7 +298,7 @@ const OrderDetail = () => {
 
     if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Complete) {
       return (
-        <Typography variant="body1" color="red" align="center">
+        <Typography variant="body1" color="#FFBF00" align="center">
           Order has been completed
         </Typography>
       );
@@ -280,7 +306,7 @@ const OrderDetail = () => {
 
     if (!currentData?.escrowOrder.dispute && isArbiOrMod) {
       return (
-        <Typography variant="body1" color="red" align="center">
+        <Typography variant="body1" color="#FFBF00" align="center">
           The order is currently in progress.
         </Typography>
       );
@@ -288,7 +314,7 @@ const OrderDetail = () => {
 
     if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Pending && !isSeller && !isArbiOrMod) {
       return (
-        <Typography variant="body1" color="red" align="center">
+        <Typography variant="body1" color="#FFBF00" align="center">
           Awaiting order to be accepted
         </Typography>
       );
@@ -296,7 +322,7 @@ const OrderDetail = () => {
 
     if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Active) {
       return isSeller ? (
-        <Typography variant="body1" color="red" align="center" component={'div'}>
+        <Typography variant="body1" color="#FFBF00" align="center" component={'div'}>
           {checkSellerEnoughFund() ? (
             <div>
               Please escrow the order
@@ -311,7 +337,7 @@ const OrderDetail = () => {
           )}
         </Typography>
       ) : (
-        <Typography variant="body1" color="red" align="center">
+        <Typography variant="body1" color="#FFBF00" align="center">
           Pending Escrow. Do not send money or goods until the order is escrowed.
         </Typography>
       );
@@ -319,11 +345,11 @@ const OrderDetail = () => {
 
     if (currentData?.escrowOrder.dispute && currentData?.escrowOrder.dispute.status === DisputeStatus.Active) {
       return isArbiOrMod ? (
-        <Typography variant="body1" color="red" align="center">
+        <Typography variant="body1" color="#FFBF00" align="center">
           Please resolve the dispute
         </Typography>
       ) : (
-        <Typography variant="body1" color="red" align="center">
+        <Typography variant="body1" color="#FFBF00" align="center">
           Awating arbitrator/moderator to resolve the dispute
         </Typography>
       );
@@ -331,11 +357,11 @@ const OrderDetail = () => {
 
     if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Escrow) {
       return isSeller ? (
-        <Typography variant="body1" color="red" align="center">
+        <Typography variant="body1" color="#FFBF00" align="center">
           Only release the escrow when you have received the goods
         </Typography>
       ) : (
-        <Typography variant="body1" color="red" align="center">
+        <Typography variant="body1" color="#FFBF00" align="center">
           Awaiting seller to release escrow
         </Typography>
       );
@@ -545,20 +571,6 @@ const OrderDetail = () => {
     );
   };
 
-  const estimatedFee = (escrowScriptStr = '') => {
-    const script = Buffer.from(escrowScriptStr, 'hex');
-    const escrowScript = new Script(script);
-    const feeInSatoshi = calcFeeEscrow(
-      currentData?.escrowOrder.escrowTxids.length + 1, //+1 because future input = current input + 1
-      2, //always 2 for worst case scenerio
-      coinInfo[COIN.XEC].defaultFee,
-      undefined,
-      escrowScript.bytecode.length
-    );
-    const estimatedFee = feeInSatoshi / Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
-    return estimatedFee;
-  };
-
   const totalAmountWithDepositAndEscrowFee = () => {
     const actualFee1Percent = calDisputeFee;
 
@@ -602,6 +614,9 @@ const OrderDetail = () => {
           Dispute fee (1%): {fee1Percent.toLocaleString('de-DE')} {COIN.XEC}
         </p>
         <p>
+          Withdraw fee: {estimatedFee(currentData?.escrowOrder.escrowScript).toLocaleString('de-DE')} {COIN.XEC}
+        </p>
+        <p style={{ fontWeight: 'bold' }}>
           Total: {totalAmountWithDepositAndEscrowFee().toLocaleString('de-DE')} {COIN.XEC}
           <span style={{ fontSize: '14px', color: 'gray' }}> (Excluding miner's fees)</span>
         </p>
