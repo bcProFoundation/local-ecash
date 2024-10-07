@@ -57,10 +57,6 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
         {order.createdAt.toLocaleString()}
       </Typography>
       <Typography variant="body1">
-        <span className="prefix">Price: </span>
-        {order.price}
-      </Typography>
-      <Typography variant="body1">
         <span className="prefix">Amount: </span>
         {order.amount}
       </Typography>

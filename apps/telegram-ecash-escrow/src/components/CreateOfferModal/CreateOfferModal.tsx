@@ -132,7 +132,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
     formState: { errors }
   } = useForm({
     defaultValues: {
-      price: 'Market Price (USD)',
+      price: 'Market Price +/- 5%',
       message: '',
       min: '',
       max: '',
@@ -264,12 +264,16 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                 required: {
                   value: true,
                   message: 'Price is required!'
+                },
+                maxLength: {
+                  value: 30,
+                  message: 'Price must not exceed 30 characters!'
                 }
               }}
               render={({ field: { onChange, onBlur, value, name, ref } }) => (
                 <FormControl fullWidth={true}>
                   <TextField
-                    id="payment-amount"
+                    id="price"
                     label="Price"
                     onChange={onChange}
                     color="info"
@@ -280,6 +284,14 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                     error={errors.price ? true : false}
                     helperText={errors.price && (errors.price?.message as string)}
                     variant="standard"
+                    inputProps={{
+                      maxLength: 30
+                    }}
+                    onFocus={() => {
+                      if (value === 'Market Price +/- 5%') {
+                        onChange(''); // Clear the value
+                      }
+                    }}
                   />
                 </FormControl>
               )}
