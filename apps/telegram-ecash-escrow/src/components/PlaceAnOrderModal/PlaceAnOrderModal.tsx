@@ -12,6 +12,7 @@ import {
   parseCashAddressToPrefix,
   PostQueryItem,
   useSliceSelector as useLixiSliceSelector,
+  UtxoInNode,
   UtxoInNodeInput,
   WalletContextNode
 } from '@bcpros/redux-store';
@@ -240,7 +241,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const [loading, setLoading] = useState(false);
   const [paymentMethodId, setPaymentMethodId] = useState<number | undefined>();
   const [totalValidAmount, setTotalValidAmount] = useState<number>(0);
-  const [totalValidUtxos, setTotalValidUtxos] = useState([]);
+  const [totalValidUtxos, setTotalValidUtxos] = useState<Array<UtxoInNode>>([]);
 
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
   const utxos = useLixiSliceSelector(getWalletUtxosNode);
@@ -313,26 +314,29 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
       });
       const scriptSmartContract = escrowScript.script();
 
-      //split utxos is here and broadcast, then find output have same value. Then build tx
+      //split utxos is here and broadcast. Then build tx
       let hexTxBuyerDeposit = null;
       let foundUtxo: UtxoInNodeInput;
       const depositFeeSats = convertXECToSatoshi(calDisputeFee);
-      if (isDepositFee) {
-        const txBuildSplitUtxo = splitUtxos(totalValidUtxos, buyerSk, buyerPk, depositFeeSats);
-        const txidSplit = (await chronik.broadcastTx(txBuildSplitUtxo)).txid;
-        const detailTxidSplit = await chronik.tx(txidSplit);
-        const outputDetailTxidSplit = detailTxidSplit.outputs;
 
-        for (let i = 0; i < outputDetailTxidSplit.length; i++) {
-          const thisOutput = outputDetailTxidSplit[i];
-          if (thisOutput.value === depositFeeSats) {
-            foundUtxo = {
-              txid: txidSplit,
-              outIdx: i,
-              value: thisOutput.value
-            };
-            break;
-          }
+      let utxosToSplit = [];
+      let totalAmount = 0;
+      for (let i = 0; i < totalValidUtxos.length; i++) {
+        totalAmount += totalValidUtxos[i].value;
+        utxosToSplit.push(totalValidUtxos[i]);
+        if (totalAmount >= depositFeeSats) break;
+      }
+
+      if (isDepositFee) {
+        const txBuildSplitUtxo = splitUtxos(utxosToSplit, buyerSk, buyerPk, depositFeeSats);
+        const txidSplit = (await chronik.broadcastTx(txBuildSplitUtxo)).txid;
+
+        if (txidSplit) {
+          foundUtxo = {
+            txid: txidSplit,
+            outIdx: 0,
+            value: depositFeeSats
+          };
         }
         if (!foundUtxo) throw new Error('No suitable UTXO found!');
 

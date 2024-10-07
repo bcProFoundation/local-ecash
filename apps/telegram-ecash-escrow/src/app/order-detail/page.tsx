@@ -7,7 +7,7 @@ import QRCode from '@/src/components/QRcode/QRcode';
 import TelegramButton from '@/src/components/TelegramButton/TelegramButton';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
 import CustomToast from '@/src/components/Toast/CustomToast';
-import { BuildReleaseTx, BuyerReturnSignatory, sellerBuildDepositTx, SellerReleaseSignatory } from '@/src/store/escrow';
+import { buildReleaseTx, BuyerReturnSignatory, sellerBuildDepositTx, SellerReleaseSignatory } from '@/src/store/escrow';
 import { estimatedFee } from '@/src/store/util';
 import { COIN, coinInfo } from '@bcpros/lixi-models';
 import {
@@ -144,7 +144,7 @@ const OrderDetail = () => {
 
       const sellerSk = fromHex(selectedWalletPath?.privateKey);
       const sellerPk = fromHex(selectedWalletPath?.publicKey);
-      const script = Buffer.from(currentData?.escrowOrder.escrowScript as string, 'hex');
+      const script = Buffer.from(currentData?.escrowOrder.escrowScript as string, 'hex') as unknown as Uint8Array;
 
       const escrowScript = new Script(script);
 
@@ -220,12 +220,12 @@ const OrderDetail = () => {
       const buyerPkh = shaRmd160(buyerPk);
       const buyerP2pkh = Script.p2pkh(buyerPkh);
       const nonce = currentData?.escrowOrder.nonce as string;
-      const script = Buffer.from(currentData?.escrowOrder.escrowScript as string, 'hex');
+      const script = Buffer.from(currentData?.escrowOrder.escrowScript as string, 'hex') as unknown as Uint8Array;
 
       const escrowScript = new Script(script);
       const sellerSignatory = SellerReleaseSignatory(sellerSk, sellerPk, buyerPk, nonce);
 
-      const txBuild = BuildReleaseTx(
+      const txBuild = buildReleaseTx(
         escrowTxids,
         amount,
         escrowScript,
@@ -267,12 +267,12 @@ const OrderDetail = () => {
       const sellerPkh = shaRmd160(sellerPk);
       const sellerP2pkh = Script.p2pkh(sellerPkh);
       const nonce = currentData?.escrowOrder.nonce as string;
-      const script = Buffer.from(currentData?.escrowOrder.escrowScript as string, 'hex');
+      const script = Buffer.from(currentData?.escrowOrder.escrowScript as string, 'hex') as unknown as Uint8Array;
 
       const escrowScript = new Script(script);
       const buyerSignatory = BuyerReturnSignatory(buyerSk, buyerPk, sellerPk, nonce);
 
-      const txBuild = BuildReleaseTx(
+      const txBuild = buildReleaseTx(
         escrowTxid,
         amount,
         escrowScript,

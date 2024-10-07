@@ -9,7 +9,6 @@ import { COIN, coinInfo } from '@bcpros/lixi-models';
 import {
   escrowOrderApi,
   getSelectedWalletPath,
-  getWalletStatusNode,
   getWalletUtxosNode,
   parseCashAddressToPrefix,
   useSliceSelector as useLixiSliceSelector,

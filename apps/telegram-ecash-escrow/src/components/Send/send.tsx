@@ -1,6 +1,6 @@
 'use client';
 
-import { WithdrawFund } from '@/src/store/escrow';
+import { withdrawFund } from '@/src/store/escrow';
 import { COIN, coinInfo } from '@bcpros/lixi-models';
 import {
   UtxoInNode,
@@ -87,7 +87,7 @@ const SendComponent: React.FC<SendComponentProps> = props => {
       GNCAddress = process.env.NEXT_PUBLIC_ADDRESS_GNC;
     }
 
-    const txBuild = WithdrawFund(
+    const txBuild = withdrawFund(
       totalValidUtxos,
       mySk,
       myPk,

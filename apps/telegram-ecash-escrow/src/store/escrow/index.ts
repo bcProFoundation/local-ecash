@@ -144,7 +144,7 @@ export class Escrow {
   }
 }
 
-export const WithdrawFund = (
+export const withdrawFund = (
   myUtxos: Array<UtxoInNode>,
   mySk: Uint8Array,
   myPk: Uint8Array,
@@ -219,7 +219,7 @@ export const WithdrawFund = (
   return txBuild.sign(ecc, roundedFeeInSatsPerKByte, coinInfo[COIN.XEC].etokenSats).ser();
 };
 
-export const BuildReleaseTx = (
+export const buildReleaseTx = (
   txids: { txid: string; value: number; outIdx: number }[],
   amountToSend: number,
   escrowScript: Script,

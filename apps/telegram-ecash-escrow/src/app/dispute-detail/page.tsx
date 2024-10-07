@@ -6,7 +6,7 @@ import CustomToast from '@/src/components/Toast/CustomToast';
 import {
   ArbiReleaseSignatory,
   ArbiReturnSignatory,
-  BuildReleaseTx,
+  buildReleaseTx,
   ModReleaseSignatory,
   ModReturnSignatory
 } from '@/src/store/escrow';
@@ -222,7 +222,7 @@ export default function DisputeDetail() {
     const isArbi = selectedWalletPath?.hash160 === escrowOrder.arbitratorAccount.hash160;
 
     const nonce = escrowOrder.nonce as string;
-    const script = Buffer.from(escrowOrder.escrowScript as string, 'hex');
+    const script = Buffer.from(escrowOrder.escrowScript as string, 'hex') as unknown as Uint8Array;
     const escrowScript = new Script(script);
     const spenderPk = fromHex(spenderPkStr);
     const spenderPkh = shaRmd160(spenderPk);
@@ -248,7 +248,7 @@ export default function DisputeDetail() {
             break;
         }
 
-        const txBuild = BuildReleaseTx(
+        const txBuild = buildReleaseTx(
           escrowTxids,
           amount,
           escrowScript,
@@ -293,7 +293,7 @@ export default function DisputeDetail() {
             break;
         }
 
-        const txBuild = BuildReleaseTx(
+        const txBuild = buildReleaseTx(
           escrowTxids,
           amount,
           escrowScript,
