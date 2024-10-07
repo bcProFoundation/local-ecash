@@ -222,7 +222,9 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       <IconButton className="back-btn" onClick={() => onDissmissModal(false)}>
         <ChevronLeft />
       </IconButton>
-      <DialogTitle>Create an offer</DialogTitle>
+      <DialogTitle>
+        <b>Create an offer</b>
+      </DialogTitle>
       <DialogContent>
         <Grid container spacing={2}>
           <Grid item xs={12}>
@@ -328,8 +330,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                     inputRef={ref}
                     className="form-input"
                     id="min"
-                    label="Order limit (USD)"
-                    placeholder="Min order limit (USD)"
+                    label="Order limit (XEC)"
+                    placeholder="Min order limit (XEC)"
                     error={errors.min && true}
                     helperText={errors.min && (errors.min?.message as string)}
                     variant="standard"
@@ -375,7 +377,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                     className="form-input"
                     id="max"
                     label=" "
-                    placeholder="Max order limit (USD)"
+                    placeholder="Max order limit (XEC)"
                     error={errors.max && true}
                     helperText={errors.max && (errors.max?.message as string)}
                     variant="standard"
@@ -405,7 +407,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                   message: 'Country is required!'
                 }
               }}
-              render={({ field: { onChange, onBlur, value, name, ref } }) => (
+              render={({ field: { onChange, onBlur, value, ref } }) => (
                 <FormControl fullWidth>
                   <Autocomplete
                     id="country-select"
@@ -413,6 +415,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                     autoHighlight
                     getOptionLabel={option => (option ? option.name : '')}
                     value={value}
+                    onBlur={onBlur}
+                    ref={ref}
                     onChange={(e, value) => {
                       onChange(value);
                       if (value) {
@@ -422,6 +426,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                     }}
                     renderOption={(props, option) => {
                       const { ...optionProps } = props;
+
                       return (
                         <Box {...optionProps} key={option.id} component="li">
                           {option.name}
@@ -441,12 +446,14 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
             <Controller
               name="state"
               control={control}
-              render={({ field: { onChange, onBlur, value, name, ref } }) => (
+              render={({ field: { onChange, onBlur, value, ref } }) => (
                 <FormControl fullWidth>
                   <Autocomplete
                     id="state-select"
                     options={states}
                     autoHighlight
+                    onBlur={onBlur}
+                    ref={ref}
                     getOptionLabel={option => (option ? option.name : '')}
                     value={value}
                     onChange={(e, value) => {
@@ -457,6 +464,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                     disabled={!getValues('country')}
                     renderOption={(props, option) => {
                       const { ...optionProps } = props;
+
                       return (
                         <Box {...optionProps} key={option.id} component="li">
                           {option.name}
