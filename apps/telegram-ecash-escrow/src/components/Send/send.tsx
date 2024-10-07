@@ -1,20 +1,21 @@
 'use client';
 
+import { withdrawFund } from '@/src/store/escrow';
 import { COIN, coinInfo } from '@bcpros/lixi-models';
 import {
+  UtxoInNode,
   WalletContextNode,
   getSelectedWalletPath,
-  getWalletStatusNode,
   isValidCoinAddress,
   parseCashAddressToPrefix,
-  useSliceSelector as useLixiSliceSelector,
-  useXEC
+  useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import { QrCodeScanner } from '@mui/icons-material';
-import { Button, FormControl, IconButton, TextField } from '@mui/material';
+import { Button, Checkbox, FormControl, FormControlLabel, IconButton, TextField, Typography } from '@mui/material';
+import { fromHex } from 'ecash-lib';
 import cashaddr from 'ecashaddrjs';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import ScanQRcode from '../QRcode/ScanQRcode';
 import CustomToast from '../Toast/CustomToast';
@@ -37,27 +38,36 @@ const WrapComponent = styled.div`
     color: #fff;
   }
 `;
-interface SendComponentProps {}
+interface SendComponentProps {
+  totalValidAmount: number;
+  totalValidUtxos: Array<UtxoInNode>;
+}
 
-const SendComponent: React.FC<SendComponentProps> = ({}) => {
+const SendComponent: React.FC<SendComponentProps> = props => {
+  const { totalValidAmount, totalValidUtxos } = props;
+
   const selectedWallet = useLixiSliceSelector(getSelectedWalletPath);
-  const walletStatusNode = useLixiSliceSelector(getWalletStatusNode);
   const Wallet = React.useContext(WalletContextNode);
   const { chronik } = Wallet;
-  const { sendXec } = useXEC();
 
   const {
     handleSubmit,
     control,
     setValue,
     reset,
+    watch,
     formState: { errors }
   } = useForm({
     defaultValues: {
       address: '',
-      amount: undefined
+      amount: 0,
+      isDonateGNC: true
     }
   });
+
+  const amountValue = watch('amount');
+  const isDonateGNC = watch('isDonateGNC');
+
   const [myAddress, setMyAddress] = useState(parseCashAddressToPrefix(COIN.XEC, selectedWallet?.cashAddress));
 
   const [openScan, setOpenScan] = useState(false);
@@ -65,29 +75,49 @@ const SendComponent: React.FC<SendComponentProps> = ({}) => {
   const [linkSend, setLinkSend] = useState('');
 
   const handleSendCoin = async data => {
-    const { address, amount } = data;
+    const { address, amount, isDonateGNC } = data;
     const { hash: hashXEC } = cashaddr.decode(address, false);
     const recipientHash = Buffer.from(hashXEC).toString('hex');
 
-    const link = await sendXec(
-      chronik,
-      selectedWallet?.fundingWif,
-      walletStatusNode?.slpBalancesAndUtxos?.nonSlpUtxos,
-      coinInfo[COIN.XEC].defaultFee,
-      '', //message
-      false, //indicate send mode is one to one
-      null,
+    const myPk = fromHex(selectedWallet?.publicKey);
+    const mySk = fromHex(selectedWallet?.privateKey);
+
+    let GNCAddress = '';
+    if (isDonateGNC) {
+      GNCAddress = process.env.NEXT_PUBLIC_ADDRESS_GNC;
+    }
+
+    const txBuild = withdrawFund(
+      totalValidUtxos,
+      mySk,
+      myPk,
       recipientHash,
-      parseFloat(amount), //amount
-      coinInfo[COIN.XEC].etokenSats,
-      false // return hex
+      Number(amount),
+      GNCAddress,
+      calFee1Percent
     );
-    if (link) {
-      setLinkSend(link);
-      setOpenToastSendSuccess(true);
-      reset();
+    try {
+      const txid = (await chronik.broadcastTx(txBuild)).txid;
+      const link = `${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${txid}`;
+      if (link) {
+        setLinkSend(link);
+        setOpenToastSendSuccess(true);
+        reset();
+      }
+    } catch (err) {
+      console.log('Error when broadcast tx');
     }
   };
+
+  const checkEnoughFund = () => {
+    return totalValidAmount > calFee1Percent + Number(amountValue);
+  };
+
+  const calFee1Percent = useMemo(() => {
+    const fee1Percent = parseFloat((Number(amountValue || 0) / 100).toFixed(2));
+    const dustXEC = coinInfo[COIN.XEC].dustSats / Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
+    return Math.max(fee1Percent, dustXEC);
+  }, [amountValue]);
 
   return (
     <WrapComponent>
@@ -163,12 +193,37 @@ const SendComponent: React.FC<SendComponentProps> = ({}) => {
                 error={errors.amount ? true : false}
                 helperText={errors.amount && (errors.amount?.message as string)}
                 variant="filled"
+                onFocus={() => {
+                  if (Number(value) === 0) {
+                    onChange(''); // Clear the value
+                  }
+                }}
               />
             </FormControl>
           )}
         />
+        <Controller
+          name="isDonateGNC"
+          control={control}
+          render={({ field }) => (
+            <FormControlLabel
+              control={<Checkbox {...field} checked={field.value} onChange={e => field.onChange(e.target.checked)} />}
+              label="Donate 1% to keep this service running"
+            />
+          )}
+        />
+        {isDonateGNC && (
+          <Typography>
+            {calFee1Percent.toLocaleString('de-DE')} {COIN.XEC} will be sent to GNC to maintains this app
+          </Typography>
+        )}
       </div>
-      <Button className="btn-send" variant="outlined" onClick={handleSubmit(handleSendCoin)}>
+      <Button
+        className="btn-send"
+        variant="contained"
+        onClick={handleSubmit(handleSendCoin)}
+        disabled={!checkEnoughFund()}
+      >
         Send
       </Button>
       <ScanQRcode

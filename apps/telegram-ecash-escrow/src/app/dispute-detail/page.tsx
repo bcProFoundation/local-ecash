@@ -3,7 +3,13 @@ import MiniAppBackdrop from '@/src/components/Common/MiniAppBackdrop';
 import MobileLayout from '@/src/components/layout/MobileLayout';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
 import CustomToast from '@/src/components/Toast/CustomToast';
-import { ArbiReturnSignatory, BuildReleaseTx, ModReturnSignatory } from '@/src/store/escrow';
+import {
+  ArbiReleaseSignatory,
+  ArbiReturnSignatory,
+  buildReleaseTx,
+  ModReleaseSignatory,
+  ModReturnSignatory
+} from '@/src/store/escrow';
 import { COIN, coinInfo } from '@bcpros/lixi-models';
 import {
   disputeApi,
@@ -216,7 +222,7 @@ export default function DisputeDetail() {
     const isArbi = selectedWalletPath?.hash160 === escrowOrder.arbitratorAccount.hash160;
 
     const nonce = escrowOrder.nonce as string;
-    const script = Buffer.from(escrowOrder.escrowScript as string, 'hex');
+    const script = Buffer.from(escrowOrder.escrowScript as string, 'hex') as unknown as Uint8Array;
     const escrowScript = new Script(script);
     const spenderPk = fromHex(spenderPkStr);
     const spenderPkh = shaRmd160(spenderPk);
@@ -225,22 +231,32 @@ export default function DisputeDetail() {
     const { amount } = escrowOrder;
     const arbModAddress = parseCashAddressToPrefix(COIN.XEC, selectedWalletPath?.cashAddress);
     const disputeFee = calDisputeFee(amount);
+    const isBuyerDeposit = escrowOrder.buyerDepositTx ? true : false;
 
     if (isArbi) {
       try {
         const arbiSk = fromHex(selectedWalletPath?.privateKey);
         const arbiPk = fromHex(selectedWalletPath?.publicKey);
 
-        const arbiSignatory = ArbiReturnSignatory(arbiSk, arbiPk, spenderPk, nonce);
+        let arbiSignatory;
+        switch (status) {
+          case EscrowOrderStatus.Complete:
+            arbiSignatory = ArbiReleaseSignatory(arbiSk, arbiPk, spenderPk, nonce);
+            break;
+          case EscrowOrderStatus.Cancel:
+            arbiSignatory = ArbiReturnSignatory(arbiSk, arbiPk, spenderPk, nonce);
+            break;
+        }
 
-        const txBuild = BuildReleaseTx(
+        const txBuild = buildReleaseTx(
           escrowTxids,
           amount,
           escrowScript,
           arbiSignatory,
           spenderP2pkh,
           arbModAddress,
-          disputeFee
+          disputeFee,
+          isBuyerDeposit
         );
 
         const txid = (await chronik.broadcastTx(txBuild)).txid;
@@ -248,7 +264,16 @@ export default function DisputeDetail() {
         // update order status to escrow
         await updateOrderTrigger({ input: { orderId: id, status, txid } })
           .unwrap()
-          .then(() => setReturnByArb(true))
+          .then(() => {
+            switch (status) {
+              case EscrowOrderStatus.Complete:
+                setReleaseByArb(true);
+                break;
+              case EscrowOrderStatus.Cancel:
+                setReturnByArb(true);
+                break;
+            }
+          })
           .catch(() => setError(true));
       } catch (e) {
         console.log(e);
@@ -258,17 +283,25 @@ export default function DisputeDetail() {
         const modSk = fromHex(selectedWalletPath?.privateKey);
         const modPk = fromHex(selectedWalletPath?.publicKey);
 
-        const escrowScript = new Script(script);
-        const modSignatory = ModReturnSignatory(modSk, modPk, spenderPk, nonce);
+        let modSignatory;
+        switch (status) {
+          case EscrowOrderStatus.Complete:
+            modSignatory = ModReleaseSignatory(modSk, modPk, spenderPk, nonce);
+            break;
+          case EscrowOrderStatus.Cancel:
+            modSignatory = ModReturnSignatory(modSk, modPk, spenderPk, nonce);
+            break;
+        }
 
-        const txBuild = BuildReleaseTx(
+        const txBuild = buildReleaseTx(
           escrowTxids,
           amount,
           escrowScript,
           modSignatory,
           spenderP2pkh,
           arbModAddress,
-          disputeFee
+          disputeFee,
+          isBuyerDeposit
         );
 
         const txid = (await chronik.broadcastTx(txBuild)).txid;
@@ -276,7 +309,16 @@ export default function DisputeDetail() {
         // update order status to escrow
         await updateOrderTrigger({ input: { orderId: id, status, txid } })
           .unwrap()
-          .then(() => setReturnByArb(true))
+          .then(() => {
+            switch (status) {
+              case EscrowOrderStatus.Complete:
+                setReleaseByArb(true);
+                break;
+              case EscrowOrderStatus.Cancel:
+                setReturnByArb(true);
+                break;
+            }
+          })
           .catch(() => setError(true));
       } catch (e) {
         console.log(e);
@@ -289,14 +331,14 @@ export default function DisputeDetail() {
 
   const handleArbiModReleaseEscrow = async () => {
     const status = EscrowOrderStatus.Complete;
-    const buyerPk = escrowOrder.buyerAccount.publicKey;
+    const buyerPk = escrowOrder?.buyerAccount.publicKey;
 
     handleArbModReleaseReturn(buyerPk, status);
   };
 
   const handleArbiModReturnEscrow = async () => {
     const status = EscrowOrderStatus.Cancel;
-    const sellerPk = escrowOrder.sellerAccount.publicKey;
+    const sellerPk = escrowOrder?.sellerAccount.publicKey;
 
     handleArbModReleaseReturn(sellerPk, status);
   };
@@ -393,6 +435,12 @@ export default function DisputeDetail() {
               <span className="prefix">Dispute fee by seller: </span>
               {calDisputeFee(escrowOrder.amount)} {COIN.XEC}
             </Typography>
+            {escrowOrder?.buyerDepositTx && (
+              <Typography variant="body1" className="amount-buyer">
+                <span className="prefix">Dispute fee by buyer: </span>
+                {calDisputeFee(escrowOrder.amount)} {COIN.XEC}
+              </Typography>
+            )}
           </DisputeDetailInfoWrap>
           <div className="group-btn-chat">
             <Button
@@ -404,7 +452,8 @@ export default function DisputeDetail() {
               }
               disabled={isLoading || isFetching}
             >
-              {escrowOrder?.dispute.status === DisputeStatus.Resolved ? 'The dispute has been resolved' : 'Resolve'}
+              Chat with seller
+              <Image width={32} height={32} alt="" src={'/ico-telegram.svg'} />
             </Button>
             <Button
               className="chat-btn"

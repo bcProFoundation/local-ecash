@@ -2,7 +2,7 @@
 
 import styled from '@emotion/styled';
 import { CopyAllOutlined } from '@mui/icons-material';
-import { Button, Stack, Typography } from '@mui/material';
+import { Button, Portal, Stack, Typography } from '@mui/material';
 import RawQRCode from 'qrcode.react';
 import React, { useState } from 'react';
 import CopyToClipboard from 'react-copy-to-clipboard';
@@ -44,12 +44,14 @@ const QRCode: React.FC<QRCodeProps> = ({ address, amount, width }) => {
         </CopyToClipboard>
       </Typography>
 
-      <CustomToast
-        isOpen={copy}
-        content="Address copied to clipboard"
-        handleClose={() => setCopy(false)}
-        type="success"
-      />
+      <Portal>
+        <CustomToast
+          isOpen={copy}
+          content="Address copied to clipboard"
+          handleClose={() => setCopy(false)}
+          type="success"
+        />
+      </Portal>
     </Stack>
   );
 };

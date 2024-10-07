@@ -1,4 +1,5 @@
 import { COIN, coinInfo } from '@bcpros/lixi-models';
+import { UtxoInNode, UtxoInNodeInput } from '@bcpros/redux-store';
 import { Utxo_InNode } from 'chronik-client';
 import {
   ALL_BIP143,
@@ -22,9 +23,14 @@ import {
   OP_SWAP,
   OP_TOALTSTACK,
   P2PKHSignatory,
+  SINGLE_ANYONECANPAY_BIP143,
   Script,
   Signatory,
+  Tx,
   TxBuilder,
+  TxBuilderInput,
+  TxBuilderOutput,
+  TxOutput,
   UnsignedTxInput,
   fromHex,
   pushBytesOp,
@@ -34,6 +40,7 @@ import {
   toHex
 } from 'ecash-lib';
 import cashaddr from 'ecashaddrjs';
+import { convertXECToSatoshi, deserializeTransaction, serializeTransaction } from '../util';
 import { ACTION } from './constant';
 
 export class Escrow {
@@ -137,18 +144,95 @@ export class Escrow {
   }
 }
 
-export const BuildReleaseTx = (
+export const withdrawFund = (
+  myUtxos: Array<UtxoInNode>,
+  mySk: Uint8Array,
+  myPk: Uint8Array,
+  withdrawHash: string,
+  sendAmount: number,
+  GNCAddress: string,
+  donateAmount: number
+): Uint8Array => {
+  const ecc = new Ecc();
+  const myP2pkh = Script.p2pkh(shaRmd160(myPk));
+  const withdrawP2pkh = Script.p2pkh(fromHex(withdrawHash));
+
+  const sendAmountSats = convertXECToSatoshi(sendAmount);
+  const donateAmountSats = convertXECToSatoshi(donateAmount);
+
+  const utxos = myUtxos.map(utxo => {
+    return {
+      input: {
+        prevOut: {
+          outIdx: utxo.outIdx,
+          txid: utxo.txid
+        },
+        signData: {
+          value: Number(utxo.value),
+          outputScript: myP2pkh
+        }
+      },
+      signatory: P2PKHSignatory(mySk, myPk, ALL_BIP143)
+    };
+  });
+
+  let donateP2pkhHOrP2sh;
+  if (GNCAddress) {
+    const { type: typeXEC, hash: hashXEC } = cashaddr.decode(GNCAddress, false);
+    const changeHash = Buffer.from(hashXEC).toString('hex');
+    donateP2pkhHOrP2sh = Script.p2pkh(fromHex(changeHash));
+
+    //process for GNC address
+    if (typeXEC.toUpperCase() === 'P2SH') {
+      donateP2pkhHOrP2sh = Script.p2sh(fromHex(changeHash));
+    }
+  }
+
+  const outputsToSend: TxBuilderOutput[] = donateP2pkhHOrP2sh
+    ? [
+        {
+          value: sendAmountSats,
+          script: withdrawP2pkh
+        },
+        {
+          value: donateAmountSats,
+          script: donateP2pkhHOrP2sh
+        },
+        myP2pkh
+      ]
+    : [
+        {
+          value: sendAmountSats,
+          script: withdrawP2pkh
+        },
+        myP2pkh
+      ];
+
+  const txBuild = new TxBuilder({
+    inputs: utxos,
+    outputs: [...outputsToSend]
+  });
+
+  const feeInSatsPerKByte = coinInfo[COIN.XEC].defaultFee * 1000;
+  const roundedFeeInSatsPerKByte = parseInt(feeInSatsPerKByte.toFixed(0));
+
+  return txBuild.sign(ecc, roundedFeeInSatsPerKByte, coinInfo[COIN.XEC].etokenSats).ser();
+};
+
+export const buildReleaseTx = (
   txids: { txid: string; value: number; outIdx: number }[],
   amountToSend: number,
   escrowScript: Script,
   scriptSignatory: Signatory,
   receiverP2pkh: Script,
-  changeAddress = '',
-  disputeFee = 0
+  changeAddress: string,
+  disputeFee: number,
+  isBuyerDeposit: boolean,
+  isGNCAddress = false
 ) => {
   const ecc = new Ecc();
-  const amountSatoshi = amountToSend * Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
-  const disputeSatoshi = disputeFee * Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
+  const amountSatoshi = convertXECToSatoshi(amountToSend);
+  const disputeSatoshi = convertXECToSatoshi(disputeFee);
 
   const utxos = txids.map(({ txid, value, outIdx }) => {
     return {
@@ -166,26 +250,49 @@ export const BuildReleaseTx = (
     };
   });
 
-  let changeP2pkh;
+  let changeP2pkhHOrP2sh;
   if (changeAddress) {
     const { type: typeXEC, hash: hashXEC } = cashaddr.decode(changeAddress, false);
     const changeHash = Buffer.from(hashXEC).toString('hex');
-    changeP2pkh = Script.p2pkh(fromHex(changeHash));
+    changeP2pkhHOrP2sh = Script.p2pkh(fromHex(changeHash));
+
+    //process for GNC address
+    if (isGNCAddress && typeXEC.toUpperCase() === 'P2SH') {
+      changeP2pkhHOrP2sh = Script.p2sh(fromHex(changeHash));
+    }
   }
 
-  const txBuild = new TxBuilder({
-    inputs: utxos,
-    outputs: [
-      {
-        value: amountSatoshi,
-        script: receiverP2pkh
-      },
-      {
-        value: disputeSatoshi,
-        script: changeAddress ? changeP2pkh : receiverP2pkh
-      }
-    ]
-  });
+  let txBuild;
+
+  if (isBuyerDeposit) {
+    txBuild = new TxBuilder({
+      inputs: utxos,
+      outputs: [
+        {
+          value: amountSatoshi + disputeSatoshi,
+          script: receiverP2pkh
+        },
+        {
+          value: disputeSatoshi,
+          script: changeAddress ? changeP2pkhHOrP2sh : receiverP2pkh
+        }
+      ]
+    });
+  } else {
+    txBuild = new TxBuilder({
+      inputs: utxos,
+      outputs: [
+        {
+          value: amountSatoshi,
+          script: receiverP2pkh
+        },
+        {
+          value: disputeSatoshi,
+          script: changeAddress ? changeP2pkhHOrP2sh : receiverP2pkh
+        }
+      ]
+    });
+  }
 
   const feeInSatsPerKByte = coinInfo[COIN.XEC].defaultFee * 1000;
   const roundedFeeInSatsPerKByte = parseInt(feeInSatsPerKByte.toFixed(0));
@@ -316,83 +423,201 @@ export const sellerBuildDepositTx = (
   sellerSk: Uint8Array,
   sellerPk: Uint8Array,
   amountToSend: number,
-  escrowScript: Script
-): Uint8Array => {
+  escrowScript: Script,
+  buyerDepositTx: string
+): { txBuild: Uint8Array; utxoRemoved: UtxoInNodeInput } => {
   const ecc = new Ecc();
   const sellerP2pkh = Script.p2pkh(shaRmd160(sellerPk));
   const escrowP2sh = Script.p2sh(shaRmd160(escrowScript.bytecode));
 
-  const utxos = sellerUtxos.map(utxo => {
-    return {
-      input: {
-        prevOut: {
-          outIdx: utxo.outpoint.outIdx,
-          txid: utxo.outpoint.txid
-        },
-        signData: {
-          value: Number(utxo.value),
-          outputScript: sellerP2pkh
-        }
-      },
-      signatory: P2PKHSignatory(sellerSk, sellerPk, ALL_BIP143)
-    };
-  });
-
-  const amountSats = amountToSend * Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
-
-  const txBuild = new TxBuilder({
-    inputs: utxos,
-    outputs: [
-      {
-        value: amountSats,
-        script: escrowP2sh
-      },
-      sellerP2pkh
-    ]
-  });
-
   const feeInSatsPerKByte = coinInfo[COIN.XEC].defaultFee * 1000;
   const roundedFeeInSatsPerKByte = parseInt(feeInSatsPerKByte.toFixed(0));
 
-  return txBuild.sign(ecc, roundedFeeInSatsPerKByte, 546).ser();
+  if (buyerDepositTx) {
+    //deserialize
+    const strJsonTx = Buffer.from(buyerDepositTx, 'hex').toString();
+    const deserializeTx = new Tx(deserializeTransaction(strJsonTx));
+
+    const buyerInputs: TxBuilderInput[] = deserializeTx.inputs.map(item => {
+      return {
+        input: {
+          prevOut: {
+            outIdx: item.prevOut.outIdx,
+            txid: item.prevOut.txid
+          },
+          script: new Script(item.script.bytecode),
+          signData: {
+            value: Number(item.signData.value),
+            outputScript: new Script(item.signData.outputScript.bytecode)
+          }
+        }
+      };
+    });
+    const sellerInputs = sellerUtxos.map(utxo => {
+      return {
+        input: {
+          prevOut: {
+            outIdx: utxo.outpoint.outIdx,
+            txid: utxo.outpoint.txid
+          },
+          signData: {
+            value: Number(utxo.value),
+            outputScript: sellerP2pkh
+          }
+        },
+        signatory: P2PKHSignatory(sellerSk, sellerPk, ALL_BIP143)
+      };
+    });
+
+    const buyerOutpus: TxOutput[] = deserializeTx.outputs.map(item => {
+      return {
+        value: item.value,
+        script: new Script(item.script.bytecode)
+      };
+    });
+
+    const txBuildFinal = new TxBuilder({
+      inputs: [...buyerInputs, ...sellerInputs],
+      outputs: [...buyerOutpus, sellerP2pkh]
+    });
+    const txBuildFinalSign = txBuildFinal.sign(ecc, roundedFeeInSatsPerKByte, coinInfo[COIN.XEC].etokenSats);
+
+    return {
+      txBuild: txBuildFinalSign.ser(),
+      utxoRemoved: {
+        txid: deserializeTx.inputs[0].prevOut.txid as string,
+        outIdx: deserializeTx.inputs[0].prevOut.outIdx,
+        value: deserializeTx.inputs[0].signData.value as number
+      }
+    };
+  } else {
+    const utxos = sellerUtxos.map(utxo => {
+      return {
+        input: {
+          prevOut: {
+            outIdx: utxo.outpoint.outIdx,
+            txid: utxo.outpoint.txid
+          },
+          signData: {
+            value: Number(utxo.value),
+            outputScript: sellerP2pkh
+          }
+        },
+        signatory: P2PKHSignatory(sellerSk, sellerPk, ALL_BIP143)
+      };
+    });
+
+    const amountSats = convertXECToSatoshi(amountToSend);
+
+    const txBuild = new TxBuilder({
+      inputs: utxos,
+      outputs: [
+        {
+          value: amountSats,
+          script: escrowP2sh
+        },
+        sellerP2pkh
+      ]
+    });
+
+    return {
+      txBuild: txBuild.sign(ecc, roundedFeeInSatsPerKByte, coinInfo[COIN.XEC].etokenSats).ser(),
+      utxoRemoved: null
+    };
+  }
 };
 
-export const buyerBuildDepositTx = (
-  buyerUtxos: Array<Utxo_InNode & { address: string }>,
-  buyerSk: Uint8Array,
-  buyerPk: Uint8Array,
-  advancePaymentAmount: number
-): TxBuilder => {
-  const buyerP2pkh = Script.p2pkh(shaRmd160(buyerPk));
+export const splitUtxos = (
+  splittedUtxos: Array<UtxoInNode>,
+  sk: Uint8Array,
+  pk: Uint8Array,
+  depositAmountSats: number
+): Uint8Array => {
+  const ecc = new Ecc();
+  const buyerP2pkh = Script.p2pkh(shaRmd160(pk));
 
-  const utxos = buyerUtxos.map(utxo => {
+  const utxos = splittedUtxos.map(utxo => {
     return {
       input: {
         prevOut: {
-          outIdx: utxo.outpoint.outIdx,
-          txid: utxo.outpoint.txid
+          outIdx: utxo.outIdx,
+          txid: utxo.txid
         },
         signData: {
           value: Number(utxo.value),
           outputScript: buyerP2pkh
         }
       },
-      signatory: P2PKHSignatory(buyerSk, buyerPk, ALL_BIP143)
+      signatory: P2PKHSignatory(sk, pk, ALL_BIP143)
     };
   });
 
+  //tx to split utxos
   const txBuild = new TxBuilder({
     inputs: utxos,
     outputs: [
       {
-        value: advancePaymentAmount,
+        value: depositAmountSats,
         script: buyerP2pkh
       },
       buyerP2pkh
     ]
   });
 
-  return txBuild;
+  const feeInSatsPerKByte = coinInfo[COIN.XEC].defaultFee * 1000;
+  const roundedFeeInSatsPerKByte = parseInt(feeInSatsPerKByte.toFixed(0));
+
+  return txBuild.sign(ecc, roundedFeeInSatsPerKByte, coinInfo[COIN.XEC].etokenSats).ser();
+};
+
+export const buyerDepositFee = (
+  buyerUtxo: UtxoInNode,
+  buyerSk: Uint8Array,
+  buyerPk: Uint8Array,
+  amount: number,
+  escrowScript: Script
+): string => {
+  const ecc = new Ecc();
+  const buyerP2pkh = Script.p2pkh(shaRmd160(buyerPk));
+  const escrowP2sh = Script.p2sh(shaRmd160(escrowScript.bytecode));
+
+  const amountSats = convertXECToSatoshi(amount);
+
+  const input = {
+    input: {
+      prevOut: {
+        outIdx: buyerUtxo.outIdx,
+        txid: buyerUtxo.txid
+      },
+      signData: {
+        value: Number(buyerUtxo.value),
+        outputScript: buyerP2pkh
+      }
+    },
+    signatory: P2PKHSignatory(buyerSk, buyerPk, SINGLE_ANYONECANPAY_BIP143) // sign 1 input and 1 output
+  };
+
+  //tx to split utxos
+  const txBuild = new TxBuilder({
+    inputs: [input],
+    outputs: [
+      {
+        value: amountSats,
+        script: escrowP2sh
+      }
+    ]
+  });
+
+  const feeInSatsPerKByte = coinInfo[COIN.XEC].defaultFee * 1000;
+  const roundedFeeInSatsPerKByte = parseInt(feeInSatsPerKByte.toFixed(0));
+
+  const txAfterSign = txBuild.sign(ecc, roundedFeeInSatsPerKByte, coinInfo[COIN.XEC].etokenSats);
+
+  //convert to json string
+  const JsonTxAfterSign = serializeTransaction(txAfterSign);
+  //convert it to hex
+  const hexJsonStr = Buffer.from(JsonTxAfterSign).toString('hex');
+  return hexJsonStr;
 };
 
 export const sellerDepositAndBuildTx = (
