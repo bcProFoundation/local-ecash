@@ -236,7 +236,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const { data } = useSession();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
   const Wallet = useContext(WalletContextNode);
-  const { chronik } = Wallet;
+  const { chronik, XPI } = Wallet;
 
   const [arbiDataError, setArbiDataError] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -325,7 +325,9 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
       for (let i = 0; i < totalValidUtxos.length; i++) {
         totalAmount += totalValidUtxos[i].value;
         utxosToSplit.push(totalValidUtxos[i]);
-        if (totalAmount >= depositFeeSats) break;
+        const feeSats =
+          XPI.BitcoinCash.getByteCount({ P2PKH: utxosToSplit.length }, { P2PKH: 2 }) * coinInfo[COIN.XEC].defaultFee;
+        if (totalAmount >= depositFeeSats + feeSats) break;
       }
 
       if (isDepositFee) {
