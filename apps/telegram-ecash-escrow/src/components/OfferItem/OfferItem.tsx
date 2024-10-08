@@ -1,5 +1,6 @@
 'use client';
 
+import { withdrawFund } from '@/src/store/escrow';
 import { COIN, coinInfo } from '@bcpros/lixi-models';
 import {
   BoostForType,
@@ -7,23 +8,25 @@ import {
   CreateBoostInput,
   PostQueryItem,
   TimelineQueryItem,
-  WalletContextNode,
+  UtxoInNodeInput,
   boostApi,
+  escrowOrderApi,
   getSelectedWalletPath,
-  getWalletStatusNode,
-  useSliceSelector as useLixiSliceSelector,
-  useXEC
+  getWalletUtxosNode,
+  useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import ArrowCircleUpRoundedIcon from '@mui/icons-material/ArrowCircleUpRounded';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { Button, Card, CardContent, Collapse, IconButton, IconButtonProps, Typography } from '@mui/material';
-import _ from 'lodash';
+import { Button, Card, CardContent, Collapse, IconButton, Typography } from '@mui/material';
+import { fromHex, toHex } from 'ecash-lib';
+import cashaddr from 'ecashaddrjs';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import useAuthorization from '../Auth/use-authorization.hooks';
 import PlaceAnOrderModal from '../PlaceAnOrderModal/PlaceAnOrderModal';
+import CustomToast from '../Toast/CustomToast';
 
 const CardWrapper = styled(Card)`
   margin-top: 16px;
@@ -103,6 +106,7 @@ type OfferItemProps = {
 
 export default function OfferItem({ timelineItem }: OfferItemProps) {
   const post = timelineItem?.data as PostQueryItem;
+  const token = sessionStorage.getItem('Authorization');
   const offerData = post?.postOffer;
   const countryName = offerData?.country?.name;
   const stateName = offerData?.state?.name;
@@ -122,32 +126,28 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
     }
   };
 
-  const Wallet = React.useContext(WalletContextNode);
-  const { chronik } = Wallet;
-  const { sendXec } = useXEC();
+  const selectedWallet = useLixiSliceSelector(getSelectedWalletPath);
+  const utxos = useLixiSliceSelector(getWalletUtxosNode);
+
   const { useCreateBoostMutation } = boostApi;
   const [createBoostTrigger] = useCreateBoostMutation();
-
-  const selectedWallet = useLixiSliceSelector(getSelectedWalletPath);
-  const walletStatusNode = useLixiSliceSelector(getWalletStatusNode);
+  const { useFilterUtxosMutation } = escrowOrderApi;
+  const [filterUtxos] = useFilterUtxosMutation();
 
   const [expanded, setExpanded] = React.useState(false);
+  const [totalValidAmount, setTotalValidAmount] = useState<number>(0);
+  const [totalValidUtxos, setTotalValidUtxos] = useState([]);
+  const [boostSuccess, setBoostSuccess] = useState(false);
 
-  const amountBoost = 6;
   const handleBoost = async () => {
-    const txid = await sendXec(
-      chronik,
-      selectedWallet?.fundingWif,
-      walletStatusNode?.slpBalancesAndUtxos?.nonSlpUtxos,
-      coinInfo[COIN.XEC].defaultFee,
-      '', //message
-      false, //indicate send mode is one to one
-      null,
-      selectedWallet?.hash160,
-      amountBoost, //amount
-      coinInfo[COIN.XEC].etokenSats,
-      true // return hex
-    );
+    const amountBoost = 6;
+    const myPk = fromHex(selectedWallet?.publicKey);
+    const mySk = fromHex(selectedWallet?.privateKey);
+    const GNCAddress = process.env.NEXT_PUBLIC_ADDRESS_GNC;
+    const { hash: hashXEC } = cashaddr.decode(GNCAddress, false);
+    const GNCHash = Buffer.from(hashXEC).toString('hex');
+
+    const txBuild = withdrawFund(totalValidUtxos, mySk, myPk, GNCHash, amountBoost, undefined, 0);
 
     //create boost
     const createBoostInput: CreateBoostInput = {
@@ -156,27 +156,39 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
       boostForId: timelineItem?.data?.id || '',
       boostForType: BoostForType.Post,
       boostType: BoostType.Up,
-      txHex: txid
+      txHex: toHex(txBuild)
     };
-    await createBoostTrigger({ data: createBoostInput });
+    await createBoostTrigger({ data: createBoostInput }).then(() => setBoostSuccess(true));
   };
 
   const handleExpandClick = () => {
     setExpanded(!expanded);
   };
 
-  interface ExpandMoreProps extends IconButtonProps {
-    expand: boolean;
-  }
+  //call to validate utxos
+  useEffect(() => {
+    if (utxos.length === 0 || !token) return;
+    const listUtxos: UtxoInNodeInput[] = utxos.map(item => {
+      return {
+        txid: item.outpoint.txid,
+        outIdx: item.outpoint.outIdx,
+        value: item.value
+      };
+    });
 
-  const ExpandMore = styled((props: ExpandMoreProps) => {
-    const { ...other } = props;
+    const funcFilterUtxos = async () => {
+      try {
+        const listFilterUtxos = await filterUtxos({ input: listUtxos }).unwrap();
+        const totalValueUtxos = listFilterUtxos.filterUtxos.reduce((acc, item) => acc + item.value, 0);
+        setTotalValidUtxos(listFilterUtxos.filterUtxos);
+        setTotalValidAmount(totalValueUtxos / Math.pow(10, coinInfo[COIN.XEC].cashDecimals));
+      } catch (error) {
+        console.error('Error filtering UTXOs:', error);
+      }
+    };
 
-    return <IconButton {..._.omit(other, 'expand')} />;
-  })(({ expand }) => ({
-    transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
-    marginLeft: 'auto'
-  }));
+    token && funcFilterUtxos();
+  }, [utxos, token]);
 
   const OfferItem = (
     <OfferShowWrapItem>
@@ -243,6 +255,13 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
       </CardWrapper>
 
       <PlaceAnOrderModal isOpen={open} onDissmissModal={value => setOpen(value)} post={post} />
+
+      <CustomToast
+        isOpen={boostSuccess}
+        handleClose={() => setBoostSuccess(false)}
+        content="Boost offer successful"
+        type="success"
+      />
     </React.Fragment>
   );
 }

@@ -88,6 +88,7 @@ const SendWrap = styled.div`
 
 export default function Wallet() {
   const { data: sessionData } = useSession();
+  const token = sessionStorage.getItem('Authorization');
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
   const utxos = useLixiSliceSelector(getWalletUtxosNode);
 
@@ -144,8 +145,8 @@ export default function Wallet() {
       }
     };
 
-    funcFilterUtxos();
-  }, [utxos]);
+    token && funcFilterUtxos();
+  }, [utxos, token]);
 
   return (
     <MobileLayout>

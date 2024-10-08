@@ -231,6 +231,7 @@ const Transition = React.forwardRef(function Transition(
 const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const theme = useTheme();
   const router = useRouter();
+  const token = sessionStorage.getItem('Authorization');
   const { post, isOpen }: { post: PostQueryItem; isOpen: boolean } = props;
   const { data } = useSession();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
@@ -419,8 +420,8 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
       }
     };
 
-    funcFilterUtxos();
-  }, [utxos]);
+    token && funcFilterUtxos();
+  }, [utxos, token]);
 
   return (
     <React.Fragment>
