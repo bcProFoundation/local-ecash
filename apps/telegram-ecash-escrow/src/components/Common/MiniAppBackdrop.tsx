@@ -73,8 +73,10 @@ const MiniAppBackdrop = () => {
   const { launchParams } = useContext(TelegramMiniAppContext);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [importSuccess, setImportSuccess] = useState(false);
   const [error, setError] = useState(false);
-  const [newWallet, setNewWallet] = useState(false);
+  const [networkError, setNetworkError] = useState(false);
+  const [newAccountBackdrop, setNewAccountBackdrop] = useState(false);
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
   const { getXecWalletPublicKey } = useContext(WalletContextNode);
 
@@ -96,13 +98,38 @@ const MiniAppBackdrop = () => {
       await axiosClient.get(`/api/accounts/telegram/${data.id}`);
 
       signIn('telegram-login', { redirect: false }, data as any);
-    } catch {
-      dispatch(generateAccount({ coin: 'XEC', telegramId: data.id.toString() }));
+    } catch (e) {
+      if (e.message === 'Network Error') {
+        setNetworkError(true);
 
-      signIn('telegram-login', { redirect: false }, data as any);
+        return;
+      }
 
-      setNewWallet(true);
+      if (e.response.data.message === 'The account does not exist in the database.') {
+        setNewAccountBackdrop(true);
+      }
     }
+  };
+
+  const handleCreateNewAccount = async () => {
+    const { user, authDate, hash } = launchParams.initData;
+
+    const data: TelegramAuthData & { isMiniApp: boolean } = {
+      id: user.id,
+      auth_date: Math.floor(new Date(authDate).getTime() / 1000),
+      first_name: user.firstName,
+      hash,
+      last_name: user.lastName,
+      photo_url: user.photoUrl,
+      username: user.username,
+      isMiniApp: true
+    };
+
+    dispatch(generateAccount({ coin: 'XEC', telegramId: data.id.toString() }));
+
+    signIn('telegram-login', { redirect: false }, data as any);
+
+    setSuccess(true);
   };
 
   const importWallet = async (data: { recoveryPhrase: string }) => {
@@ -126,7 +153,7 @@ const MiniAppBackdrop = () => {
 
       dispatch(importAccount(dataToImport));
 
-      setSuccess(true);
+      setImportSuccess(true);
     } catch (e) {
       setError(true);
     }
@@ -155,13 +182,60 @@ const MiniAppBackdrop = () => {
     launchParams && signInByLaunchParams();
   }, [launchParams]);
 
+  if (newAccountBackdrop) {
+    return (
+      <Backdrop
+        sx={theme => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1, backgroundColor: 'black' })}
+        open={launchParams && (!sessionData || !selectedWalletPath)}
+      >
+        <Stack>
+          <Typography variant="h5" align="center">
+            Welcome to Local Ecash
+          </Typography>
+          <Button
+            className="btn-create"
+            variant="contained"
+            onClick={() => handleCreateNewAccount()}
+            disabled={loading || success}
+          >
+            Create new account
+          </Button>
+        </Stack>
+
+        <Snackbar open={success} autoHideDuration={3500} onClose={() => setSuccess(false)}>
+          <Alert severity="success" variant="filled" sx={{ width: '100%' }}>
+            Congrats on your new wallet!
+          </Alert>
+        </Snackbar>
+      </Backdrop>
+    );
+  }
+
+  if (networkError) {
+    return (
+      <Backdrop
+        sx={theme => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1, backgroundColor: 'black' })}
+        open={launchParams && (!sessionData || !selectedWalletPath)}
+      >
+        <Stack>
+          <Typography variant="h5" align="center">
+            Network Error
+          </Typography>
+          <Typography variant="h5" align="center">
+            Please try again later
+          </Typography>
+        </Stack>
+      </Backdrop>
+    );
+  }
+
   return (
     <React.Fragment>
       <Backdrop
         sx={theme => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1, backgroundColor: 'black' })}
         open={launchParams && (!sessionData || !selectedWalletPath)}
       >
-        {!sessionData && (
+        {!sessionData && selectedWalletPath && (
           <Stack>
             <Typography variant="h5" align="center">
               Signing In...
@@ -169,7 +243,7 @@ const MiniAppBackdrop = () => {
           </Stack>
         )}
 
-        {!selectedWalletPath && (
+        {!selectedWalletPath && sessionData && (
           <ContainerImportWallet>
             <div className="receive-form">
               <p className="title" style={{ color: 'white' }}>
@@ -227,15 +301,21 @@ const MiniAppBackdrop = () => {
         )}
       </Backdrop>
 
-      <Snackbar open={newWallet} autoHideDuration={3500} onClose={() => setNewWallet(false)}>
+      <Snackbar open={success} autoHideDuration={3500} onClose={() => setSuccess(false)}>
         <Alert severity="success" variant="filled" sx={{ width: '100%' }}>
           Congrats on your new wallet!
         </Alert>
       </Snackbar>
 
+      <Snackbar open={importSuccess} autoHideDuration={3500} onClose={() => setImportSuccess(false)}>
+        <Alert severity="success" variant="filled" sx={{ width: '100%' }}>
+          Import wallet successfully!
+        </Alert>
+      </Snackbar>
+
       <Snackbar open={error} autoHideDuration={3500} onClose={() => setError(false)}>
         <Alert severity="error" variant="filled" sx={{ width: '100%' }}>
-          Import wallet failed — Please check your mnemonic seed phrase!!
+          Import wallet failed — Please check your mnemonic seed phrase!
         </Alert>
       </Snackbar>
     </React.Fragment>
