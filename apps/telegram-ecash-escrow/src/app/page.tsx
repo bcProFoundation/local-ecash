@@ -31,6 +31,7 @@ import {
   getPaymenMethods,
   getSelectedWalletPath,
   offerApi,
+  removeAllWallets,
   saveOfferFilterConfig,
   setNewPostAvailable,
   useInfiniteOfferFilterQuery,
@@ -270,7 +271,10 @@ export default function Home() {
           <Button
             variant="contained"
             style={{ marginTop: '15px' }}
-            onClick={() => signOut({ redirect: true, callbackUrl: '/' })}
+            onClick={() => {
+              dispatch(removeAllWallets());
+              signOut({ redirect: true, callbackUrl: '/' });
+            }}
           >
             Sign Out
           </Button>

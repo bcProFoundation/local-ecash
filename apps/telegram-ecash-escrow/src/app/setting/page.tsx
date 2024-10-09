@@ -6,6 +6,8 @@ import CustomToast from '@/src/components/Toast/CustomToast';
 import {
   getSelectedWalletPath,
   getWalletMnemonic,
+  removeAllWallets,
+  useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
@@ -83,6 +85,7 @@ const ContainerSetting = styled.div`
 
 export default function Setting() {
   const { data: sessionData } = useSession();
+  const dispatch = useLixiSliceDispatch();
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
   const selectedMnemonic = useLixiSliceSelector(getWalletMnemonic);
   // const mainButton = useMainButton();
@@ -170,7 +173,10 @@ export default function Setting() {
           <Button
             variant="contained"
             style={{ marginTop: '15px' }}
-            onClick={() => signOut({ redirect: true, callbackUrl: '/' })}
+            onClick={() => {
+              dispatch(removeAllWallets());
+              signOut({ redirect: true, callbackUrl: '/' });
+            }}
           >
             Sign Out
           </Button>
