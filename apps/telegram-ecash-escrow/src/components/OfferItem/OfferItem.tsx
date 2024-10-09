@@ -140,6 +140,11 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
   const [boostSuccess, setBoostSuccess] = useState(false);
 
   const handleBoost = async () => {
+    if (status === 'unauthenticated') {
+      askAuthorization();
+      return;
+    }
+
     const amountBoost = 6;
     const myPk = fromHex(selectedWallet?.publicKey);
     const mySk = fromHex(selectedWallet?.privateKey);

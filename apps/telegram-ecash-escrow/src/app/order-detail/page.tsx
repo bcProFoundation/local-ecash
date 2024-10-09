@@ -8,7 +8,7 @@ import TelegramButton from '@/src/components/TelegramButton/TelegramButton';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
 import CustomToast from '@/src/components/Toast/CustomToast';
 import { buildReleaseTx, BuyerReturnSignatory, sellerBuildDepositTx, SellerReleaseSignatory } from '@/src/store/escrow';
-import { estimatedFee } from '@/src/store/util';
+import { deserializeTransaction, estimatedFee } from '@/src/store/util';
 import { COIN, coinInfo } from '@bcpros/lixi-models';
 import {
   DisputeStatus,
@@ -37,7 +37,7 @@ import {
   TextField,
   Typography
 } from '@mui/material';
-import { fromHex, Script, shaRmd160 } from 'ecash-lib';
+import { fromHex, Script, shaRmd160, Tx } from 'ecash-lib';
 import cashaddr from 'ecashaddrjs';
 import _ from 'lodash';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -96,6 +96,7 @@ const OrderDetail = () => {
   const [release, setRelease] = useState(false);
   const [cancel, setCancel] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [notEnoughFund, setNotEnoughFund] = useState(false);
 
   const { useEscrowOrderQuery, useUpdateEscrowOrderStatusMutation } = escrowOrderApi;
   const { isLoading, currentData, isError, isSuccess, isUninitialized } = useEscrowOrderQuery(
@@ -129,7 +130,20 @@ const OrderDetail = () => {
   const updateOrderStatus = async (status: EscrowOrderStatus) => {
     setLoading(true);
 
-    await updateOrderTrigger({ input: { orderId: id!, status } })
+    let utxoRemoved = null;
+    const buyerDepositTx = currentData?.escrowOrder.buyerDepositTx;
+    if (buyerDepositTx) {
+      //deserialize
+      const strJsonTx = Buffer.from(buyerDepositTx, 'hex').toString();
+      const deserializeTx = new Tx(deserializeTransaction(strJsonTx));
+      utxoRemoved = {
+        txid: deserializeTx.inputs[0].prevOut.txid as string,
+        outIdx: deserializeTx.inputs[0].prevOut.outIdx,
+        value: deserializeTx.inputs[0].signData.value as number
+      };
+    }
+
+    await updateOrderTrigger({ input: { orderId: id!, status, utxoInNodeOfBuyer: utxoRemoved } })
       .unwrap()
       .catch(() => setError(true));
 
@@ -157,7 +171,12 @@ const OrderDetail = () => {
         currentData?.escrowOrder.buyerDepositTx
       );
 
-      const { txid } = await chronik.broadcastTx(txBuild);
+      let txid = null;
+      try {
+        txid = (await chronik.broadcastTx(txBuild)).txid;
+      } catch (err) {
+        setNotEnoughFund(true);
+      }
 
       if (txid) {
         //update status
@@ -586,6 +605,11 @@ const OrderDetail = () => {
 
     return (
       <div style={{ color: 'white' }}>
+        {currentData?.escrowOrder.buyerDepositTx && (
+          <p style={{ fontWeight: 'bold' }}>
+            *Buyer deposited the fee ({calDisputeFee} {COIN.XEC})
+          </p>
+        )}
         <p>
           Your wallet: {totalBalanceFormat} {COIN.XEC}
         </p>
@@ -638,6 +662,14 @@ const OrderDetail = () => {
           />
 
           <CustomToast
+            isOpen={notEnoughFund}
+            content="Not enough fund!"
+            handleClose={() => setError(false)}
+            type="error"
+            autoHideDuration={3500}
+          />
+
+          <CustomToast
             isOpen={escrow}
             content="Order escrowed successfully. Click here to see transaction!"
             handleClose={() => setEscrow(false)}
@@ -659,7 +691,7 @@ const OrderDetail = () => {
 
           <CustomToast
             isOpen={cancel}
-            content="Order cancelled successfully. Funds have been returned to the buyer. Click here to see transaction!"
+            content="Order cancelled successfully. Funds have been returned to the seller. Click here to see transaction!"
             handleClose={() => setCancel(false)}
             type="success"
             autoHideDuration={3500}

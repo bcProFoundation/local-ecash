@@ -18,6 +18,7 @@ import {
   DialogTitle,
   FormControl,
   IconButton,
+  Portal,
   Slide,
   TextField,
   Typography,
@@ -27,6 +28,7 @@ import {
 import { TransitionProps } from '@mui/material/transitions';
 import React, { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import CustomToast from '../Toast/CustomToast';
 
 const StyledDialog = styled(Dialog)`
   .MuiPaper-root {
@@ -94,6 +96,7 @@ const ReasonDisputeModal: React.FC<ReasonDisputeModalProps> = ({ id }: ReasonDis
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
 
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
 
@@ -114,17 +117,21 @@ const ReasonDisputeModal: React.FC<ReasonDisputeModalProps> = ({ id }: ReasonDis
   };
 
   const handleCreateDispute = async data => {
-    setLoading(true);
-    const dataCreateDispute: CreateDisputeInput = {
-      createdBy: selectedWalletPath?.publicKey,
-      escrowOrderId: id!,
-      reason: data.reason
-    };
+    try {
+      setLoading(true);
+      const dataCreateDispute: CreateDisputeInput = {
+        createdBy: selectedWalletPath?.publicKey,
+        escrowOrderId: id!,
+        reason: data.reason
+      };
 
-    await createDisputeTrigger({ input: dataCreateDispute })
-      .unwrap()
-      .then(() => handleCloseModal());
-    setLoading(false);
+      await createDisputeTrigger({ input: dataCreateDispute })
+        .unwrap()
+        .then(() => handleCloseModal());
+    } catch (err) {
+      setError(true);
+      setLoading(false);
+    }
   };
 
   return (
@@ -173,6 +180,15 @@ const ReasonDisputeModal: React.FC<ReasonDisputeModalProps> = ({ id }: ReasonDis
           Create Dispute
         </Button>
       </DialogActions>
+      <Portal>
+        <CustomToast
+          isOpen={error}
+          content="Create dispute failed"
+          handleClose={() => setError(false)}
+          type="error"
+          autoHideDuration={3500}
+        />
+      </Portal>
     </StyledDialog>
   );
 };

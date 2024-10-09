@@ -516,7 +516,8 @@ export default function DisputeDetail() {
                 Return to Seller
               </Button>
               <Typography className="disclaim-seller" textAlign="center" variant="body2">
-                *You will collect {calDisputeFee(escrowOrder?.amount)} {COIN.XEC} (dispute fees) from seller
+                *You will collect {calDisputeFee(escrowOrder?.amount)} {COIN.XEC} (dispute fees) from{' '}
+                {escrowOrder?.buyerDepositTx ? 'buyer' : 'seller'}
               </Typography>
             </div>
             <hr />
