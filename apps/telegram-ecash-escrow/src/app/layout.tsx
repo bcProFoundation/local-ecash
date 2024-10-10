@@ -13,6 +13,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import { SDKProvider } from '@telegram-apps/sdk-react';
 import React from 'react';
 import ModalManager from '../components/ModalManager';
+import { UtxoProvider } from '../store/context/utxoProvider';
 import ReduxProvider from '../store/provider';
 import { TelegramAuthProvider } from '../store/telegram-auth-provider';
 import { TelegramMiniAppProvider } from '../store/telegram-mini-app-provider';
@@ -37,10 +38,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <SDKProvider acceptCustomStyles debug>
               <TelegramMiniAppProvider>
                 <AppRouterCacheProvider>
-                  <ThemeProvider theme={theme}>
-                    <ModalManager />
-                    {children}
-                  </ThemeProvider>
+                  <UtxoProvider>
+                    <ThemeProvider theme={theme}>
+                      <ModalManager />
+                      {children}
+                    </ThemeProvider>
+                  </UtxoProvider>
                 </AppRouterCacheProvider>
               </TelegramMiniAppProvider>
             </SDKProvider>

@@ -5,20 +5,18 @@ import AuthorizationLayout from '@/src/components/layout/AuthorizationLayout';
 import MobileLayout from '@/src/components/layout/MobileLayout';
 import QRCode from '@/src/components/QRcode/QRcode';
 import SendComponent from '@/src/components/Send/send';
-import { COIN, coinInfo } from '@bcpros/lixi-models';
+import { UtxoContext } from '@/src/store/context/utxoProvider';
+import { COIN } from '@bcpros/lixi-models';
 import {
-  escrowOrderApi,
   getSelectedWalletPath,
-  getWalletUtxosNode,
   parseCashAddressToPrefix,
-  useSliceSelector as useLixiSliceSelector,
-  UtxoInNodeInput
+  useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import { Backdrop, Button, Stack, Typography } from '@mui/material';
 import { signOut, useSession } from 'next-auth/react';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useContext, useState } from 'react';
 
 const WrapWallet = styled.div`
   position: relative;
@@ -88,18 +86,12 @@ const SendWrap = styled.div`
 
 export default function Wallet() {
   const { data: sessionData } = useSession();
-  const token = sessionStorage.getItem('Authorization');
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
-  const utxos = useLixiSliceSelector(getWalletUtxosNode);
 
   const [address, setAddress] = useState(parseCashAddressToPrefix(COIN.XEC, selectedWalletPath?.cashAddress));
   const [openReceive, setOpenReceive] = useState(true);
 
-  const [totalValidAmount, setTotalValidAmount] = useState<number>(0);
-  const [totalValidUtxos, setTotalValidUtxos] = useState([]);
-
-  const { useFilterUtxosMutation } = escrowOrderApi;
-  const [filterUtxos] = useFilterUtxosMutation();
+  const { totalValidAmount, totalValidUtxos } = useContext(UtxoContext);
 
   if (selectedWalletPath === null && sessionData) {
     return (
@@ -122,31 +114,6 @@ export default function Wallet() {
       </Backdrop>
     );
   }
-
-  //call to validate utxos
-  useEffect(() => {
-    if (utxos.length === 0) return;
-    const listUtxos: UtxoInNodeInput[] = utxos.map(item => {
-      return {
-        txid: item.outpoint.txid,
-        outIdx: item.outpoint.outIdx,
-        value: item.value
-      };
-    });
-
-    const funcFilterUtxos = async () => {
-      try {
-        const listFilterUtxos = await filterUtxos({ input: listUtxos }).unwrap();
-        const totalValueUtxos = listFilterUtxos.filterUtxos.reduce((acc, item) => acc + item.value, 0);
-        setTotalValidUtxos(listFilterUtxos.filterUtxos);
-        setTotalValidAmount(totalValueUtxos / Math.pow(10, coinInfo[COIN.XEC].cashDecimals));
-      } catch (error) {
-        console.error('Error filtering UTXOs:', error);
-      }
-    };
-
-    token && funcFilterUtxos();
-  }, [utxos, token]);
 
   return (
     <MobileLayout>
