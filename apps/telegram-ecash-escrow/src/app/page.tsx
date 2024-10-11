@@ -1,20 +1,5 @@
 'use client';
 
-import styled from '@emotion/styled';
-import CachedRoundedIcon from '@mui/icons-material/CachedRounded';
-import {
-  Backdrop,
-  Badge,
-  Button,
-  Fade,
-  Skeleton,
-  Slide,
-  Stack,
-  Typography,
-  useMediaQuery,
-  useTheme
-} from '@mui/material';
-
 import CreateOfferModal from '@/src/components/CreateOfferModal/CreateOfferModal';
 import Footer from '@/src/components/Footer/Footer';
 import Header from '@/src/components/Header/Header';
@@ -39,6 +24,21 @@ import {
   useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
+import styled from '@emotion/styled';
+import CachedRoundedIcon from '@mui/icons-material/CachedRounded';
+import SignalWifiConnectedNoInternet4Icon from '@mui/icons-material/SignalWifiConnectedNoInternet4';
+import {
+  Backdrop,
+  Badge,
+  Button,
+  Fade,
+  Skeleton,
+  Slide,
+  Stack,
+  Typography,
+  useMediaQuery,
+  useTheme
+} from '@mui/material';
 import { signOut, useSession } from 'next-auth/react';
 import { useContext, useEffect, useRef, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
@@ -118,6 +118,7 @@ export default function Home() {
   const { data: sessionData } = useSession();
   const { launchParams } = useContext(TelegramMiniAppContext);
   const [mismatchAccount, setMismatchAccount] = useState(false);
+  const [networkError, setNetworkError] = useState(false);
   const [visible, setVisible] = useState(true);
   const [open, setOpen] = useState<boolean>(false);
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
@@ -229,7 +230,13 @@ export default function Home() {
               publicKey: selectedWalletPath.publicKey
             }
           });
-        } catch (error) {
+        } catch (e) {
+          if (e.message === 'Network Error') {
+            setNetworkError(true);
+
+            return;
+          }
+
           setMismatchAccount(true);
         }
       })();
@@ -278,6 +285,21 @@ export default function Home() {
           >
             Sign Out
           </Button>
+        </Stack>
+      </Backdrop>
+    );
+  }
+
+  if (networkError) {
+    return (
+      <Backdrop
+        sx={theme => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1, backgroundColor: 'black' })}
+        open={true}
+      >
+        <Stack alignItems="center">
+          <SignalWifiConnectedNoInternet4Icon fontSize="large" />
+          <Typography variant="h5">Network Error</Typography>
+          <Typography variant="h5">Please try again later</Typography>
         </Stack>
       </Backdrop>
     );

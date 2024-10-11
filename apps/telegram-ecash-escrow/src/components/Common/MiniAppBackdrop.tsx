@@ -10,6 +10,7 @@ import {
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
+import SignalWifiConnectedNoInternet4Icon from '@mui/icons-material/SignalWifiConnectedNoInternet4';
 import { Alert, Backdrop, Button, FormControl, Snackbar, Stack, TextField, Typography } from '@mui/material';
 import { TelegramAuthData } from '@telegram-auth/react';
 import { signIn, useSession } from 'next-auth/react';
@@ -215,15 +216,12 @@ const MiniAppBackdrop = () => {
     return (
       <Backdrop
         sx={theme => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1, backgroundColor: 'black' })}
-        open={launchParams && (!sessionData || !selectedWalletPath)}
+        open={true}
       >
-        <Stack>
-          <Typography variant="h5" align="center">
-            Network Error
-          </Typography>
-          <Typography variant="h5" align="center">
-            Please try again later
-          </Typography>
+        <Stack alignItems="center">
+          <SignalWifiConnectedNoInternet4Icon fontSize="large" />
+          <Typography variant="h5">Network Error</Typography>
+          <Typography variant="h5">Please try again later</Typography>
         </Stack>
       </Backdrop>
     );

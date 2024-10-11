@@ -18,7 +18,10 @@ import {
   EscrowOrderStatus,
   getSelectedWalletPath,
   parseCashAddressToPrefix,
+  SocketContext,
+  useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector,
+  userSubcribeEscrowOrderChannel,
   WalletContextNode
 } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
@@ -43,7 +46,7 @@ import { fromHex, Script, shaRmd160 } from 'ecash-lib';
 import _ from 'lodash';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 
 const DisputeDetailInfoWrap = styled.div`
   display: flex;
@@ -178,6 +181,7 @@ const Transition = React.forwardRef(function Transition(
 });
 
 export default function DisputeDetail() {
+  const dispatch = useLixiSliceDispatch();
   const search = useSearchParams();
   const id = search!.get('id');
   const theme = useTheme();
@@ -185,6 +189,7 @@ export default function DisputeDetail() {
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
   const Wallet = useContext(WalletContextNode);
+  const socket = useContext(SocketContext);
   const { chronik } = Wallet;
 
   const [loading, setLoading] = useState(false);
@@ -206,7 +211,7 @@ export default function DisputeDetail() {
     isUninitialized: isUninitializedDispute,
     isError
   } = useDisputeQuery({ id: id! }, { skip: !id || !token });
-  const { currentData: escrowOrderQueryData } = useEscrowOrderQuery(
+  const { currentData: escrowOrderQueryData, isSuccess: isEscrowOrderSuccess } = useEscrowOrderQuery(
     { id: disputeQueryData?.dispute.escrowOrder.id },
     { skip: !disputeQueryData?.dispute.escrowOrder.id }
   );
@@ -360,6 +365,13 @@ export default function DisputeDetail() {
 
     return Math.max(fee1Percent, dustXEC);
   };
+
+  useEffect(() => {
+    escrowOrder?.escrowOrderStatus !== EscrowOrderStatus.Complete &&
+      isEscrowOrderSuccess &&
+      socket &&
+      dispatch(userSubcribeEscrowOrderChannel(escrowOrder.id));
+  }, [socket, isEscrowOrderSuccess]);
 
   if (
     escrowOrder?.arbitratorAccount.hash160 !== selectedWalletPath?.hash160 &&
