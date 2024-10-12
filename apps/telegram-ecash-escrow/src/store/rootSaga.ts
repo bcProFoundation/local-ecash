@@ -7,6 +7,7 @@ import {
   commentSaga,
   countrySaga,
   envelopeSaga,
+  escrowSaga,
   lixiSaga,
   localAccountSaga,
   messageSaga,
@@ -49,6 +50,7 @@ export default function* rootSaga() {
     messageSaga(),
     websocketSaga(),
     analyticEventSaga(),
-    paymentMethodsSaga()
+    paymentMethodsSaga(),
+    escrowSaga()
   ]);
 }

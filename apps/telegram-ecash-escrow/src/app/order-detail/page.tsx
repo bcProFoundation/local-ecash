@@ -20,8 +20,10 @@ import {
   isValidCoinAddress,
   openModal,
   parseCashAddressToPrefix,
+  SocketContext,
   useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector,
+  userSubcribeEscrowOrderChannel,
   WalletContextNode
 } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
@@ -41,7 +43,7 @@ import { fromHex, Script, shaRmd160, Tx } from 'ecash-lib';
 import cashaddr from 'ecashaddrjs';
 import _ from 'lodash';
 import { useRouter, useSearchParams } from 'next/navigation';
-import React, { useContext, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 const OrderDetailPage = styled.div`
@@ -84,6 +86,7 @@ const OrderDetail = () => {
   const search = useSearchParams();
   const id = search!.get('id');
   const router = useRouter();
+  const socket = useContext(SocketContext);
 
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
   const walletUtxos = useLixiSliceSelector(getWalletUtxosNode);
@@ -126,6 +129,13 @@ const OrderDetail = () => {
       address: ''
     }
   });
+
+  useEffect(() => {
+    currentData?.escrowOrder.escrowOrderStatus !== EscrowOrderStatus.Complete &&
+      isSuccess &&
+      socket &&
+      dispatch(userSubcribeEscrowOrderChannel(id));
+  }, [socket, isSuccess]);
 
   const updateOrderStatus = async (status: EscrowOrderStatus) => {
     setLoading(true);
