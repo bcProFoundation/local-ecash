@@ -1,18 +1,16 @@
 'use client';
 
+import { UtxoContext } from '@/src/store/context/utxoProvider';
 import { buyerDepositFee, Escrow, splitUtxos } from '@/src/store/escrow';
 import { convertXECToSatoshi, estimatedFee } from '@/src/store/util';
 import { COIN, coinInfo, CreateEscrowOrderInput } from '@bcpros/lixi-models';
 import {
   convertEscrowScriptHashToEcashAddress,
-  convertHashToEcashAddress,
   escrowOrderApi,
   getSelectedWalletPath,
-  getWalletUtxosNode,
   parseCashAddressToPrefix,
   PostQueryItem,
   useSliceSelector as useLixiSliceSelector,
-  UtxoInNode,
   UtxoInNodeInput,
   WalletContextNode
 } from '@bcpros/redux-store';
@@ -30,7 +28,6 @@ import {
   IconButton,
   Radio,
   RadioGroup,
-  Skeleton,
   Slide,
   TextField,
   Typography,
@@ -42,7 +39,7 @@ import { fromHex, Script, shaRmd160 } from 'ecash-lib';
 import _ from 'lodash';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import React, { useContext, useEffect, useMemo, useState } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import QRCode from '../QRcode/QRcode';
 import CustomToast from '../Toast/CustomToast';
@@ -231,30 +228,21 @@ const Transition = React.forwardRef(function Transition(
 const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const theme = useTheme();
   const router = useRouter();
-  const token = sessionStorage.getItem('Authorization');
   const { post, isOpen }: { post: PostQueryItem; isOpen: boolean } = props;
   const { data } = useSession();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
   const Wallet = useContext(WalletContextNode);
+  const { totalValidAmount, totalValidUtxos } = useContext(UtxoContext);
   const { chronik, XPI } = Wallet;
 
   const [arbiDataError, setArbiDataError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [paymentMethodId, setPaymentMethodId] = useState<number | undefined>();
-  const [totalValidAmount, setTotalValidAmount] = useState<number>(0);
-  const [totalValidUtxos, setTotalValidUtxos] = useState<Array<UtxoInNode>>([]);
-
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
-  const utxos = useLixiSliceSelector(getWalletUtxosNode);
 
-  const {
-    useCreateEscrowOrderMutation,
-    useGetModeratorAccountQuery,
-    useGetRandomArbitratorAccountQuery,
-    useFilterUtxosMutation
-  } = escrowOrderApi;
+  const { useCreateEscrowOrderMutation, useGetModeratorAccountQuery, useGetRandomArbitratorAccountQuery } =
+    escrowOrderApi;
   const [createOrderTrigger] = useCreateEscrowOrderMutation();
-  const [filterUtxos] = useFilterUtxosMutation();
 
   const {
     currentData: moderatorCurrentData,
@@ -400,31 +388,6 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     );
   };
 
-  //call to validate utxos
-  useEffect(() => {
-    if (utxos.length === 0) return;
-    const listUtxos: UtxoInNodeInput[] = utxos.map(item => {
-      return {
-        txid: item.outpoint.txid,
-        outIdx: item.outpoint.outIdx,
-        value: item.value
-      };
-    });
-
-    const funcFilterUtxos = async () => {
-      try {
-        const listFilterUtxos = await filterUtxos({ input: listUtxos }).unwrap();
-        const totalValueUtxos = listFilterUtxos.filterUtxos.reduce((acc, item) => acc + item.value, 0);
-        setTotalValidUtxos(listFilterUtxos.filterUtxos);
-        setTotalValidAmount(totalValueUtxos / Math.pow(10, coinInfo[COIN.XEC].cashDecimals));
-      } catch (error) {
-        console.error('Error filtering UTXOs:', error);
-      }
-    };
-
-    token && funcFilterUtxos();
-  }, [utxos, token]);
-
   return (
     <React.Fragment>
       <StyledDialog
@@ -442,35 +405,6 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
           <br />
           <span>{`By: ${post.account.telegramUsername} • posted on: ${new Date(post.createdAt).toLocaleString()}`}</span>
         </Typography>
-        {moderatorIsLoading ? (
-          <Typography className="offer-info" variant="body2">
-            <Skeleton animation="wave" />
-            <Skeleton animation="wave" />
-          </Typography>
-        ) : (
-          moderatorCurrentData?.getModeratorAccount && (
-            <Typography className="offer-info" variant="body2">
-              <span>Moderator: {moderatorCurrentData?.getModeratorAccount.telegramUsername}</span>
-              <br />
-              <span>{convertHashToEcashAddress(moderatorCurrentData?.getModeratorAccount.hash160)}</span>
-            </Typography>
-          )
-        )}
-
-        {arbitratorIsLoading ? (
-          <Typography className="offer-info" variant="body2">
-            <Skeleton animation="wave" />
-            <Skeleton animation="wave" />
-          </Typography>
-        ) : (
-          arbitratorCurrentData?.getRandomArbitratorAccount && (
-            <Typography className="offer-info" variant="body2">
-              <span>Arbitrator: {arbitratorCurrentData?.getRandomArbitratorAccount.telegramUsername}</span>
-              <br />
-              <span>{convertHashToEcashAddress(arbitratorCurrentData?.getRandomArbitratorAccount.hash160)}</span>
-            </Typography>
-          )
-        )}
         <DialogContent>
           <PlaceAnOrderWrap>
             <Grid container spacing={2}>

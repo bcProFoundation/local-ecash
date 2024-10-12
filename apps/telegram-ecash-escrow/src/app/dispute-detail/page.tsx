@@ -1,8 +1,10 @@
 'use client';
 import MiniAppBackdrop from '@/src/components/Common/MiniAppBackdrop';
 import MobileLayout from '@/src/components/layout/MobileLayout';
+import { TabPanel } from '@/src/components/Tab/Tab';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
 import CustomToast from '@/src/components/Toast/CustomToast';
+import { TabType } from '@/src/store/constants';
 import {
   ArbiReleaseSignatory,
   ArbiReturnSignatory,
@@ -33,6 +35,8 @@ import {
   IconButton,
   Slide,
   Stack,
+  Tab,
+  Tabs,
   TextField,
   Typography,
   useMediaQuery,
@@ -44,6 +48,7 @@ import _ from 'lodash';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import React, { useContext, useState } from 'react';
+import SwipeableViews from 'react-swipeable-views';
 
 const DisputeDetailInfoWrap = styled.div`
   display: flex;
@@ -196,6 +201,7 @@ export default function DisputeDetail() {
   const [openReleaseModal, setOpenReleaseModal] = useState<boolean>(false);
   const [validTextToRelease, setValidTextToRelease] = useState('');
   const [validTextToReturn, setValidTextToReturn] = useState('');
+  const [valueTab, setValueTab] = useState(0);
 
   const { useDisputeQuery } = disputeApi;
   const { useEscrowOrderQuery, useUpdateEscrowOrderStatusMutation, useLazyArbiRequestTelegramChatQuery } =
@@ -213,6 +219,14 @@ export default function DisputeDetail() {
   const { escrowOrder } = { ...escrowOrderQueryData };
   const [updateOrderTrigger] = useUpdateEscrowOrderStatusMutation();
   const [trigger, { isFetching, isLoading }] = useLazyArbiRequestTelegramChatQuery();
+
+  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    setValueTab(newValue);
+  };
+
+  const handleChangeIndex = (index: number) => {
+    setValueTab(index);
+  };
 
   const handleArbModReleaseReturn = async (spenderPkStr: string, status: EscrowOrderStatus) => {
     setLoading(true);
@@ -493,60 +507,83 @@ export default function DisputeDetail() {
         <DialogTitle>Resolve Dispute</DialogTitle>
         <DialogContent>
           <ReleaseDisputeWrap>
-            <div className="seller-release">
-              <Typography textAlign="center" variant="body1">
-                Are you sure you want to return {escrowOrder?.amount} XEC to Seller:{' '}
-                {escrowOrder?.sellerAccount?.telegramUsername} ?
-              </Typography>
-              <TextField
-                id="input-seller"
-                placeholder={`Type ${escrowOrder?.sellerAccount?.telegramUsername} to return`}
-                onChange={e => {
-                  setValidTextToReturn(e?.target?.value);
-                }}
-                variant="outlined"
+            <Tabs
+              value={valueTab}
+              onChange={handleChange}
+              indicatorColor="secondary"
+              textColor="inherit"
+              variant="fullWidth"
+            >
+              <Tab
+                label={TabType.BUYER}
+                id={`full-width-tab-${TabType.BUYER}`}
+                aria-controls={`full-width-tabpanel-${TabType.BUYER}`}
               />
-              <Button
-                variant="contained"
-                color="info"
-                onClick={() => handleArbiModReturnEscrow()}
-                autoFocus
-                disabled={loading || validTextToReturn !== escrowOrder?.sellerAccount?.telegramUsername}
-              >
-                Return to Seller
-              </Button>
-              <Typography className="disclaim-seller" textAlign="center" variant="body2">
-                *You will collect {calDisputeFee(escrowOrder?.amount)} {COIN.XEC} (dispute fees) from{' '}
-                {escrowOrder?.buyerDepositTx ? 'buyer' : 'seller'}
-              </Typography>
-            </div>
-            <hr />
-            <div className="buyer-release">
-              <Typography textAlign="center" variant="body1">
-                Are you sure you want to release {escrowOrder?.amount} XEC to Buyer:{' '}
-                {escrowOrder?.buyerAccount?.telegramUsername} ?
-              </Typography>
-              <TextField
-                id="input-buyer"
-                placeholder={`Type ${escrowOrder?.buyerAccount?.telegramUsername} to release`}
-                onChange={e => {
-                  setValidTextToRelease(e?.target?.value);
-                }}
-                variant="outlined"
+              <Tab
+                label={TabType.SELLER}
+                id={`full-width-tab-${TabType.SELLER}`}
+                aria-controls={`full-width-tabpanel-${TabType.SELLER}`}
               />
-              <Button
-                variant="contained"
-                color="warning"
-                onClick={() => handleArbiModReleaseEscrow()}
-                autoFocus
-                disabled={loading || validTextToRelease !== escrowOrder?.buyerAccount?.telegramUsername}
-              >
-                Release to Buyer
-              </Button>
-              <Typography className="disclaim-buyer" textAlign="center" variant="body2">
-                *You will collect {calDisputeFee(escrowOrder?.amount)} {COIN.XEC} (dispute fees) from seller
-              </Typography>
-            </div>
+            </Tabs>
+            <SwipeableViews index={valueTab} onChangeIndex={handleChangeIndex}>
+              <TabPanel value={valueTab} index={0}>
+                <div className="buyer-release">
+                  <Typography textAlign="center" variant="body1">
+                    Are you sure you want to release {escrowOrder?.amount} XEC to Buyer:{' '}
+                    {escrowOrder?.buyerAccount?.telegramUsername} ?
+                  </Typography>
+                  <TextField
+                    id="input-buyer"
+                    placeholder={`Type ${escrowOrder?.buyerAccount?.telegramUsername} to release`}
+                    onChange={e => {
+                      setValidTextToRelease(e?.target?.value);
+                    }}
+                    variant="outlined"
+                  />
+                  <Button
+                    variant="contained"
+                    color="warning"
+                    onClick={() => handleArbiModReleaseEscrow()}
+                    autoFocus
+                    disabled={loading || validTextToRelease !== escrowOrder?.buyerAccount?.telegramUsername}
+                  >
+                    Release to Buyer
+                  </Button>
+                  <Typography className="disclaim-buyer" textAlign="center" variant="body2">
+                    *You will collect {calDisputeFee(escrowOrder?.amount)} {COIN.XEC} (dispute fees) from seller
+                  </Typography>
+                </div>
+              </TabPanel>
+              <TabPanel value={valueTab} index={1}>
+                <div className="seller-release">
+                  <Typography textAlign="center" variant="body1">
+                    Are you sure you want to return {escrowOrder?.amount} XEC to Seller:{' '}
+                    {escrowOrder?.sellerAccount?.telegramUsername} ?
+                  </Typography>
+                  <TextField
+                    id="input-seller"
+                    placeholder={`Type ${escrowOrder?.sellerAccount?.telegramUsername} to return`}
+                    onChange={e => {
+                      setValidTextToReturn(e?.target?.value);
+                    }}
+                    variant="outlined"
+                  />
+                  <Button
+                    variant="contained"
+                    color="info"
+                    onClick={() => handleArbiModReturnEscrow()}
+                    autoFocus
+                    disabled={loading || validTextToReturn !== escrowOrder?.sellerAccount?.telegramUsername}
+                  >
+                    Return to Seller
+                  </Button>
+                  <Typography className="disclaim-seller" textAlign="center" variant="body2">
+                    *You will collect {calDisputeFee(escrowOrder?.amount)} {COIN.XEC} (dispute fees) from{' '}
+                    {escrowOrder?.buyerDepositTx ? 'buyer' : 'seller'}
+                  </Typography>
+                </div>
+              </TabPanel>
+            </SwipeableViews>
           </ReleaseDisputeWrap>
         </DialogContent>
       </StyledReleaseDialog>

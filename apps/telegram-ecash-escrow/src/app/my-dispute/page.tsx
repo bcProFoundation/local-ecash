@@ -1,36 +1,16 @@
 'use client';
 import DisputeDetailInfo from '@/src/components/DisputeDetailInfo/DisputeDetailInfo';
+import { TabPanel } from '@/src/components/Tab/Tab';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
 import AuthorizationLayout from '@/src/components/layout/AuthorizationLayout';
 import MobileLayout from '@/src/components/layout/MobileLayout';
 import { TabType } from '@/src/store/constants';
 import { DisputeStatus, useInfiniteMyDisputeQuery } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
-import { Box, Skeleton, Tab, Tabs, Typography } from '@mui/material';
+import { Skeleton, Tab, Tabs, Typography } from '@mui/material';
 import React, { useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import SwipeableViews from 'react-swipeable-views';
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`full-width-tabpanel-${index}`}
-      aria-labelledby={`full-width-tab-${index}`}
-    >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
-    </div>
-  );
-}
 
 const MyDisputePage = styled.div`
   min-height: 100vh;
