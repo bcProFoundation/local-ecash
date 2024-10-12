@@ -10,11 +10,9 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@abcpros/bitcore-lib-xpi": "^8.25.43",
     "@bcpros/counter": "workspace:*",
     "@bcpros/lixi-models": "^1.2.22",
     "@bcpros/redux-store": "^1.2.22",
-    "@bcpros/xpi-js": "4.0.6",
     "@emotion/cache": "^11.11.0",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
@@ -31,7 +29,7 @@
     "@telegram-auth/react": "^1.0.3",
     "@telegram-auth/server": "^1.0.3",
     "@yudiel/react-qr-scanner": "^2.0.7",
-    "axios": "^1.7.2",
+    "axios": "^1.7.4",
     "bignumber.js": "^9.0.0",
     "chronik-client": "^0.26.0",
     "copy-webpack-plugin": "^12.0.2",
@@ -40,6 +38,7 @@
     "file-saver": "^2.0.5",
     "graphql": "^16.8.1",
     "iron-session": "^8.0.1",
+    "lodash": "^4.17.21",
     "moment": "^2.30.1",
     "next": "latest",
     "next-auth": "^4.24.7",

@@ -115,14 +115,20 @@ const StyledBadge = styled(Badge)`
 export default function Home() {
   const prevRef = useRef(0);
   const theme = useTheme();
-  const { data: sessionData } = useSession();
+  const { data: sessionData, status } = useSession();
+  const askAuthorization = useAuthorization();
+  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
   const { launchParams } = useContext(TelegramMiniAppContext);
+
+  const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
+  const offerFilterConfig = useLixiSliceSelector(getOfferFilterConfig);
+  const newPostAvailable = useLixiSliceSelector(getNewPostAvailable);
+
   const [mismatchAccount, setMismatchAccount] = useState(false);
   const [networkError, setNetworkError] = useState(false);
   const [visible, setVisible] = useState(true);
   const [open, setOpen] = useState<boolean>(false);
-  const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
-  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
+
   const { useUpdateAccountTelegramUsernameMutation, useGetAccountByAddressQuery } = accountsApi;
   const { currentData: accountQueryData } = useGetAccountByAddressQuery(
     { address: selectedWalletPath?.xAddress },
@@ -131,10 +137,6 @@ export default function Home() {
 
   const [createTriggerUpdateAccountTelegramUsername] = useUpdateAccountTelegramUsernameMutation();
   const dispatch = useLixiSliceDispatch();
-  const offerFilterConfig = useLixiSliceSelector(getOfferFilterConfig);
-  const newPostAvailable = useLixiSliceSelector(getNewPostAvailable);
-  const { status } = useSession();
-  const askAuthorization = useAuthorization();
 
   const { data, hasNext, isFetching, fetchNext, refetch } = useInfiniteOffersByScoreQuery({ first: 20 }, false);
   const {

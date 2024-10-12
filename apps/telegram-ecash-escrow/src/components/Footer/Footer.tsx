@@ -57,7 +57,6 @@ const TabMenu = styled.div`
 `;
 
 const PopoverStyled = styled.div`
-  // width: 75px;
   .content-action {
     padding: 10px;
     display: flex;

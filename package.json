@@ -46,5 +46,14 @@
   "packageManager": "pnpm@7.0.0",
   "resolutions": {
     "@abcpros/bitcore-lib": "8.25.43"
+  },
+  "pnpm": {
+    "overrides": {
+      "cookie": "^0.7.0",
+      "micromatch": "^4.0.8",
+      "ws": "8.17.1",
+      "axios": "0.28.0",
+      "elliptic": "6.5.7"
+    }
   }
 }
