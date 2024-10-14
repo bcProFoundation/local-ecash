@@ -244,16 +244,14 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     escrowOrderApi;
   const [createOrderTrigger] = useCreateEscrowOrderMutation();
 
-  const {
-    currentData: moderatorCurrentData,
-    isLoading: moderatorIsLoading,
-    isError: moderatorIsError
-  } = useGetModeratorAccountQuery({}, { skip: !data || !isOpen });
-  const {
-    currentData: arbitratorCurrentData,
-    isLoading: arbitratorIsLoading,
-    isError: arbitratorIsError
-  } = useGetRandomArbitratorAccountQuery({}, { skip: !data || !isOpen });
+  const { currentData: moderatorCurrentData, isError: moderatorIsError } = useGetModeratorAccountQuery(
+    {},
+    { skip: !data || !isOpen }
+  );
+  const { currentData: arbitratorCurrentData, isError: arbitratorIsError } = useGetRandomArbitratorAccountQuery(
+    {},
+    { skip: !data || !isOpen }
+  );
 
   const {
     handleSubmit,
@@ -271,6 +269,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     setLoading(true);
     if (moderatorIsError || arbitratorIsError) {
       setArbiDataError(true);
+
       return;
     }
 
@@ -308,7 +307,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
       let foundUtxo: UtxoInNodeInput;
       const depositFeeSats = convertXECToSatoshi(calDisputeFee);
 
-      let utxosToSplit = [];
+      const utxosToSplit = [];
       let totalAmount = 0;
       for (let i = 0; i < totalValidUtxos.length; i++) {
         totalAmount += totalValidUtxos[i].value;
@@ -366,6 +365,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const calDisputeFee = useMemo(() => {
     const fee1Percent = parseFloat((Number(amountValue || 0) / 100).toFixed(2));
     const dustXEC = coinInfo[COIN.XEC].dustSats / Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
+
     return Math.max(fee1Percent, dustXEC);
   }, [amountValue]);
 
@@ -376,6 +376,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const InfoEscrow = () => {
     const fee1Percent = calDisputeFee;
     const totalBalanceFormat = totalValidAmount.toLocaleString('de-DE');
+
     return (
       <div style={{ color: 'white' }}>
         <p>
@@ -479,7 +480,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                       helperText={
                         errors.message
                           ? (errors.message?.message as string)
-                          : `* Escrow's order has message has higher acceptance rate`
+                          : `* Orders with messages have higher acceptance rates`
                       }
                     />
                   )}
@@ -508,7 +509,8 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
             </RadioGroup>
             <div className="disclaim-wrap">
               <Typography className="title" variant="body2">
-                *Some seller may require dispute fees to accept your order.
+                * Deposit a dispute fee to have a higher chance of being accepted. Dispute fees will be returned if
+                there is no dispute.
               </Typography>
               <Controller
                 name="isDepositFee"
