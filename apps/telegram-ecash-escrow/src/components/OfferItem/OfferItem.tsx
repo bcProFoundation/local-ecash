@@ -114,6 +114,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
   const handleBoost = async () => {
     if (status === 'unauthenticated') {
       askAuthorization();
+
       return;
     }
 
@@ -151,7 +152,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
 
   return (
     <React.Fragment>
-      <CardWrapper>
+      <CardWrapper onClick={handleExpandClick}>
         <CardContent>{OfferItem}</CardContent>
         <Collapse in={expanded} timeout="auto" unmountOnExit className="hidden-item-wrap">
           <CardContent>

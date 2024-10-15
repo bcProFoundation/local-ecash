@@ -36,7 +36,16 @@ const TickerHeader: React.FC<TickerHeaderProps> = ({ title, hideIcon }) => {
   return (
     <Header>
       {!hideIcon && (
-        <IconButton className="back-btn" onClick={() => router.back()}>
+        <IconButton
+          className="back-btn"
+          onClick={() => {
+            if (window.history.length > 1) {
+              router.back();
+            } else {
+              router.push('/');
+            }
+          }}
+        >
           <ChevronLeft />
         </IconButton>
       )}

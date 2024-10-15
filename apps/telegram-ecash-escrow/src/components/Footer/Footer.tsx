@@ -1,10 +1,11 @@
 'use client';
 
 import styled from '@emotion/styled';
-import { HomeOutlined, Menu, SettingsOutlined, Wallet } from '@mui/icons-material';
+import { Menu, SettingsOutlined, Wallet } from '@mui/icons-material';
 import GavelOutlinedIcon from '@mui/icons-material/GavelOutlined';
 import InventoryOutlinedIcon from '@mui/icons-material/InventoryOutlined';
 import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import { IconButton, Popover, Slide, SvgIconTypeMap, Typography } from '@mui/material';
 import { OverridableComponent } from '@mui/material/OverridableComponent';
 import { useSession } from 'next-auth/react';
@@ -117,7 +118,7 @@ export default function Footer({ hidden = true }: PropsFooter) {
     navigateContent,
     isAuthor
   }: {
-    Icon: OverridableComponent<SvgIconTypeMap<{}, 'svg'>> & {
+    Icon: OverridableComponent<SvgIconTypeMap<object, 'svg'>> & {
       muiName: string;
     };
     content: string;
@@ -152,7 +153,7 @@ export default function Footer({ hidden = true }: PropsFooter) {
         <Tabs>
           <TabMenu className={`${pathName === '/' && 'active'}`}>
             <IconButton onClick={() => router.push('/')}>
-              <HomeOutlined />
+              <SwapHorizIcon />
             </IconButton>
             <Typography variant="body2">Home</Typography>
           </TabMenu>

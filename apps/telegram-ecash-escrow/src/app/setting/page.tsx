@@ -24,7 +24,6 @@ import {
   Typography
 } from '@mui/material';
 import { signOut, useSession } from 'next-auth/react';
-import Link from 'next/link';
 import { useState } from 'react';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 
@@ -73,9 +72,6 @@ const ContainerSetting = styled.div`
       .mnemonic {
         color: #edeff099;
         text-align: center;
-      }
-      .btn-backup {
-        text-transform: capitalize;
       }
     }
   }
@@ -216,46 +212,53 @@ export default function Setting() {
           <div className="setting-item">
             <p className="title">Backup your account</p>
             <Alert icon={<CheckCircleOutline className="ico-alert" fontSize="inherit" />} severity="warning">
-              Your seed phrase is the only way to restore your account. Write it down. Keep it safe.
+              Your seed phrase is the only way to restore your account. Write it down. Keep it safe. Do not share with
+              anyone!
             </Alert>
             <Accordion className="collapse-backup-seed">
               <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
                 <p>Click to reveal seed phrase</p>
               </AccordionSummary>
               <AccordionDetails>
+                <Typography variant="body2" className="mnemonic">
+                  {selectedMnemonic}
+                </Typography>
                 <CopyToClipboard
                   style={{
                     display: 'inline-block',
-                    width: '100%',
-                    position: 'relative'
+                    width: '100%'
                   }}
                   text={selectedMnemonic}
                   onCopy={handleOnCopy}
                 >
-                  <Typography variant="body2" className="mnemonic">
-                    {selectedMnemonic}
-                  </Typography>
-                </CopyToClipboard>
-                <Link href="/backup">
                   <Button className="btn-backup" variant="outlined">
-                    Verify account
+                    Backup
                   </Button>
-                </Link>
+                </CopyToClipboard>
               </AccordionDetails>
             </Accordion>
           </div>
 
           <div className="setting-item">
-            <p className="title">Delete account</p>
+            <p className="title">Sign out</p>
             <Alert icon={<CheckCircleOutline className="ico-alert" fontSize="inherit" />} severity="error">
               Sign out of the current session
             </Alert>
             <Accordion className="collapse-backup-seed">
               <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
-                <p>Click to reveal sign out</p>
+                <p>Click to reveal sign out button</p>
               </AccordionSummary>
               <AccordionDetails>
-                <Button onClick={() => handleSignOut()}>Sign Out</Button>
+                <Button
+                  variant="outlined"
+                  style={{
+                    display: 'inline-block',
+                    width: '100%'
+                  }}
+                  onClick={() => handleSignOut()}
+                >
+                  Sign Out
+                </Button>
               </AccordionDetails>
             </Accordion>
           </div>

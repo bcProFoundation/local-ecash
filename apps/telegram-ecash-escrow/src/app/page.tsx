@@ -30,7 +30,9 @@ import SignalWifiConnectedNoInternet4Icon from '@mui/icons-material/SignalWifiCo
 import {
   Backdrop,
   Badge,
+  Box,
   Button,
+  CircularProgress,
   Fade,
   Skeleton,
   Slide,
@@ -138,12 +140,16 @@ export default function Home() {
   const [createTriggerUpdateAccountTelegramUsername] = useUpdateAccountTelegramUsernameMutation();
   const dispatch = useLixiSliceDispatch();
 
-  const { data, hasNext, isFetching, fetchNext, refetch } = useInfiniteOffersByScoreQuery({ first: 20 }, false);
+  const { data, hasNext, isFetching, fetchNext, refetch, isLoading } = useInfiniteOffersByScoreQuery(
+    { first: 20 },
+    false
+  );
   const {
     data: dataFilter,
     hasNext: hasNextFilter,
     isFetching: isFetchingFilter,
-    fetchNext: fetchNextFilter
+    fetchNext: fetchNextFilter,
+    isLoading: isLoadingFilter
   } = useInfiniteOfferFilterQuery({ first: 20, offerFilterInput: offerFilterConfig }, false);
 
   const loadMoreItems = () => {
@@ -330,7 +336,7 @@ export default function Home() {
               {offerFilterConfig.countryId ||
               offerFilterConfig.stateId ||
               (offerFilterConfig.paymentMethodIds?.length ?? 0) > 0 ? (
-                dataFilter.length > 0 ? (
+                !isLoadingFilter ? (
                   <InfiniteScroll
                     dataLength={dataFilter.length}
                     next={loadMoreItemsFilter}
@@ -343,15 +349,22 @@ export default function Home() {
                     }
                     scrollableTarget="scrollableDiv"
                     scrollThreshold={'100px'}
+                    endMessage={
+                      <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>
+                        It&apos;s so empty here
+                      </Typography>
+                    }
                   >
                     {dataFilter.map(item => {
                       return <OfferItem key={item.id} timelineItem={item as TimelineQueryItem} />;
                     })}
                   </InfiniteScroll>
                 ) : (
-                  <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No offer in your filter</Typography>
+                  <Box sx={{ height: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <CircularProgress color="primary" />
+                  </Box>
                 )
-              ) : data.length > 0 ? (
+              ) : !isLoading ? (
                 <InfiniteScroll
                   dataLength={data.length}
                   next={loadMoreItems}
@@ -364,13 +377,18 @@ export default function Home() {
                   }
                   scrollableTarget="scrollableDiv"
                   scrollThreshold={'100px'}
+                  endMessage={
+                    <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>It&apos;s so empty here</Typography>
+                  }
                 >
                   {data.map(item => {
                     return <OfferItem key={item.id} timelineItem={item as TimelineQueryItem} />;
                   })}
                 </InfiniteScroll>
               ) : (
-                <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No offer here</Typography>
+                <Box sx={{ height: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <CircularProgress color="primary" />
+                </Box>
               )}
             </div>
           </Section>
