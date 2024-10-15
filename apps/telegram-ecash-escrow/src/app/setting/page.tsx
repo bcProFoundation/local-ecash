@@ -238,9 +238,8 @@ export default function Setting() {
               </AccordionDetails>
             </Accordion>
           </div>
-
+          <hr />
           <div className="setting-item">
-            <p className="title">Sign out</p>
             <Alert icon={<CheckCircleOutline className="ico-alert" fontSize="inherit" />} severity="error">
               Sign out of the current session
             </Alert>
