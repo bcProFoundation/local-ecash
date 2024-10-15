@@ -237,6 +237,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
 
   const [arbiDataError, setArbiDataError] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
   const [paymentMethodId, setPaymentMethodId] = useState<number | undefined>();
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
 
@@ -256,7 +257,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const {
     handleSubmit,
     formState: { errors },
-    setError,
+    setError: setErrorForm,
     clearErrors,
     control,
     watch
@@ -274,7 +275,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     }
 
     if (!paymentMethodId) {
-      setError('paymentMethod', { message: 'Payment method is required!' });
+      setErrorForm('paymentMethod', { message: 'Payment method is required!' });
 
       return;
     }
@@ -358,6 +359,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
       router.push(`/order-detail?id=${result.createEscrowOrder.id}`);
     } catch (e) {
       console.log(e);
+      setError(true);
     }
     setLoading(false);
   };
@@ -555,6 +557,13 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
         isOpen={arbiDataError}
         content="Can't get arbi/mod data"
         handleClose={() => setArbiDataError(false)}
+        type="error"
+        autoHideDuration={3500}
+      />
+      <CustomToast
+        isOpen={error}
+        content="There is an error while placing an order"
+        handleClose={() => setError(false)}
         type="error"
         autoHideDuration={3500}
       />

@@ -13,6 +13,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import { SDKProvider } from '@telegram-apps/sdk-react';
 import React from 'react';
 import ModalManager from '../components/ModalManager';
+import ToastNotificationManage from '../components/ToastNotificationManage';
 import { UtxoProvider } from '../store/context/utxoProvider';
 import ReduxProvider from '../store/provider';
 import { TelegramAuthProvider } from '../store/telegram-auth-provider';
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <UtxoProvider>
                     <ThemeProvider theme={theme}>
                       <ModalManager />
+                      <ToastNotificationManage />
                       {children}
                     </ThemeProvider>
                   </UtxoProvider>
