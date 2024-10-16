@@ -110,6 +110,7 @@ export default function Setting() {
   };
 
   const handleSignOut = () => {
+    dispatch(removeAllWallets());
     signOut({ redirect: true, callbackUrl: '/' });
   };
 

@@ -184,6 +184,7 @@ export default function Footer({ hidden = true }: PropsFooter) {
               id="menu-popover"
               open={open}
               anchorEl={anchorEl}
+              style={{ cursor: 'pointer' }}
               anchorOrigin={{
                 vertical: 'top',
                 horizontal: 'right'
