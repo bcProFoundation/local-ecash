@@ -10,6 +10,8 @@ import {
   getSelectedWalletPath,
   parseCashAddressToPrefix,
   PostQueryItem,
+  showToast,
+  useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector,
   UtxoInNodeInput,
   WalletContextNode
@@ -228,6 +230,7 @@ const Transition = React.forwardRef(function Transition(
 const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const theme = useTheme();
   const router = useRouter();
+  const dispatch = useLixiSliceDispatch();
   const { post, isOpen }: { post: PostQueryItem; isOpen: boolean } = props;
   const { data } = useSession();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
@@ -356,6 +359,14 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
       };
 
       const result = await createOrderTrigger({ input: data }).unwrap();
+
+      dispatch(
+        showToast('success', {
+          message: 'Success',
+          description: 'Create order successfully!'
+        })
+      );
+
       router.push(`/order-detail?id=${result.createEscrowOrder.id}`);
     } catch (e) {
       console.log(e);

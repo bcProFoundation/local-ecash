@@ -25,7 +25,7 @@ const ToastNotificationManage = () => {
   useEffect(() => {
     if (currentToast) {
       const { type, config, isLink, linkDescription } = currentToast;
-      if (config) {
+      if (config && !_.isEmpty(config.description)) {
         const newConfig = _.cloneDeep(config);
 
         //process link

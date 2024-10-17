@@ -1,11 +1,19 @@
 'use client';
 import MobileLayout from '@/src/components/layout/MobileLayout';
-import { AccountType, COIN, GenerateAccountType } from '@bcpros/lixi-models';
-import { axiosClient, generateAccount, useSliceDispatch as useLixiSliceDispatch } from '@bcpros/redux-store';
+import { COIN } from '@bcpros/lixi-models';
+import {
+  axiosClient,
+  generateAccount,
+  getSelectedWalletPath,
+  showToast,
+  useSliceDispatch as useLixiSliceDispatch,
+  useSliceSelector as useLixiSliceSelector
+} from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import { Box, Skeleton, Typography } from '@mui/material';
 import { LoginButton, TelegramAuthData } from '@telegram-auth/react';
 import { signIn, useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
 
 function LoadingPlaceholder() {
   return (
@@ -61,6 +69,15 @@ const WrapLoginPage = styled.div`
 export default function Login() {
   const { status } = useSession();
   const dispatch = useLixiSliceDispatch();
+  const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
+
+  const [data, setData] = useState<TelegramAuthData | null>(null);
+
+  useEffect(() => {
+    if (selectedWalletPath && status === 'unauthenticated' && data) {
+      signIn('telegram-login', { redirect: true, callbackUrl: '/' }, data as any);
+    }
+  }, [selectedWalletPath, status]);
 
   if (status === 'loading') {
     return (
@@ -92,13 +109,14 @@ export default function Login() {
               await axiosClient.get(`/api/accounts/telegram/${data.id}`);
               signIn('telegram-login', { redirect: true, callbackUrl: `/import?id=${data.id}` }, data as any);
             } catch {
-              const dataGenerateAccount: GenerateAccountType = {
-                coin: COIN.XEC,
-                telegramId: data.id!.toString(),
-                accountType: AccountType.NORMAL
-              };
-              dispatch(generateAccount(dataGenerateAccount));
-              signIn('telegram-login', { redirect: false, callbackUrl: '/' }, data as any);
+              dispatch(generateAccount({ coin: COIN.XEC, telegramId: data.id!.toString() }));
+              dispatch(
+                showToast('success', {
+                  message: 'Success',
+                  description: 'Congrats on your new wallet! Redirecting to home...'
+                })
+              );
+              setData(data);
             }
           }}
         />
