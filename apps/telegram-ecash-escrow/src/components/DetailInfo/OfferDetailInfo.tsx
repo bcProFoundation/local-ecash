@@ -44,11 +44,12 @@ const OfferDetailInfo = ({ timelineItem }: OfferItemProps) => {
       </Typography>
       <Typography variant="body1">
         <span className="prefix">Price: </span>
-        {offerData?.price}
+        Market price +{offerData?.marginPercentage}%
       </Typography>
       <Typography variant="body1">
         <span className="prefix">Min-max: </span>
-        {offerData?.orderLimitMin} XEC - {offerData?.orderLimitMax} XEC
+        {offerData?.orderLimitMin} {offerData?.coinPayment ?? offerData?.localCurrency ?? 'XEC'} -{' '}
+        {offerData?.orderLimitMax} {offerData?.coinPayment ?? offerData?.localCurrency ?? 'XEC'}
       </Typography>
       <div className="payment-group-btns">
         {offerData?.paymentMethods &&

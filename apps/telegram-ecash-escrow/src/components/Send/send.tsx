@@ -48,7 +48,7 @@ const SendComponent: React.FC<SendComponentProps> = props => {
 
   const selectedWallet = useLixiSliceSelector(getSelectedWalletPath);
   const Wallet = React.useContext(WalletContextNode);
-  const { chronik } = Wallet;
+  const { chronik, XPI } = Wallet;
 
   const {
     handleSubmit,
@@ -69,6 +69,13 @@ const SendComponent: React.FC<SendComponentProps> = props => {
   const isDonateGNC = watch('isDonateGNC');
 
   const [myAddress, setMyAddress] = useState(parseCashAddressToPrefix(COIN.XEC, selectedWallet?.cashAddress));
+  const [feeSats, setFeeSats] = useState(
+    XPI.BitcoinCash.getByteCount({ P2PKH: totalValidUtxos.length }, { P2PKH: 1, P2SH: 1 }) *
+      coinInfo[COIN.XEC].defaultFee
+  );
+  const [estimatedTxFee, setEstimatedTxFee] = useState(
+    parseFloat((feeSats / Math.pow(10, coinInfo[COIN.XEC].cashDecimals)).toFixed(2))
+  );
 
   const [openScan, setOpenScan] = useState(false);
   const [openToastSendSuccess, setOpenToastSendSuccess] = useState(false);
@@ -110,7 +117,9 @@ const SendComponent: React.FC<SendComponentProps> = props => {
   };
 
   const checkEnoughFund = () => {
-    return totalValidAmount > calFee1Percent + Number(amountValue);
+    return isDonateGNC
+      ? totalValidAmount > calFee1Percent + Number(amountValue) + estimatedTxFee
+      : totalValidAmount > Number(amountValue) + estimatedTxFee;
   };
 
   const calFee1Percent = useMemo(() => {

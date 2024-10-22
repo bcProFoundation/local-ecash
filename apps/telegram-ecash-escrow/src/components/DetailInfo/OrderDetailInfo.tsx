@@ -1,6 +1,11 @@
 'use client';
 
-import { EscrowOrderQueryItem } from '@bcpros/redux-store';
+import { COIN, coinInfo } from '@bcpros/lixi-models';
+import {
+  EscrowOrderQueryItem,
+  getSelectedWalletPath,
+  useSliceSelector as useLixiSliceSelector
+} from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import { Button, Typography } from '@mui/material';
 import { useRouter } from 'next/navigation';
@@ -38,6 +43,8 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
   const order = item;
   const router = useRouter();
 
+  const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
+
   return (
     <OrderDetailWrap onClick={() => router.push(`/order-detail?id=${order.id}`)}>
       <Typography variant="body1">
@@ -57,8 +64,20 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
         {order.createdAt.toLocaleString()}
       </Typography>
       <Typography variant="body1">
-        <span className="prefix">Amount: </span>
-        {order.amount}
+        <span className="prefix">Price: </span>
+        {order.price}
+      </Typography>
+      <Typography variant="body1">
+        <span className="prefix">
+          {selectedWalletPath?.hash160 === order?.sellerAccount?.hash160 ? 'Amount sending: ' : 'Amount receiving: '}
+        </span>
+        {order.amount} {coinInfo[COIN.XEC].ticker}
+      </Typography>
+      <Typography variant="body1">
+        <span className="prefix">
+          {selectedWalletPath?.hash160 === order?.sellerAccount?.hash160 ? 'Amount receiving: ' : 'Amount sending: '}{' '}
+        </span>
+        {order.amountCoinOrCurrency} {order?.escrowOffer?.coinPayment ?? order?.escrowOffer?.localCurrency ?? 'XEC'}
       </Typography>
       <Typography variant="body1">
         <span className="prefix">Message: </span>

@@ -1,5 +1,4 @@
 'use client';
-import CreateOfferModal from '@/src/components/CreateOfferModal/CreateOfferModal';
 import OfferDetailInfo from '@/src/components/DetailInfo/OfferDetailInfo';
 import AuthorizationLayout from '@/src/components/layout/AuthorizationLayout';
 import MobileLayout from '@/src/components/layout/MobileLayout';
@@ -47,18 +46,6 @@ const MyOfferPage = styled.div`
         border-bottom: 0;
       }
     }
-  }
-
-  .btn-create-offer {
-    position: fixed;
-    right: calc((100% - 576px) / 2 + 75px);
-    bottom: 100px;
-    z-index: 1;
-    cursor: pointer;
-    background-color: rgb(255, 219, 209);
-    padding: 10px;
-    border-radius: 50%;
-    display: flex;
   }
 `;
 
@@ -113,8 +100,7 @@ export default function MyOffer() {
     <MobileLayout>
       <AuthorizationLayout>
         <MyOfferPage>
-          <TickerHeader hideIcon={true} title="My offers" />
-
+          <TickerHeader hideIcon={true} title="My offers" showBtnCreateOffer={true} />
           <Tabs
             value={value}
             onChange={handleChange}
@@ -185,16 +171,6 @@ export default function MyOffer() {
               </div>
             </TabPanel>
           </SwipeableViews>
-
-          <div className="btn-create-offer" onClick={() => setOpen(true)}>
-            <img src="/ico-create-post.svg" />
-          </div>
-          <CreateOfferModal
-            isOpen={open}
-            onDissmissModal={value => {
-              setOpen(value);
-            }}
-          />
         </MyOfferPage>
       </AuthorizationLayout>
     </MobileLayout>

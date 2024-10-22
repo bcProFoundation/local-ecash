@@ -419,7 +419,7 @@ export const ModReturnSignatory = (modSk: Uint8Array, modPk: Uint8Array, sellerP
 };
 
 export const sellerBuildDepositTx = (
-  sellerUtxos: Array<Utxo_InNode & { address: string }>,
+  sellerUtxos: Array<UtxoInNode>,
   sellerSk: Uint8Array,
   sellerPk: Uint8Array,
   amountToSend: number,
@@ -457,8 +457,8 @@ export const sellerBuildDepositTx = (
       return {
         input: {
           prevOut: {
-            outIdx: utxo.outpoint.outIdx,
-            txid: utxo.outpoint.txid
+            outIdx: utxo.outIdx,
+            txid: utxo.txid
           },
           signData: {
             value: Number(utxo.value),
@@ -495,8 +495,8 @@ export const sellerBuildDepositTx = (
       return {
         input: {
           prevOut: {
-            outIdx: utxo.outpoint.outIdx,
-            txid: utxo.outpoint.txid
+            outIdx: utxo.outIdx,
+            txid: utxo.txid
           },
           signData: {
             value: Number(utxo.value),

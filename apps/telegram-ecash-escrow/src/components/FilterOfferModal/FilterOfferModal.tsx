@@ -1,5 +1,7 @@
 'use client';
 
+import { LIST_COIN } from '@/src/store/constants';
+import { LIST_CURRENCIES_USED } from '@bcpros/lixi-models';
 import {
   OfferFilterInput,
   getAllCountries,
@@ -21,6 +23,7 @@ import {
   DialogContent,
   DialogTitle,
   FormControl,
+  FormHelperText,
   Grid,
   IconButton,
   Slide,
@@ -155,7 +158,9 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
   } = useForm({
     defaultValues: {
       country: null,
-      state: null
+      state: null,
+      currency: null,
+      coin: null
     }
   });
   const [selectedOptionsPayment, setSelectedOptionsPayment] = useState<number[]>([]);
@@ -177,14 +182,16 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
   };
 
   const handleFilter = async data => {
-    const { country, state } = data;
+    const { country, state, coin, currency } = data;
 
     const offerFilterInput: OfferFilterInput = {
       countryId: country && country.id,
       stateId: state && state.id,
       countryName: country && country.name,
       stateName: state && state.name,
-      paymentMethodIds: selectedOptionsPayment
+      paymentMethodIds: selectedOptionsPayment,
+      coin: coin && coin.ticker,
+      fiatCurrency: currency && currency.code
     };
 
     dispatch(saveOfferFilterConfig(offerFilterInput));
@@ -199,7 +206,9 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
       countryName: '',
       stateId: null,
       stateName: '',
-      paymentMethodIds: []
+      paymentMethodIds: [],
+      coin: null,
+      fiatCurrency: null
     };
 
     dispatch(saveOfferFilterConfig(offerFilterInput));
@@ -238,7 +247,84 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
             </div>
           </div>
           <div className="filter-item">
-            <Typography variant="body2">City/Country</Typography>
+            <Typography variant="body2">Fiat/Coin</Typography>
+            <div className="content">
+              <Grid item xs={6}>
+                <Controller
+                  name="currency"
+                  control={control}
+                  render={({ field: { onChange, onBlur, value, ref } }) => (
+                    <FormControl fullWidth>
+                      <Autocomplete
+                        id="currency-select"
+                        options={LIST_CURRENCIES_USED}
+                        autoHighlight
+                        getOptionLabel={option => (option ? `${option.name} (${option.code})` : '')}
+                        value={value}
+                        onBlur={onBlur}
+                        ref={ref}
+                        onChange={(e, value) => {
+                          onChange(value);
+                          setValue('coin', null);
+                        }}
+                        renderOption={(props, option) => {
+                          const { ...optionProps } = props;
+
+                          return (
+                            <Box {...optionProps} key={option.code} component="li">
+                              {option.name} ({option.code})
+                            </Box>
+                          );
+                        }}
+                        renderInput={params => <TextField {...params} label="Currency" />}
+                      />
+                      {errors && errors?.currency && (
+                        <FormHelperText error={true}>{errors.currency.message as string}</FormHelperText>
+                      )}
+                    </FormControl>
+                  )}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <Controller
+                  name="coin"
+                  control={control}
+                  render={({ field: { onChange, onBlur, value, ref } }) => (
+                    <FormControl fullWidth>
+                      <Autocomplete
+                        id="coin-select"
+                        options={LIST_COIN}
+                        autoHighlight
+                        getOptionLabel={option => (option ? `${option.name} (${option.ticker})` : '')}
+                        value={value}
+                        onBlur={onBlur}
+                        ref={ref}
+                        onChange={(e, value) => {
+                          onChange(value);
+                          setValue('currency', null);
+                        }}
+                        renderOption={(props, option) => {
+                          const { ...optionProps } = props;
+
+                          return (
+                            <Box {...optionProps} key={option.id} component="li">
+                              {option.name} ({option.ticker})
+                            </Box>
+                          );
+                        }}
+                        renderInput={params => <TextField {...params} label="Coin" />}
+                      />
+                      {errors && errors?.coin && (
+                        <FormHelperText error={true}>{errors.coin.message as string}</FormHelperText>
+                      )}
+                    </FormControl>
+                  )}
+                />
+              </Grid>
+            </div>
+          </div>
+          <div className="filter-item">
+            <Typography variant="body2">Country/State</Typography>
             <div className="content">
               <Grid item xs={6}>
                 <Controller
