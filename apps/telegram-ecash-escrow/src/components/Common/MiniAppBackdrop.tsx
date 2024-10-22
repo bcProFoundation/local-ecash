@@ -98,7 +98,7 @@ const MiniAppBackdrop = () => {
     try {
       await axiosClient.get(`/api/accounts/telegram/${data.id}`);
 
-      signIn('telegram-login', { redirect: false }, data as any);
+      await signIn('telegram-login', { redirect: false }, data as any);
     } catch (e) {
       if (e.message === 'Network Error') {
         setNetworkError(true);
@@ -128,7 +128,7 @@ const MiniAppBackdrop = () => {
 
     dispatch(generateAccount({ coin: 'XEC', telegramId: data.id.toString() }));
 
-    signIn('telegram-login', { redirect: false }, data as any);
+    await signIn('telegram-login', { redirect: false }, data as any);
 
     setSuccess(true);
   };

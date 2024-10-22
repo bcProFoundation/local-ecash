@@ -5,7 +5,7 @@ import { LocalUser } from 'src/shared/models/localUser';
 import { sessionOptions } from 'src/shared/models/session';
 
 export async function POST(req) {
-  const session: any = await getIronSession(cookies(), sessionOptions);
+  const session: any = await getIronSession(await cookies(), sessionOptions);
   const { id, address, name } = await req.body;
 
   const localUser: LocalUser = {

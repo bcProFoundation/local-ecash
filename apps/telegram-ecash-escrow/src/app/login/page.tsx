@@ -75,7 +75,9 @@ export default function Login() {
 
   useEffect(() => {
     if (selectedWalletPath && status === 'unauthenticated' && data) {
-      signIn('telegram-login', { redirect: true, callbackUrl: '/' }, data as any);
+      (async () => {
+        await signIn('telegram-login', { redirect: true, callbackUrl: '/' }, data as any);
+      })();
     }
   }, [selectedWalletPath, status]);
 
@@ -107,7 +109,7 @@ export default function Login() {
           onAuthCallback={async (data: TelegramAuthData) => {
             try {
               await axiosClient.get(`/api/accounts/telegram/${data.id}`);
-              signIn('telegram-login', { redirect: true, callbackUrl: `/import?id=${data.id}` }, data as any);
+              await signIn('telegram-login', { redirect: true, callbackUrl: `/import?id=${data.id}` }, data as any);
             } catch {
               dispatch(generateAccount({ coin: COIN.XEC, telegramId: data.id!.toString() }));
               dispatch(
