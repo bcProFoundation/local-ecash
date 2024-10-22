@@ -2,9 +2,13 @@
 
 import {
   PostQueryItem,
+  Role,
   TimelineQueryItem,
+  accountsApi,
+  getSelectedWalletPath,
   openModal,
-  useSliceDispatch as useLixiSliceDispatch
+  useSliceDispatch as useLixiSliceDispatch,
+  useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import ArrowCircleUpRoundedIcon from '@mui/icons-material/ArrowCircleUpRounded';
@@ -96,6 +100,13 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
   const [open, setOpen] = useState<boolean>(false);
   const { status } = useSession();
   const askAuthorization = useAuthorization();
+  const { useGetAccountByAddressQuery } = accountsApi;
+  const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
+
+  const { currentData: accountQueryData } = useGetAccountByAddressQuery(
+    { address: selectedWalletPath?.xAddress },
+    { skip: !selectedWalletPath }
+  );
 
   const handleBuyClick = e => {
     e.stopPropagation();
@@ -132,9 +143,12 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
         <Typography variant="body2">
           <span className="prefix">By: </span> {post?.account?.telegramUsername ?? ''}
         </Typography>
-        <IconButton onClick={handleBoost}>
-          <ArrowCircleUpRoundedIcon />
-        </IconButton>
+        {(accountQueryData?.getAccountByAddress.role === Role.Moderator ||
+          post?.account.hash160 === selectedWalletPath?.hash160) && (
+          <IconButton onClick={handleBoost}>
+            <ArrowCircleUpRoundedIcon />
+          </IconButton>
+        )}
       </div>
       <Typography variant="body2">
         <span className="prefix">Price: </span>

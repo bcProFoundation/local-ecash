@@ -11,8 +11,8 @@
   },
   "dependencies": {
     "@bcpros/counter": "workspace:*",
-    "@bcpros/lixi-models": "^1.2.23",
-    "@bcpros/redux-store": "^1.2.23",
+    "@bcpros/lixi-models": "^1.2.24",
+    "@bcpros/redux-store": "^1.2.24",
     "@emotion/cache": "^11.11.0",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
@@ -36,6 +36,7 @@
     "ecash-lib": "^0.1.3",
     "ecashaddrjs": "^1.5.2",
     "file-saver": "^2.0.5",
+    "geoip-country": "^5.0.202410182341",
     "graphql": "^16.8.1",
     "iron-session": "^8.0.1",
     "lodash": "^4.17.21",
