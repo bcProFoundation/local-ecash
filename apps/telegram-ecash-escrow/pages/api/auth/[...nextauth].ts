@@ -25,31 +25,35 @@ export const authOptions: NextAuthOptions = {
       name: 'Telegram Login',
       credentials: {},
       async authorize(credentials, req) {
-        let user;
-        const validator = new AuthDataValidator({
-          botToken: `${process.env.BOT_TOKEN}`
-        });
+        try {
+          let user;
+          const validator = new AuthDataValidator({
+            botToken: `${process.env.BOT_TOKEN}`
+          });
 
-        if (!req.query.isMiniApp) {
-          const data = objectToAuthDataMap(req.query || {});
-          user = await validator.validate(data);
-        } else {
-          user = req.query;
+          if (!req.query.isMiniApp) {
+            const data = objectToAuthDataMap(req.query || {});
+            user = await validator.validate(data);
+          } else {
+            user = req.query;
+          }
+
+          const fullname = !_.isEmpty(user.last_name) ? [user.first_name, user.last_name].join(' ') : user.first_name;
+          const username = !_.isEmpty(user.username) ? `@${user.username}` : fullname;
+
+          if (user.id && user.first_name) {
+            return {
+              id: user.id.toString(),
+              name: username,
+              image: user.photo_url,
+              ip: req.headers['x-forwarded-for']
+            };
+          }
+        } catch (e) {
+          console.log('authorize error: ', e);
         }
 
-        const fullname = !_.isEmpty(user.last_name) ? [user.first_name, user.last_name].join(' ') : user.first_name;
-        const username = !_.isEmpty(user.username) ? `@${user.username}` : fullname;
-
-        if (user.id && user.first_name) {
-          return {
-            id: user.id.toString(),
-            name: username,
-            image: user.photo_url,
-            ip: req.headers['x-forwarded-for']
-          };
-        }
-
-        return;
+        return null;
       }
     })
   ],
@@ -86,11 +90,15 @@ export const authOptions: NextAuthOptions = {
       return new URL(callbackUrl as string).pathname;
     },
     async signIn({ user }) {
-      const { ip } = user as any;
-      const geolocation = await geoip.lookup(ip);
+      try {
+        const { ip } = user as any;
+        const geolocation = await geoip.lookup(ip);
 
-      if (geolocation && geolocation.country === 'US') {
-        return '/not-available';
+        if (geolocation && geolocation.country === 'US') {
+          return '/not-available';
+        }
+      } catch (e) {
+        console.log('signIn error: ', e);
       }
 
       return true;
