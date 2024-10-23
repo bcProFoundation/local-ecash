@@ -1,5 +1,4 @@
 import { AuthDataValidator, objectToAuthDataMap } from '@telegram-auth/server';
-import geoip from 'geoip-country';
 import _ from 'lodash';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import NextAuth, { NextAuthOptions } from 'next-auth';
@@ -9,7 +8,6 @@ export type User = {
   id: string;
   name: string;
   image: string;
-  ip: string;
 };
 
 declare module 'next-auth' {
@@ -45,8 +43,7 @@ export const authOptions: NextAuthOptions = {
             return {
               id: user.id.toString(),
               name: username,
-              image: user.photo_url,
-              ip: req.headers['x-forwarded-for'] ?? '127.0.0.1'
+              image: user.photo_url
             };
           }
         } catch (e) {
@@ -65,10 +62,6 @@ export const authOptions: NextAuthOptions = {
           session.user.image = token.picture as string;
         }
 
-        if (token?.ip) {
-          session.user.ip = token.ip as string;
-        }
-
         return session;
       } catch (e) {
         console.log('session error: ', e);
@@ -79,8 +72,6 @@ export const authOptions: NextAuthOptions = {
         if (user) {
           token.uid = user.id;
           token.picture = user.image;
-          //@ts-expect-error: user dont have ip
-          token.ip = user.ip;
         }
 
         return token;
@@ -99,20 +90,6 @@ export const authOptions: NextAuthOptions = {
       if (!callbackUrl) return url;
 
       return new URL(callbackUrl as string).pathname;
-    },
-    async signIn({ user }) {
-      try {
-        const { ip } = user as any;
-        const geolocation = await geoip.lookup(ip);
-
-        if (geolocation && geolocation.country === 'US') {
-          return '/not-available';
-        }
-      } catch (e) {
-        console.log('signIn error: ', e);
-      }
-
-      return true;
     }
   },
   session: {
