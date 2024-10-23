@@ -1,5 +1,4 @@
 import { AuthDataValidator, objectToAuthDataMap } from '@telegram-auth/server';
-import axios from 'axios';
 import _ from 'lodash';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import NextAuth, { NextAuthOptions } from 'next-auth';
@@ -91,20 +90,6 @@ export const authOptions: NextAuthOptions = {
       if (!callbackUrl) return url;
 
       return new URL(callbackUrl as string).pathname;
-    },
-    async signIn() {
-      try {
-        //Can't use axiosClient because of more than one instance of bitcore-lib-cash found. Fix later!
-        const country = (await axios.get(`${process.env.NEXT_PUBLIC_LIXI_API}/api/countries/ipaddr`)).data;
-
-        if (country && country === 'US') {
-          return '/not-available';
-        }
-      } catch (e) {
-        console.log('signIn error: ', e.data);
-      }
-
-      return true;
     }
   },
   session: {

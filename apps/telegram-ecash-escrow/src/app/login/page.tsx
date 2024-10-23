@@ -13,6 +13,7 @@ import styled from '@emotion/styled';
 import { Box, Skeleton, Typography } from '@mui/material';
 import { LoginButton, TelegramAuthData } from '@telegram-auth/react';
 import { signIn, useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 function LoadingPlaceholder() {
@@ -67,11 +68,29 @@ const WrapLoginPage = styled.div`
 `;
 
 export default function Login() {
+  const router = useRouter();
   const { status } = useSession();
   const dispatch = useLixiSliceDispatch();
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
 
   const [data, setData] = useState<TelegramAuthData | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const country = await axiosClient
+        .get(`/api/countries/ipaddr`)
+        .then(result => {
+          return result.data;
+        })
+        .catch(({ response }) => {
+          console.log(response.data.message);
+        });
+
+      if (country && country === 'US') {
+        return router.push('/not-available');
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     if (selectedWalletPath && status === 'unauthenticated' && data) {
