@@ -46,7 +46,7 @@ export const authOptions: NextAuthOptions = {
               id: user.id.toString(),
               name: username,
               image: user.photo_url,
-              ip: req.headers['x-forwarded-for']
+              ip: req.headers['x-forwarded-for'] ?? '127.0.0.1'
             };
           }
         } catch (e) {
@@ -59,23 +59,34 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     session: async ({ session, token }) => {
-      if (session?.user) {
-        session.user.id = token.sub as string;
-        session.user.image = token.picture as string;
-        session.user.ip = token.ip as string;
-      }
+      try {
+        if (session?.user) {
+          session.user.id = token.sub as string;
+          session.user.image = token.picture as string;
+        }
 
-      return session;
+        if (token?.ip) {
+          session.user.ip = token.ip as string;
+        }
+
+        return session;
+      } catch (e) {
+        console.log('session error: ', e);
+      }
     },
     jwt: async ({ user, token }) => {
-      if (user) {
-        token.uid = user.id;
-        token.picture = user.image;
-        //@ts-expect-error: user dont have ip
-        token.ip = user.ip;
-      }
+      try {
+        if (user) {
+          token.uid = user.id;
+          token.picture = user.image;
+          //@ts-expect-error: user dont have ip
+          token.ip = user.ip;
+        }
 
-      return token;
+        return token;
+      } catch (e) {
+        console.log('jwt error: ', e);
+      }
     },
     async redirect(params: { url: string }) {
       const { url } = params;
