@@ -1,9 +1,12 @@
 'use client';
 
+import { LIST_COIN } from '@/src/store/constants';
+import { Country, LIST_CURRENCIES_USED, State } from '@bcpros/lixi-models';
 import {
   Coin,
   CreateOfferInput,
   OfferType,
+  closeModal,
   getAllCountries,
   getAllPaymentMethods,
   getAllStates,
@@ -18,25 +21,28 @@ import {
   Autocomplete,
   Box,
   Button,
-  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   FormControl,
   FormControlLabel,
-  FormGroup,
   FormHelperText,
+  FormLabel,
   Grid,
   IconButton,
+  InputAdornment,
   Portal,
+  Radio,
+  RadioGroup,
   Slide,
   TextField,
+  Typography,
   useMediaQuery,
   useTheme
 } from '@mui/material';
 import { TransitionProps } from '@mui/material/transitions';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import CustomToast from '../Toast/CustomToast';
 
@@ -54,6 +60,60 @@ const StyledDialog = styled(Dialog)`
     }
   }
 
+  .heading {
+    font-size: 18px;
+    font-weight: bold;
+  }
+  .bold {
+    font-weight: bold;
+  }
+  .prefix {
+    font-size: 15px;
+    color: #79869b;
+  }
+
+  .container-step2 {
+    .margin-component {
+      .btn-minus,
+      .btn-plus {
+        width: 15%;
+        border-radius: 0;
+        border: 2px solid #3d4247;
+      }
+      .btn-minus {
+        border-right: 1px;
+      }
+      .btn-plus {
+        border-left: 1px;
+      }
+      .example-value {
+        margin-top: 5px;
+      }
+      .MuiInputBase-root {
+        border-radius: 0px !important;
+        .MuiInputBase-input {
+          text-align: center;
+        }
+      }
+    }
+  }
+
+  .container-step3 {
+    .payment-wrap {
+      display: flex;
+      gap: 2rem;
+      .payment-method,
+      .payment-currency {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        button {
+          text-transform: none;
+        }
+      }
+    }
+  }
+
   .back-btn {
     padding: 0;
     position: absolute;
@@ -63,21 +123,6 @@ const StyledDialog = styled(Dialog)`
 
     svg {
       font-size: 32px;
-    }
-  }
-
-  .MuiTypography-root {
-    text-align: center;
-  }
-
-  .order-limit-label {
-    margin: 15px 0 -20px 0;
-  }
-
-  .payment-method {
-    .title-payment-method {
-      margin: 0;
-      font-size: 20px;
     }
   }
 
@@ -93,18 +138,9 @@ const StyledDialog = styled(Dialog)`
       }
     }
   }
-
-  .title-location {
-    padding: 0 16px !important;
-    font-size: 20px;
-  }
 `;
 
-interface CreateOfferModalProps {
-  isOpen: boolean;
-  onDissmissModal: (value: boolean) => void;
-  onConfirmClick?: () => void;
-}
+interface CreateOfferModalProps {}
 
 const Transition = React.forwardRef(function Transition(
   props: TransitionProps & {
@@ -116,7 +152,6 @@ const Transition = React.forwardRef(function Transition(
 });
 
 const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
-  const { isOpen, onDissmissModal } = props;
   const dispatch = useLixiSliceDispatch();
   const { useCreateOfferMutation } = offerApi;
   const [createOfferTrigger] = useCreateOfferMutation();
@@ -132,22 +167,41 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
     formState: { errors }
   } = useForm({
     defaultValues: {
-      price: 'Market Price +/- 5%',
       message: '',
       min: '',
       max: '',
-      country: null,
-      state: null
+      option: '',
+      currency: null,
+      coin: null,
+      percentage: 0,
+      note: ''
     }
   });
 
-  const paymenthods = useLixiSliceSelector(getAllPaymentMethods);
+  const option = Number(watch('option'));
+  const percentageValue = watch('percentage');
+  const currencyValue = watch('currency');
+  const coinValue = watch('coin');
+
+  const paymentMethods = useLixiSliceSelector(getAllPaymentMethods);
   const countries = useLixiSliceSelector(getAllCountries);
   const states = useLixiSliceSelector(getAllStates);
-  const [selectedOptions, setSelectedOptions] = useState<number[]>([1]);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [activeStep, setActiveStep] = React.useState(1);
+  const [coinCurrency, setCoinCurrency] = useState('XEC');
+  const [locationData, setLocationData] = useState(null);
+  const [country, setCountry] = useState<Country | null | undefined>(null);
+  const [state, setState] = useState<State | null | undefined>(null);
+
+  const handleNext = () => {
+    setActiveStep(prevActiveStep => prevActiveStep + 1);
+  };
+
+  const handleBack = () => {
+    setActiveStep(prevActiveStep => prevActiveStep - 1);
+  };
 
   const handleCreateOffer = async data => {
     setLoading(true);
@@ -157,337 +211,574 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
 
     const inputCreateOffer: CreateOfferInput = {
       message: data.message,
-      price: data.price,
+      price: '',
+      coinPayment: data?.coin ? data.coin.ticker : null,
+      localCurrency: data?.currency?.code ? data.currency.code : null,
+      marginPercentage: Number(data.percentage),
       orderLimitMin: minNum,
       orderLimitMax: maxNum,
-      paymentMethodIds: selectedOptions,
+      paymentMethodIds: [option],
       coin: Coin.Xec,
       type: OfferType.Sell,
-      countryId: data.country ? Number(data.country.id) : null,
-      stateId: data.state ? Number(data.state.id) : null
+      countryId: country?.id ?? null,
+      stateId: state?.id ?? null
     };
     await createOfferTrigger({ input: inputCreateOffer })
       .unwrap()
       .then(() => setSuccess(true))
-      .catch(() => {
+      .catch(err => {
         setError(true);
       });
-
-    setLoading(false);
   };
 
-  const handleChangeCheckBox = (e, value) => {
-    const checked = e?.target?.checked;
-    // if choose goods/service (5), drop all other options
-    if (checked) {
-      if (value === 5) {
-        setSelectedOptions([value]);
-      } else {
-        let currentSelected = selectedOptions;
-        // if choose other option, drop option 5
-        if (currentSelected.includes(5)) currentSelected = currentSelected.filter(item => item !== 5);
-        setSelectedOptions([...currentSelected, value]);
-      }
+  const handleIncrease = value => {
+    setValue('percentage', Math.min(30, value + 1));
+  };
+
+  const handleDecrease = value => {
+    setValue('percentage', Math.max(0, value - 1));
+  };
+
+  const handleCloseModal = () => {
+    dispatch(closeModal());
+  };
+
+  const marginComponent = (
+    <Grid item xs={12}>
+      <div className="margin-component">
+        <Typography className="heading">Offer Margin</Typography>
+        <Controller
+          name="percentage"
+          control={control}
+          rules={{
+            validate: value => {
+              if (value >= 30) return 'Margin is between 0 - 30%';
+              return true;
+            }
+          }}
+          render={({ field }) => (
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <Button variant="contained" className="btn-minus" onClick={() => handleDecrease(field.value)}>
+                -
+              </Button>
+
+              <TextField
+                {...field}
+                type="number"
+                variant="outlined"
+                size="small"
+                InputProps={{
+                  endAdornment: <InputAdornment position="end">%</InputAdornment>,
+                  inputProps: { min: 0 }
+                }}
+              />
+              <Button variant="contained" className="btn-plus" onClick={() => handleIncrease(field.value)}>
+                +
+              </Button>
+            </div>
+          )}
+        />
+        {errors && errors?.percentage && (
+          <FormHelperText error={true}>{errors.percentage.message as string}</FormHelperText>
+        )}
+        <Typography className="example-value">
+          Example: If you sell <span className="bold">XEC</span> worth{' '}
+          <span className="bold">1,000.00 {coinCurrency}</span>, you will receive{' '}
+          <span className="bold">
+            {(1000 * (percentageValue / 100 + 1)).toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            })}{' '}
+            {coinCurrency}{' '}
+          </span>
+          in return
+        </Typography>
+      </div>
+    </Grid>
+  );
+
+  const stepContent1 = (
+    <div className="container-step1">
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <Typography className="heading" variant="body1">
+            *You are selling XEC
+          </Typography>
+        </Grid>
+        <Grid item xs={12}>
+          <FormLabel component="legend" className="heading">
+            Payment method
+          </FormLabel>
+          <Controller
+            name="option"
+            control={control}
+            rules={{
+              required: {
+                value: true,
+                message: 'Need to choose payment-method!'
+              }
+            }}
+            render={({ field: { onChange, onBlur, value, ref } }) => (
+              <RadioGroup value={value} onChange={onChange} onBlur={onBlur} ref={ref}>
+                {paymentMethods.map(item => {
+                  return (
+                    <div key={item.id}>
+                      <FormControlLabel value={item.id} control={<Radio />} label={item.name} />
+                      {option < 4 && item.id === option && (
+                        <Controller
+                          name="currency"
+                          control={control}
+                          rules={{
+                            required: {
+                              value: true,
+                              message: 'Currency is required!'
+                            }
+                          }}
+                          render={({ field: { onChange, onBlur, value, ref } }) => (
+                            <FormControl fullWidth>
+                              <Autocomplete
+                                id="currency-select"
+                                options={LIST_CURRENCIES_USED}
+                                autoHighlight
+                                getOptionLabel={option => (option ? `${option.name} (${option.code})` : '')}
+                                value={value}
+                                onBlur={onBlur}
+                                ref={ref}
+                                onChange={(e, value) => {
+                                  onChange(value);
+                                  setValue('coin', null);
+                                }}
+                                renderOption={(props, option) => {
+                                  const { ...optionProps } = props;
+
+                                  return (
+                                    <Box {...optionProps} key={option.code} component="li">
+                                      {option.name} ({option.code})
+                                    </Box>
+                                  );
+                                }}
+                                renderInput={params => <TextField {...params} label="Currency" />}
+                              />
+                              {errors && errors?.currency && (
+                                <FormHelperText error={true}>{errors.currency.message as string}</FormHelperText>
+                              )}
+                            </FormControl>
+                          )}
+                        />
+                      )}
+
+                      {option === 4 && item.id === option && (
+                        <Controller
+                          name="coin"
+                          control={control}
+                          rules={{
+                            required: {
+                              value: true,
+                              message: 'Coin is required!'
+                            }
+                          }}
+                          render={({ field: { onChange, onBlur, value, ref } }) => (
+                            <FormControl fullWidth>
+                              <Autocomplete
+                                id="coin-select"
+                                options={LIST_COIN}
+                                autoHighlight
+                                getOptionLabel={option => (option ? `${option.name} (${option.ticker})` : '')}
+                                value={value}
+                                onBlur={onBlur}
+                                ref={ref}
+                                onChange={(e, value) => {
+                                  onChange(value);
+                                  setValue('currency', null);
+                                }}
+                                renderOption={(props, option) => {
+                                  const { ...optionProps } = props;
+
+                                  return (
+                                    <Box {...optionProps} key={option.id} component="li">
+                                      {option.name} ({option.ticker})
+                                    </Box>
+                                  );
+                                }}
+                                renderInput={params => <TextField {...params} label="Coin" />}
+                              />
+                              {errors && errors?.coin && (
+                                <FormHelperText error={true}>{errors.coin.message as string}</FormHelperText>
+                              )}
+                            </FormControl>
+                          )}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </RadioGroup>
+            )}
+          />
+          {errors && errors?.option && <FormHelperText error={true}>{errors.option.message as string}</FormHelperText>}
+        </Grid>
+        {(option === 1 || option === 2) && (
+          <>
+            <Grid item xs={12}>
+              {' '}
+              <FormLabel component="legend" className="heading">
+                Payment method
+              </FormLabel>
+            </Grid>
+            <Grid item xs={6}>
+              <FormControl fullWidth>
+                <Autocomplete
+                  id="country-select"
+                  options={countries}
+                  autoHighlight
+                  getOptionLabel={option => (option ? option.name : '')}
+                  value={country}
+                  onChange={(e, value) => {
+                    setCountry(value as Country);
+                    dispatch(getStates(value.id));
+                  }}
+                  renderOption={(props, option) => (
+                    <Box {...props} key={option.id} component="li">
+                      {option.name}
+                    </Box>
+                  )}
+                  renderInput={params => <TextField {...params} label="Country" />}
+                />
+              </FormControl>
+            </Grid>
+            <Grid item xs={6}>
+              <FormControl fullWidth>
+                <Autocomplete
+                  id="state-select"
+                  options={states}
+                  autoHighlight
+                  getOptionLabel={option => (option ? option.name : '')}
+                  value={state}
+                  onChange={(e, value) => {
+                    setState(value as State);
+                  }}
+                  renderOption={(props, option) => (
+                    <Box {...props} key={option.id} component="li">
+                      {option.name}
+                    </Box>
+                  )}
+                  renderInput={params => <TextField {...params} label="State" />}
+                />
+              </FormControl>
+            </Grid>
+          </>
+        )}
+      </Grid>
+    </div>
+  );
+
+  const stepContent2 = (
+    <div className="container-step2">
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <Controller
+            name="message"
+            control={control}
+            rules={{
+              required: {
+                value: true,
+                message: 'Headline is required!'
+              }
+            }}
+            render={({ field: { onChange, onBlur, value, name, ref } }) => (
+              <FormControl fullWidth={true}>
+                <TextField
+                  className="form-input"
+                  onChange={onChange}
+                  onBlur={onBlur}
+                  value={value}
+                  name={name}
+                  inputRef={ref}
+                  id="message"
+                  label="Headline"
+                  error={errors.message && true}
+                  helperText={errors.message && (errors.message?.message as string)}
+                  variant="standard"
+                />
+              </FormControl>
+            )}
+          />
+        </Grid>
+        {marginComponent}
+        <Grid item xs={6}>
+          <Controller
+            name="min"
+            control={control}
+            rules={{
+              required: {
+                value: true,
+                message: 'Minimum is required!'
+              },
+              pattern: {
+                value: /^-?[0-9]\d*\.?\d*$/,
+                message: 'Minimum amount is invalid!'
+              },
+              validate: value => {
+                const max = parseFloat(watch('max'));
+                if (parseFloat(value) >= max) return 'Minimum amount must be less than maximum amount!';
+
+                return true;
+              }
+            }}
+            render={({ field: { onChange, onBlur, value, name, ref } }) => (
+              <FormControl fullWidth={true}>
+                <TextField
+                  onChange={onChange}
+                  onBlur={onBlur}
+                  value={value}
+                  type="number"
+                  name={name}
+                  inputRef={ref}
+                  className="form-input"
+                  id="min"
+                  label={`Order limit (${coinCurrency})`}
+                  placeholder={`Min (${coinCurrency})`}
+                  error={errors.min && true}
+                  helperText={errors.min && (errors.min?.message as string)}
+                  variant="standard"
+                />
+              </FormControl>
+            )}
+          />
+        </Grid>
+        <Grid item xs={1}>
+          <h2 style={{ color: 'white' }}>to</h2>
+        </Grid>
+        <Grid item xs={5}>
+          <Controller
+            name="max"
+            control={control}
+            rules={{
+              required: {
+                value: true,
+                message: 'Maximum is required!'
+              },
+              pattern: {
+                value: /^-?[0-9]\d*\.?\d*$/,
+                message: 'Maximum amount is invalid!'
+              },
+              validate: value => {
+                const min = parseFloat(watch('min'));
+
+                if (parseFloat(value) < 0) return 'Maximum amount must be greater than 0!';
+                if (parseFloat(value) <= min) return 'Maximum amount must be greater than minimum amount!';
+
+                return true;
+              }
+            }}
+            render={({ field: { onChange, onBlur, value, name, ref } }) => (
+              <FormControl fullWidth={true}>
+                <TextField
+                  onChange={onChange}
+                  onBlur={onBlur}
+                  value={value}
+                  name={name}
+                  type="number"
+                  inputRef={ref}
+                  className="form-input"
+                  id="max"
+                  label=" "
+                  placeholder={`Max (${coinCurrency})`}
+                  error={errors.max && true}
+                  helperText={errors.max && (errors.max?.message as string)}
+                  variant="standard"
+                />
+              </FormControl>
+            )}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <Controller
+            name="note"
+            control={control}
+            render={({ field: { onChange, onBlur, value, name, ref } }) => (
+              <FormControl fullWidth={true}>
+                <TextField
+                  className="form-input"
+                  onChange={onChange}
+                  onBlur={onBlur}
+                  value={value}
+                  name={name}
+                  inputRef={ref}
+                  id="note"
+                  label="Offer note"
+                  variant="filled"
+                  multiline
+                  rows={4}
+                  maxRows={10}
+                />
+              </FormControl>
+            )}
+          />
+        </Grid>
+      </Grid>
+    </div>
+  );
+
+  const stepContent3 = (
+    <div className="container-step3">
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <Typography className="heading" variant="body1">
+            *You are selling XEC
+          </Typography>
+        </Grid>
+        {(option === 1 || option === 2) && (
+          <Grid item xs={12}>
+            <Typography variant="body1">
+              <span className="prefix">Location: </span>
+              {[state?.name, country?.name].filter(Boolean).join(', ')}
+            </Typography>
+          </Grid>
+        )}
+        <Grid item xs={12}>
+          <div className="payment-wrap">
+            <div className="payment-method">
+              <Typography>Payment method</Typography>
+              <Button variant="contained" color="success">
+                {paymentMethods[Number(option ?? '1') - 1]?.name}
+              </Button>
+            </div>
+            <div className="payment-currency">
+              <Typography>Payment currency</Typography>
+              <Button variant="contained" color="warning">
+                {coinCurrency}
+              </Button>
+            </div>
+          </div>
+        </Grid>
+        <Grid item xs={12}>
+          <Typography variant="body1">
+            <span className="prefix">Headline: </span> {getValues('message')}
+          </Typography>
+        </Grid>
+        <Grid item xs={12}>
+          <Typography variant="body1">
+            <span className="prefix">Price: </span> {percentageValue}% on top of market price
+          </Typography>
+        </Grid>
+        <Grid item xs={12}>
+          <Typography variant="body1">
+            <span className="prefix">Order limit ({coinCurrency}): </span> {getValues('min')} {coinCurrency} -{' '}
+            {getValues('max')} {coinCurrency}
+          </Typography>
+        </Grid>
+        <Grid item xs={12}>
+          <Typography variant="body1">
+            <span className="prefix">Offer note: </span> {getValues('note')}
+          </Typography>
+        </Grid>
+      </Grid>
+    </div>
+  );
+
+  const stepContents = {
+    stepContent1: stepContent1,
+    stepContent2: stepContent2,
+    stepContent3: stepContent3
+  };
+
+  const getLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+
+          // Pass the latitude and longitude to Nominatim for geocoding
+          const url = `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`;
+
+          fetch(url)
+            .then(response => response.json())
+            .then(data => {
+              setLocationData(data);
+            })
+            .catch(error => console.error('Error fetching location data:', error));
+        },
+        error => {
+          console.error('Geolocation error:', error);
+        }
+      );
     } else {
-      setSelectedOptions(pre => (pre.length === 1 ? [1] : pre.filter(item => item !== value))); //default choose 1
+      console.error('Geolocation is not supported by this browser.');
     }
   };
 
-  const CheckBoxUI = (id, name) => {
-    const numId = Number(id);
+  function cleanString(str: string): string {
+    if (!str) return;
+    const noPunctuation = str.replace(/[-]/g, ' ');
 
-    return (
-      <FormControlLabel
-        key={id}
-        label={name}
-        control={
-          <Checkbox
-            key={id}
-            value={numId}
-            checked={selectedOptions.includes(numId) || (numId === 1 && selectedOptions.length === 0)} //auto check option 1
-            onChange={e => handleChangeCheckBox(e, numId)}
-          />
-        }
-      />
+    const lowerStr = noPunctuation.toLowerCase();
+
+    const cleanedStr = lowerStr.replace(/thanh pho|thành phố |city/gi, '').trim();
+
+    return cleanedStr;
+  }
+
+  //set state when have states
+  useEffect(() => {
+    let nameOfState = cleanString(locationData?.address?.state ?? locationData?.address?.city);
+    //process for saigon
+    if (nameOfState === 'sài gòn') 
+      nameOfState = 'hồ chí minh'
+    const stateIdDetected = states.findIndex(state => cleanString(state?.name) === nameOfState);
+    const stateDetected = states[stateIdDetected ?? 0];
+    setState(stateDetected);
+  }, [states]);
+
+  //from location set country
+  useEffect(() => {
+    const countryCodeDetected = locationData?.address?.country_code;
+    const countryIdDetected = countries.findIndex(
+      country => country?.iso2?.toLowerCase() === countryCodeDetected?.toLowerCase()
     );
-  };
+    const countryDetected = countries[countryIdDetected ?? 0];
+    setCountry(countryDetected);
+    dispatch(getStates(countryDetected?.id ?? 0));
+  }, [locationData]);
+
+  useEffect(() => {
+    getLocation();
+  }, []);
+
+  useEffect(() => {
+    setCoinCurrency(currencyValue?.code ?? coinValue?.ticker ?? 'XEC');
+  }, [currencyValue?.code, coinValue?.ticker]);
 
   return (
     <StyledDialog
       fullScreen={fullScreen}
-      open={isOpen}
-      onClose={() => onDissmissModal(false)}
+      open={true}
+      onClose={() => {
+        reset();
+        handleCloseModal();
+      }}
       TransitionComponent={Transition}
     >
-      <IconButton className="back-btn" onClick={() => onDissmissModal(false)}>
+      <IconButton className="back-btn" onClick={() => handleCloseModal()}>
         <ChevronLeft />
       </IconButton>
-      <DialogTitle>
-        <b>Create an offer</b>
+      <DialogTitle textAlign={'center'}>
+        <b>Create a new sell offer</b>
       </DialogTitle>
-      <DialogContent>
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <Controller
-              name="message"
-              control={control}
-              rules={{
-                required: {
-                  value: true,
-                  message: 'Message is required!'
-                }
-              }}
-              render={({ field: { onChange, onBlur, value, name, ref } }) => (
-                <FormControl fullWidth={true}>
-                  <TextField
-                    className="form-input"
-                    onChange={onChange}
-                    onBlur={onBlur}
-                    value={value}
-                    name={name}
-                    inputRef={ref}
-                    id="message"
-                    label="Message"
-                    error={errors.message && true}
-                    helperText={errors.message && (errors.message?.message as string)}
-                    variant="standard"
-                  />
-                </FormControl>
-              )}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <Controller
-              name="price"
-              control={control}
-              rules={{
-                required: {
-                  value: true,
-                  message: 'Price is required!'
-                },
-                maxLength: {
-                  value: 30,
-                  message: 'Price must not exceed 30 characters!'
-                }
-              }}
-              render={({ field: { onChange, onBlur, value, name, ref } }) => (
-                <FormControl fullWidth={true}>
-                  <TextField
-                    id="price"
-                    label="Price"
-                    onChange={onChange}
-                    color="info"
-                    onBlur={onBlur}
-                    value={value}
-                    name={name}
-                    inputRef={ref}
-                    error={errors.price ? true : false}
-                    helperText={errors.price && (errors.price?.message as string)}
-                    variant="standard"
-                    inputProps={{
-                      maxLength: 30
-                    }}
-                    onFocus={() => {
-                      if (value === 'Market Price +/- 5%') {
-                        onChange(''); // Clear the value
-                      }
-                    }}
-                  />
-                </FormControl>
-              )}
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <Controller
-              name="min"
-              control={control}
-              rules={{
-                required: {
-                  value: true,
-                  message: 'Minimum is required!'
-                },
-                pattern: {
-                  value: /^-?[0-9]\d*\.?\d*$/,
-                  message: 'Minimum amount is invalid!'
-                },
-                validate: value => {
-                  const max = parseFloat(watch('max'));
-
-                  if (parseFloat(value) < 5.46) return 'Minimum amount must be greater than 5.46!';
-                  if (parseFloat(value) >= max) return 'Minimum amount must be less than maximum amount!';
-
-                  return true;
-                }
-              }}
-              render={({ field: { onChange, onBlur, value, name, ref } }) => (
-                <FormControl fullWidth={true}>
-                  <TextField
-                    onChange={onChange}
-                    onBlur={onBlur}
-                    value={value}
-                    type="number"
-                    name={name}
-                    inputRef={ref}
-                    className="form-input"
-                    id="min"
-                    label="Order limit (XEC)"
-                    placeholder="Min order limit (XEC)"
-                    error={errors.min && true}
-                    helperText={errors.min && (errors.min?.message as string)}
-                    variant="standard"
-                  />
-                </FormControl>
-              )}
-            />
-          </Grid>
-          <Grid item xs={1}>
-            <h2 style={{ color: 'white' }}>to</h2>
-          </Grid>
-          <Grid item xs={5}>
-            <Controller
-              name="max"
-              control={control}
-              rules={{
-                required: {
-                  value: true,
-                  message: 'Maximum is required!'
-                },
-                pattern: {
-                  value: /^-?[0-9]\d*\.?\d*$/,
-                  message: 'Maximum amount is invalid!'
-                },
-                validate: value => {
-                  const min = parseFloat(watch('min'));
-
-                  if (parseFloat(value) < 0) return 'Maximum amount must be greater than 0!';
-                  if (parseFloat(value) <= min) return 'Maximum amount must be greater than minimum amount!';
-
-                  return true;
-                }
-              }}
-              render={({ field: { onChange, onBlur, value, name, ref } }) => (
-                <FormControl fullWidth={true}>
-                  <TextField
-                    onChange={onChange}
-                    onBlur={onBlur}
-                    value={value}
-                    name={name}
-                    type="number"
-                    inputRef={ref}
-                    className="form-input"
-                    id="max"
-                    label=" "
-                    placeholder="Max order limit (XEC)"
-                    error={errors.max && true}
-                    helperText={errors.max && (errors.max?.message as string)}
-                    variant="standard"
-                  />
-                </FormControl>
-              )}
-            />
-          </Grid>
-          <Grid item xs={12} className="payment-method">
-            <p className="title-payment-method">Payment Methods</p>
-            <Box sx={{ display: 'flex', margin: '16px 0' }}>
-              <FormGroup sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
-                {paymenthods.map(item => CheckBoxUI(item.id, item.name))}
-              </FormGroup>
-            </Box>
-          </Grid>
-          <Grid item xs={12} className="title-location">
-            <span>Location</span>
-          </Grid>
-          <Grid item xs={6}>
-            <Controller
-              name="country"
-              control={control}
-              rules={{
-                required: {
-                  value: true,
-                  message: 'Country is required!'
-                }
-              }}
-              render={({ field: { onChange, onBlur, value, ref } }) => (
-                <FormControl fullWidth>
-                  <Autocomplete
-                    id="country-select"
-                    options={countries}
-                    autoHighlight
-                    getOptionLabel={option => (option ? option.name : '')}
-                    value={value}
-                    onBlur={onBlur}
-                    ref={ref}
-                    onChange={(e, value) => {
-                      onChange(value);
-                      if (value) {
-                        dispatch(getStates(value.id));
-                        setValue('state', null);
-                      }
-                    }}
-                    renderOption={(props, option) => {
-                      const { ...optionProps } = props;
-
-                      return (
-                        <Box {...optionProps} key={option.id} component="li">
-                          {option.name}
-                        </Box>
-                      );
-                    }}
-                    renderInput={params => <TextField {...params} label="Country" />}
-                  />
-                </FormControl>
-              )}
-            />
-            {errors && errors?.country && (
-              <FormHelperText error={true}>{errors.country.message as string}</FormHelperText>
-            )}
-          </Grid>
-          <Grid item xs={6}>
-            <Controller
-              name="state"
-              control={control}
-              render={({ field: { onChange, onBlur, value, ref } }) => (
-                <FormControl fullWidth>
-                  <Autocomplete
-                    id="state-select"
-                    options={states}
-                    autoHighlight
-                    onBlur={onBlur}
-                    ref={ref}
-                    getOptionLabel={option => (option ? option.name : '')}
-                    value={value}
-                    onChange={(e, value) => {
-                      if (value) {
-                        onChange(value);
-                      }
-                    }}
-                    disabled={!getValues('country')}
-                    renderOption={(props, option) => {
-                      const { ...optionProps } = props;
-
-                      return (
-                        <Box {...optionProps} key={option.id} component="li">
-                          {option.name}
-                        </Box>
-                      );
-                    }}
-                    renderInput={params => <TextField {...params} label="State" />}
-                  />
-                </FormControl>
-              )}
-            />
-          </Grid>
-        </Grid>
-      </DialogContent>
+      <DialogContent>{stepContents[`stepContent${activeStep}`]}</DialogContent>
       <DialogActions>
+        <Button variant="contained" onClick={() => handleBack()} disabled={activeStep === 1}>
+          Back
+        </Button>
         <Button
-          className="confirm-btn"
-          color="info"
           variant="contained"
-          onClick={handleSubmit(handleCreateOffer)}
-          disabled={loading || success}
+          onClick={activeStep !== 3 ? handleSubmit(handleNext) : handleSubmit(handleCreateOffer)}
+          disabled={loading}
         >
-          Create offer
+          {activeStep === 1 && 'Next'}
+          {activeStep === 2 && 'Preview'}
+          {activeStep === 3 && 'Create offer'}
         </Button>
       </DialogActions>
 
@@ -496,9 +787,10 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
           isOpen={success}
           handleClose={() => {
             reset();
+            setLoading(false);
+            setActiveStep(1);
             setSuccess(false);
-            onDissmissModal(false);
-            setSelectedOptions([1]);
+            handleCloseModal();
           }}
           content="Offer created successfully"
           type="success"

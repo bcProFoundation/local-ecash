@@ -1,7 +1,9 @@
 'use client';
 
+import { openModal, useSliceDispatch as useLixiSliceDispatch } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import { ChevronLeft } from '@mui/icons-material';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import { IconButton, Typography } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import React from 'react';
@@ -20,18 +22,32 @@ const Header = styled.div`
   }
 
   h4 {
-    text-align: center;
     font-size: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    .MuiSvgIcon-root {
+      cursor: pointer;
+      font-size: 30px;
+      color: #3383ff;
+    }
   }
 `;
 
 interface TickerHeaderProps {
   title: string;
   hideIcon?: boolean;
+  showBtnCreateOffer?: boolean;
 }
 
-const TickerHeader: React.FC<TickerHeaderProps> = ({ title, hideIcon }) => {
+const TickerHeader: React.FC<TickerHeaderProps> = ({ title, hideIcon, showBtnCreateOffer = false }) => {
   const router = useRouter();
+  const dispatch = useLixiSliceDispatch();
+
+  const handleOpenCreateOffer = () => {
+    dispatch(openModal('CreateOfferModal', {}));
+  };
 
   return (
     <Header>
@@ -49,7 +65,9 @@ const TickerHeader: React.FC<TickerHeaderProps> = ({ title, hideIcon }) => {
           <ChevronLeft />
         </IconButton>
       )}
-      <Typography variant="h4">{title}</Typography>
+      <Typography variant="h4">
+        {title} {showBtnCreateOffer && <AddCircleOutlineIcon onClick={handleOpenCreateOffer} />}{' '}
+      </Typography>
     </Header>
   );
 };

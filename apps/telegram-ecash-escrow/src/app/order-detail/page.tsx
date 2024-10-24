@@ -7,6 +7,7 @@ import QRCode from '@/src/components/QRcode/QRcode';
 import TelegramButton from '@/src/components/TelegramButton/TelegramButton';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
 import CustomToast from '@/src/components/Toast/CustomToast';
+import { UtxoContext } from '@/src/store/context/utxoProvider';
 import { buildReleaseTx, BuyerReturnSignatory, sellerBuildDepositTx, SellerReleaseSignatory } from '@/src/store/escrow';
 import { deserializeTransaction, estimatedFee } from '@/src/store/util';
 import { COIN, coinInfo } from '@bcpros/lixi-models';
@@ -15,8 +16,6 @@ import {
   escrowOrderApi,
   EscrowOrderStatus,
   getSelectedWalletPath,
-  getWalletStatusNode,
-  getWalletUtxosNode,
   isValidCoinAddress,
   openModal,
   parseCashAddressToPrefix,
@@ -89,10 +88,9 @@ const OrderDetail = () => {
   const socket = useContext(SocketContext);
 
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
-  const walletUtxos = useLixiSliceSelector(getWalletUtxosNode);
-  const walletStatusNode = useLixiSliceSelector(getWalletStatusNode);
   const Wallet = useContext(WalletContextNode);
   const { chronik } = Wallet;
+  const { totalValidAmount, totalValidUtxos } = useContext(UtxoContext);
 
   const [error, setError] = useState(false);
   const [escrow, setEscrow] = useState(false);
@@ -173,7 +171,7 @@ const OrderDetail = () => {
       const escrowScript = new Script(script);
 
       const { txBuild, utxoRemoved } = sellerBuildDepositTx(
-        walletUtxos,
+        totalValidUtxos,
         sellerSk,
         sellerPk,
         amount,
@@ -220,6 +218,7 @@ const OrderDetail = () => {
       }
     } catch (e) {
       console.log(e);
+      setNotEnoughFund(true);
     }
 
     setLoading(false);
@@ -598,7 +597,7 @@ const OrderDetail = () => {
   };
 
   const checkSellerEnoughFund = () => {
-    return parseFloat(walletStatusNode.balances.totalBalance) > totalAmountWithDepositAndEscrowFee();
+    return totalValidAmount > totalAmountWithDepositAndEscrowFee();
   };
 
   const calDisputeFee = useMemo(() => {
@@ -610,8 +609,7 @@ const OrderDetail = () => {
 
   const InfoEscrow = () => {
     const fee1Percent = calDisputeFee;
-    const totalBalance = parseFloat(walletStatusNode.balances.totalBalance);
-    const totalBalanceFormat = totalBalance.toLocaleString('de-DE');
+    const totalBalanceFormat = totalValidAmount.toLocaleString('de-DE');
 
     return (
       <div style={{ color: 'white' }}>
@@ -673,7 +671,7 @@ const OrderDetail = () => {
 
           <CustomToast
             isOpen={notEnoughFund}
-            content="Not enough fund!"
+            content="Not enough fee!"
             handleClose={() => setError(false)}
             type="error"
             autoHideDuration={3500}

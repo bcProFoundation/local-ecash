@@ -7,6 +7,7 @@ import { COIN, coinInfo, CreateEscrowOrderInput } from '@bcpros/lixi-models';
 import {
   convertEscrowScriptHashToEcashAddress,
   escrowOrderApi,
+  fiatCurrencyApi,
   getSelectedWalletPath,
   parseCashAddressToPrefix,
   PostQueryItem,
@@ -41,7 +42,7 @@ import { fromHex, Script, shaRmd160 } from 'ecash-lib';
 import _ from 'lodash';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import React, { useContext, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import QRCode from '../QRcode/QRcode';
 import CustomToast from '../Toast/CustomToast';
@@ -216,6 +217,12 @@ const PlaceAnOrderWrap = styled.div`
       }
     }
   }
+  .text-receive-amount {
+    margin-top: 10px;
+    .amount-receive {
+      font-weight: bold;
+    }
+  }
 `;
 
 const Transition = React.forwardRef(function Transition(
@@ -241,7 +248,11 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const [arbiDataError, setArbiDataError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
-  const [paymentMethodId, setPaymentMethodId] = useState<number | undefined>();
+  const [rateData, setRateData] = useState(null);
+  const [amountXEC, setAmountXEC] = useState(0);
+  const [textAmountPer1MXEC, setTextAmountPer1MXEC] = useState('');
+  const [escrowScript, setEscrowScript] = useState<Escrow>(null);
+  const [nonce, setNonce] = useState<string>(null);
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
 
   const { useCreateEscrowOrderMutation, useGetModeratorAccountQuery, useGetRandomArbitratorAccountQuery } =
@@ -257,6 +268,9 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     { skip: !data || !isOpen }
   );
 
+  const { useGetFiatRateQuery } = fiatCurrencyApi;
+  const { data: fiatData } = useGetFiatRateQuery();
+
   const {
     handleSubmit,
     formState: { errors },
@@ -269,16 +283,29 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const amountValue = watch('amount');
   const isBuyerDeposit = watch('isDepositFee');
 
+  const calEscrowScript = () => {
+    const sellerPk = fromHex(post.account.publicKey);
+    const buyerPk = fromHex(selectedWalletPath?.publicKey ?? '');
+    const arbitratorPk = fromHex(arbitratorCurrentData?.getRandomArbitratorAccount?.publicKey ?? '');
+    const moderatorPk = fromHex(moderatorCurrentData?.getModeratorAccount?.publicKey ?? '');
+
+    const nonce = Math.floor(Date.now() / 1000).toString();
+
+    const escrowScript = new Escrow({
+      sellerPk,
+      buyerPk,
+      arbiPk: arbitratorPk,
+      modPk: moderatorPk,
+      nonce
+    });
+    setEscrowScript(escrowScript);
+    setNonce(nonce);
+  };
+
   const handleCreateEscrowOrder = async data => {
     setLoading(true);
     if (moderatorIsError || arbitratorIsError) {
       setArbiDataError(true);
-
-      return;
-    }
-
-    if (!paymentMethodId) {
-      setErrorForm('paymentMethod', { message: 'Payment method is required!' });
 
       return;
     }
@@ -288,22 +315,10 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     const moderatorId = moderatorCurrentData.getModeratorAccount.id;
     const arbitratorId = arbitratorCurrentData.getRandomArbitratorAccount.id;
 
-    const sellerPk = fromHex(post.account.publicKey);
     const buyerPk = fromHex(selectedWalletPath?.publicKey);
     const buyerSk = fromHex(selectedWalletPath?.privateKey);
-    const arbitratorPk = fromHex(arbitratorCurrentData.getRandomArbitratorAccount.publicKey);
-    const moderatorPk = fromHex(moderatorCurrentData.getModeratorAccount.publicKey);
-
-    const nonce = Math.floor(Date.now() / 1000).toString();
 
     try {
-      const escrowScript = new Escrow({
-        sellerPk,
-        buyerPk,
-        arbiPk: arbitratorPk,
-        modPk: moderatorPk,
-        nonce
-      });
       const scriptSmartContract = escrowScript.script();
 
       //split utxos is here and broadcast. Then build tx
@@ -343,15 +358,16 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
       const escrowAddress = convertEscrowScriptHashToEcashAddress(shaRmd160(escrowScript.script().bytecode));
 
       const data: CreateEscrowOrderInput = {
-        amount: parseFloat(amount),
+        amount: amountXEC,
+        amountCoinOrCurrency: parseFloat(amount),
         sellerId,
         arbitratorId,
         moderatorId,
         escrowAddress,
         nonce,
         escrowScript: Buffer.from(escrowScript.script().bytecode).toString('hex'),
-        price: 1000,
-        paymentMethodId: paymentMethodId,
+        price: textAmountPer1MXEC,
+        paymentMethodId: post.postOffer.paymentMethods[0].paymentMethod.id,
         postId: post.id,
         message: message,
         buyerDepositTx: hexTxBuyerDeposit,
@@ -376,11 +392,11 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   };
 
   const calDisputeFee = useMemo(() => {
-    const fee1Percent = parseFloat((Number(amountValue || 0) / 100).toFixed(2));
+    const fee1Percent = parseFloat((Number(amountXEC || 0) / 100).toFixed(2));
     const dustXEC = coinInfo[COIN.XEC].dustSats / Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
 
     return Math.max(fee1Percent, dustXEC);
-  }, [amountValue]);
+  }, [amountXEC]);
 
   const checkBuyerEnoughFund = () => {
     return totalValidAmount > calDisputeFee;
@@ -401,6 +417,74 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
       </div>
     );
   };
+
+  const convertToAmountXEC = async () => {
+    if (!rateData) return 0;
+    let amountXEC = 0;
+    let amountCoinOrCurrency = 0;
+    let textAmountPer1MXEC = 1000000;
+    //if payment is crypto, we convert from coin => USD => XEC
+    if (post?.postOffer?.coinPayment) {
+      const coinPayment = post.postOffer.coinPayment.toLowerCase();
+      const rateArrayCoin = rateData.find(item => item.coin === coinPayment);
+      const rateArrayXec = rateData.find(item => item.coin === 'xec');
+      const latestRateCoin = rateArrayCoin?.rates?.reduce((max, item) => (item.ts > max.ts ? item : max));
+      const latestRateXec = rateArrayXec?.rates?.reduce((max, item) => (item.ts > max.ts ? item : max));
+      const rateCoinPerXec = latestRateCoin?.rate / latestRateXec?.rate;
+      amountXEC = Number(amountValue ?? '0') * rateCoinPerXec;
+      amountCoinOrCurrency = (latestRateXec?.rate * textAmountPer1MXEC) / latestRateCoin?.rate;
+    } else {
+      //convert from currency to XEC
+      const rateArrayXec = rateData.find(item => item.coin === 'xec');
+      const latestRateXec = rateArrayXec?.rates?.reduce((max, item) => (item.ts > max.ts ? item : max));
+      amountXEC = Number(amountValue ?? '0') / latestRateXec?.rate;
+      amountCoinOrCurrency = textAmountPer1MXEC * latestRateXec?.rate;
+    }
+
+    //set amount XEC (minus fee network, withdraw fee, margin amount)
+    const feeSats = XPI.BitcoinCash.getByteCount({ P2PKH: 5 }, { P2PKH: 1, P2SH: 1 }) * coinInfo[COIN.XEC].defaultFee; // assume worst case input is 5, because we estimate from buyer, so we don't know input of seller
+    const feeAmount = parseFloat((feeSats / Math.pow(10, coinInfo[COIN.XEC].cashDecimals)).toFixed(2));
+    const feeWithdraw = estimatedFee(Buffer.from(escrowScript.script().bytecode).toString('hex'));
+    const amountMargin = (amountXEC * post.postOffer.marginPercentage) / 100;
+
+    amountXEC = amountXEC - amountMargin - feeAmount - feeWithdraw;
+    const amountXecRounded = parseFloat(amountXEC.toFixed(2));
+    setAmountXEC(amountXecRounded);
+
+    const compactNumberFormatter = new Intl.NumberFormat('en-GB', {
+      notation: 'compact',
+      compactDisplay: 'short',
+      maximumFractionDigits: 2
+    });
+
+    const amountWithPercentage = amountCoinOrCurrency * (1 + post?.postOffer?.marginPercentage / 100);
+    const amountFormatted =
+      amountWithPercentage < 1 ? amountWithPercentage.toFixed(5) : compactNumberFormatter.format(amountWithPercentage);
+    setTextAmountPer1MXEC(
+      `${amountFormatted} ${post.postOffer.coinPayment ?? post.postOffer.localCurrency ?? 'XEC'} / 1M XEC`
+    );
+  };
+
+  //cal escrow script
+  useEffect(() => {
+    calEscrowScript();
+  }, [
+    post.account.publicKey,
+    selectedWalletPath?.publicKey,
+    arbitratorCurrentData?.getRandomArbitratorAccount?.publicKey,
+    moderatorCurrentData?.getModeratorAccount?.publicKey
+  ]);
+
+  //convert to XEC
+  useEffect(() => {
+    convertToAmountXEC();
+  }, [amountValue]);
+
+  //get rate data
+  useEffect(() => {
+    const rateData = fiatData?.getFiatRate?.find(item => item.currency === (post?.postOffer?.localCurrency ?? 'USD'));
+    setRateData(rateData?.fiatRates);
+  }, [post?.postOffer?.localCurrency, fiatData?.getFiatRate]);
 
   return (
     <React.Fragment>
@@ -443,7 +527,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                       if (numberValue < 0) return 'XEC amount must be greater than 0!';
                       if (numberValue < minValue || numberValue > maxValue)
                         return `XEC amount must between ${minValue}-${maxValue}`;
-
+                      if (amountXEC < 5.46) return `You need to buy amount greater than 5.46 XEC`;
                       return true;
                     }
                   }}
@@ -462,11 +546,25 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                       error={errors.amount ? true : false}
                       helperText={errors.amount && (errors.amount?.message as string)}
                       InputProps={{
-                        endAdornment: <Typography variant="subtitle1">XEC</Typography>
+                        endAdornment: (
+                          <Typography variant="subtitle1">
+                            {post.postOffer.coinPayment ?? post.postOffer.localCurrency ?? 'XEC'}
+                          </Typography>
+                        )
                       }}
                     />
                   )}
                 />
+                <Typography component={'div'} className="text-receive-amount">
+                  {amountXEC < 5.46 ? (
+                    'You need to buy amount greater than 5.46 XEC'
+                  ) : (
+                    <div>
+                      You will receive <span className="amount-receive">{amountXEC.toLocaleString('de-DE')}</span> XEC
+                      <div>Price: {textAmountPer1MXEC}</div>
+                    </div>
+                  )}
+                </Typography>
               </Grid>
               <Grid item xs={12}>
                 <Controller
@@ -504,13 +602,9 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
               {post.postOffer.paymentMethods.map(item => {
                 return (
                   <FormControlLabel
-                    onClick={() => {
-                      clearErrors('paymentMethod');
-                      setPaymentMethodId(item.paymentMethod.id);
-                    }}
                     key={item.paymentMethod.name}
                     value={item.paymentMethod.name}
-                    checked={paymentMethodId === item.paymentMethod.id}
+                    checked={true}
                     control={<Radio />}
                     label={item.paymentMethod.name}
                   />

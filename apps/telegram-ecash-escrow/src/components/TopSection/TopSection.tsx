@@ -31,7 +31,7 @@ const TopSection: React.FC = () => {
   const [open, setOpen] = useState<boolean>(false);
 
   const offerFilterConfig = useLixiSliceSelector(getOfferFilterConfig);
-  const { countryName, stateName } = offerFilterConfig;
+  const { countryName, stateName, coin, fiatCurrency } = offerFilterConfig;
 
   return (
     <>
@@ -46,6 +46,7 @@ const TopSection: React.FC = () => {
             </Typography>
           </div>
           <div onClick={() => setOpen(true)}>
+            {(coin || fiatCurrency) && <Typography>• {coin ?? fiatCurrency} </Typography>}
             <IconButton>
               <FilterAltOutlined />
             </IconButton>

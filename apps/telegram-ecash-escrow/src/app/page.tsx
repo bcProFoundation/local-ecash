@@ -1,6 +1,5 @@
 'use client';
 
-import CreateOfferModal from '@/src/components/CreateOfferModal/CreateOfferModal';
 import Footer from '@/src/components/Footer/Footer';
 import Header from '@/src/components/Header/Header';
 import OfferItem from '@/src/components/OfferItem/OfferItem';
@@ -33,7 +32,6 @@ import {
   Box,
   Button,
   CircularProgress,
-  Fade,
   Skeleton,
   Slide,
   Stack,
@@ -50,18 +48,7 @@ import MiniAppBackdrop from '../components/Common/MiniAppBackdrop';
 import MobileLayout from '../components/layout/MobileLayout';
 import { TelegramMiniAppContext } from '../store/telegram-mini-app-provider';
 
-const WrapHome = styled.div`
-  .btn-create-offer {
-    position: fixed;
-    bottom: 100px;
-    z-index: 1;
-    cursor: pointer;
-    background-color: rgb(255, 219, 209);
-    padding: 10px;
-    border-radius: 50%;
-    display: flex;
-  }
-`;
+const WrapHome = styled.div``;
 
 const HomePage = styled.div`
   position: relative;
@@ -354,6 +341,8 @@ export default function Home() {
             <div className="offer-list">
               {offerFilterConfig.countryId ||
               offerFilterConfig.stateId ||
+              offerFilterConfig.coin ||
+              offerFilterConfig.fiatCurrency ||
               (offerFilterConfig.paymentMethodIds?.length ?? 0) > 0 ? (
                 !isLoadingFilter ? (
                   <InfiniteScroll
@@ -412,23 +401,6 @@ export default function Home() {
             </div>
           </Section>
         </HomePage>
-        <Fade in={visible}>
-          <div
-            className="btn-create-offer"
-            onClick={handleCreateOfferClick}
-            style={{
-              right: fullScreen ? `calc((100% - 576px) / 4.5 + 75px)` : `calc((100% - 576px) / 2 + 75px)`
-            }}
-          >
-            <img src="/ico-create-post.svg" alt="create-post-ico" />
-          </div>
-        </Fade>
-        <CreateOfferModal
-          isOpen={open}
-          onDissmissModal={value => {
-            setOpen(value);
-          }}
-        />
         <Footer hidden={visible} />
       </WrapHome>
     </MobileLayout>

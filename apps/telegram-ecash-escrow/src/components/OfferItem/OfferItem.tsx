@@ -5,6 +5,7 @@ import {
   Role,
   TimelineQueryItem,
   accountsApi,
+  fiatCurrencyApi,
   getSelectedWalletPath,
   openModal,
   useSliceDispatch as useLixiSliceDispatch,
@@ -16,7 +17,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Button, Card, CardContent, Collapse, IconButton, Typography } from '@mui/material';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import useAuthorization from '../Auth/use-authorization.hooks';
 import PlaceAnOrderModal from '../PlaceAnOrderModal/PlaceAnOrderModal';
 
@@ -52,7 +53,7 @@ const CardWrapper = styled(Card)`
     }
   }
 
-  .boost-buy {
+  .action-section {
     display: flex;
     justify-content: space-between;
     padding: 12px 16px;
@@ -97,7 +98,6 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
   const offerData = post?.postOffer;
   const countryName = offerData?.country?.name;
   const stateName = offerData?.state?.name;
-  const [open, setOpen] = useState<boolean>(false);
   const { status } = useSession();
   const askAuthorization = useAuthorization();
   const { useGetAccountByAddressQuery } = accountsApi;
@@ -107,6 +107,14 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
     { address: selectedWalletPath?.xAddress },
     { skip: !selectedWalletPath }
   );
+
+  const [open, setOpen] = useState<boolean>(false);
+  const [coinCurrency, setCoinCurrency] = useState('XEC');
+  const [rateData, setRateData] = useState(null);
+  const [amountPer1MXEC, setAmountPer1MXEC] = useState('');
+
+  const { useGetFiatRateQuery } = fiatCurrencyApi;
+  const { data: fiatData } = useGetFiatRateQuery();
 
   const handleBuyClick = e => {
     e.stopPropagation();
@@ -137,6 +145,51 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
     setExpanded(!expanded);
   };
 
+  const convertXECToAmount = async () => {
+    if (!rateData) return 0;
+    let amountXEC = 1000000;
+    let amountCoinOrCurrency = 0;
+    //if payment is crypto, we convert from coin => USD
+    if (post?.postOffer?.coinPayment) {
+      const coinPayment = post.postOffer.coinPayment.toLowerCase();
+      const rateArrayCoin = rateData.find(item => item.coin === coinPayment);
+      const rateArrayXec = rateData.find(item => item.coin === 'xec');
+      const latestRateCoin = rateArrayCoin?.rates?.reduce((max, item) => (item.ts > max.ts ? item : max));
+      const latestRateXec = rateArrayXec?.rates?.reduce((max, item) => (item.ts > max.ts ? item : max));
+
+      amountCoinOrCurrency = (latestRateXec?.rate * amountXEC) / latestRateCoin?.rate; //1M XEC (USD) / rateCoin (USD)
+    } else {
+      //convert from currency to XEC
+      const rateArrayXec = rateData.find(item => item.coin === 'xec');
+      const latestRateXec = rateArrayXec?.rates?.reduce((max, item) => (item.ts > max.ts ? item : max));
+      amountCoinOrCurrency = amountXEC * latestRateXec?.rate;
+    }
+
+    const compactNumberFormatter = new Intl.NumberFormat('en-GB', {
+      notation: 'compact',
+      compactDisplay: 'short'
+    });
+
+    const amountWithPercentage = amountCoinOrCurrency * (1 + post?.postOffer?.marginPercentage / 100);
+    const amountFormatted = compactNumberFormatter.format(amountWithPercentage);
+    setAmountPer1MXEC(amountFormatted);
+  };
+
+  useEffect(() => {
+    setCoinCurrency(post?.postOffer?.localCurrency ?? post?.postOffer?.coinPayment ?? 'XEC');
+  }, []);
+
+  //convert to XEC
+  useEffect(() => {
+    convertXECToAmount();
+  }, [rateData]);
+
+  //get rate data
+  useEffect(() => {
+    const rateData = fiatData?.getFiatRate?.find(item => item.currency === (post?.postOffer?.localCurrency ?? 'USD'));
+    setRateData(rateData?.fiatRates);
+  }, [post?.postOffer?.localCurrency, fiatData?.getFiatRate]);
+
   const OfferItem = (
     <OfferShowWrapItem>
       <div className="push-offer-wrap">
@@ -151,13 +204,13 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
         )}
       </div>
       <Typography variant="body2">
-        <span className="prefix">Price: </span>
-        {offerData?.price}
+        <span className="prefix">Message: </span>
+        {offerData?.message}
       </Typography>
       <div className="minmax-collapse-wrap">
         <Typography variant="body2">
           <span className="prefix">Min / max: </span>
-          {offerData?.orderLimitMin} XEC - {offerData?.orderLimitMax} XEC
+          {offerData?.orderLimitMin} {coinCurrency} - {offerData?.orderLimitMax} {coinCurrency}
         </Typography>
         <ExpandMoreIcon onClick={handleExpandClick} style={{ cursor: 'pointer' }} />
       </div>
@@ -171,10 +224,6 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
         <Collapse in={expanded} timeout="auto" unmountOnExit className="hidden-item-wrap">
           <CardContent>
             <Typography variant="body2">
-              <span className="prefix">Message: </span>
-              {offerData?.message}
-            </Typography>
-            <Typography variant="body2">
               <span className="prefix">Location: </span>
               {[stateName, countryName].filter(Boolean).join(', ')}
             </Typography>
@@ -183,7 +232,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
                 offerData.paymentMethods?.length > 0 &&
                 offerData.paymentMethods.map(item => {
                   return (
-                    <Button size="small" color="warning" variant="outlined" key={item.paymentMethod.name}>
+                    <Button size="small" color="success" variant="outlined" key={item.paymentMethod.name}>
                       {item.paymentMethod.name}
                     </Button>
                   );
@@ -192,7 +241,15 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
           </CardContent>
         </Collapse>
 
-        <Typography className="boost-buy">
+        <Typography component={'div'} className="action-section">
+          <Typography variant="body2">
+            <span className="prefix">Price: </span>Market price +{post?.postOffer?.marginPercentage ?? 0}%{' '}
+            {coinCurrency !== 'XEC' && (
+              <span>
+                (~ {amountPer1MXEC} {coinCurrency} / 1M XEC)
+              </span>
+            )}
+          </Typography>
           <Button className="place-order-btn" color="success" variant="contained" onClick={e => handleBuyClick(e)}>
             Buy
             <Image width={25} height={25} src="/eCash.svg" alt="" />
