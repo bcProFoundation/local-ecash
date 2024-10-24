@@ -46,7 +46,7 @@ const TopSection: React.FC = () => {
             </Typography>
           </div>
           <div onClick={() => setOpen(true)}>
-            <Typography>• {coin ?? fiatCurrency}</Typography>
+            {(coin || fiatCurrency) && <Typography>• {coin ?? fiatCurrency} </Typography>}
             <IconButton>
               <FilterAltOutlined />
             </IconButton>

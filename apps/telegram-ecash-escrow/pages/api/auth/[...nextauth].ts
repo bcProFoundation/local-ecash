@@ -1,5 +1,4 @@
 import { AuthDataValidator, objectToAuthDataMap } from '@telegram-auth/server';
-import geoip from 'geoip-country';
 import _ from 'lodash';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import NextAuth, { NextAuthOptions } from 'next-auth';
@@ -9,7 +8,6 @@ export type User = {
   id: string;
   name: string;
   image: string;
-  ip: string;
 };
 
 declare module 'next-auth' {
@@ -25,53 +23,61 @@ export const authOptions: NextAuthOptions = {
       name: 'Telegram Login',
       credentials: {},
       async authorize(credentials, req) {
-        let user;
-        const validator = new AuthDataValidator({
-          botToken: `${process.env.BOT_TOKEN}`
-        });
+        try {
+          let user;
+          const validator = new AuthDataValidator({
+            botToken: `${process.env.BOT_TOKEN}`
+          });
 
-        if (!req.query.isMiniApp) {
-          const data = objectToAuthDataMap(req.query || {});
-          user = await validator.validate(data);
-        } else {
-          user = req.query;
+          if (!req.query.isMiniApp) {
+            const data = objectToAuthDataMap(req.query || {});
+            user = await validator.validate(data);
+          } else {
+            user = req.query;
+          }
+
+          const fullname = !_.isEmpty(user.last_name) ? [user.first_name, user.last_name].join(' ') : user.first_name;
+          const username = !_.isEmpty(user.username) ? `@${user.username}` : fullname;
+
+          if (user.id && user.first_name) {
+            return {
+              id: user.id.toString(),
+              name: username,
+              image: user.photo_url
+            };
+          }
+        } catch (e) {
+          console.log('authorize error: ', e);
         }
 
-        const fullname = !_.isEmpty(user.last_name) ? [user.first_name, user.last_name].join(' ') : user.first_name;
-        const username = !_.isEmpty(user.username) ? `@${user.username}` : fullname;
-
-        if (user.id && user.first_name) {
-          return {
-            id: user.id.toString(),
-            name: username,
-            image: user.photo_url,
-            ip: req.headers['x-forwarded-for']
-          };
-        }
-
-        return;
+        return null;
       }
     })
   ],
   callbacks: {
     session: async ({ session, token }) => {
-      if (session?.user) {
-        session.user.id = token.sub as string;
-        session.user.image = token.picture as string;
-        session.user.ip = token.ip as string;
-      }
+      try {
+        if (session?.user) {
+          session.user.id = token.sub as string;
+          session.user.image = token.picture as string;
+        }
 
-      return session;
+        return session;
+      } catch (e) {
+        console.log('session error: ', e);
+      }
     },
     jwt: async ({ user, token }) => {
-      if (user) {
-        token.uid = user.id;
-        token.picture = user.image;
-        //@ts-expect-error: user dont have ip
-        token.ip = user.ip;
-      }
+      try {
+        if (user) {
+          token.uid = user.id;
+          token.picture = user.image;
+        }
 
-      return token;
+        return token;
+      } catch (e) {
+        console.log('jwt error: ', e);
+      }
     },
     async redirect(params: { url: string }) {
       const { url } = params;
@@ -84,16 +90,6 @@ export const authOptions: NextAuthOptions = {
       if (!callbackUrl) return url;
 
       return new URL(callbackUrl as string).pathname;
-    },
-    async signIn({ user }) {
-      const { ip } = user as any;
-      const geolocation = await geoip.lookup(ip);
-
-      if (geolocation && geolocation.country === 'US') {
-        return '/not-available';
-      }
-
-      return true;
     }
   },
   session: {

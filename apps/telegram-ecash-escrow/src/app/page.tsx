@@ -40,6 +40,7 @@ import {
   useTheme
 } from '@mui/material';
 import { signOut, useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { useContext, useEffect, useRef, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import useAuthorization from '../components/Auth/use-authorization.hooks';
@@ -104,6 +105,7 @@ const StyledBadge = styled(Badge)`
 export default function Home() {
   const prevRef = useRef(0);
   const theme = useTheme();
+  const router = useRouter();
   const { data: sessionData, status } = useSession();
   const askAuthorization = useAuthorization();
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
@@ -195,6 +197,23 @@ export default function Home() {
         telegramUsername: sessionData.user.name
       });
   }, [sessionData, accountQueryData?.getAccountByAddress]);
+
+  useEffect(() => {
+    (async () => {
+      const country = await axiosClient
+        .get(`/api/countries/ipaddr`)
+        .then(result => {
+          return result.data;
+        })
+        .catch(({ response }) => {
+          console.log(response.data.message);
+        });
+
+      if (country && country === 'US') {
+        return router.push('/not-available');
+      }
+    })();
+  }, []);
 
   //reset fitler and flag for new-post when reload
   useEffect(() => {
