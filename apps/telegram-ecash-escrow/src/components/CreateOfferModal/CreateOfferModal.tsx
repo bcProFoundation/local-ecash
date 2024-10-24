@@ -722,7 +722,10 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
 
   //set state when have states
   useEffect(() => {
-    const nameOfState = cleanString(locationData?.address?.state ?? locationData?.address?.city);
+    let nameOfState = cleanString(locationData?.address?.state ?? locationData?.address?.city);
+    //process for saigon
+    if (nameOfState === 'sài gòn') 
+      nameOfState = 'hồ chí minh'
     const stateIdDetected = states.findIndex(state => cleanString(state?.name) === nameOfState);
     const stateDetected = states[stateIdDetected ?? 0];
     setState(stateDetected);
