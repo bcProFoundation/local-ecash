@@ -26,6 +26,10 @@ import {
   WalletContextNode
 } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
+import CheckIcon from '@mui/icons-material/Check';
+import ClearIcon from '@mui/icons-material/Clear';
+import HorizontalRuleIcon from '@mui/icons-material/HorizontalRule';
+import TrendingFlatIcon from '@mui/icons-material/TrendingFlat';
 import {
   Backdrop,
   Button,
@@ -41,6 +45,7 @@ import {
 import { fromHex, Script, shaRmd160, Tx } from 'ecash-lib';
 import cashaddr from 'ecashaddrjs';
 import _ from 'lodash';
+import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -376,9 +381,26 @@ const OrderDetail = () => {
           )}
         </Typography>
       ) : (
-        <Typography variant="body1" color="#FFBF00" align="center">
-          Pending Escrow. Do not send money or goods until the order is escrowed.
-        </Typography>
+        <React.Fragment>
+          <Typography variant="body1" color="#FFBF00" align="center">
+            Pending Escrow!
+          </Typography>
+          <Stack direction="row" spacing={2} justifyContent="center" margin="20px">
+            <Image width={50} height={50} src="/safebox-open.svg" alt="" />
+            <Stack direction="row" spacing={0} justifyContent="center" color="white" alignItems="center">
+              <HorizontalRuleIcon />
+              <HorizontalRuleIcon />
+              <ClearIcon color="error" />
+              <HorizontalRuleIcon />
+              <TrendingFlatIcon />
+            </Stack>
+            <Image width={50} height={50} src="/safebox-close.svg" alt="" />
+          </Stack>
+          <Typography variant="body1" color="#FFBF00" align="center">
+            Once the order is escrowed, the status will turn green with a closed safe icon. Do not send money or goods
+            until the order is escrowed, or you risk losing money.
+          </Typography>
+        </React.Fragment>
       );
     }
 
@@ -400,9 +422,18 @@ const OrderDetail = () => {
           Only release the escrow when you have received the goods
         </Typography>
       ) : (
-        <Typography variant="body1" color="#FFBF00" align="center">
-          Awaiting seller to release escrow
-        </Typography>
+        <React.Fragment>
+          <Typography variant="body1" color="#66bb6a" align="center">
+            Successfully Escrowed!
+          </Typography>
+          <Stack direction="row" spacing={0} justifyContent="center" color="white" alignItems="center" margin="20px">
+            <Image width={50} height={50} src="/safebox-close.svg" alt="" />
+            <CheckIcon color="success" style={{ fontSize: '50px' }} />
+          </Stack>
+          <Typography variant="body1" color="#66bb6a" align="center">
+            {`${currentData.escrowOrder.amount} XEC has been safely locked. You are now safe to send payments or goods to settle the order.`}
+          </Typography>
+        </React.Fragment>
       );
     }
   };
@@ -570,6 +601,7 @@ const OrderDetail = () => {
                 ? currentData?.escrowOrder.buyerAccount.telegramUsername
                 : currentData?.escrowOrder.sellerAccount.telegramUsername
             }
+            isSeller={isSeller}
           />
         </React.Fragment>
       )
