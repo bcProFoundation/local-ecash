@@ -64,6 +64,11 @@ const StyledDialog = styled(Dialog)`
   .create-boost-btn {
     color: #fff;
     text-transform: none;
+    width: 100%;
+  }
+
+  .bold {
+    font-weight: bold;
   }
 `;
 
@@ -101,41 +106,48 @@ const BoostModal: React.FC<BoostModalProps> = ({ amount, post }: BoostModalProps
   };
 
   const handleCreateBoost = async () => {
-    setLoading(true);
-    const myPk = fromHex(selectedWallet?.publicKey);
-    const mySk = fromHex(selectedWallet?.privateKey);
-    const GNCAddress = process.env.NEXT_PUBLIC_ADDRESS_GNC;
-    const { hash: hashXEC } = cashaddr.decode(GNCAddress, false);
-    const GNCHash = Buffer.from(hashXEC).toString('hex');
+    try {
+      setLoading(true);
+      const myPk = fromHex(selectedWallet?.publicKey);
+      const mySk = fromHex(selectedWallet?.privateKey);
+      const GNCAddress = process.env.NEXT_PUBLIC_ADDRESS_GNC;
+      const { hash: hashXEC } = cashaddr.decode(GNCAddress, false);
+      const GNCHash = Buffer.from(hashXEC).toString('hex');
 
-    const txBuild = withdrawFund(totalValidUtxos, mySk, myPk, GNCHash, amount, undefined, 0);
+      const txBuild = withdrawFund(totalValidUtxos, mySk, myPk, GNCHash, amount, undefined, 0);
 
-    //create boost
-    const createBoostInput: CreateBoostInput = {
-      boostedBy: selectedWallet?.hash160,
-      boostedValue: amount,
-      boostForId: post?.id || '',
-      boostForType: BoostForType.Post,
-      boostType: BoostType.Up,
-      txHex: toHex(txBuild)
-    };
-    await createBoostTrigger({ data: createBoostInput })
-      .then(() => {
-        setBoostSuccess(true);
-        setLoading(false);
-        handleCloseModal();
-      })
-      .catch(() => setError(true));
+      //create boost
+      const createBoostInput: CreateBoostInput = {
+        boostedBy: selectedWallet?.hash160,
+        boostedValue: amount,
+        boostForId: post?.id || '',
+        boostForType: BoostForType.Post,
+        boostType: BoostType.Up,
+        txHex: toHex(txBuild)
+      };
+      await createBoostTrigger({ data: createBoostInput })
+        .then(() => {
+          setBoostSuccess(true);
+          setLoading(false);
+          handleCloseModal();
+        })
+        .catch(() => setError(true));
+    } catch (err) {
+      setError(true);
+    }
   };
 
   return (
     <StyledDialog open={true} onClose={() => handleCloseModal()} TransitionComponent={Transition}>
-      <DialogTitle>Boost Modal</DialogTitle>
+      <DialogTitle>Boost your offer</DialogTitle>
       <DialogContent>
-        <Typography>
-          Total boost of offer: {post.boostScore.boostScore} {COIN.XEC}
+        <Typography style={{ color: 'rgba(255, 255, 255, 0.6)', marginBottom: '5px' }}>
+          *Boosted offers (100 XEC) are notified on Telegram channel and are ranked higher in the P2P Market feed
         </Typography>
-        <Typography>*You will boost {amount} XEC</Typography>
+        <Typography>
+          Boosted <span className="bold">{post.boostScore.boostScore / 100}</span> times by you:{' '}
+          <span className="bold">{post.boostScore.boostScore}</span> {COIN.XEC}
+        </Typography>
       </DialogContent>
       <DialogActions>
         <Button

@@ -12,6 +12,7 @@ import { AppRouterCacheProvider } from '@mui/material-nextjs/v13-appRouter';
 import { ThemeProvider } from '@mui/material/styles';
 import { SDKProvider } from '@telegram-apps/sdk-react';
 import React from 'react';
+import ActionSheet from '../components/ActionSheet/ActionSheet';
 import ModalManager from '../components/ModalManager';
 import ToastNotificationManage from '../components/ToastNotificationManage';
 import { UtxoProvider } from '../store/context/utxoProvider';
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                       <ModalManager />
                       <ToastNotificationManage />
                       {children}
+                      <ActionSheet />
                     </ThemeProvider>
                   </UtxoProvider>
                 </AppRouterCacheProvider>

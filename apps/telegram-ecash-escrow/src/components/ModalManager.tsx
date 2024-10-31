@@ -1,6 +1,7 @@
 import { getCurrentThemes, getModals, useSliceSelector as useLixiSliceSelector } from '@bcpros/redux-store';
 import { AuthorizationModal } from './Auth/AuthorizationModal';
 import BoostModal from './BoostModal/BoostModal';
+import { BackupModal } from './Common/BackupModal';
 import CreateOfferModal from './CreateOfferModal/CreateOfferModal';
 import { QRcodeModal } from './QRcode/QRcodeModal';
 import ReasonDisputeModal from './ReasonDisputeModal/ReasonDisputeModal';
@@ -10,7 +11,8 @@ const modalComponentLookupTable = {
   QRcodeModal,
   ReasonDisputeModal,
   BoostModal,
-  CreateOfferModal
+  CreateOfferModal,
+  BackupModal
 };
 
 const ModalManager = () => {

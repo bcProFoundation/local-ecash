@@ -9,7 +9,10 @@ import { UtxoContext } from '@/src/store/context/utxoProvider';
 import { COIN } from '@bcpros/lixi-models';
 import {
   getSelectedWalletPath,
+  getTimeBackup,
+  openModal,
   parseCashAddressToPrefix,
+  useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
@@ -86,12 +89,30 @@ const SendWrap = styled.div`
 
 export default function Wallet() {
   const { data: sessionData } = useSession();
+  const dispatch = useLixiSliceDispatch();
+
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
+  const timeBackup = useLixiSliceSelector(getTimeBackup);
 
   const [address, setAddress] = useState(parseCashAddressToPrefix(COIN.XEC, selectedWalletPath?.cashAddress));
   const [openReceive, setOpenReceive] = useState(true);
 
   const { totalValidAmount, totalValidUtxos } = useContext(UtxoContext);
+
+  const handleOpenSend = () => {
+    //check backup
+    const oneMonthLater = new Date(timeBackup);
+    oneMonthLater.setMonth(oneMonthLater.getMonth() + 1);
+    const currentDate = new Date();
+    const isGreaterThanOneMonth = currentDate > oneMonthLater;
+
+    if (!timeBackup || isGreaterThanOneMonth) {
+      dispatch(openModal('BackupModal', {}));
+      return;
+    }
+
+    setOpenReceive(false);
+  };
 
   if (selectedWalletPath === null && sessionData) {
     return (
@@ -131,7 +152,7 @@ export default function Wallet() {
               </div>
             </div>
             <div className="group-btn">
-              <Button color="success" variant="contained" className="btn-send" onClick={() => setOpenReceive(false)}>
+              <Button color="success" variant="contained" className="btn-send" onClick={() => handleOpenSend()}>
                 Send
               </Button>
               <Button color="success" variant="contained" className="btn-receive" onClick={() => setOpenReceive(true)}>

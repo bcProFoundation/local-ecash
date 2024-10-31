@@ -35,17 +35,6 @@ const MyOfferPage = styled.div`
   .MuiBox-root {
     padding: 16px;
   }
-
-  .list-item {
-    div:not(.payment-group-btns) {
-      border-bottom: 2px dashed rgba(255, 255, 255, 0.3);
-      padding-bottom: 16px;
-      margin-bottom: 16px;
-
-      &:last-of-type {
-        border-bottom: 0;
-      }
-    }
   }
 `;
 

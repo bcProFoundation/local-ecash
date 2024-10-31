@@ -1,8 +1,14 @@
 'use client';
 
-import { PostQueryItem, TimelineQueryItem } from '@bcpros/redux-store';
+import {
+  openActionSheet,
+  PostQueryItem,
+  TimelineQueryItem,
+  useSliceDispatch as useLixiSliceDispatch
+} from '@bcpros/redux-store';
 import styled from '@emotion/styled';
-import { Button, Typography } from '@mui/material';
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import { Button, IconButton, Typography } from '@mui/material';
 import { useRouter } from 'next/navigation';
 
 const OfferDetailWrap = styled.div`
@@ -10,6 +16,20 @@ const OfferDetailWrap = styled.div`
   flex-direction: column;
   gap: 8px;
   cursor: pointer;
+
+  background: linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05));
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+
+  .first-line-offer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0;
+    padding-bottom: 0px;
+    height: 1.5rem;
+  }
 
   .prefix {
     font-size: 14px;
@@ -32,16 +52,27 @@ type OfferItemProps = {
 };
 
 const OfferDetailInfo = ({ timelineItem }: OfferItemProps) => {
+  const dispatch = useLixiSliceDispatch();
   const router = useRouter();
   const postData = timelineItem?.data as PostQueryItem;
   const offerData = postData?.postOffer;
 
+  const handleClickAction = e => {
+    e.stopPropagation();
+    dispatch(openActionSheet('OfferActionSheet', { offer: offerData }));
+  };
+
   return (
     <OfferDetailWrap onClick={() => router.push(`/offer-detail?id=${offerData.postId}`)}>
-      <Typography variant="body1">
-        <span className="prefix">Message: </span>
-        {offerData?.message}
-      </Typography>
+      <div className="first-line-offer">
+        <Typography variant="body1">
+          <span className="prefix">Message: </span>
+          {offerData?.message}
+        </Typography>
+        <IconButton onClick={e => handleClickAction(e)}>
+          <MoreHorizIcon />
+        </IconButton>
+      </div>
       <Typography variant="body1">
         <span className="prefix">Price: </span>
         Market price +{offerData?.marginPercentage}%

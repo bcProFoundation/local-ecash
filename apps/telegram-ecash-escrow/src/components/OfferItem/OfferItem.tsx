@@ -7,6 +7,7 @@ import {
   accountsApi,
   fiatCurrencyApi,
   getSelectedWalletPath,
+  getTimeBackup,
   openModal,
   useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector
@@ -58,6 +59,7 @@ const CardWrapper = styled(Card)`
     justify-content: space-between;
     padding: 12px 16px;
     align-items: center;
+    gap: 10px;
 
     .place-order-btn {
       display: flex;
@@ -102,6 +104,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
   const askAuthorization = useAuthorization();
   const { useGetAccountByAddressQuery } = accountsApi;
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
+  const timeBackup = useLixiSliceSelector(getTimeBackup);
 
   const { currentData: accountQueryData } = useGetAccountByAddressQuery(
     { address: selectedWalletPath?.xAddress },
@@ -124,6 +127,16 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
     if (status === 'unauthenticated') {
       askAuthorization();
     } else {
+      //check backup
+      const oneMonthLater = new Date(timeBackup);
+      oneMonthLater.setMonth(oneMonthLater.getMonth() + 1);
+      const currentDate = new Date();
+      const isGreaterThanOneMonth = currentDate > oneMonthLater;
+
+      if (!timeBackup || isGreaterThanOneMonth) {
+        dispatch(openModal('BackupModal', {}));
+        return;
+      }
       setOpen(true);
     }
   };
