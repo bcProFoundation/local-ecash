@@ -5,7 +5,9 @@ import { Country, LIST_CURRENCIES_USED, State } from '@bcpros/lixi-models';
 import {
   Coin,
   CreateOfferInput,
+  OfferQueryItem,
   OfferType,
+  UpdateOfferInput,
   closeModal,
   getAllCountries,
   getAllPaymentMethods,
@@ -140,7 +142,10 @@ const StyledDialog = styled(Dialog)`
   }
 `;
 
-interface CreateOfferModalProps {}
+interface CreateOfferModalProps {
+  offer?: OfferQueryItem;
+  isEdit?: boolean;
+}
 
 const Transition = React.forwardRef(function Transition(
   props: TransitionProps & {
@@ -152,36 +157,14 @@ const Transition = React.forwardRef(function Transition(
 });
 
 const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
+  const { isEdit = false, offer } = props;
+
   const dispatch = useLixiSliceDispatch();
-  const { useCreateOfferMutation } = offerApi;
+  const { useCreateOfferMutation, useUpdateOfferMutation } = offerApi;
   const [createOfferTrigger] = useCreateOfferMutation();
+  const [updateOfferTrigger] = useUpdateOfferMutation();
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
-  const {
-    handleSubmit,
-    control,
-    watch,
-    reset,
-    setValue,
-    getValues,
-    formState: { errors }
-  } = useForm({
-    defaultValues: {
-      message: '',
-      min: '',
-      max: '',
-      option: '',
-      currency: null,
-      coin: null,
-      percentage: 0,
-      note: ''
-    }
-  });
-
-  const option = Number(watch('option'));
-  const percentageValue = watch('percentage');
-  const currencyValue = watch('currency');
-  const coinValue = watch('coin');
 
   const paymentMethods = useLixiSliceSelector(getAllPaymentMethods);
   const countries = useLixiSliceSelector(getAllCountries);
@@ -194,6 +177,34 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   const [locationData, setLocationData] = useState(null);
   const [country, setCountry] = useState<Country | null | undefined>(null);
   const [state, setState] = useState<State | null | undefined>(null);
+  const [currencyState, setCurrencyState] = useState(null);
+  const [coinState, setCoinState] = useState(null);
+
+  const {
+    handleSubmit,
+    control,
+    watch,
+    reset,
+    setValue,
+    getValues,
+    formState: { errors }
+  } = useForm({
+    defaultValues: {
+      message: offer?.message ?? '',
+      min: `${offer?.orderLimitMin ?? ''}`,
+      max: `${offer?.orderLimitMax ?? ''}`,
+      option: offer?.paymentMethods[0]?.paymentMethod.id ?? '',
+      currency: null,
+      coin: null,
+      percentage: offer?.marginPercentage ?? 0,
+      note: offer?.noteOffer ?? ''
+    }
+  });
+
+  const option = Number(watch('option'));
+  const percentageValue = watch('percentage');
+  const currencyValue = watch('currency');
+  const coinValue = watch('coin');
 
   const handleNext = () => {
     setActiveStep(prevActiveStep => prevActiveStep + 1);
@@ -208,27 +219,57 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
 
     const minNum = parseFloat(data.min);
     const maxNum = parseFloat(data.max);
-
-    const inputCreateOffer: CreateOfferInput = {
+    const input = {
       message: data.message,
-      price: '',
+      noteOffer: data.note,
+      paymentMethodIds: [option],
       coinPayment: data?.coin ? data.coin.ticker : null,
       localCurrency: data?.currency?.code ? data.currency.code : null,
       marginPercentage: Number(data.percentage),
       orderLimitMin: minNum,
       orderLimitMax: maxNum,
-      paymentMethodIds: [option],
-      coin: Coin.Xec,
-      type: OfferType.Sell,
       countryId: country?.id ?? null,
       stateId: state?.id ?? null
     };
-    await createOfferTrigger({ input: inputCreateOffer })
-      .unwrap()
-      .then(() => setSuccess(true))
-      .catch(err => {
-        setError(true);
-      });
+
+    if (isEdit) {
+      let inputUpdateOffer: UpdateOfferInput;
+      //we dont choose anything, it use old value
+      if (!data?.coin && !data?.currency) {
+        inputUpdateOffer = {
+          ...input,
+          coinPayment: coinState?.ticker,
+          localCurrency: currencyState?.code,
+          id: offer?.postId
+        };
+      } else {
+        inputUpdateOffer = {
+          ...input,
+          coinPayment: data?.coin ? data.coin.ticker : null,
+          localCurrency: data?.currency?.code ? data.currency.code : null,
+          id: offer?.postId
+        };
+      }
+      await updateOfferTrigger({ input: inputUpdateOffer })
+        .unwrap()
+        .then(() => setSuccess(true))
+        .catch(err => {
+          setError(true);
+        });
+    } else {
+      const inputCreateOffer: CreateOfferInput = {
+        ...input,
+        price: '',
+        coin: Coin.Xec,
+        type: OfferType.Sell
+      };
+      await createOfferTrigger({ input: inputCreateOffer })
+        .unwrap()
+        .then(() => setSuccess(true))
+        .catch(err => {
+          setError(true);
+        });
+    }
   };
 
   const handleIncrease = value => {
@@ -323,15 +364,21 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                 {paymentMethods.map(item => {
                   return (
                     <div key={item.id}>
-                      <FormControlLabel value={item.id} control={<Radio />} label={item.name} />
+                      <FormControlLabel
+                        checked={option === item.id}
+                        value={item.id}
+                        control={<Radio />}
+                        label={item.name}
+                      />
                       {option < 4 && item.id === option && (
                         <Controller
                           name="currency"
                           control={control}
                           rules={{
-                            required: {
-                              value: true,
-                              message: 'Currency is required!'
+                            validate: value => {
+                              if (!value && !currencyState) return 'Currency is required';
+
+                              return true;
                             }
                           }}
                           render={({ field: { onChange, onBlur, value, ref } }) => (
@@ -341,7 +388,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                                 options={LIST_CURRENCIES_USED}
                                 autoHighlight
                                 getOptionLabel={option => (option ? `${option.name} (${option.code})` : '')}
-                                value={value}
+                                value={value || currencyState || null}
                                 onBlur={onBlur}
                                 ref={ref}
                                 onChange={(e, value) => {
@@ -372,9 +419,10 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                           name="coin"
                           control={control}
                           rules={{
-                            required: {
-                              value: true,
-                              message: 'Coin is required!'
+                            validate: value => {
+                              if (!value && !coinState) return 'Coin is required';
+
+                              return true;
                             }
                           }}
                           render={({ field: { onChange, onBlur, value, ref } }) => (
@@ -384,7 +432,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                                 options={LIST_COIN}
                                 autoHighlight
                                 getOptionLabel={option => (option ? `${option.name} (${option.ticker})` : '')}
-                                value={value}
+                                value={value || coinState || null}
                                 onBlur={onBlur}
                                 ref={ref}
                                 onChange={(e, value) => {
@@ -432,7 +480,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                   options={countries}
                   autoHighlight
                   getOptionLabel={option => (option ? option.name : '')}
-                  value={country}
+                  value={country || null}
                   onChange={(e, value) => {
                     setCountry(value as Country);
                     dispatch(getStates(value.id));
@@ -453,7 +501,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                   options={states}
                   autoHighlight
                   getOptionLabel={option => (option ? option.name : '')}
-                  value={state}
+                  value={state || null}
                   onChange={(e, value) => {
                     setState(value as State);
                   }}
@@ -720,12 +768,22 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
     return cleanedStr;
   }
 
+  //get coin and currency from data exist
+  useEffect(() => {
+    if (!isEdit) return;
+    const coinDetected = LIST_COIN.find(item => item.ticker === offer?.coinPayment);
+    const currencyDetected = LIST_CURRENCIES_USED.find(item => item.code === offer?.localCurrency);
+
+    setCoinState(coinDetected);
+    setCurrencyState(currencyDetected);
+  }, []);
+
   //set state when have states
   useEffect(() => {
+    if (isEdit) return;
     let nameOfState = cleanString(locationData?.address?.state ?? locationData?.address?.city);
     //process for saigon
-    if (nameOfState === 'sài gòn') 
-      nameOfState = 'hồ chí minh'
+    if (nameOfState === 'sài gòn') nameOfState = 'hồ chí minh';
     const stateIdDetected = states.findIndex(state => cleanString(state?.name) === nameOfState);
     const stateDetected = states[stateIdDetected ?? 0];
     setState(stateDetected);
@@ -733,6 +791,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
 
   //from location set country
   useEffect(() => {
+    if (isEdit) return;
     const countryCodeDetected = locationData?.address?.country_code;
     const countryIdDetected = countries.findIndex(
       country => country?.iso2?.toLowerCase() === countryCodeDetected?.toLowerCase()
@@ -743,6 +802,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   }, [locationData]);
 
   useEffect(() => {
+    if (isEdit) return;
     getLocation();
   }, []);
 
@@ -764,7 +824,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
         <ChevronLeft />
       </IconButton>
       <DialogTitle textAlign={'center'}>
-        <b>Create a new sell offer</b>
+        <b>{isEdit ? 'Edit offer' : 'Create a new sell offer'}</b>
       </DialogTitle>
       <DialogContent>{stepContents[`stepContent${activeStep}`]}</DialogContent>
       <DialogActions>
@@ -778,7 +838,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
         >
           {activeStep === 1 && 'Next'}
           {activeStep === 2 && 'Preview'}
-          {activeStep === 3 && 'Create offer'}
+          {activeStep === 3 && `${isEdit ? 'Update' : 'Create'} offer`}
         </Button>
       </DialogActions>
 
@@ -792,7 +852,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
             setSuccess(false);
             handleCloseModal();
           }}
-          content="Offer created successfully"
+          content={`Offer ${isEdit ? 'updated' : 'created'} successfully`}
           type="success"
           autoHideDuration={3000}
         />
@@ -801,7 +861,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
           handleClose={() => {
             setError(false);
           }}
-          content="Create offer failed!"
+          content={`${isEdit ? 'Update' : 'Create'} offer failed!`}
           type="error"
           autoHideDuration={3000}
         />

@@ -1,12 +1,16 @@
 'use client';
-import { CheckCircleOutline } from '@mui/icons-material';
-import { Alert, Button, Typography } from '@mui/material';
-// import { useBackButton, useHapticFeedback, useMainButton, usePopup } from '@tma.js/sdk-react';
 import CustomToast from '@/src/components/Toast/CustomToast';
 import AuthorizationLayout from '@/src/components/layout/AuthorizationLayout';
 import MobileLayout from '@/src/components/layout/MobileLayout';
-import { getWalletMnemonic, useSliceSelector as useLixiSliceSelector } from '@bcpros/redux-store';
+import {
+  getWalletMnemonic,
+  updateTimeBackup,
+  useSliceDispatch as useLixiSliceDispatch,
+  useSliceSelector as useLixiSliceSelector
+} from '@bcpros/redux-store';
 import styled from '@emotion/styled';
+import { CheckCircleOutline } from '@mui/icons-material';
+import { Alert, Button, Typography } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import BackupSeed, { BackupWordModel } from './backup-seed';
@@ -53,6 +57,7 @@ const WordGuessContainer = styled.div`
 `;
 
 export default function Backup() {
+  const dispatch = useLixiSliceDispatch();
   const walletMnemonic = useLixiSliceSelector(getWalletMnemonic);
   const [mnemonicWordsConverted, setMnemonicWordsConverted] = useState<Array<BackupWordModel>>(
     walletMnemonic
@@ -72,28 +77,15 @@ export default function Backup() {
   const [finished, setFinished] = useState(false);
 
   const router = useRouter();
-  // const mainButton = useMainButton();
-  // const backButton = useBackButton();
-  // const popUp = usePopup();
-  // const haptic = useHapticFeedback();
-
-  // useEffect(() => {
-  //   mainButton.enable().show();
-  //   backButton.show();
-  //   mainButton.setText('Continue');
-  // }, []);
-
-  // useEffect(() => {
-  //   mainButton.on('click', onMainButtonClick);
-  //   backButton.on('click', onBackButtonClick);
-  // }, [mainButton, backButton]);
-
   const finalStep = () => {
+    //set time backup
+    dispatch(updateTimeBackup(new Date().toDateString()));
+
     setFinished(true);
-    //router after 1s
+    //router after 2s
     setTimeout(() => {
       router.push('/');
-    }, 1000);
+    }, 2000);
   };
 
   const memoizedLibWord = useMemo(() => {
