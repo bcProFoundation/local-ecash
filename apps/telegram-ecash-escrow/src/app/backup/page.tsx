@@ -4,7 +4,7 @@ import AuthorizationLayout from '@/src/components/layout/AuthorizationLayout';
 import MobileLayout from '@/src/components/layout/MobileLayout';
 import {
   getWalletMnemonic,
-  updateTimeBackup,
+  updateSeedBackupTime,
   useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
@@ -79,7 +79,7 @@ export default function Backup() {
   const router = useRouter();
   const finalStep = () => {
     //set time backup
-    dispatch(updateTimeBackup(new Date().toDateString()));
+    dispatch(updateSeedBackupTime(new Date().toDateString()));
 
     setFinished(true);
     //router after 2s

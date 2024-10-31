@@ -6,8 +6,8 @@ import {
   TimelineQueryItem,
   accountsApi,
   fiatCurrencyApi,
+  getSeedBackupTime,
   getSelectedWalletPath,
-  getTimeBackup,
   openModal,
   useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector
@@ -104,7 +104,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
   const askAuthorization = useAuthorization();
   const { useGetAccountByAddressQuery } = accountsApi;
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
-  const timeBackup = useLixiSliceSelector(getTimeBackup);
+  const seedBackupTime = useLixiSliceSelector(getSeedBackupTime);
 
   const { currentData: accountQueryData } = useGetAccountByAddressQuery(
     { address: selectedWalletPath?.xAddress },
@@ -128,12 +128,12 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
       askAuthorization();
     } else {
       //check backup
-      const oneMonthLater = new Date(timeBackup);
+      const oneMonthLater = new Date(seedBackupTime);
       oneMonthLater.setMonth(oneMonthLater.getMonth() + 1);
       const currentDate = new Date();
       const isGreaterThanOneMonth = currentDate > oneMonthLater;
 
-      if (!timeBackup || isGreaterThanOneMonth) {
+      if (!seedBackupTime || isGreaterThanOneMonth) {
         dispatch(openModal('BackupModal', {}));
         return;
       }
@@ -217,7 +217,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
         )}
       </div>
       <Typography variant="body2">
-        <span className="prefix">Message: </span>
+        <span className="prefix">Headline: </span>
         {offerData?.message}
       </Typography>
       <div className="minmax-collapse-wrap">
@@ -240,6 +240,12 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
               <span className="prefix">Location: </span>
               {[stateName, countryName].filter(Boolean).join(', ')}
             </Typography>
+            {offerData?.noteOffer && (
+              <Typography variant="body2">
+                <span className="prefix">Note: </span>
+                {offerData.noteOffer}
+              </Typography>
+            )}
             <div className="payment-group-btns">
               {offerData?.paymentMethods &&
                 offerData.paymentMethods?.length > 0 &&
