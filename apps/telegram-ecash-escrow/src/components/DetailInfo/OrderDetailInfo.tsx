@@ -61,7 +61,7 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
       </Typography>
       <Typography variant="body1">
         <span className="prefix">Ordered at: </span>
-        {order.createdAt.toLocaleString()}
+        {new Date(order.createdAt).toTimeString()}
       </Typography>
       <Typography variant="body1">
         <span className="prefix">Price: </span>
