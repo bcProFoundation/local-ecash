@@ -4,11 +4,17 @@ import MiniAppBackdrop from '@/src/components/Common/MiniAppBackdrop';
 import OrderDetailInfo from '@/src/components/DetailInfo/OrderDetailInfo';
 import MobileLayout from '@/src/components/layout/MobileLayout';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
-import { EscrowOrderQueryItem, offerApi, useInfiniteEscrowOrderByOfferIdQuery } from '@bcpros/redux-store';
+import {
+  EscrowOrderQueryItem,
+  EscrowOrderStatus,
+  offerApi,
+  useInfiniteEscrowOrderByOfferIdQuery
+} from '@bcpros/redux-store';
 import styled from '@emotion/styled';
-import { Backdrop, Button, CircularProgress, Skeleton, Typography } from '@mui/material';
+import { Backdrop, Button, CircularProgress, Skeleton, Stack, Typography } from '@mui/material';
 import _ from 'lodash';
 import { useSearchParams } from 'next/navigation';
+import { useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 
 const OfferDetailPage = styled.div`
@@ -25,6 +31,16 @@ const OfferDetailPage = styled.div`
 
       &:last-of-type {
         border-bottom: 0;
+      }
+    }
+
+    button {
+      color: white;
+      text-transform: math-auto;
+      border-color: rgba(255, 255, 255, 0.2);
+
+      &.active {
+        border-color: rgba(255, 255, 255, 1);
       }
     }
   }
@@ -62,7 +78,7 @@ const OfferDetail = () => {
   const token = sessionStorage.getItem('Authorization');
   const search = useSearchParams();
   const id = search!.get('id');
-
+  const [orderStatus, setOrderStatus] = useState<EscrowOrderStatus>(EscrowOrderStatus.Pending);
   const { useOfferQuery } = offerApi;
   const { isLoading, currentData, isError, isUninitialized } = useOfferQuery({ id: id! }, { skip: !id || !token });
   const {
@@ -70,7 +86,7 @@ const OfferDetail = () => {
     hasNext: hasNextEscrowOrders,
     isFetching: isFetchingEscrowOrders,
     fetchNext: fetchNextEscrowOrders
-  } = useInfiniteEscrowOrderByOfferIdQuery({ offerId: id!, first: 10 });
+  } = useInfiniteEscrowOrderByOfferIdQuery({ offerId: id!, escrowOrderStatus: orderStatus, first: 10 });
 
   const loadMoreEscrowOrders = () => {
     if (hasNextEscrowOrders && !isFetchingEscrowOrders) {
@@ -126,6 +142,43 @@ const OfferDetail = () => {
         )}
         <hr />
         <div className="list-item">
+          <Stack direction="row" gap="20px" justifyContent="center">
+            <Button
+              onClick={() => setOrderStatus(EscrowOrderStatus.Pending)}
+              className={orderStatus === EscrowOrderStatus.Pending ? 'active' : ''}
+              color="inherit"
+              variant="outlined"
+            >
+              {EscrowOrderStatus.Pending}
+            </Button>
+
+            <Button
+              onClick={() => setOrderStatus(EscrowOrderStatus.Escrow)}
+              className={orderStatus === EscrowOrderStatus.Escrow ? 'active' : ''}
+              color="inherit"
+              variant="outlined"
+            >
+              {EscrowOrderStatus.Escrow}
+            </Button>
+
+            <Button
+              onClick={() => setOrderStatus(EscrowOrderStatus.Complete)}
+              className={orderStatus === EscrowOrderStatus.Complete ? 'active' : ''}
+              color="inherit"
+              variant="outlined"
+            >
+              {EscrowOrderStatus.Complete}
+            </Button>
+
+            <Button
+              onClick={() => setOrderStatus(EscrowOrderStatus.Cancel)}
+              className={orderStatus === EscrowOrderStatus.Cancel ? 'active' : ''}
+              color="inherit"
+              variant="outlined"
+            >
+              {EscrowOrderStatus.Cancel}
+            </Button>
+          </Stack>
           {escrowOrdersData?.length > 0 ? (
             <InfiniteScroll
               dataLength={escrowOrdersData.length}
