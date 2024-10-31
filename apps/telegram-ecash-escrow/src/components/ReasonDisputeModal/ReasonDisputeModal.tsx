@@ -2,6 +2,7 @@
 
 import {
   CreateDisputeInput,
+  SocketContext,
   closeModal,
   getSelectedWalletPath,
   useSliceDispatch as useLixiSliceDispatch,
@@ -26,7 +27,7 @@ import {
   useTheme
 } from '@mui/material';
 import { TransitionProps } from '@mui/material/transitions';
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import CustomToast from '../Toast/CustomToast';
 
@@ -97,6 +98,7 @@ const ReasonDisputeModal: React.FC<ReasonDisputeModalProps> = ({ id }: ReasonDis
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+  const { socket } = useContext(SocketContext) || {};
 
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
 
@@ -122,7 +124,8 @@ const ReasonDisputeModal: React.FC<ReasonDisputeModalProps> = ({ id }: ReasonDis
       const dataCreateDispute: CreateDisputeInput = {
         createdBy: selectedWalletPath?.publicKey,
         escrowOrderId: id!,
-        reason: data.reason
+        reason: data.reason,
+        socketId: socket?.id
       };
 
       await createDisputeTrigger({ input: dataCreateDispute })

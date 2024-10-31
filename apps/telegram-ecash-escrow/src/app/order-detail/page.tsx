@@ -90,7 +90,7 @@ const OrderDetail = () => {
   const search = useSearchParams();
   const id = search!.get('id');
   const router = useRouter();
-  const socket = useContext(SocketContext);
+  const { socket } = useContext(SocketContext) || {};
 
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
   const Wallet = useContext(WalletContextNode);
@@ -136,7 +136,7 @@ const OrderDetail = () => {
   useEffect(() => {
     currentData?.escrowOrder.escrowOrderStatus !== EscrowOrderStatus.Complete &&
       isSuccess &&
-      socket &&
+      !_.isNil(socket) &&
       dispatch(userSubcribeEscrowOrderChannel(id));
   }, [socket, isSuccess]);
 
@@ -156,7 +156,7 @@ const OrderDetail = () => {
       };
     }
 
-    await updateOrderTrigger({ input: { orderId: id!, status, utxoInNodeOfBuyer: utxoRemoved } })
+    await updateOrderTrigger({ input: { orderId: id!, status, utxoInNodeOfBuyer: utxoRemoved, socketId: socket?.id } })
       .unwrap()
       .catch(() => setError(true));
 
@@ -212,7 +212,8 @@ const OrderDetail = () => {
                 txid,
                 value,
                 outIdx: i,
-                utxoInNodeOfBuyer: utxoRemoved
+                utxoInNodeOfBuyer: utxoRemoved,
+                socketId: socket?.id
               }
             })
               .unwrap()
@@ -273,7 +274,7 @@ const OrderDetail = () => {
       const txid = (await chronik.broadcastTx(txBuild)).txid;
 
       // update order status to escrow
-      await updateOrderTrigger({ input: { orderId: id!, status, txid } })
+      await updateOrderTrigger({ input: { orderId: id!, status, txid, socketId: socket?.id } })
         .unwrap()
         .then(() => setRelease(true))
         .catch(() => setError(true));
@@ -319,7 +320,7 @@ const OrderDetail = () => {
       const txid = (await chronik.broadcastTx(txBuild)).txid;
 
       // update order status to escrow
-      await updateOrderTrigger({ input: { orderId: id!, status, txid } })
+      await updateOrderTrigger({ input: { orderId: id!, status, txid, socketId: socket?.id } })
         .unwrap()
         .then(() => setCancel(true))
         .catch(() => setError(true));

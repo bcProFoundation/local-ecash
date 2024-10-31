@@ -330,7 +330,7 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
                 <Controller
                   name="country"
                   control={control}
-                  render={({ field: { onChange, onBlur, value, name, ref } }) => (
+                  render={({ field: { onChange, value } }) => (
                     <FormControl fullWidth>
                       <Autocomplete
                         id="country-select"
@@ -347,6 +347,7 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
                         }}
                         renderOption={(props, option) => {
                           const { ...optionProps } = props;
+
                           return (
                             <Box {...optionProps} key={option.id} component="li">
                               {option.name}
@@ -363,7 +364,7 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
                 <Controller
                   name="state"
                   control={control}
-                  render={({ field: { onChange, onBlur, value, name, ref } }) => (
+                  render={({ field: { onChange, value } }) => (
                     <FormControl fullWidth>
                       <Autocomplete
                         id="state-select"
@@ -379,6 +380,7 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
                         disabled={!getValues('country')}
                         renderOption={(props, option) => {
                           const { ...optionProps } = props;
+
                           return (
                             <Box {...optionProps} key={option.id} component="li">
                               {option.name}
