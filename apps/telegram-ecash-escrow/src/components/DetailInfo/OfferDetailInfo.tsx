@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  OfferStatus,
   openActionSheet,
   PostQueryItem,
   TimelineQueryItem,
@@ -56,6 +57,8 @@ const OfferDetailInfo = ({ timelineItem }: OfferItemProps) => {
   const router = useRouter();
   const postData = timelineItem?.data as PostQueryItem;
   const offerData = postData?.postOffer;
+  const countryName = offerData?.country?.name;
+  const stateName = offerData?.state?.name;
 
   const handleClickAction = e => {
     e.stopPropagation();
@@ -66,12 +69,14 @@ const OfferDetailInfo = ({ timelineItem }: OfferItemProps) => {
     <OfferDetailWrap onClick={() => router.push(`/offer-detail?id=${offerData.postId}`)}>
       <div className="first-line-offer">
         <Typography variant="body1">
-          <span className="prefix">Message: </span>
+          <span className="prefix">Headline: </span>
           {offerData?.message}
         </Typography>
-        <IconButton onClick={e => handleClickAction(e)}>
-          <MoreHorizIcon />
-        </IconButton>
+        {offerData?.status === OfferStatus.Active && (
+          <IconButton onClick={e => handleClickAction(e)}>
+            <MoreHorizIcon />
+          </IconButton>
+        )}
       </div>
       <Typography variant="body1">
         <span className="prefix">Price: </span>
@@ -82,6 +87,18 @@ const OfferDetailInfo = ({ timelineItem }: OfferItemProps) => {
         {offerData?.orderLimitMin} {offerData?.coinPayment ?? offerData?.localCurrency ?? 'XEC'} -{' '}
         {offerData?.orderLimitMax} {offerData?.coinPayment ?? offerData?.localCurrency ?? 'XEC'}
       </Typography>
+      {(stateName || countryName) && (
+        <Typography variant="body2">
+          <span className="prefix">Location: </span>
+          {[stateName, countryName].filter(Boolean).join(', ')}
+        </Typography>
+      )}
+      {offerData?.noteOffer && (
+        <Typography variant="body1">
+          <span className="prefix">Note: </span>
+          {offerData.noteOffer}
+        </Typography>
+      )}
       <div className="payment-group-btns">
         {offerData?.paymentMethods &&
           offerData.paymentMethods?.length > 0 &&

@@ -7,8 +7,19 @@ import {
   openModal,
   useSliceDispatch as useLixiSliceDispatch
 } from '@bcpros/redux-store';
-import { Box, List, ListItem, ListItemButton, ListItemText, SwipeableDrawer } from '@mui/material';
+import { Box, List, ListItem, ListItemButton, ListItemText, SwipeableDrawer, styled } from '@mui/material';
 import { useState } from 'react';
+
+const ListStyled = styled(List)`
+  background-color: #121212;
+  padding: 8px 5px;
+
+  li {
+    background-color: #494949;
+    border-radius: 10px;
+    margin-top: 7px;
+  }
+`;
 
 interface OfferActionSheetProps {
   offer: OfferQueryItem;
@@ -43,7 +54,7 @@ export default function OfferActionSheet({ offer }: OfferActionSheetProps) {
 
   const list = () => (
     <Box role="presentation">
-      <List>
+      <ListStyled>
         <ListItem key={'Edit'} disablePadding>
           <ListItemButton onClick={editOffer}>
             <ListItemText primary={'Edit offer'} />
@@ -54,7 +65,7 @@ export default function OfferActionSheet({ offer }: OfferActionSheetProps) {
             <ListItemText primary={'Archived offer'} />
           </ListItemButton>
         </ListItem>
-      </List>
+      </ListStyled>
     </Box>
   );
 

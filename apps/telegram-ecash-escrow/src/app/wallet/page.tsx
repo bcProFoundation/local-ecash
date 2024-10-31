@@ -8,8 +8,8 @@ import SendComponent from '@/src/components/Send/send';
 import { UtxoContext } from '@/src/store/context/utxoProvider';
 import { COIN } from '@bcpros/lixi-models';
 import {
+  getSeedBackupTime,
   getSelectedWalletPath,
-  getTimeBackup,
   openModal,
   parseCashAddressToPrefix,
   useSliceDispatch as useLixiSliceDispatch,
@@ -92,7 +92,7 @@ export default function Wallet() {
   const dispatch = useLixiSliceDispatch();
 
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
-  const timeBackup = useLixiSliceSelector(getTimeBackup);
+  const seedBackupTime = useLixiSliceSelector(getSeedBackupTime);
 
   const [address, setAddress] = useState(parseCashAddressToPrefix(COIN.XEC, selectedWalletPath?.cashAddress));
   const [openReceive, setOpenReceive] = useState(true);
@@ -101,12 +101,12 @@ export default function Wallet() {
 
   const handleOpenSend = () => {
     //check backup
-    const oneMonthLater = new Date(timeBackup);
+    const oneMonthLater = new Date(seedBackupTime);
     oneMonthLater.setMonth(oneMonthLater.getMonth() + 1);
     const currentDate = new Date();
     const isGreaterThanOneMonth = currentDate > oneMonthLater;
 
-    if (!timeBackup || isGreaterThanOneMonth) {
+    if (!seedBackupTime || isGreaterThanOneMonth) {
       dispatch(openModal('BackupModal', {}));
       return;
     }

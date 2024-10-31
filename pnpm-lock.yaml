@@ -57,11 +57,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/counter
       '@bcpros/lixi-models':
-        specifier: ^1.2.26
-        version: 1.2.26(@nestjs/common@10.4.6(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(class-transformer@0.5.1)(graphql@16.8.1)(reflect-metadata@0.2.2)
+        specifier: ^1.2.27
+        version: 1.2.27(@nestjs/common@10.4.6(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(class-transformer@0.5.1)(graphql@16.8.1)(reflect-metadata@0.2.2)
       '@bcpros/redux-store':
-        specifier: ^1.2.26
-        version: 1.2.26(@abcpros/bitcore-lib-xpi@8.25.43)(@bcpros/xpi-js@4.0.6)(@nestjs/common@10.4.6(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(@rtk-query/graphql-request-base-query@2.3.1(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(graphql@16.8.1))(axios@0.28.0)(chronik-client@0.26.2)(class-transformer@0.5.1)(file-saver@2.0.5)(iron-session@8.0.1)(moment@2.30.1)(react-device-detect@2.2.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-intl-universal@2.11.1(react@18.3.1))(react-outside-call@0.2.0)(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1)(redux-persist-indexeddb-storage@1.0.4)(redux-persist@6.0.0(react@18.3.1)(redux@5.0.1))(redux-saga@1.3.0)(redux-thunk@3.1.0(redux@5.0.1))(redux@5.0.1)(reflect-metadata@0.2.2)
+        specifier: ^1.2.27
+        version: 1.2.27(@abcpros/bitcore-lib-xpi@8.25.43)(@bcpros/xpi-js@4.0.6)(@nestjs/common@10.4.6(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(@rtk-query/graphql-request-base-query@2.3.1(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(graphql@16.8.1))(axios@0.28.0)(chronik-client@0.26.2)(class-transformer@0.5.1)(file-saver@2.0.5)(iron-session@8.0.1)(moment@2.30.1)(react-device-detect@2.2.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-intl-universal@2.11.1(react@18.3.1))(react-outside-call@0.2.0)(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1)(redux-persist-indexeddb-storage@1.0.4)(redux-persist@6.0.0(react@18.3.1)(redux@5.0.1))(redux-saga@1.3.0)(redux-thunk@3.1.0(redux@5.0.1))(redux@5.0.1)(reflect-metadata@0.2.2)
       '@emotion/cache':
         specifier: ^11.11.0
         version: 11.11.0
@@ -329,15 +329,15 @@ packages:
     resolution: {integrity: sha512-WaMsgi6Q8zMgMth93GvWPXkhAIEobfsIkLTacoVZoK1J0CevIPGYY2Vo5YvJGqyHqXM6P4ppOYGsIRU8MM9pFQ==}
     engines: {node: '>=6.9.0'}
 
-  '@bcpros/lixi-models@1.2.26':
-    resolution: {integrity: sha512-CI/Y+zkP8FT4pySvZCk6pje82Bh4rO+JsjlcCro255vq2NGmjYDF0qngbRQSSiC5rF8vNECNh0jXht9yVQoCQA==}
+  '@bcpros/lixi-models@1.2.27':
+    resolution: {integrity: sha512-RxL5b3qgDR6fR0MhTuP7OMie4/Qx3BQng5E/gnk+MYVLHeRHLSTWfynIgIDRMRSUfZdO2QTpf6wKiMRHYZsZEQ==}
     engines: {node: '>=16'}
     peerDependencies:
       '@prisma/client': 5.12.1
       class-transformer: ^0.5.1
 
-  '@bcpros/redux-store@1.2.26':
-    resolution: {integrity: sha512-RCCrCpneiifkvx/7zxI4qUMVl8q90F6Pphc9nzICk+5VBchZaqZPPcMIxf2jkPRiTasehXQxZklOLgS41xE7og==}
+  '@bcpros/redux-store@1.2.27':
+    resolution: {integrity: sha512-H3rR0skd17fEJa7CZ0sAdBHEtTY9CNHtRewZhfEeuscSq/3Zfs/5fpMexI/fuXa86gjxXu4TCGRWDkkhbH4bbA==}
     peerDependencies:
       '@abcpros/bitcore-lib-xpi': '>=8.25.37'
       '@bcpros/xpi-js': 4.0.6
@@ -4041,7 +4041,7 @@ snapshots:
       '@babel/helper-validator-identifier': 7.24.6
       to-fast-properties: 2.0.0
 
-  '@bcpros/lixi-models@1.2.26(@nestjs/common@10.4.6(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(class-transformer@0.5.1)(graphql@16.8.1)(reflect-metadata@0.2.2)':
+  '@bcpros/lixi-models@1.2.27(@nestjs/common@10.4.6(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(class-transformer@0.5.1)(graphql@16.8.1)(reflect-metadata@0.2.2)':
     dependencies:
       '@nestjs/mapped-types': 2.0.5(@nestjs/common@10.4.6(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)
       '@prisma/client': 5.14.0
@@ -4057,10 +4057,10 @@ snapshots:
       - graphql
       - reflect-metadata
 
-  '@bcpros/redux-store@1.2.26(@abcpros/bitcore-lib-xpi@8.25.43)(@bcpros/xpi-js@4.0.6)(@nestjs/common@10.4.6(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(@rtk-query/graphql-request-base-query@2.3.1(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(graphql@16.8.1))(axios@0.28.0)(chronik-client@0.26.2)(class-transformer@0.5.1)(file-saver@2.0.5)(iron-session@8.0.1)(moment@2.30.1)(react-device-detect@2.2.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-intl-universal@2.11.1(react@18.3.1))(react-outside-call@0.2.0)(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1)(redux-persist-indexeddb-storage@1.0.4)(redux-persist@6.0.0(react@18.3.1)(redux@5.0.1))(redux-saga@1.3.0)(redux-thunk@3.1.0(redux@5.0.1))(redux@5.0.1)(reflect-metadata@0.2.2)':
+  '@bcpros/redux-store@1.2.27(@abcpros/bitcore-lib-xpi@8.25.43)(@bcpros/xpi-js@4.0.6)(@nestjs/common@10.4.6(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(@rtk-query/graphql-request-base-query@2.3.1(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(graphql@16.8.1))(axios@0.28.0)(chronik-client@0.26.2)(class-transformer@0.5.1)(file-saver@2.0.5)(iron-session@8.0.1)(moment@2.30.1)(react-device-detect@2.2.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-intl-universal@2.11.1(react@18.3.1))(react-outside-call@0.2.0)(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1)(redux-persist-indexeddb-storage@1.0.4)(redux-persist@6.0.0(react@18.3.1)(redux@5.0.1))(redux-saga@1.3.0)(redux-thunk@3.1.0(redux@5.0.1))(redux@5.0.1)(reflect-metadata@0.2.2)':
     dependencies:
       '@abcpros/bitcore-lib-xpi': 8.25.43
-      '@bcpros/lixi-models': 1.2.26(@nestjs/common@10.4.6(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(class-transformer@0.5.1)(graphql@16.8.1)(reflect-metadata@0.2.2)
+      '@bcpros/lixi-models': 1.2.27(@nestjs/common@10.4.6(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(class-transformer@0.5.1)(graphql@16.8.1)(reflect-metadata@0.2.2)
       '@bcpros/xpi-js': 4.0.6
       '@bitgo/utxo-lib': 9.40.0
       '@nestjs/mapped-types': 2.0.5(@nestjs/common@10.4.6(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)

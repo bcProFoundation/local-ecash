@@ -780,7 +780,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
 
   //set state when have states
   useEffect(() => {
-    if (isEdit) return;
+    if (isEdit && !offer?.stateId) return;
     let nameOfState = cleanString(locationData?.address?.state ?? locationData?.address?.city);
     //process for saigon
     if (nameOfState === 'sài gòn') nameOfState = 'hồ chí minh';
@@ -791,7 +791,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
 
   //from location set country
   useEffect(() => {
-    if (isEdit) return;
+    if (isEdit && !offer?.countryId) return;
     const countryCodeDetected = locationData?.address?.country_code;
     const countryIdDetected = countries.findIndex(
       country => country?.iso2?.toLowerCase() === countryCodeDetected?.toLowerCase()
@@ -802,7 +802,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   }, [locationData]);
 
   useEffect(() => {
-    if (isEdit) return;
+    if (isEdit && !offer?.countryId) return;
     getLocation();
   }, []);
 
