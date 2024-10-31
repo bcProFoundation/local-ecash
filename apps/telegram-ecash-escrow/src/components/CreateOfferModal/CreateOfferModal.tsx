@@ -172,7 +172,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [activeStep, setActiveStep] = React.useState(1);
+  const [activeStep, setActiveStep] = React.useState(isEdit ? 2 : 1);
   const [coinCurrency, setCoinCurrency] = useState('XEC');
   const [locationData, setLocationData] = useState(null);
   const [country, setCountry] = useState<Country | null | undefined>(null);
@@ -828,7 +828,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       </DialogTitle>
       <DialogContent>{stepContents[`stepContent${activeStep}`]}</DialogContent>
       <DialogActions>
-        <Button variant="contained" onClick={() => handleBack()} disabled={activeStep === 1}>
+        <Button variant="contained" onClick={() => handleBack()} disabled={isEdit ? activeStep === 2 : activeStep === 1}>
           Back
         </Button>
         <Button
