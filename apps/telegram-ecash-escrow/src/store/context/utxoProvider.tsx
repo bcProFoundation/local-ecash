@@ -6,6 +6,7 @@ import {
   getWalletUtxosNode,
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
+import _ from 'lodash';
 import { createContext, useEffect, useMemo, useState } from 'react';
 
 export interface UtxoContextType {
@@ -16,7 +17,6 @@ export interface UtxoContextType {
 export const UtxoContext = createContext<UtxoContextType>(undefined);
 
 export function UtxoProvider({ children }) {
-  const token = sessionStorage.getItem('Authorization');
   const utxos = useLixiSliceSelector(getWalletUtxosNode);
 
   const [totalValidAmount, setTotalValidAmount] = useState<number>(0);
@@ -29,14 +29,15 @@ export function UtxoProvider({ children }) {
 
   // Call to validate UTXOs
   useEffect(() => {
-    if (utxos.length === 0) return;
+    if (_.isNil(utxos) || utxos.length === 0) return;
+
     const listUtxos: UtxoInNodeInput[] = utxos.map(item => ({
       txid: item.outpoint.txid,
       outIdx: item.outpoint.outIdx,
       value: item.value
     }));
 
-    const funcFilterUtxos = async () => {
+    (async () => {
       try {
         const listFilterUtxos = await filterUtxos({ input: listUtxos }).unwrap();
         const totalValueUtxos = listFilterUtxos.filterUtxos.reduce((acc, item) => acc + item.value, 0);
@@ -45,10 +46,8 @@ export function UtxoProvider({ children }) {
       } catch (error) {
         console.error('Error filtering UTXOs:', error);
       }
-    };
-
-    if (token) funcFilterUtxos();
-  }, [utxos, token]);
+    })();
+  }, [utxos]);
 
   return <UtxoContext.Provider value={contextValue}>{children}</UtxoContext.Provider>;
 }
