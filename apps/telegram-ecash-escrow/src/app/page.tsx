@@ -13,9 +13,11 @@ import {
   getNewPostAvailable,
   getOfferFilterConfig,
   getPaymenMethods,
+  getSelectedAccount,
   getSelectedWalletPath,
   offerApi,
   removeAllWallets,
+  removeWalletPaths,
   saveOfferFilterConfig,
   setNewPostAvailable,
   useInfiniteOfferFilterQuery,
@@ -114,6 +116,7 @@ export default function Home() {
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
   const offerFilterConfig = useLixiSliceSelector(getOfferFilterConfig);
   const newPostAvailable = useLixiSliceSelector(getNewPostAvailable);
+  const selectedAccount = useLixiSliceSelector(getSelectedAccount);
 
   const [mismatchAccount, setMismatchAccount] = useState(false);
   const [networkError, setNetworkError] = useState(false);
@@ -293,6 +296,7 @@ export default function Home() {
             variant="contained"
             style={{ marginTop: '15px' }}
             onClick={() => {
+              dispatch(removeWalletPaths(selectedAccount.address));
               dispatch(removeAllWallets());
               signOut({ redirect: true, callbackUrl: '/' });
             }}
