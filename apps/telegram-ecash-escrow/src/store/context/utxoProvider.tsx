@@ -3,6 +3,7 @@ import {
   UtxoInNode,
   UtxoInNodeInput,
   escrowOrderApi,
+  getSelectedWalletPath,
   getWalletUtxosNode,
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
@@ -18,6 +19,7 @@ export const UtxoContext = createContext<UtxoContextType>(undefined);
 
 export function UtxoProvider({ children }) {
   const utxos = useLixiSliceSelector(getWalletUtxosNode);
+  const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
 
   const [totalValidAmount, setTotalValidAmount] = useState<number>(0);
   const [totalValidUtxos, setTotalValidUtxos] = useState([]);
@@ -39,7 +41,10 @@ export function UtxoProvider({ children }) {
 
     (async () => {
       try {
-        const listFilterUtxos = await filterUtxos({ input: listUtxos }).unwrap();
+        const listFilterUtxos = await filterUtxos({
+          input: listUtxos,
+          hash160: selectedWalletPath.hash160
+        }).unwrap();
         const totalValueUtxos = listFilterUtxos.filterUtxos.reduce((acc, item) => acc + item.value, 0);
         setTotalValidUtxos(listFilterUtxos.filterUtxos);
         setTotalValidAmount(totalValueUtxos / Math.pow(10, coinInfo[COIN.XEC].cashDecimals));

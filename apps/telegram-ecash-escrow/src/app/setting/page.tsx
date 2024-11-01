@@ -4,9 +4,11 @@ import Header from '@/src/components/Header/Header';
 import MobileLayout from '@/src/components/layout/MobileLayout';
 import CustomToast from '@/src/components/Toast/CustomToast';
 import {
+  getSelectedAccount,
   getSelectedWalletPath,
   getWalletMnemonic,
   removeAllWallets,
+  removeWalletPaths,
   useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
@@ -84,6 +86,8 @@ export default function Setting() {
   const dispatch = useLixiSliceDispatch();
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
   const selectedMnemonic = useLixiSliceSelector(getWalletMnemonic);
+  const selectedAccount = useLixiSliceSelector(getSelectedAccount);
+
   // const mainButton = useMainButton();
   // const backButton = useBackButton();
   // const popUp = usePopup();
@@ -110,6 +114,7 @@ export default function Setting() {
   };
 
   const handleSignOut = () => {
+    dispatch(removeWalletPaths(selectedAccount.address));
     dispatch(removeAllWallets());
     signOut({ redirect: true, callbackUrl: '/' });
   };
@@ -171,6 +176,7 @@ export default function Setting() {
             variant="contained"
             style={{ marginTop: '15px' }}
             onClick={() => {
+              dispatch(removeWalletPaths(selectedAccount.address));
               dispatch(removeAllWallets());
               signOut({ redirect: true, callbackUrl: '/' });
             }}
