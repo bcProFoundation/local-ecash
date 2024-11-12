@@ -272,7 +272,11 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
                         }}
                       >
                         <option aria-label="None" value="" />
-                        {LIST_CURRENCIES_USED.map(item => {
+                        {LIST_CURRENCIES_USED.sort((a, b) => {
+                          if (a.name < b.name) return -1;
+                          if (a.name > b.name) return 1;
+                          return 0;
+                        }).map(item => {
                           return (
                             <option key={item.code} value={item.code}>
                               {item.name} ({item.code})

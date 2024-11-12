@@ -277,6 +277,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     setError: setErrorForm,
     clearErrors,
     control,
+    trigger,
     watch
   } = useForm();
 
@@ -451,7 +452,10 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
 
     amountXEC = amountXEC - amountMargin - feeAmount - feeWithdraw;
     const amountXecRounded = parseFloat(amountXEC.toFixed(2));
-    setAmountXEC(amountXecRounded);
+    if (amountXecRounded > 5.46) {
+      clearErrors('amount');
+    }
+    amountXecRounded > 0 ? setAmountXEC(amountXecRounded) : setAmountXEC(0);
 
     const compactNumberFormatter = new Intl.NumberFormat('en-GB', {
       notation: 'compact',
@@ -487,6 +491,10 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     const rateData = fiatData?.getFiatRate?.find(item => item.currency === (post?.postOffer?.localCurrency ?? 'USD'));
     setRateData(rateData?.fiatRates);
   }, [post?.postOffer?.localCurrency, fiatData?.getFiatRate]);
+
+  useEffect(() => {
+    trigger('amount'); // Re-run validation for the "amount" field
+  }, [amountXEC, trigger]);
 
   return (
     <React.Fragment>
@@ -528,7 +536,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                       const maxValue = post.postOffer.orderLimitMax;
                       if (numberValue < 0) return 'XEC amount must be greater than 0!';
                       if (numberValue < minValue || numberValue > maxValue)
-                        return `XEC amount must between ${minValue}-${maxValue}`;
+                        return `Amount must between ${minValue}-${maxValue}`;
                       if (amountXEC < 5.46) return `You need to buy amount greater than 5.46 XEC`;
                       return true;
                     }

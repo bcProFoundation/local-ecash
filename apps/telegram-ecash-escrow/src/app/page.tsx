@@ -157,15 +157,6 @@ export default function Home() {
       fetchNextFilter();
     }
   };
-  const handleCreateOfferClick = () => {
-    if (status === 'loading') return;
-
-    if (status === 'unauthenticated') {
-      askAuthorization();
-    } else {
-      setOpen(true);
-    }
-  };
 
   const handleRefresh = () => {
     dispatch(offerApi.api.util.resetApiState());

@@ -18,7 +18,7 @@ import {
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
-import { ChevronLeft } from '@mui/icons-material';
+import { Close } from '@mui/icons-material';
 import {
   Button,
   Dialog,
@@ -803,8 +803,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   }, []);
 
   useEffect(() => {
-    setCoinCurrency(currencyValue?.code ?? coinValue?.ticker ?? 'XEC');
-  }, [currencyValue?.code, coinValue?.ticker]);
+    setCoinCurrency(currencyValue ?? coinValue ?? 'XEC');
+  }, [currencyValue, coinValue]);
 
   return (
     <StyledDialog
@@ -816,12 +816,12 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       }}
       TransitionComponent={Transition}
     >
-      <IconButton className="back-btn" onClick={() => handleCloseModal()}>
-        <ChevronLeft />
-      </IconButton>
       <DialogTitle textAlign={'center'}>
         <b>{isEdit ? 'Edit offer' : 'Create a new sell offer'}</b>
       </DialogTitle>
+      <IconButton className="back-btn" onClick={() => handleCloseModal()}>
+        <Close />
+      </IconButton>
       <DialogContent>{stepContents[`stepContent${activeStep}`]}</DialogContent>
       <DialogActions>
         <Button

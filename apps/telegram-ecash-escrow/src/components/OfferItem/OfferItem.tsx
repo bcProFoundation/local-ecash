@@ -1,12 +1,12 @@
 'use client';
 
+import { SettingContext } from '@/src/store/context/settingProvider';
 import {
   PostQueryItem,
   Role,
   TimelineQueryItem,
   accountsApi,
   fiatCurrencyApi,
-  getSeedBackupTime,
   getSelectedWalletPath,
   openModal,
   useSliceDispatch as useLixiSliceDispatch,
@@ -18,7 +18,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Button, Card, CardContent, Collapse, IconButton, Typography } from '@mui/material';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import useAuthorization from '../Auth/use-authorization.hooks';
 import PlaceAnOrderModal from '../PlaceAnOrderModal/PlaceAnOrderModal';
 
@@ -104,7 +104,8 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
   const askAuthorization = useAuthorization();
   const { useGetAccountByAddressQuery } = accountsApi;
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
-  const seedBackupTime = useLixiSliceSelector(getSeedBackupTime);
+  const settingContext = useContext(SettingContext);
+  const seedBackupTime = settingContext?.setting?.lastSeedBackupTime ?? '';
 
   const { currentData: accountQueryData } = useGetAccountByAddressQuery(
     { address: selectedWalletPath?.xAddress },
