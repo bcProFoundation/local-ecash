@@ -86,13 +86,17 @@ export default function Backup() {
   const router = useRouter();
   const finalStep = async () => {
     //set time backup
-    const updateSettingCommand: UpdateSettingCommand = {
-      accountId: selectedAccountId,
-      lastSeedBackupTime: new Date()
-    };
-    if (selectedAccountId) {
-      const updatedSetting = await settingApi.updateSetting(updateSettingCommand);
-      setSetting(updatedSetting);
+    try {
+      const updateSettingCommand: UpdateSettingCommand = {
+        accountId: selectedAccountId,
+        lastSeedBackupTime: new Date()
+      };
+      if (selectedAccountId) {
+        const updatedSetting = await settingApi.updateSetting(updateSettingCommand);
+        setSetting(updatedSetting);
+      }
+    } catch (err) {
+      console.log('err when update setting: ', err);
     }
 
     setFinished(true);
