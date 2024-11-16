@@ -333,8 +333,9 @@ export default function Home() {
               </Typography>
             </div>
             <div className="offer-list">
-              {offerFilterConfig.countryId ||
-              offerFilterConfig.stateId ||
+              {offerFilterConfig.countryCode ||
+              offerFilterConfig.stateName ||
+              offerFilterConfig.cityName ||
               offerFilterConfig.coin ||
               offerFilterConfig.fiatCurrency ||
               (offerFilterConfig.paymentMethodIds?.length ?? 0) > 0 ? (
