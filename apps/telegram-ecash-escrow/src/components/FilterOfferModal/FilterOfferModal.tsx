@@ -13,7 +13,7 @@ import {
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
-import { CloseOutlined } from '@mui/icons-material';
+import { Close, CloseOutlined } from '@mui/icons-material';
 import {
   Button,
   Dialog,
@@ -23,6 +23,7 @@ import {
   FormControl,
   Grid,
   IconButton,
+  InputAdornment,
   InputLabel,
   NativeSelect,
   Slide,
@@ -195,6 +196,7 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
       countryName: country && country.name,
       countryCode: country && country.iso2,
       stateName: state && state.adminNameAscii,
+      adminCode: state && state.adminCode,
       cityName: city && city.cityAscii,
       paymentMethodIds: selectedOptionsPayment,
       coin: coin ? coin : null,
@@ -212,6 +214,7 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
       countryName: '',
       countryCode: '',
       stateName: '',
+      adminCode: '',
       paymentMethodIds: [],
       coin: null,
       fiatCurrency: null
@@ -340,6 +343,21 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
                         inputRef={ref}
                         onClick={() => setOpenCountryList(true)}
                         InputProps={{
+                          endAdornment: getValues('country') && (
+                            <InputAdornment position="end">
+                              <IconButton
+                                style={{ padding: 0, width: '13px' }}
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  setValue('country', null);
+                                  setValue('state', null);
+                                  setValue('city', null);
+                                }}
+                              >
+                                <Close />
+                              </IconButton>
+                            </InputAdornment>
+                          ),
                           readOnly: true
                         }}
                       />
@@ -364,6 +382,20 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
                         onClick={() => setOpenStateList(true)}
                         disabled={!getValues('country')}
                         InputProps={{
+                          endAdornment: getValues('state') && (
+                            <InputAdornment position="end">
+                              <IconButton
+                                style={{ padding: 0, width: '13px' }}
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  setValue('state', null);
+                                  setValue('city', null);
+                                }}
+                              >
+                                <Close />
+                              </IconButton>
+                            </InputAdornment>
+                          ),
                           readOnly: true
                         }}
                       />
@@ -391,6 +423,19 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
                         onClick={() => setOpenCityList(true)}
                         disabled={!getValues('country') && !getValues('state')}
                         InputProps={{
+                          endAdornment: getValues('city') && (
+                            <InputAdornment position="end">
+                              <IconButton
+                                style={{ padding: 0, width: '13px' }}
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  setValue('city', null);
+                                }}
+                              >
+                                <Close />
+                              </IconButton>
+                            </InputAdornment>
+                          ),
                           readOnly: true
                         }}
                       />
@@ -438,6 +483,7 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
           setValue('state', value);
           const cities = await countryApi.getCities(value?.iso2 ?? '', value?.adminCode ?? '');
           setListCities(cities);
+          setValue('city', null);
         }}
       />
       <FilterListLocationModal

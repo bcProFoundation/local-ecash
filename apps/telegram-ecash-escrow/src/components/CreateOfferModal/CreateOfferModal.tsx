@@ -775,20 +775,9 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
     setCurrencyState(currencyDetected);
   }, []);
 
-  //set state when have states
-  // useEffect(() => {
-  //   if (isEdit && !offer?.stateId) return;
-  //   let nameOfState = cleanString(locationData?.address?.state ?? locationData?.address?.city);
-  //   //process for saigon
-  //   if (nameOfState === 'sài gòn') nameOfState = 'hồ chí minh';
-  //   const stateIdDetected = states.findIndex(state => cleanString(state?.name) === nameOfState);
-  //   const stateDetected = states[stateIdDetected ?? 0];
-  //   setState(stateDetected);
-  // }, [states]);
-
-  //from location set country
+  //from location set query location in db
   useEffect(() => {
-    if (isEdit && !offer?.countryId) return;
+    if (isEdit && !offer?.locationId) return;
     const nameOfCountry = locationData?.address?.country;
     let nameOfState = cleanString(locationData?.address?.state ?? locationData?.address?.city);
     //process for saigon
@@ -799,17 +788,10 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
     (async () => {
       await handleSearch(query);
     })();
-    // const countryCodeDetected = locationData?.address?.country_code;
-    // const countryIdDetected = countries.findIndex(
-    //   country => country?.iso2?.toLowerCase() === countryCodeDetected?.toLowerCase()
-    // );
-    // const countryDetected = countries[countryIdDetected ?? 0];
-    // setCountry(countryDetected);
-    // dispatch(getStates(countryDetected?.id ?? 0));
   }, [locationData]);
 
   useEffect(() => {
-    if (isEdit && !offer?.countryId) return;
+    if (isEdit && !offer?.locationId) return;
     getLocation();
   }, []);
 
