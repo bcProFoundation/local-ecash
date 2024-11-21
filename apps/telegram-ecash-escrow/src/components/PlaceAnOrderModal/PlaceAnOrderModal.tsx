@@ -88,6 +88,8 @@ const StyledDialog = styled(Dialog)`
 
   .MuiDialogActions-root {
     justify-content: space-evenly;
+    padding: 16px;
+    padding-bottom: 32px;
 
     button {
       text-transform: math-auto;

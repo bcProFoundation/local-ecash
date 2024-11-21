@@ -46,10 +46,12 @@ const WrapContentWallet = styled.div`
     h5 {
       font-weight: bold;
     }
+
     .amount {
+      margin: 16px 0;
       background-color: rgba(255, 255, 255, 0.08);
-      padding: 25px 10px;
-      border-radius: 15px;
+      padding: 28px 16px;
+      border-radius: 16px;
       display: flex;
       justify-content: center;
 

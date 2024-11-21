@@ -28,7 +28,6 @@ import {
   FormControl,
   FormControlLabel,
   FormHelperText,
-  FormLabel,
   Grid,
   IconButton,
   InputAdornment,
@@ -67,28 +66,22 @@ const StyledDialog = styled(Dialog)`
     font-size: 18px;
     font-weight: bold;
   }
+
   .bold {
     font-weight: bold;
   }
+
   .prefix {
     font-size: 15px;
     color: #79869b;
   }
 
+  .label {
+    color: #79869b;
+  }
+
   .container-step2 {
     .margin-component {
-      .btn-minus,
-      .btn-plus {
-        width: 15%;
-        border-radius: 0;
-        border: 2px solid #3d4247;
-      }
-      .btn-minus {
-        border-right: 1px;
-      }
-      .btn-plus {
-        border-left: 1px;
-      }
       .example-value {
         margin-top: 5px;
       }
@@ -103,15 +96,19 @@ const StyledDialog = styled(Dialog)`
 
   .container-step3 {
     .payment-wrap {
-      display: flex;
-      gap: 2rem;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+
       .payment-method,
       .payment-currency {
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
+
         button {
           text-transform: none;
+          color: white;
         }
       }
     }
@@ -131,6 +128,8 @@ const StyledDialog = styled(Dialog)`
 
   .MuiDialogActions-root {
     justify-content: space-evenly;
+    padding: 16px;
+    padding-bottom: 32px;
 
     button {
       text-transform: math-auto;
@@ -140,6 +139,40 @@ const StyledDialog = styled(Dialog)`
         color: white;
       }
     }
+  }
+`;
+
+const PercentInputWrap = styled.div`
+  margin: 16px 0;
+  display: grid;
+  grid-template-columns: max-content 1fr max-content;
+  border-radius: 9px;
+  border: 1px solid gray;
+  min-height: 48px;
+
+  .btn-minus,
+  .btn-plus {
+    width: 15%;
+    border-radius: 0;
+    boder: 0;
+  }
+
+  .btn-minus {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+  }
+
+  .btn-plus {
+    border-bottom-right-radius: 8px;
+    border-top-right-radius: 8px;
+  }
+
+  input {
+    height: 36px;
+  }
+
+  fieldset {
+    border: 0 !important;
   }
 `;
 
@@ -297,7 +330,9 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   const marginComponent = (
     <Grid item xs={12}>
       <div className="margin-component">
-        <Typography className="heading">Offer Margin</Typography>
+        <Typography variant="body2" className="label">
+          Offer Margin
+        </Typography>
         <Controller
           name="percentage"
           control={control}
@@ -308,7 +343,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
             }
           }}
           render={({ field }) => (
-            <div style={{ display: 'flex', alignItems: 'center' }}>
+            <PercentInputWrap>
               <Button variant="contained" className="btn-minus" onClick={() => handleDecrease(field.value)}>
                 -
               </Button>
@@ -326,14 +361,14 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
               <Button variant="contained" className="btn-plus" onClick={() => handleIncrease(field.value)}>
                 +
               </Button>
-            </div>
+            </PercentInputWrap>
           )}
         />
         {errors && errors?.percentage && (
           <FormHelperText error={true}>{errors.percentage.message as string}</FormHelperText>
         )}
         <Typography className="example-value">
-          Example: If you sell <span className="bold">XEC</span> worth{' '}
+          <b>Example</b>: If you sell <span className="bold">XEC</span> worth{' '}
           <span className="bold">1,000.00 {coinCurrency}</span>, you will receive{' '}
           <span className="bold">
             {(1000 * (percentageValue / 100 + 1)).toLocaleString('en-US', {
@@ -352,14 +387,14 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
     <div className="container-step1">
       <Grid container spacing={2}>
         <Grid item xs={12}>
-          <Typography className="heading" variant="body1">
+          <Typography className="heading" variant="body2">
             *You are selling XEC
           </Typography>
         </Grid>
         <Grid item xs={12}>
-          <FormLabel component="legend" className="heading">
+          <Typography variant="body2" className="label">
             Payment method
-          </FormLabel>
+          </Typography>
           <Controller
             name="option"
             control={control}
@@ -476,10 +511,9 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
         {(option === 1 || option === 2) && (
           <>
             <Grid item xs={12}>
-              {' '}
-              <FormLabel component="legend" className="heading">
+              <Typography variant="body2" className="label">
                 Location
-              </FormLabel>
+              </Typography>
             </Grid>
             <Grid item xs={6}>
               <FormControl fullWidth>
@@ -550,6 +584,10 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
         </Grid>
         {marginComponent}
         <Grid item xs={6}>
+          <Typography variant="body2" className="label">
+            {`Order limit (${coinCurrency})`}
+          </Typography>
+
           <Controller
             name="min"
             control={control}
@@ -580,7 +618,6 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                   inputRef={ref}
                   className="form-input"
                   id="min"
-                  label={`Order limit (${coinCurrency})`}
                   placeholder={`Min (${coinCurrency})`}
                   error={errors.min && true}
                   helperText={errors.min && (errors.min?.message as string)}
@@ -591,7 +628,9 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
           />
         </Grid>
         <Grid item xs={1}>
-          <h2 style={{ color: 'white' }}>to</h2>
+          <Typography variant="h6" style={{ color: 'white' }}>
+            to
+          </Typography>
         </Grid>
         <Grid item xs={5}>
           <Controller
@@ -826,6 +865,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       <DialogActions>
         <Button
           variant="contained"
+          color="info"
           onClick={() => handleBack()}
           disabled={isEdit ? activeStep === 2 : activeStep === 1}
         >

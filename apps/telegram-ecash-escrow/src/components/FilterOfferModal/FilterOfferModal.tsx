@@ -75,6 +75,8 @@ const StyledDialog = styled(Dialog)`
 
   .MuiDialogActions-root {
     justify-content: space-evenly;
+    padding: 16px;
+    padding-bottom: 32px;
 
     button {
       text-transform: math-auto;
@@ -105,12 +107,8 @@ const FilterWrap = styled.div`
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     padding: 20px 16px;
 
-    &::last-of-type {
+    &:last-of-type {
       border-bottom: 0;
-    }
-
-    &::first-of-type {
-      padding-top: 0;
     }
 
     .content {
@@ -127,9 +125,12 @@ const FilterWrap = styled.div`
     button {
       text-transform: math-auto;
       border-color: rgba(255, 255, 255, 0.2);
+      font-size: 14px;
+      padding: 8px;
 
       &.active {
-        border-color: rgba(255, 255, 255, 1);
+        font-weight: bold;
+        border-color: rgb(41, 142, 23);
       }
     }
   }
@@ -231,25 +232,6 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
       <DialogContent>
         <FilterWrap>
           <div className="filter-item">
-            <Typography variant="body2">Payment method</Typography>
-            <div className="content">
-              {paymenthods.map(item => {
-                return (
-                  <Button
-                    key={item.id}
-                    onClick={() => handleSelect(item.id)}
-                    className={selectedOptionsPayment.includes(item.id) ? 'active' : ''}
-                    size="small"
-                    color="inherit"
-                    variant="outlined"
-                  >
-                    {item.name}
-                  </Button>
-                );
-              })}
-            </div>
-          </div>
-          <div className="filter-item">
             <Typography variant="body2">Fiat/Coin</Typography>
             <div className="content">
               <Grid item xs={6}>
@@ -316,6 +298,25 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
                   )}
                 />
               </Grid>
+            </div>
+          </div>
+          <div className="filter-item">
+            <Typography variant="body2">Payment method</Typography>
+            <div className="content">
+              {paymenthods.map(item => {
+                return (
+                  <Button
+                    key={item.id}
+                    onClick={() => handleSelect(item.id)}
+                    className={selectedOptionsPayment.includes(item.id) ? 'active' : ''}
+                    size="small"
+                    color="inherit"
+                    variant="outlined"
+                  >
+                    {item.name}
+                  </Button>
+                );
+              })}
             </div>
           </div>
           <div className="filter-item">

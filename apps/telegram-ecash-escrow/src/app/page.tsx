@@ -380,7 +380,18 @@ export default function Home() {
                   scrollableTarget="scrollableDiv"
                   scrollThreshold={'100px'}
                   endMessage={
-                    <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>It&apos;s so empty here</Typography>
+                    <Typography
+                      style={{
+                        textAlign: 'center',
+                        marginTop: '2rem',
+                        position: 'absolute',
+                        left: '50%',
+                        top: '35%',
+                        transform: 'translate(-50%, -50%)'
+                      }}
+                    >
+                      It&apos;s so empty here
+                    </Typography>
                   }
                 >
                   {data.map(item => {
