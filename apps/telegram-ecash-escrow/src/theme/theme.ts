@@ -52,9 +52,9 @@ const theme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
+          color: '#fff',
           fontWeight: 600,
-          borderRadius: '8px',
-          minHeight: '42px'
+          borderRadius: '8px'
         }
       }
     }

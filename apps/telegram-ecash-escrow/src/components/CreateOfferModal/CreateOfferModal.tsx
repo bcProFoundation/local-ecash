@@ -46,6 +46,7 @@ import { TransitionProps } from '@mui/material/transitions';
 import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import FilterListModal from '../FilterList/FilterListModal';
+import { FormControlWithNativeSelect } from '../FilterOfferModal/FilterOfferModal';
 import CustomToast from '../Toast/CustomToast';
 
 const StyledDialog = styled(Dialog)`
@@ -78,13 +79,12 @@ const StyledDialog = styled(Dialog)`
 
   .label {
     color: #79869b;
+    margin-top: 8px;
+    margin-bottom: 4px;
   }
 
   .container-step2 {
     .margin-component {
-      .example-value {
-        margin-top: 5px;
-      }
       .MuiInputBase-root {
         border-radius: 0px !important;
         .MuiInputBase-input {
@@ -173,6 +173,18 @@ const PercentInputWrap = styled.div`
 
   fieldset {
     border: 0 !important;
+  }
+`;
+
+const OrderLimitWrap = styled.div`
+  padding-left: 16px;
+  padding-top: 16px;
+
+  .group-input {
+    display: grid;
+    grid-template-columns: 1fr max-content 1fr;
+    gap: 16px;
+    align-items: baseline;
   }
 `;
 
@@ -387,7 +399,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
     <div className="container-step1">
       <Grid container spacing={2}>
         <Grid item xs={12}>
-          <Typography className="heading" variant="body2">
+          <Typography fontStyle={'italic'} className="heading" variant="body2">
             *You are selling XEC
           </Typography>
         </Grid>
@@ -405,7 +417,13 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
               }
             }}
             render={({ field: { onChange, onBlur, value, ref } }) => (
-              <RadioGroup value={value} onChange={onChange} onBlur={onBlur} ref={ref}>
+              <RadioGroup
+                style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', columnGap: '16px' }}
+                value={value}
+                onChange={onChange}
+                onBlur={onBlur}
+                ref={ref}
+              >
                 {paymentMethods.map(item => {
                   return (
                     <div key={item.id}>
@@ -415,91 +433,6 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                         control={<Radio />}
                         label={item.name}
                       />
-                      {option < 4 && item.id === option && (
-                        <Controller
-                          name="currency"
-                          control={control}
-                          rules={{
-                            validate: value => {
-                              if (!value && !currencyState) return 'Currency is required';
-
-                              return true;
-                            }
-                          }}
-                          render={({ field: { onChange, onBlur, value, ref } }) => (
-                            <FormControl fullWidth>
-                              <InputLabel variant="outlined" htmlFor="select-currency">
-                                Currency
-                              </InputLabel>
-                              <NativeSelect
-                                id="select-currency"
-                                value={value ?? ''}
-                                onBlur={onBlur}
-                                ref={ref}
-                                onChange={e => {
-                                  onChange(e);
-                                  setValue('coin', null);
-                                }}
-                              >
-                                <option aria-label="None" value="" />
-                                {LIST_CURRENCIES_USED.map(item => {
-                                  return (
-                                    <option key={item.code} value={item.code}>
-                                      {item.name} ({item.code})
-                                    </option>
-                                  );
-                                })}
-                              </NativeSelect>
-                              {errors && errors?.currency && (
-                                <FormHelperText error={true}>{errors.currency.message as string}</FormHelperText>
-                              )}
-                            </FormControl>
-                          )}
-                        />
-                      )}
-
-                      {option === 4 && item.id === option && (
-                        <Controller
-                          name="coin"
-                          control={control}
-                          rules={{
-                            validate: value => {
-                              if (!value && !coinState) return 'Coin is required';
-
-                              return true;
-                            }
-                          }}
-                          render={({ field: { onChange, onBlur, value, ref } }) => (
-                            <FormControl fullWidth>
-                              <InputLabel variant="outlined" htmlFor="select-coin">
-                                Coin
-                              </InputLabel>
-                              <NativeSelect
-                                id="select-coin"
-                                value={value ?? ''}
-                                onBlur={onBlur}
-                                ref={ref}
-                                onChange={e => {
-                                  onChange(e);
-                                  setValue('currency', null);
-                                }}
-                              >
-                                <option aria-label="None" value="" />
-                                {LIST_COIN.map(item => {
-                                  return (
-                                    <option key={item.ticker} value={item.ticker}>
-                                      {item.name} ({item.ticker})
-                                    </option>
-                                  );
-                                })}
-                              </NativeSelect>
-                              {errors && errors?.coin && (
-                                <FormHelperText error={true}>{errors.coin.message as string}</FormHelperText>
-                              )}
-                            </FormControl>
-                          )}
-                        />
-                      )}
                     </div>
                   );
                 })}
@@ -508,6 +441,109 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
           />
           {errors && errors?.option && <FormHelperText error={true}>{errors.option.message as string}</FormHelperText>}
         </Grid>
+
+        {option && option < 4 && (
+          <>
+            <Grid item xs={12}>
+              <Typography variant="body2" className="label">
+                Select currency
+              </Typography>
+            </Grid>
+            <Grid item xs={12} style={{ paddingTop: 0 }}>
+              <Controller
+                name="currency"
+                control={control}
+                rules={{
+                  validate: value => {
+                    if (!value && !currencyState) return 'Currency is required';
+
+                    return true;
+                  }
+                }}
+                render={({ field: { onChange, onBlur, value, ref } }) => (
+                  <FormControlWithNativeSelect>
+                    <InputLabel variant="outlined" htmlFor="select-currency">
+                      Currency
+                    </InputLabel>
+                    <NativeSelect
+                      id="select-currency"
+                      value={value ?? ''}
+                      onBlur={onBlur}
+                      ref={ref}
+                      onChange={e => {
+                        onChange(e);
+                        setValue('coin', null);
+                      }}
+                    >
+                      <option aria-label="None" value="" />
+                      {LIST_CURRENCIES_USED.map(item => {
+                        return (
+                          <option key={item.code} value={item.code}>
+                            {item.name} ({item.code})
+                          </option>
+                        );
+                      })}
+                    </NativeSelect>
+                    {errors && errors?.currency && (
+                      <FormHelperText error={true}>{errors.currency.message as string}</FormHelperText>
+                    )}
+                  </FormControlWithNativeSelect>
+                )}
+              />
+            </Grid>
+          </>
+        )}
+        {option && option == 4 && (
+          <>
+            <Grid item xs={12}>
+              <Typography variant="body2" className="label">
+                Select coin
+              </Typography>
+            </Grid>
+            <Grid item xs={12} style={{ paddingTop: 0 }}>
+              <Controller
+                name="coin"
+                control={control}
+                rules={{
+                  validate: value => {
+                    if (!value && !coinState) return 'Coin is required';
+
+                    return true;
+                  }
+                }}
+                render={({ field: { onChange, onBlur, value, ref } }) => (
+                  <FormControlWithNativeSelect>
+                    <InputLabel variant="outlined" htmlFor="select-currency">
+                      Coin
+                    </InputLabel>
+                    <NativeSelect
+                      id="select-coin"
+                      value={value ?? ''}
+                      onBlur={onBlur}
+                      ref={ref}
+                      onChange={e => {
+                        onChange(e);
+                        setValue('currency', null);
+                      }}
+                    >
+                      <option aria-label="None" value="" />
+                      {LIST_COIN.map(item => {
+                        return (
+                          <option key={item.ticker} value={item.ticker}>
+                            {item.name} ({item.ticker})
+                          </option>
+                        );
+                      })}
+                    </NativeSelect>
+                    {errors && errors?.coin && (
+                      <FormHelperText error={true}>{errors.coin.message as string}</FormHelperText>
+                    )}
+                  </FormControlWithNativeSelect>
+                )}
+              />
+            </Grid>
+          </>
+        )}
         {(option === 1 || option === 2) && (
           <>
             <Grid item xs={12}>
@@ -583,105 +619,107 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
           />
         </Grid>
         {marginComponent}
-        <Grid item xs={6}>
+        <OrderLimitWrap>
           <Typography variant="body2" className="label">
             {`Order limit (${coinCurrency})`}
           </Typography>
 
-          <Controller
-            name="min"
-            control={control}
-            rules={{
-              required: {
-                value: true,
-                message: 'Minimum is required!'
-              },
-              pattern: {
-                value: /^-?[0-9]\d*\.?\d*$/,
-                message: 'Minimum amount is invalid!'
-              },
-              validate: value => {
-                const max = parseFloat(watch('max'));
-                if (parseFloat(value) >= max) return 'Minimum amount must be less than maximum amount!';
+          <div className="group-input">
+            <Controller
+              name="min"
+              control={control}
+              rules={{
+                required: {
+                  value: true,
+                  message: 'Minimum is required!'
+                },
+                pattern: {
+                  value: /^-?[0-9]\d*\.?\d*$/,
+                  message: 'Minimum amount is invalid!'
+                },
+                validate: value => {
+                  const max = parseFloat(watch('max'));
+                  if (parseFloat(value) >= max) return 'Minimum amount must be less than maximum amount!';
 
-                return true;
-              }
-            }}
-            render={({ field: { onChange, onBlur, value, name, ref } }) => (
-              <FormControl fullWidth={true}>
-                <TextField
-                  onChange={onChange}
-                  onBlur={onBlur}
-                  value={value}
-                  type="number"
-                  name={name}
-                  inputRef={ref}
-                  className="form-input"
-                  id="min"
-                  placeholder={`Min (${coinCurrency})`}
-                  error={errors.min && true}
-                  helperText={errors.min && (errors.min?.message as string)}
-                  variant="standard"
-                />
-              </FormControl>
-            )}
-          />
-        </Grid>
-        <Grid item xs={1}>
-          <Typography variant="h6" style={{ color: 'white' }}>
-            to
-          </Typography>
-        </Grid>
-        <Grid item xs={5}>
-          <Controller
-            name="max"
-            control={control}
-            rules={{
-              required: {
-                value: true,
-                message: 'Maximum is required!'
-              },
-              pattern: {
-                value: /^-?[0-9]\d*\.?\d*$/,
-                message: 'Maximum amount is invalid!'
-              },
-              validate: value => {
-                const min = parseFloat(watch('min'));
+                  return true;
+                }
+              }}
+              render={({ field: { onChange, onBlur, value, name, ref } }) => (
+                <FormControl fullWidth={true}>
+                  <TextField
+                    onChange={onChange}
+                    onBlur={onBlur}
+                    value={value}
+                    type="number"
+                    name={name}
+                    inputRef={ref}
+                    className="form-input"
+                    id="min"
+                    placeholder={`Min (${coinCurrency})`}
+                    error={errors.min && true}
+                    helperText={errors.min && (errors.min?.message as string)}
+                    variant="standard"
+                  />
+                </FormControl>
+              )}
+            />
+            <Typography variant="h6" style={{ color: 'white' }}>
+              to
+            </Typography>
+            <Controller
+              name="max"
+              control={control}
+              rules={{
+                required: {
+                  value: true,
+                  message: 'Maximum is required!'
+                },
+                pattern: {
+                  value: /^-?[0-9]\d*\.?\d*$/,
+                  message: 'Maximum amount is invalid!'
+                },
+                validate: value => {
+                  const min = parseFloat(watch('min'));
 
-                if (parseFloat(value) < 0) return 'Maximum amount must be greater than 0!';
-                if (parseFloat(value) <= min) return 'Maximum amount must be greater than minimum amount!';
+                  if (parseFloat(value) < 0) return 'Maximum amount must be greater than 0!';
+                  if (parseFloat(value) <= min) return 'Maximum amount must be greater than minimum amount!';
 
-                return true;
-              }
-            }}
-            render={({ field: { onChange, onBlur, value, name, ref } }) => (
-              <FormControl fullWidth={true}>
-                <TextField
-                  onChange={onChange}
-                  onBlur={onBlur}
-                  value={value}
-                  name={name}
-                  type="number"
-                  inputRef={ref}
-                  className="form-input"
-                  id="max"
-                  label=" "
-                  placeholder={`Max (${coinCurrency})`}
-                  error={errors.max && true}
-                  helperText={errors.max && (errors.max?.message as string)}
-                  variant="standard"
-                />
-              </FormControl>
-            )}
-          />
-        </Grid>
+                  return true;
+                }
+              }}
+              render={({ field: { onChange, onBlur, value, name, ref } }) => (
+                <FormControl fullWidth={true}>
+                  <TextField
+                    onChange={onChange}
+                    onBlur={onBlur}
+                    value={value}
+                    name={name}
+                    type="number"
+                    inputRef={ref}
+                    className="form-input"
+                    id="max"
+                    label=" "
+                    placeholder={`Max (${coinCurrency})`}
+                    error={errors.max && true}
+                    helperText={errors.max && (errors.max?.message as string)}
+                    variant="standard"
+                  />
+                </FormControl>
+              )}
+            />
+          </div>
+        </OrderLimitWrap>
         <Grid item xs={12}>
           <Controller
             name="note"
             control={control}
             render={({ field: { onChange, onBlur, value, name, ref } }) => (
               <FormControl fullWidth={true}>
+                <Typography className="label" variant="body2">
+                  Offer note
+                </Typography>
                 <TextField
+                  style={{ marginTop: '16px' }}
                   className="form-input"
                   onChange={onChange}
                   onBlur={onBlur}
@@ -689,7 +727,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                   name={name}
                   inputRef={ref}
                   id="note"
-                  label="Offer note"
+                  placeholder="Input offer note..."
                   variant="filled"
                   multiline
                   rows={4}
@@ -707,7 +745,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
     <div className="container-step3">
       <Grid container spacing={2}>
         <Grid item xs={12}>
-          <Typography className="heading" variant="body1">
+          <Typography fontStyle={'italic'} className="heading" variant="body1">
             *You are selling XEC
           </Typography>
         </Grid>
@@ -865,7 +903,6 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       <DialogActions>
         <Button
           variant="contained"
-          color="info"
           onClick={() => handleBack()}
           disabled={isEdit ? activeStep === 2 : activeStep === 1}
         >
@@ -873,6 +910,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
         </Button>
         <Button
           variant="contained"
+          color="success"
           onClick={activeStep !== 3 ? handleSubmit(handleNext) : handleSubmit(handleCreateOffer)}
           disabled={loading}
         >

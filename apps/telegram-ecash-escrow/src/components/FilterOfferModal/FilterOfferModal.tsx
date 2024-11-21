@@ -102,6 +102,18 @@ const StyledDialog = styled(Dialog)`
   }
 `;
 
+export const FormControlWithNativeSelect = styled(FormControl)`
+  width: 100%;
+
+  .MuiFormLabel-root {
+    transform: translate(0, 16px);
+
+    &[data-shrink='true'] {
+      display: none;
+    }
+  }
+`;
+
 const FilterWrap = styled.div`
   .filter-item {
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
@@ -115,7 +127,6 @@ const FilterWrap = styled.div`
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 8px;
-      margin-top: 18px;
     }
 
     p {
@@ -239,7 +250,7 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
                   name="currency"
                   control={control}
                   render={({ field: { onChange, onBlur, value, ref } }) => (
-                    <FormControl fullWidth>
+                    <FormControlWithNativeSelect>
                       <InputLabel variant="outlined" htmlFor="select-currency">
                         Currency
                       </InputLabel>
@@ -262,7 +273,7 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
                           );
                         })}
                       </NativeSelect>
-                    </FormControl>
+                    </FormControlWithNativeSelect>
                   )}
                 />
               </Grid>
@@ -271,7 +282,7 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
                   name="coin"
                   control={control}
                   render={({ field: { onChange, onBlur, value, ref } }) => (
-                    <FormControl fullWidth>
+                    <FormControlWithNativeSelect>
                       <InputLabel variant="outlined" htmlFor="select-coin">
                         Coin
                       </InputLabel>
@@ -294,14 +305,16 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
                           );
                         })}
                       </NativeSelect>
-                    </FormControl>
+                    </FormControlWithNativeSelect>
                   )}
                 />
               </Grid>
             </div>
           </div>
           <div className="filter-item">
-            <Typography variant="body2">Payment method</Typography>
+            <Typography style={{ marginBottom: '12px' }} variant="body2">
+              Payment method
+            </Typography>
             <div className="content">
               {paymenthods.map(item => {
                 return (
@@ -320,7 +333,9 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
             </div>
           </div>
           <div className="filter-item">
-            <Typography variant="body2">Country/State</Typography>
+            <Typography style={{ marginBottom: '12px' }} variant="body2">
+              Country/State
+            </Typography>
             <div className="content">
               <Grid item xs={6}>
                 <Controller

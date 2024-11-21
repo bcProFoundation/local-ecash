@@ -14,6 +14,7 @@ import {
 } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import ArrowCircleUpRoundedIcon from '@mui/icons-material/ArrowCircleUpRounded';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Button, Card, CardContent, Collapse, IconButton, Typography } from '@mui/material';
 import { useSession } from 'next-auth/react';
@@ -225,7 +226,11 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
           <span className="prefix">Min / max: </span>
           {offerData?.orderLimitMin} {coinCurrency} - {offerData?.orderLimitMax} {coinCurrency}
         </Typography>
-        <ExpandMoreIcon onClick={handleExpandClick} style={{ cursor: 'pointer' }} />
+        {expanded ? (
+          <ExpandLessIcon onClick={handleExpandClick} style={{ cursor: 'pointer' }} />
+        ) : (
+          <ExpandMoreIcon onClick={handleExpandClick} style={{ cursor: 'pointer' }} />
+        )}
       </div>
     </OfferShowWrapItem>
   );

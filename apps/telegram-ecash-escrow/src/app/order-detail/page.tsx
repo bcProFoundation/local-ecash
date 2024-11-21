@@ -594,7 +594,6 @@ const OrderDetail = () => {
     return (
       !isArbiOrMod && (
         <React.Fragment>
-          <hr />
           <TelegramButton
             escrowOrderId={id}
             username={
