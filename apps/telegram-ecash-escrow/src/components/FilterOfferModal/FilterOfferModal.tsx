@@ -77,6 +77,8 @@ const StyledDialog = styled(Dialog)`
 
   .MuiDialogActions-root {
     justify-content: space-evenly;
+    padding: 16px;
+    padding-bottom: 32px;
 
     button {
       text-transform: math-auto;
@@ -102,24 +104,31 @@ const StyledDialog = styled(Dialog)`
   }
 `;
 
+export const FormControlWithNativeSelect = styled(FormControl)`
+  width: 100%;
+
+  .MuiFormLabel-root {
+    transform: translate(0, 16px);
+
+    &[data-shrink='true'] {
+      display: none;
+    }
+  }
+`;
+
 const FilterWrap = styled.div`
   .filter-item {
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     padding: 20px 16px;
 
-    &::last-of-type {
+    &:last-of-type {
       border-bottom: 0;
-    }
-
-    &::first-of-type {
-      padding-top: 0;
     }
 
     .content {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 8px;
-      margin-top: 18px;
     }
 
     p {
@@ -129,9 +138,12 @@ const FilterWrap = styled.div`
     button {
       text-transform: math-auto;
       border-color: rgba(255, 255, 255, 0.2);
+      font-size: 14px;
+      padding: 8px;
 
       &.active {
-        border-color: rgba(255, 255, 255, 1);
+        font-weight: bold;
+        border-color: rgb(41, 142, 23);
       }
     }
   }
@@ -237,25 +249,6 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
       <DialogContent>
         <FilterWrap>
           <div className="filter-item">
-            <Typography variant="body2">Payment method</Typography>
-            <div className="content">
-              {paymenthods.map(item => {
-                return (
-                  <Button
-                    key={item.id}
-                    onClick={() => handleSelect(item.id)}
-                    className={selectedOptionsPayment.includes(item.id) ? 'active' : ''}
-                    size="small"
-                    color="inherit"
-                    variant="outlined"
-                  >
-                    {item.name}
-                  </Button>
-                );
-              })}
-            </div>
-          </div>
-          <div className="filter-item">
             <Typography variant="body2">Fiat/Coin</Typography>
             <div className="content">
               <Grid item xs={6}>
@@ -263,7 +256,7 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
                   name="currency"
                   control={control}
                   render={({ field: { onChange, onBlur, value, ref } }) => (
-                    <FormControl fullWidth>
+                    <FormControlWithNativeSelect>
                       <InputLabel variant="outlined" htmlFor="select-currency">
                         Currency
                       </InputLabel>
@@ -290,7 +283,7 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
                           );
                         })}
                       </NativeSelect>
-                    </FormControl>
+                    </FormControlWithNativeSelect>
                   )}
                 />
               </Grid>
@@ -299,7 +292,7 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
                   name="coin"
                   control={control}
                   render={({ field: { onChange, onBlur, value, ref } }) => (
-                    <FormControl fullWidth>
+                    <FormControlWithNativeSelect>
                       <InputLabel variant="outlined" htmlFor="select-coin">
                         Coin
                       </InputLabel>
@@ -322,13 +315,37 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
                           );
                         })}
                       </NativeSelect>
-                    </FormControl>
+                    </FormControlWithNativeSelect>
                   )}
                 />
               </Grid>
             </div>
           </div>
           <div className="filter-item">
+            <Typography style={{ marginBottom: '12px' }} variant="body2">
+              Payment method
+            </Typography>
+            <div className="content">
+              {paymenthods.map(item => {
+                return (
+                  <Button
+                    key={item.id}
+                    onClick={() => handleSelect(item.id)}
+                    className={selectedOptionsPayment.includes(item.id) ? 'active' : ''}
+                    size="small"
+                    color="inherit"
+                    variant="outlined"
+                  >
+                    {item.name}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+          <div className="filter-item">
+            <Typography style={{ marginBottom: '12px' }} variant="body2">
+              Country/State
+            </Typography>
             <Typography variant="body2">Location</Typography>
             <div className="content">
               <Grid item xs={6}>
