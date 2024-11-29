@@ -98,8 +98,9 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
   const dispatch = useLixiSliceDispatch();
   const post = timelineItem?.data as PostQueryItem;
   const offerData = post?.postOffer;
-  const countryName = offerData?.country?.name;
-  const stateName = offerData?.state?.name;
+  const countryName = offerData?.location?.country;
+  const stateName = offerData?.location?.adminNameAscii;
+  const cityName = offerData?.location?.cityAscii;
   const { status } = useSession();
   const askAuthorization = useAuthorization();
   const { useGetAccountByAddressQuery } = accountsApi;
@@ -240,7 +241,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
             {(countryName || stateName) && (
               <Typography variant="body2">
                 <span className="prefix">Location: </span>
-                {[stateName, countryName].filter(Boolean).join(', ')}
+                {[cityName, stateName, countryName].filter(Boolean).join(', ')}
               </Typography>
             )}
             {offerData?.noteOffer && (
