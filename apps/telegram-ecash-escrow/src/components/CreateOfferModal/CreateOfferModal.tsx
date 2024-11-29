@@ -1,7 +1,7 @@
 'use client';
 
 import { LIST_COIN } from '@/src/store/constants';
-import { Country, LIST_CURRENCIES_USED, State } from '@bcpros/lixi-models';
+import { LIST_CURRENCIES_USED, Location } from '@bcpros/lixi-models';
 import {
   Coin,
   CreateOfferInput,
@@ -9,16 +9,14 @@ import {
   OfferType,
   UpdateOfferInput,
   closeModal,
-  getAllCountries,
+  countryApi,
   getAllPaymentMethods,
-  getAllStates,
-  getStates,
   offerApi,
   useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
-import { ChevronLeft } from '@mui/icons-material';
+import { Close } from '@mui/icons-material';
 import {
   Button,
   Dialog,
@@ -43,9 +41,10 @@ import {
   useTheme
 } from '@mui/material';
 import { TransitionProps } from '@mui/material/transitions';
+import { debounce } from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import FilterListModal from '../FilterList/FilterListModal';
+import FilterListLocationModal from '../FilterList/QueryListLocationModal';
 import { FormControlWithNativeSelect } from '../FilterOfferModal/FilterOfferModal';
 import CustomToast from '../Toast/CustomToast';
 
@@ -213,21 +212,20 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
 
   const paymentMethods = useLixiSliceSelector(getAllPaymentMethods);
-  const countries = useLixiSliceSelector(getAllCountries);
-  const states = useLixiSliceSelector(getAllStates);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [activeStep, setActiveStep] = React.useState(isEdit ? 2 : 1);
   const [coinCurrency, setCoinCurrency] = useState('XEC');
   const [locationData, setLocationData] = useState(null);
-  const [country, setCountry] = useState<Country | null | undefined>(null);
-  const [state, setState] = useState<State | null | undefined>(null);
   const [currencyState, setCurrencyState] = useState(null);
   const [coinState, setCoinState] = useState(null);
 
-  const [openCountryList, setOpenCountryList] = useState(false);
-  const [openStateList, setOpenStateList] = useState(false);
+  const [openLocationList, setOpenLocationList] = useState(false);
+
+  const [loadingLocation, setLoadingLocation] = useState(false);
+  const [listLocation, setListLocation] = useState<Location[]>([]);
+  const [selectedLocation, setSelectedLocation] = useState<Location>(null);
 
   const {
     handleSubmit,
@@ -265,7 +263,6 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
 
   const handleCreateOffer = async data => {
     setLoading(true);
-
     const minNum = parseFloat(data.min);
     const maxNum = parseFloat(data.max);
     const input = {
@@ -277,14 +274,12 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       marginPercentage: Number(data.percentage),
       orderLimitMin: minNum,
       orderLimitMax: maxNum,
-      countryId: country?.id ?? null,
-      stateId: state?.id ?? null
+      locationId: selectedLocation?.id ?? null
     };
 
     //Just have location when paymentmethods is 1 or 2
     if (option !== 1 && option !== 2) {
-      input.countryId = null;
-      input.stateId = null;
+      input.locationId = null;
     }
 
     if (isEdit) {
@@ -337,6 +332,19 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
 
   const handleCloseModal = () => {
     dispatch(closeModal());
+  };
+
+  const handleSearch = debounce(async searchTerm => {
+    setLoadingLocation(true);
+    const locations = await countryApi.getLocations(searchTerm);
+    setListLocation(locations);
+    locations.length > 0 && setSelectedLocation(locations[0]);
+    setLoadingLocation(false);
+  }, 500); // Debounce for 300 milliseconds
+
+  const handleChange = event => {
+    const searchTerm = event.target.value;
+    handleSearch(searchTerm);
   };
 
   const marginComponent = (
@@ -551,29 +559,18 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                 Location
               </Typography>
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={12}>
               <FormControl fullWidth>
                 <TextField
                   label="Country"
                   variant="outlined"
                   fullWidth
-                  value={country?.name ?? ''}
-                  onClick={() => setOpenCountryList(true)}
-                  InputProps={{
-                    readOnly: true
-                  }}
-                />
-              </FormControl>
-            </Grid>
-            <Grid item xs={6}>
-              <FormControl fullWidth>
-                <TextField
-                  label="State"
-                  variant="outlined"
-                  fullWidth
-                  value={state?.name ?? ''}
-                  onClick={() => setOpenStateList(true)}
-                  disabled={!country}
+                  value={
+                    selectedLocation
+                      ? `${[selectedLocation?.cityAscii, selectedLocation?.adminNameAscii, selectedLocation?.country].filter(Boolean).join(', ')}`
+                      : ''
+                  }
+                  onClick={() => setOpenLocationList(true)}
                   InputProps={{
                     readOnly: true
                   }}
@@ -753,7 +750,9 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
           <Grid item xs={12}>
             <Typography variant="body1">
               <span className="prefix">Location: </span>
-              {[state?.name, country?.name].filter(Boolean).join(', ')}
+              {[selectedLocation?.cityAscii, selectedLocation?.adminNameAscii, selectedLocation?.country]
+                .filter(Boolean)
+                .join(', ')}
             </Typography>
           </Grid>
         )}
@@ -830,13 +829,15 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
     }
   };
 
-  function cleanString(str: string): string {
+  function cleanString(str: string, isState = true): string {
     if (!str) return;
     const noPunctuation = str.replace(/[-]/g, ' ');
 
     const lowerStr = noPunctuation.toLowerCase();
 
-    const cleanedStr = lowerStr.replace(/thanh pho|thành phố |city/gi, '').trim();
+    const cleanedStr = isState
+      ? lowerStr.replace(/thanh pho|thành phố |city/gi, '').trim()
+      : lowerStr.replace(/quan|huyen|quận|huyện/gi, '').trim();
 
     return cleanedStr;
   }
@@ -851,37 +852,29 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
     setCurrencyState(currencyDetected);
   }, []);
 
-  //set state when have states
+  //from location set query location in db
   useEffect(() => {
-    if (isEdit && !offer?.stateId) return;
+    if (isEdit && !offer?.locationId) return;
+    const nameOfCountry = locationData?.address?.country;
     let nameOfState = cleanString(locationData?.address?.state ?? locationData?.address?.city);
     //process for saigon
     if (nameOfState === 'sài gòn') nameOfState = 'hồ chí minh';
-    const stateIdDetected = states.findIndex(state => cleanString(state?.name) === nameOfState);
-    const stateDetected = states[stateIdDetected ?? 0];
-    setState(stateDetected);
-  }, [states]);
+    const nameOfCity = locationData?.address?.suburb;
 
-  //from location set country
-  useEffect(() => {
-    if (isEdit && !offer?.countryId) return;
-    const countryCodeDetected = locationData?.address?.country_code;
-    const countryIdDetected = countries.findIndex(
-      country => country?.iso2?.toLowerCase() === countryCodeDetected?.toLowerCase()
-    );
-    const countryDetected = countries[countryIdDetected ?? 0];
-    setCountry(countryDetected);
-    dispatch(getStates(countryDetected?.id ?? 0));
+    const query = `${nameOfCity} ${nameOfState} ${nameOfCountry}`;
+    (async () => {
+      await handleSearch(query);
+    })();
   }, [locationData]);
 
   useEffect(() => {
-    if (isEdit && !offer?.countryId) return;
+    if (isEdit && !offer?.locationId) return;
     getLocation();
   }, []);
 
   useEffect(() => {
-    setCoinCurrency(currencyValue?.code ?? coinValue?.ticker ?? 'XEC');
-  }, [currencyValue?.code, coinValue?.ticker]);
+    setCoinCurrency(currencyValue ?? coinValue ?? 'XEC');
+  }, [currencyValue, coinValue]);
 
   return (
     <StyledDialog
@@ -893,12 +886,12 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       }}
       TransitionComponent={Transition}
     >
-      <IconButton className="back-btn" onClick={() => handleCloseModal()}>
-        <ChevronLeft />
-      </IconButton>
       <DialogTitle textAlign={'center'}>
         <b>{isEdit ? 'Edit offer' : 'Create a new sell offer'}</b>
       </DialogTitle>
+      <IconButton className="back-btn" onClick={() => handleCloseModal()}>
+        <Close />
+      </IconButton>
       <DialogContent>{stepContents[`stepContent${activeStep}`]}</DialogContent>
       <DialogActions>
         <Button
@@ -944,22 +937,15 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
           autoHideDuration={3000}
         />
       </Portal>
-      <FilterListModal
-        isOpen={openCountryList}
-        onDissmissModal={value => setOpenCountryList(value)}
+      <FilterListLocationModal
+        isOpen={openLocationList}
+        listItems={listLocation}
+        loading={loadingLocation}
+        onDissmissModal={value => setOpenLocationList(value)}
         setSelectedItem={value => {
-          setCountry(value as Country);
-          dispatch(getStates(value?.id));
+          setSelectedLocation(value);
         }}
-        listItems={countries}
-      />
-      <FilterListModal
-        isOpen={openStateList}
-        onDissmissModal={value => setOpenStateList(value)}
-        setSelectedItem={value => {
-          setState(value as State);
-        }}
-        listItems={states}
+        handleChange={e => handleChange(e)}
       />
     </StyledDialog>
   );

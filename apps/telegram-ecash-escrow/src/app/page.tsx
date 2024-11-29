@@ -157,15 +157,6 @@ export default function Home() {
       fetchNextFilter();
     }
   };
-  const handleCreateOfferClick = () => {
-    if (status === 'loading') return;
-
-    if (status === 'unauthenticated') {
-      askAuthorization();
-    } else {
-      setOpen(true);
-    }
-  };
 
   const handleRefresh = () => {
     dispatch(offerApi.api.util.resetApiState());
@@ -333,8 +324,9 @@ export default function Home() {
               </Typography>
             </div>
             <div className="offer-list">
-              {offerFilterConfig.countryId ||
-              offerFilterConfig.stateId ||
+              {offerFilterConfig.countryCode ||
+              offerFilterConfig.stateName ||
+              offerFilterConfig.cityName ||
               offerFilterConfig.coin ||
               offerFilterConfig.fiatCurrency ||
               (offerFilterConfig.paymentMethodIds?.length ?? 0) > 0 ? (

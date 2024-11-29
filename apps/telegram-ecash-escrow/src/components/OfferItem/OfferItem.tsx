@@ -1,12 +1,12 @@
 'use client';
 
+import { SettingContext } from '@/src/store/context/settingProvider';
 import {
   PostQueryItem,
   Role,
   TimelineQueryItem,
   accountsApi,
   fiatCurrencyApi,
-  getSeedBackupTime,
   getSelectedWalletPath,
   openModal,
   useSliceDispatch as useLixiSliceDispatch,
@@ -19,7 +19,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Button, Card, CardContent, Collapse, IconButton, Typography } from '@mui/material';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import useAuthorization from '../Auth/use-authorization.hooks';
 import PlaceAnOrderModal from '../PlaceAnOrderModal/PlaceAnOrderModal';
 
@@ -99,13 +99,15 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
   const dispatch = useLixiSliceDispatch();
   const post = timelineItem?.data as PostQueryItem;
   const offerData = post?.postOffer;
-  const countryName = offerData?.country?.name;
-  const stateName = offerData?.state?.name;
+  const countryName = offerData?.location?.country;
+  const stateName = offerData?.location?.adminNameAscii;
+  const cityName = offerData?.location?.cityAscii;
   const { status } = useSession();
   const askAuthorization = useAuthorization();
   const { useGetAccountByAddressQuery } = accountsApi;
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
-  const seedBackupTime = useLixiSliceSelector(getSeedBackupTime);
+  const settingContext = useContext(SettingContext);
+  const seedBackupTime = settingContext?.setting?.lastSeedBackupTime ?? '';
 
   const { currentData: accountQueryData } = useGetAccountByAddressQuery(
     { address: selectedWalletPath?.xAddress },
@@ -244,7 +246,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
             {(countryName || stateName) && (
               <Typography variant="body2">
                 <span className="prefix">Location: </span>
-                {[stateName, countryName].filter(Boolean).join(', ')}
+                {[cityName, stateName, countryName].filter(Boolean).join(', ')}
               </Typography>
             )}
             {offerData?.noteOffer && (
