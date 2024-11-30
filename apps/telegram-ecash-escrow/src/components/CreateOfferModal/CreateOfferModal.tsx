@@ -220,6 +220,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   const [locationData, setLocationData] = useState(null);
   const [currencyState, setCurrencyState] = useState(null);
   const [coinState, setCoinState] = useState(null);
+  const [fixAmount, setFixAmount] = useState(1000);
 
   const [openLocationList, setOpenLocationList] = useState(false);
 
@@ -388,16 +389,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
           <FormHelperText error={true}>{errors.percentage.message as string}</FormHelperText>
         )}
         <Typography className="example-value">
-          <b>Example</b>: If you sell <span className="bold">XEC</span> worth{' '}
-          <span className="bold">1,000.00 {coinCurrency}</span>, you will receive{' '}
-          <span className="bold">
-            {(1000 * (percentageValue / 100 + 1)).toLocaleString('en-US', {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2
-            })}{' '}
-            {coinCurrency}{' '}
-          </span>
-          in return
+          For each <span className="bold">${fixAmount.toFixed(2)}</span> worth of {coinCurrency} that you sell, you will
+          receive <span className="bold">${(fixAmount * (percentageValue / 100)).toFixed(2)}</span> margin.
         </Typography>
       </div>
     </Grid>
@@ -450,7 +443,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
           {errors && errors?.option && <FormHelperText error={true}>{errors.option.message as string}</FormHelperText>}
         </Grid>
 
-        {option && option < 4 && (
+        {option != 0 && option < 4 && (
           <>
             <Grid item xs={12}>
               <Typography variant="body2" className="label">
@@ -480,13 +473,14 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                       ref={ref}
                       onChange={e => {
                         onChange(e);
+                        setFixAmount(Number(e?.target?.value?.split(':')[1]));
                         setValue('coin', null);
                       }}
                     >
                       <option aria-label="None" value="" />
                       {LIST_CURRENCIES_USED.map(item => {
                         return (
-                          <option key={item.code} value={item.code}>
+                          <option key={item.code} value={`${item.code}:${item.fixAmount}`}>
                             {item.name} ({item.code})
                           </option>
                         );
@@ -501,7 +495,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
             </Grid>
           </>
         )}
-        {option && option == 4 && (
+        {option == 4 && (
           <>
             <Grid item xs={12}>
               <Typography variant="body2" className="label">
@@ -531,13 +525,14 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                       ref={ref}
                       onChange={e => {
                         onChange(e);
+                        setFixAmount(Number(e?.target?.value?.split(':')[1]));
                         setValue('currency', null);
                       }}
                     >
                       <option aria-label="None" value="" />
                       {LIST_COIN.map(item => {
                         return (
-                          <option key={item.ticker} value={item.ticker}>
+                          <option key={item.ticker} value={`${item.ticker}:${item.fixAmount}`}>
                             {item.name} ({item.ticker})
                           </option>
                         );
@@ -873,7 +868,9 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   }, []);
 
   useEffect(() => {
-    setCoinCurrency(currencyValue ?? coinValue ?? 'XEC');
+    const currency = currencyValue?.split(':')[0];
+    const coin = coinValue?.split(':')[0];
+    setCoinCurrency(currency ?? coin ?? 'XEC');
   }, [currencyValue, coinValue]);
 
   return (
