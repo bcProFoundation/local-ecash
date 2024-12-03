@@ -16,7 +16,6 @@ import {
   getSelectedWalletPath,
   offerApi,
   removeAllWallets,
-  removeWalletPaths,
   setNewPostAvailable,
   useInfiniteOfferFilterQuery,
   useInfiniteOffersByScoreQuery,
@@ -277,7 +276,6 @@ export default function Home() {
             variant="contained"
             style={{ marginTop: '15px' }}
             onClick={() => {
-              dispatch(removeWalletPaths(selectedAccount.address));
               dispatch(removeAllWallets());
               signOut({ redirect: true, callbackUrl: '/' });
             }}
