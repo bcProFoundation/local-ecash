@@ -4,6 +4,7 @@ import {
   WalletContextNode,
   axiosClient,
   generateAccount,
+  getCountries,
   getSelectedWalletPath,
   importAccount,
   useSliceDispatch as useLixiSliceDispatch,
@@ -133,6 +134,7 @@ const MiniAppBackdrop = () => {
         accountType: AccountType.NORMAL
       };
 
+      dispatch(getCountries());
       dispatch(generateAccount(dataGenerateAccount));
 
       await signIn('telegram-login', { redirect: false }, data as any);
