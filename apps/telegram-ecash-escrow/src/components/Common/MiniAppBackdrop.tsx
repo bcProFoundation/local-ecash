@@ -125,6 +125,9 @@ const MiniAppBackdrop = () => {
       username: user.username,
       isMiniApp: true
     };
+    console.log('🚀 ~ handleCreateNewAccount ~ data:', data);
+    console.log('🚀 ~ handleCreateNewAccount ~ dispatch:', dispatch);
+    console.log('🚀 ~ handleCreateNewAccount ~ generateAccount:', generateAccount);
 
     dispatch(generateAccount({ coin: 'XEC', telegramId: data.id.toString() }));
 
