@@ -1,5 +1,5 @@
 import { TelegramMiniAppContext } from '@/src/store/telegram-mini-app-provider';
-import { COIN, ImportAccountType } from '@bcpros/lixi-models';
+import { AccountType, COIN, GenerateAccountType, ImportAccountType } from '@bcpros/lixi-models';
 import {
   WalletContextNode,
   axiosClient,
@@ -125,11 +125,14 @@ const MiniAppBackdrop = () => {
       username: user.username,
       isMiniApp: true
     };
-    console.log('🚀 ~ handleCreateNewAccount ~ data:', data);
-    console.log('🚀 ~ handleCreateNewAccount ~ dispatch:', dispatch);
-    console.log('🚀 ~ handleCreateNewAccount ~ generateAccount:', generateAccount);
 
-    dispatch(generateAccount({ coin: 'XEC', telegramId: data.id.toString() }));
+    const dataGenerateAccount: GenerateAccountType = {
+      coin: COIN.XEC,
+      telegramId: data.id.toString(),
+      accountType: AccountType.NORMAL
+    };
+
+    dispatch(generateAccount(dataGenerateAccount));
 
     await signIn('telegram-login', { redirect: false }, data as any);
 
@@ -172,7 +175,13 @@ const MiniAppBackdrop = () => {
 
       await axiosClient.get(`/api/accounts/telegram/unlink/${id}`);
 
-      dispatch(generateAccount({ coin: 'XEC', telegramId: id!.toString() }));
+      const dataGenerateAccount: GenerateAccountType = {
+        coin: COIN.XEC,
+        telegramId: id!.toString(),
+        accountType: AccountType.NORMAL
+      };
+
+      dispatch(generateAccount(dataGenerateAccount));
 
       setSuccess(true);
     } catch (e) {
