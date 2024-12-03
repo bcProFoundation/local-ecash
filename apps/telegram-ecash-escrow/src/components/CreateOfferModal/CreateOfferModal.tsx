@@ -217,7 +217,6 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   const [loading, setLoading] = useState(false);
   const [activeStep, setActiveStep] = React.useState(isEdit ? 2 : 1);
   const [coinCurrency, setCoinCurrency] = useState('XEC');
-  const [locationData, setLocationData] = useState(null);
   const [currencyState, setCurrencyState] = useState(null);
   const [coinState, setCoinState] = useState(null);
   const [fixAmount, setFixAmount] = useState(1000);
@@ -805,18 +804,24 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
           const latitude = position.coords.latitude;
           const longitude = position.coords.longitude;
 
-          // Pass the latitude and longitude to Nominatim for geocoding
-          const url = `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`;
+          (async () => {
+            setLoadingLocation(true);
 
-          fetch(url)
-            .then(response => response.json())
-            .then(data => {
-              setLocationData(data);
-            })
-            .catch(error => console.error('Error fetching location data:', error));
+            const locations = await countryApi.getCoordinate(latitude.toString(), longitude.toString());
+
+            if (locations.length > 0) {
+              setListLocation(locations);
+              setSelectedLocation(locations[0]);
+            }
+
+            setLoadingLocation(false);
+          })();
         },
         error => {
           console.error('Geolocation error:', error);
+        },
+        {
+          enableHighAccuracy: true
         }
       );
     } else {
@@ -846,21 +851,6 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
     setCoinState(coinDetected);
     setCurrencyState(currencyDetected);
   }, []);
-
-  //from location set query location in db
-  useEffect(() => {
-    if (isEdit && !offer?.locationId) return;
-    const nameOfCountry = locationData?.address?.country;
-    let nameOfState = cleanString(locationData?.address?.state ?? locationData?.address?.city);
-    //process for saigon
-    if (nameOfState === 'sài gòn') nameOfState = 'hồ chí minh';
-    const nameOfCity = locationData?.address?.suburb;
-
-    const query = `${nameOfCity} ${nameOfState} ${nameOfCountry}`;
-    (async () => {
-      await handleSearch(query);
-    })();
-  }, [locationData]);
 
   useEffect(() => {
     if (isEdit && !offer?.locationId) return;
