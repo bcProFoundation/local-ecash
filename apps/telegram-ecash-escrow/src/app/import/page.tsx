@@ -1,10 +1,10 @@
 'use client';
 import MobileLayout from '@/src/components/layout/MobileLayout';
 import CustomToast from '@/src/components/Toast/CustomToast';
+import { generateEscrowAccount } from '@/src/store/escrow-account/saga';
 import { AccountType, COIN, GenerateAccountType, ImportAccountType } from '@bcpros/lixi-models';
 import {
   axiosClient,
-  generateAccount,
   getSelectedWalletPath,
   importAccount,
   useSliceDispatch as useLixiSliceDispatch,
@@ -176,7 +176,7 @@ export default function ImportWallet() {
         telegramId: id!.toString(),
         accountType: AccountType.NORMAL
       };
-      dispatch(generateAccount(dataGenerateAccount));
+      dispatch(generateEscrowAccount(dataGenerateAccount));
 
       setSuccess(true);
     } catch (e) {

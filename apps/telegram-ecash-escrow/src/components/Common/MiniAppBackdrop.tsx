@@ -1,9 +1,9 @@
+import { generateEscrowAccount } from '@/src/store/escrow-account/saga';
 import { TelegramMiniAppContext } from '@/src/store/telegram-mini-app-provider';
 import { AccountType, COIN, GenerateAccountType, ImportAccountType } from '@bcpros/lixi-models';
 import {
   WalletContextNode,
   axiosClient,
-  generateAccount,
   getCountries,
   getSelectedWalletPath,
   importAccount,
@@ -135,7 +135,7 @@ const MiniAppBackdrop = () => {
       };
 
       dispatch(getCountries());
-      dispatch(generateAccount(dataGenerateAccount));
+      dispatch(generateEscrowAccount(dataGenerateAccount));
 
       await signIn('telegram-login', { redirect: false }, data as any);
 
@@ -187,7 +187,7 @@ const MiniAppBackdrop = () => {
         accountType: AccountType.NORMAL
       };
 
-      dispatch(generateAccount(dataGenerateAccount));
+      dispatch(generateEscrowAccount(dataGenerateAccount));
 
       setSuccess(true);
     } catch (e) {
