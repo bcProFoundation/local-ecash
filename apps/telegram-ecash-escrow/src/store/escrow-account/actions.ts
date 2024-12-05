@@ -24,6 +24,7 @@ import { generateEscrowAccount, importEscrowAccount } from './saga';
  * @param action The data to needed generate a account
  */
 function* generateEscrowAccountSaga(action: PayloadAction<GenerateAccountType>) {
+  console.warn('DEBUGPRINT[7]: actions.ts:26 (after function* generateEscrowAccountSaga(acti…)');
   const { coin, telegramId, accountType } = action.payload;
   console.log('🚀 ~ function*generateEscrowAccountSaga ~ action.payload:', action.payload);
 
@@ -71,6 +72,7 @@ function* generateEscrowAccountSaga(action: PayloadAction<GenerateAccountType>) 
 }
 
 function* importEscrowAccountSaga(action: PayloadAction<ImportAccountType>) {
+  console.warn('DEBUGPRINT[6]: actions.ts:73 (after function* importEscrowAccountSaga(action…)');
   try {
     const { mnemonic, coin } = action.payload;
 
@@ -101,13 +103,16 @@ function* importEscrowAccountSaga(action: PayloadAction<ImportAccountType>) {
 }
 
 function* watchGenerateEscrowAccount() {
+  console.warn('DEBUGPRINT[5]: actions.ts:103 (after function* watchGenerateEscrowAccount() )');
   yield takeLatest(generateEscrowAccount.type, generateEscrowAccountSaga);
 }
 
 function* watchImportEscrowAccount() {
+  console.warn('DEBUGPRINT[4]: actions.ts:107 (after function* watchImportEscrowAccount() )');
   yield takeLatest(importEscrowAccount.type, importEscrowAccountSaga);
 }
 
 export function* escrowAccountSaga() {
+  console.warn('DEBUGPRINT[3]: actions.ts:112 (after export function* escrowAccountSaga() )');
   yield all([fork(watchGenerateEscrowAccount), fork(watchImportEscrowAccount)]);
 }
