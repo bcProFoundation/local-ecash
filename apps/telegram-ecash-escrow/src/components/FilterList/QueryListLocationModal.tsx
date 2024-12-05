@@ -115,15 +115,6 @@ const QueryListLocationModal: React.FC<QueryListLocationModalProps> = props => {
                   {`${option?.cityAscii}, ${option?.adminNameAscii}, ${option?.country}`}
                 </Button>
               ))}
-              {listItems.length === 0 && !loading && (
-                <Button
-                  variant="text"
-                  style={{ textTransform: 'capitalize', color: '#fff', fontSize: '1.1rem' }}
-                  sx={{ justifyContent: 'flex-start', textAlign: 'left' }}
-                >
-                  Nothing here
-                </Button>
-              )}
               {loading && (
                 <Button
                   variant="text"

@@ -210,7 +210,7 @@ const MiniAppBackdrop = () => {
       >
         <Stack>
           <Typography variant="h5" align="center">
-            Welcome to Local Ecash
+            Welcome to Local eCash
           </Typography>
           <Button
             className="btn-create"
