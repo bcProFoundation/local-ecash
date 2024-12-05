@@ -101,6 +101,7 @@ const QueryListLocationModal: React.FC<QueryListLocationModalProps> = props => {
                 setSearchTerm(e.target.value);
               }}
               value={searchTerm}
+              autoFocus
             />
             <Box sx={{ mt: 1 }}>
               {listItems.map(option => (

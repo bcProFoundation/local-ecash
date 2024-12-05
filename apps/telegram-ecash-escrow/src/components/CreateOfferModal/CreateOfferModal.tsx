@@ -19,6 +19,7 @@ import styled from '@emotion/styled';
 import { Close } from '@mui/icons-material';
 import {
   Button,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -567,7 +568,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                   }
                   onClick={() => setOpenLocationList(true)}
                   InputProps={{
-                    readOnly: true
+                    readOnly: true,
+                    endAdornment: loadingLocation && <CircularProgress />
                   }}
                 />
               </FormControl>
@@ -829,19 +831,6 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       console.error('Geolocation is not supported by this browser.');
     }
   };
-
-  function cleanString(str: string, isState = true): string {
-    if (!str) return;
-    const noPunctuation = str.replace(/[-]/g, ' ');
-
-    const lowerStr = noPunctuation.toLowerCase();
-
-    const cleanedStr = isState
-      ? lowerStr.replace(/thanh pho|thành phố |city/gi, '').trim()
-      : lowerStr.replace(/quan|huyen|quận|huyện/gi, '').trim();
-
-    return cleanedStr;
-  }
 
   //get coin and currency from data exist
   useEffect(() => {
