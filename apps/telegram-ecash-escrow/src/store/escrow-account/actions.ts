@@ -1,8 +1,23 @@
-import { AccountType, COIN, CreateAccountCommand, GenerateAccountType } from '@bcpros/lixi-models';
-import { aesGcmEncrypt, getCurrentLocale, postAccount } from '@bcpros/redux-store';
+import {
+  AccountDto,
+  AccountType,
+  COIN,
+  CreateAccountCommand,
+  GenerateAccountType,
+  ImportAccountCommand,
+  ImportAccountType
+} from '@bcpros/lixi-models';
+import {
+  accountApi,
+  aesGcmEncrypt,
+  getCurrentLocale,
+  importAccountFailure,
+  importAccountSuccess,
+  postAccount
+} from '@bcpros/redux-store';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { all, call, fork, getContext, put, select, takeLatest } from 'redux-saga/effects';
-import { generateEscrowAccount } from './saga';
+import { generateEscrowAccount, importEscrowAccount } from './saga';
 
 /**
  * Generate a account with random encryption password
@@ -55,10 +70,44 @@ function* generateEscrowAccountSaga(action: PayloadAction<GenerateAccountType>) 
   yield put(postAccount(account));
 }
 
-function* watchGenerateAccount() {
+function* importEscrowAccountSaga(action: PayloadAction<ImportAccountType>) {
+  try {
+    const { mnemonic, coin } = action.payload;
+
+    // Hash mnemonic and use it as an id in the database
+    const mnemonicUtf8 = new TextEncoder().encode(mnemonic); // encode mnemonic as UTF-8
+    const mnemonicHashBuffer = yield call([crypto.subtle, crypto.subtle.digest], 'SHA-256', mnemonicUtf8); // hash the mnemonic
+    const mnemonicHash = Buffer.from(new Uint8Array(mnemonicHashBuffer)).toString('hex');
+
+    const locale = yield select(getCurrentLocale);
+
+    const command: ImportAccountCommand = {
+      mnemonic,
+      mnemonicHash,
+      language: locale,
+      coin: coin ? coin : COIN.XPI
+    };
+
+    const data: AccountDto = yield call(accountApi.import, command);
+
+    // Merge back to action payload
+    const account = { ...data, coin: coin };
+
+    account.mnemonic = mnemonic;
+    yield put(importAccountSuccess({ account: account, lixies: [] }));
+  } catch (err) {
+    yield put(importAccountFailure('Unable to import the account.'));
+  }
+}
+
+function* watchGenerateEscrowAccount() {
   yield takeLatest(generateEscrowAccount.type, generateEscrowAccountSaga);
 }
 
+function* watchImportEscrowAccount() {
+  yield takeLatest(importEscrowAccount.type, importEscrowAccountSaga);
+}
+
 export function* escrowAccountSaga() {
-  yield all([fork(watchGenerateAccount)]);
+  yield all([fork(watchGenerateEscrowAccount), fork(watchImportEscrowAccount)]);
 }

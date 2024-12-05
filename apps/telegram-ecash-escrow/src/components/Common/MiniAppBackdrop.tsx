@@ -1,4 +1,4 @@
-import { generateEscrowAccount } from '@/src/store/escrow-account/saga';
+import { generateEscrowAccount, importEscrowAccount } from '@/src/store/escrow-account/saga';
 import { TelegramMiniAppContext } from '@/src/store/telegram-mini-app-provider';
 import { AccountType, COIN, GenerateAccountType, ImportAccountType } from '@bcpros/lixi-models';
 import {
@@ -6,7 +6,6 @@ import {
   axiosClient,
   getCountries,
   getSelectedWalletPath,
-  importAccount,
   useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
@@ -164,7 +163,7 @@ const MiniAppBackdrop = () => {
         mnemonic: recoveryPhrase
       };
 
-      dispatch(importAccount(dataToImport));
+      dispatch(importEscrowAccount(dataToImport));
 
       setImportSuccess(true);
     } catch (e) {
