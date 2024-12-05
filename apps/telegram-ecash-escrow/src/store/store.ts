@@ -50,6 +50,7 @@ const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 export const makeStore = () => {
   const isServer = typeof window === 'undefined';
+  console.log("Is server: ", isServer);
   const sagaMiddleware = createSagaMiddleware({
     context: {
       useXPI: useXPI
