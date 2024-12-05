@@ -23,7 +23,6 @@ import {
   websocketSaga
 } from '@bcpros/redux-store';
 import { all } from 'redux-saga/effects';
-import { escrowAccountSaga } from './escrow-account/actions';
 
 export function* emptySaga() {
   yield all([]);
@@ -32,7 +31,6 @@ export function* emptySaga() {
 export default function* rootSaga() {
   yield all([
     accountSaga(),
-    escrowAccountSaga(),
     walletSaga(),
     localAccountSaga(),
     lixiSaga(),

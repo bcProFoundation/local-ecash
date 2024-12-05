@@ -50,7 +50,6 @@ const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 export const makeStore = () => {
   const isServer = typeof window === 'undefined';
-  console.log('Is server: ', isServer);
   const sagaMiddleware = createSagaMiddleware({
     context: {
       useXPI: useXPI
@@ -69,15 +68,23 @@ export const makeStore = () => {
         .concat(api.middleware)
         .concat(sagaMiddleware);
     },
-    devTools: true
+    devTools:
+      process.env.NODE_ENV === 'production'
+        ? false
+        : {
+            actionsDenylist: [
+              'wallet/writeWalletStatus',
+              'posts/setShowCreatePost',
+              'analyticEvent/batchEvents',
+              'analyticEvent/analyticEvent'
+            ]
+          }
   });
   setupListeners(store.dispatch);
 
   if (!isServer) {
-    console.warn('DEBUGPRINT[8]: store.ts:76: isServer=', isServer);
     (store as SagaStore).__sagaTask = sagaMiddleware.run(rootSaga);
   } else {
-    console.warn('DEBUGPRINT[8]: store.ts:80: isServer=', isServer);
     (store as SagaStore).__sagaTask = sagaMiddleware.run(emptySaga);
   }
 
