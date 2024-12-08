@@ -164,7 +164,7 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
   const offerFilterConfig = useLixiSliceSelector(getOfferFilterConfig);
-  const offerFilterPaymenthod = offerFilterConfig?.paymentMethodIds[0];
+  const offerFilterPaymenthod = offerFilterConfig?.paymentMethodIds;
 
   const {
     handleSubmit,
@@ -185,10 +185,12 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
   });
 
   const [selectedOptionPayment, setSelectedOptionPayment] = useState<number>(
-    offerFilterPaymenthod && offerFilterPaymenthod >= 4 ? offerFilterPaymenthod : 0
+    offerFilterPaymenthod && offerFilterPaymenthod.length === 1 && offerFilterPaymenthod[0] >= 4
+      ? offerFilterPaymenthod[0]
+      : 0
   ); //0 is fiat currency contains (cash, bank, app)
-  const [selectedOptionPaymentFiatCurrency, setSelectedOptionPaymentFiatCurrency] = useState<number>(
-    offerFilterPaymenthod && offerFilterPaymenthod < 4 ? offerFilterPaymenthod : 1
+  const [selectedOptionPaymentFiatCurrency, setSelectedOptionPaymentFiatCurrency] = useState<number[]>(
+    offerFilterPaymenthod && offerFilterPaymenthod.length > 1 ? offerFilterPaymenthod : [1]
   ); //1 is cash
   const [openCountryList, setOpenCountryList] = useState(false);
   const [openStateList, setOpenStateList] = useState(false);
@@ -209,17 +211,22 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
   };
 
   const handleSelectFiatCurrencyPayment = (id: number) => {
-    const isSelected = selectedOptionPaymentFiatCurrency === id;
+    const isSelected = selectedOptionPaymentFiatCurrency.includes(id);
 
-    if (!isSelected) {
-      setSelectedOptionPaymentFiatCurrency(id);
+    if (isSelected) {
+      //drop select if mutiple select
+      selectedOptionPaymentFiatCurrency.length > 1 &&
+        setSelectedOptionPaymentFiatCurrency(pre => pre.filter(item => item !== id));
+    } else {
+      //select it
+      setSelectedOptionPaymentFiatCurrency(pre => [...pre, id]);
     }
   };
 
   const handleFilter = async data => {
     const { country, state, coin, currency, city } = data;
     const paymentMethodSelected =
-      selectedOptionPayment === 0 ? selectedOptionPaymentFiatCurrency : selectedOptionPayment;
+      selectedOptionPayment === 0 ? selectedOptionPaymentFiatCurrency : [selectedOptionPayment];
 
     let offerFilterInput: OfferFilterInput = {
       countryName: country && country.name,
@@ -227,13 +234,13 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
       stateName: state && state.adminNameAscii,
       adminCode: state && state.adminCode,
       cityName: city && city.cityAscii,
-      paymentMethodIds: [paymentMethodSelected],
+      paymentMethodIds: paymentMethodSelected,
       coin: coin ? coin : null,
       fiatCurrency: currency ? currency : null
     };
 
-    //remove country if payment >= 3 (not location)
-    if (paymentMethodSelected >= 3) {
+    //remove country if payment > 3 (not location)
+    if (paymentMethodSelected.includes(4) || paymentMethodSelected.includes(5)) {
       offerFilterInput = {
         ...offerFilterInput,
         countryName: null,
@@ -241,9 +248,17 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
         stateName: null,
         adminCode: null,
         cityName: null,
-        ...(paymentMethodSelected > 3 && { fiatCurrency: null }) // Conditionally add `fiatCurrency`
+        fiatCurrency: null
       };
-    }
+    } else if (paymentMethodSelected.length === 1 && paymentMethodSelected[0] === 3)
+      offerFilterInput = {
+        ...offerFilterInput,
+        countryName: null,
+        countryCode: null,
+        stateName: null,
+        adminCode: null,
+        cityName: null
+      };
 
     dispatch(saveOfferFilterConfig(offerFilterInput));
     props.onDissmissModal!(false);
@@ -291,16 +306,18 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
               setListStates(states);
 
               //auto set state and city if config have
-              if (!!offerFilterConfig.adminCode && !!offerFilterConfig.cityName) {
+              if (!!offerFilterConfig.adminCode) {
                 //set state
                 const stateDetected = states.find(item => item.adminCode === offerFilterConfig.adminCode);
                 stateDetected && setValue('state', stateDetected);
 
-                //set city
-                const cities = await countryApi.getCities(countryDetected?.iso2, stateDetected?.adminCode);
-                setListCities(cities);
-                const cityDetected = cities.find(item => item.cityAscii === offerFilterConfig.cityName);
-                cityDetected && setValue('city', cityDetected);
+                //set city if have
+                if (!!offerFilterConfig.cityName) {
+                  const cities = await countryApi.getCities(countryDetected?.iso2, stateDetected?.adminCode);
+                  setListCities(cities);
+                  const cityDetected = cities.find(item => item.cityAscii === offerFilterConfig.cityName);
+                  cityDetected && setValue('city', cityDetected);
+                }
               }
             }
           })();
@@ -486,7 +503,7 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
                       <Button
                         key={item.id}
                         onClick={() => handleSelectFiatCurrencyPayment(item.id)}
-                        className={selectedOptionPaymentFiatCurrency === item.id ? 'active' : ''}
+                        className={selectedOptionPaymentFiatCurrency.includes(item.id) ? 'active' : ''}
                         size="small"
                         color="inherit"
                         variant="outlined"
@@ -498,7 +515,7 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
                 </div>
               </div>
               {/* cash or bank */}
-              {selectedOptionPaymentFiatCurrency < 3 && (
+              {(selectedOptionPaymentFiatCurrency.includes(1) || selectedOptionPaymentFiatCurrency.includes(2)) && (
                 <div className="filter-item">
                   <Typography style={{ marginBottom: '15px' }} variant="body2">
                     Location
@@ -552,18 +569,11 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
                         )}
                       />
                     </Grid>
-                    {selectedOptionPaymentFiatCurrency === 1 && (
+                    {selectedOptionPaymentFiatCurrency.includes(1) && (
                       <Grid item xs={6}>
                         <Controller
                           name="state"
                           control={control}
-                          rules={{
-                            validate: value => {
-                              if (!value) return 'State is required';
-
-                              return true;
-                            }
-                          }}
                           render={({ field: { onChange, value, onBlur, ref } }) => (
                             <FormControl fullWidth>
                               <TextField
@@ -594,27 +604,17 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
                                   readOnly: true
                                 }}
                               />
-                              {errors && errors?.state && (
-                                <FormHelperText error={true}>{errors.state.message as string}</FormHelperText>
-                              )}
                             </FormControl>
                           )}
                         />
                       </Grid>
                     )}
                   </div>
-                  {selectedOptionPaymentFiatCurrency === 1 && getValues('country') && getValues('state') && (
+                  {selectedOptionPaymentFiatCurrency.includes(1) && getValues('country') && getValues('state') && (
                     <Grid item xs={12}>
                       <Controller
                         name="city"
                         control={control}
-                        rules={{
-                          validate: value => {
-                            if (!value) return 'City is required';
-
-                            return true;
-                          }
-                        }}
                         render={({ field: { onChange, value, onBlur, ref } }) => (
                           <FormControl fullWidth>
                             <TextField
