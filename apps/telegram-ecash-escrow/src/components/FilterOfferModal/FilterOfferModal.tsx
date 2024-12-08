@@ -259,6 +259,13 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
         adminCode: null,
         cityName: null
       };
+      //remove coin if not crypto
+      if (!paymentMethodSelected.includes(4)) {
+        offerFilterInput = {
+          ...offerFilterInput,
+          coin: null
+        };
+      }
 
     dispatch(saveOfferFilterConfig(offerFilterInput));
     props.onDissmissModal!(false);
