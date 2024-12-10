@@ -174,7 +174,19 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
     getValues,
     clearErrors,
     formState: { errors }
-  } = useForm({
+  } = useForm<{
+    country: {
+      name?: string;
+    };
+    state: {
+      adminNameAscii: string;
+    };
+    city: {
+      cityAscii: string;
+    };
+    currency: string;
+    coin: string;
+  }>({
     defaultValues: {
       country: null,
       state: null,
@@ -259,13 +271,13 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
         adminCode: null,
         cityName: null
       };
-      //remove coin if not crypto
-      if (!paymentMethodSelected.includes(4)) {
-        offerFilterInput = {
-          ...offerFilterInput,
-          coin: null
-        };
-      }
+    //remove coin if not crypto
+    if (!paymentMethodSelected.includes(4)) {
+      offerFilterInput = {
+        ...offerFilterInput,
+        coin: null
+      };
+    }
 
     dispatch(saveOfferFilterConfig(offerFilterInput));
     props.onDissmissModal!(false);
@@ -300,26 +312,26 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
             if (locations.length > 0) {
               //Config setting have country => Take from config. Otherwise take from location
               const countryDetected = countries.find(
-                item => item.iso2 === (offerFilterConfig?.countryCode ?? locations[0].iso2)
+                item => item.iso2 === (offerFilterConfig?.countryCode || locations[0].iso2)
               );
               countryDetected && setValue('country', countryDetected);
 
               //set currency
               //Config setting have currency => Take from config. Otherwise take from location
               const currencyDetected = LIST_CURRENCIES_USED.find(item => item.country === countryDetected?.iso2);
-              currencyDetected && setValue('currency', offerFilterConfig?.fiatCurrency ?? currencyDetected.code);
+              setValue('currency', offerFilterConfig?.fiatCurrency || currencyDetected.code);
 
               const states = await countryApi.getStates(countryDetected?.iso2 ?? '');
               setListStates(states);
 
               //auto set state and city if config have
-              if (!!offerFilterConfig.adminCode) {
+              if (offerFilterConfig.adminCode) {
                 //set state
                 const stateDetected = states.find(item => item.adminCode === offerFilterConfig.adminCode);
                 stateDetected && setValue('state', stateDetected);
 
                 //set city if have
-                if (!!offerFilterConfig.cityName) {
+                if (offerFilterConfig.cityName) {
                   const cities = await countryApi.getCities(countryDetected?.iso2, stateDetected?.adminCode);
                   setListCities(cities);
                   const cityDetected = cities.find(item => item.cityAscii === offerFilterConfig.cityName);
@@ -342,8 +354,8 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
   };
 
   useEffect(() => {
-    getLocation();
-  }, []);
+    props.isOpen && getLocation();
+  }, [props.isOpen]);
 
   return (
     <StyledDialog
@@ -376,6 +388,7 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
               {paymenthods.map(item => {
                 //drop 3 first items and add Fiat currency to it
                 if (item.id <= 3) return;
+
                 return (
                   <Button
                     key={item.id}
@@ -480,6 +493,7 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
                             {LIST_CURRENCIES_USED.sort((a, b) => {
                               if (a.name < b.name) return -1;
                               if (a.name > b.name) return 1;
+
                               return 0;
                             }).map(item => {
                               return (
@@ -506,6 +520,7 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
                   {paymenthods.map(item => {
                     //take first 3 items of fiat
                     if (item.id > 3) return;
+
                     return (
                       <Button
                         key={item.id}
