@@ -176,7 +176,7 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
     formState: { errors }
   } = useForm<{
     country: {
-      name: string;
+      name?: string;
     };
     state: {
       adminNameAscii: string;
@@ -318,8 +318,8 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
 
               //set currency
               //Config setting have currency => Take from config. Otherwise take from location
-              const currencyDetected = LIST_CURRENCIES_USED.find(item => item.code === countryDetected?.currency);
-              currencyDetected && setValue('currency', offerFilterConfig?.fiatCurrency ?? currencyDetected.code);
+              const currencyDetected = LIST_CURRENCIES_USED.find(item => item.country === countryDetected?.iso2);
+              setValue('currency', offerFilterConfig?.fiatCurrency || currencyDetected.code);
 
               const states = await countryApi.getStates(countryDetected?.iso2 ?? '');
               setListStates(states);
