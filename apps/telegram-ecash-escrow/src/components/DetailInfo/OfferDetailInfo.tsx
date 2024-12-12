@@ -98,7 +98,7 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
       const isGreaterThanOneMonth = currentDate > oneMonthLater;
 
       if (!seedBackupTime || isGreaterThanOneMonth) {
-        dispatch(openModal('BackupModal', {}));
+        dispatch(openModal('BackupModal', { offerId: offerData.postId }));
         return;
       }
       dispatch(openModal('PlaceAnOrderModal', { post: post }));
