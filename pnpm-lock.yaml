@@ -57,11 +57,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/counter
       '@bcpros/lixi-models':
-        specifier: 1.2.38
-        version: 1.2.38(@nestjs/common@10.4.15(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(class-transformer@0.5.1)(graphql@16.8.1)(reflect-metadata@0.2.2)
+        specifier: 1.2.39
+        version: 1.2.39(@nestjs/common@10.4.15(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(class-transformer@0.5.1)(graphql@16.8.1)(reflect-metadata@0.2.2)
       '@bcpros/redux-store':
-        specifier: 1.2.38
-        version: 1.2.38(@abcpros/bitcore-lib-xpi@8.25.43)(@bcpros/xpi-js@4.0.6)(@nestjs/common@10.4.15(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(@rtk-query/graphql-request-base-query@2.3.1(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(graphql@16.8.1))(axios@0.28.0)(chronik-client@0.26.2)(class-transformer@0.5.1)(file-saver@2.0.5)(iron-session@8.0.1)(moment@2.30.1)(react-device-detect@2.2.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-intl-universal@2.11.1(react@18.3.1))(react-outside-call@0.2.0)(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1)(redux-persist-indexeddb-storage@1.0.4)(redux-persist@6.0.0(react@18.3.1)(redux@5.0.1))(redux-saga@1.3.0)(redux-thunk@3.1.0(redux@5.0.1))(redux@5.0.1)(reflect-metadata@0.2.2)
+        specifier: 1.2.39
+        version: 1.2.39(@abcpros/bitcore-lib-xpi@8.25.43)(@bcpros/xpi-js@4.0.6)(@nestjs/common@10.4.15(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(@rtk-query/graphql-request-base-query@2.3.1(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(graphql@16.8.1))(axios@0.28.0)(chronik-client@0.26.2)(class-transformer@0.5.1)(file-saver@2.0.5)(iron-session@8.0.1)(moment@2.30.1)(react-device-detect@2.2.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-intl-universal@2.11.1(react@18.3.1))(react-outside-call@0.2.0)(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1)(redux-persist-indexeddb-storage@1.0.4)(redux-persist@6.0.0(react@18.3.1)(redux@5.0.1))(redux-saga@1.3.0)(redux-thunk@3.1.0(redux@5.0.1))(redux@5.0.1)(reflect-metadata@0.2.2)
       '@emotion/cache':
         specifier: ^11.11.0
         version: 11.11.0
@@ -820,15 +820,15 @@ packages:
     resolution: {integrity: sha512-vN5p+1kl59GVKMvTHt55NzzmYVxprfJD+ql7U9NFIfKCBkYE55LYtS+WtPlaYOyzydrKI8Nezd+aZextrd+FMA==}
     engines: {node: '>=6.9.0'}
 
-  '@bcpros/lixi-models@1.2.38':
-    resolution: {integrity: sha512-WDzgmBtDou+YT+sTW/nzM5MZlJ+uygO3YOKB+RHn7FKGKr9E1sh5n7xeyWuEB7Rh8jucSMHMg/kt+xKznliDBA==}
+  '@bcpros/lixi-models@1.2.39':
+    resolution: {integrity: sha512-0kUqnPMMjffdHqM5MkpuAxe2UFjgUF6jjPiPUGeotJukXeV1M5dfz+eFR2LlWIs+PqKFp493qfUHhfEEm17lFQ==}
     engines: {node: '>=16'}
     peerDependencies:
       '@prisma/client': 5.12.1
       class-transformer: ^0.5.1
 
-  '@bcpros/redux-store@1.2.38':
-    resolution: {integrity: sha512-9T10Kh+rr+bicHt4bf+ZYNvhf0M9UrVdQ2nzPWGE3XSg3TijkRS9JP5fF11TjsOxuanKgVI3cHemZZSn0BbjIw==}
+  '@bcpros/redux-store@1.2.39':
+    resolution: {integrity: sha512-EKAuJQ9HyQhWm0vm1TY6f/W+aebt+XijAKKSZK5y3qDGnlzl80YbzvP1edRtChVGnYuUfc+oKZstV1V3WUIZ0Q==}
     peerDependencies:
       '@abcpros/bitcore-lib-xpi': '>=8.25.37'
       '@bcpros/xpi-js': 4.0.6
@@ -4642,9 +4642,6 @@ packages:
   tslib@2.6.2:
     resolution: {integrity: sha512-AEYxH93jGFPn/a2iVAwW87VuUIkR1FVUKB77NwMF7nBTDkDrrT/Hpt/IrCJ0QXhW27jTBDcf5ZY7w6RiqTMw2Q==}
 
-  tslib@2.7.0:
-    resolution: {integrity: sha512-gLXCKdN1/j47AiHiOkJN69hJmcbGTHI0ImLmbYLHykhgeN0jVGola9yVjFgzCUklsZQMW55o+dW7IXv3RCXDzA==}
-
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
 
@@ -5731,7 +5728,7 @@ snapshots:
       '@babel/helper-string-parser': 7.25.9
       '@babel/helper-validator-identifier': 7.25.9
 
-  '@bcpros/lixi-models@1.2.38(@nestjs/common@10.4.15(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(class-transformer@0.5.1)(graphql@16.8.1)(reflect-metadata@0.2.2)':
+  '@bcpros/lixi-models@1.2.39(@nestjs/common@10.4.15(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(class-transformer@0.5.1)(graphql@16.8.1)(reflect-metadata@0.2.2)':
     dependencies:
       '@nestjs/mapped-types': 2.0.6(@nestjs/common@10.4.15(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)
       '@prisma/client': 5.14.0
@@ -5747,10 +5744,10 @@ snapshots:
       - graphql
       - reflect-metadata
 
-  '@bcpros/redux-store@1.2.38(@abcpros/bitcore-lib-xpi@8.25.43)(@bcpros/xpi-js@4.0.6)(@nestjs/common@10.4.15(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(@rtk-query/graphql-request-base-query@2.3.1(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(graphql@16.8.1))(axios@0.28.0)(chronik-client@0.26.2)(class-transformer@0.5.1)(file-saver@2.0.5)(iron-session@8.0.1)(moment@2.30.1)(react-device-detect@2.2.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-intl-universal@2.11.1(react@18.3.1))(react-outside-call@0.2.0)(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1)(redux-persist-indexeddb-storage@1.0.4)(redux-persist@6.0.0(react@18.3.1)(redux@5.0.1))(redux-saga@1.3.0)(redux-thunk@3.1.0(redux@5.0.1))(redux@5.0.1)(reflect-metadata@0.2.2)':
+  '@bcpros/redux-store@1.2.39(@abcpros/bitcore-lib-xpi@8.25.43)(@bcpros/xpi-js@4.0.6)(@nestjs/common@10.4.15(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(@rtk-query/graphql-request-base-query@2.3.1(@reduxjs/toolkit@2.2.5(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1))(graphql@16.8.1))(axios@0.28.0)(chronik-client@0.26.2)(class-transformer@0.5.1)(file-saver@2.0.5)(iron-session@8.0.1)(moment@2.30.1)(react-device-detect@2.2.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-intl-universal@2.11.1(react@18.3.1))(react-outside-call@0.2.0)(react-redux@9.1.2(@types/react@18.3.3)(react@18.3.1)(redux@5.0.1))(react@18.3.1)(redux-persist-indexeddb-storage@1.0.4)(redux-persist@6.0.0(react@18.3.1)(redux@5.0.1))(redux-saga@1.3.0)(redux-thunk@3.1.0(redux@5.0.1))(redux@5.0.1)(reflect-metadata@0.2.2)':
     dependencies:
       '@abcpros/bitcore-lib-xpi': 8.25.43
-      '@bcpros/lixi-models': 1.2.38(@nestjs/common@10.4.15(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(class-transformer@0.5.1)(graphql@16.8.1)(reflect-metadata@0.2.2)
+      '@bcpros/lixi-models': 1.2.39(@nestjs/common@10.4.15(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@prisma/client@5.14.0)(class-transformer@0.5.1)(graphql@16.8.1)(reflect-metadata@0.2.2)
       '@bcpros/xpi-js': 4.0.6
       '@bitgo/utxo-lib': 9.40.0
       '@nestjs/mapped-types': 2.0.6(@nestjs/common@10.4.15(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)
@@ -6248,11 +6245,11 @@ snapshots:
   '@ljharb/resumer@0.1.3':
     dependencies:
       '@ljharb/through': 2.3.13
-      call-bind: 1.0.7
+      call-bind: 1.0.8
 
   '@ljharb/through@2.3.13':
     dependencies:
-      call-bind: 1.0.7
+      call-bind: 1.0.8
 
   '@lukeed/csprng@1.1.0': {}
 
@@ -6611,7 +6608,7 @@ snapshots:
   '@swc/helpers@0.5.5':
     dependencies:
       '@swc/counter': 0.1.3
-      tslib: 2.7.0
+      tslib: 2.8.1
 
   '@telegram-apps/bridge@1.7.0':
     dependencies:
@@ -7409,7 +7406,7 @@ snapshots:
   call-bind@1.0.8:
     dependencies:
       call-bind-apply-helpers: 1.0.1
-      es-define-property: 1.0.0
+      es-define-property: 1.0.1
       get-intrinsic: 1.2.6
       set-function-length: 1.2.2
 
@@ -7646,9 +7643,9 @@ snapshots:
   deep-equal@2.2.3:
     dependencies:
       array-buffer-byte-length: 1.0.1
-      call-bind: 1.0.7
+      call-bind: 1.0.8
       es-get-iterator: 1.1.3
-      get-intrinsic: 1.2.4
+      get-intrinsic: 1.2.6
       is-arguments: 1.2.0
       is-array-buffer: 3.0.4
       is-date-object: 1.0.5
@@ -7658,8 +7655,8 @@ snapshots:
       object-is: 1.1.6
       object-keys: 1.1.1
       object.assign: 4.1.5
-      regexp.prototype.flags: 1.5.2
-      side-channel: 1.0.6
+      regexp.prototype.flags: 1.5.3
+      side-channel: 1.1.0
       which-boxed-primitive: 1.0.2
       which-collection: 1.0.2
       which-typed-array: 1.1.15
@@ -7870,25 +7867,25 @@ snapshots:
       array-buffer-byte-length: 1.0.1
       arraybuffer.prototype.slice: 1.0.3
       available-typed-arrays: 1.0.7
-      call-bind: 1.0.7
+      call-bind: 1.0.8
       data-view-buffer: 1.0.1
       data-view-byte-length: 1.0.1
       data-view-byte-offset: 1.0.0
-      es-define-property: 1.0.0
+      es-define-property: 1.0.1
       es-errors: 1.3.0
       es-object-atoms: 1.0.0
       es-set-tostringtag: 2.0.3
       es-to-primitive: 1.2.1
       function.prototype.name: 1.1.6
-      get-intrinsic: 1.2.4
+      get-intrinsic: 1.2.6
       get-symbol-description: 1.0.2
       globalthis: 1.0.4
-      gopd: 1.0.1
+      gopd: 1.2.0
       has-property-descriptors: 1.0.2
       has-proto: 1.0.3
-      has-symbols: 1.0.3
+      has-symbols: 1.1.0
       hasown: 2.0.2
-      internal-slot: 1.0.7
+      internal-slot: 1.1.0
       is-array-buffer: 3.0.4
       is-callable: 1.2.7
       is-data-view: 1.0.1
@@ -7924,13 +7921,13 @@ snapshots:
 
   es-get-iterator@1.1.3:
     dependencies:
-      call-bind: 1.0.7
-      get-intrinsic: 1.2.4
-      has-symbols: 1.0.3
+      call-bind: 1.0.8
+      get-intrinsic: 1.2.6
+      has-symbols: 1.1.0
       is-arguments: 1.2.0
       is-map: 2.0.3
       is-set: 2.0.3
-      is-string: 1.0.7
+      is-string: 1.1.0
       isarray: 2.0.5
       stop-iteration-iterator: 1.1.0
 
@@ -8530,7 +8527,7 @@ snapshots:
   graphql-scalars@1.24.0(graphql@16.8.1):
     dependencies:
       graphql: 16.8.1
-      tslib: 2.7.0
+      tslib: 2.8.1
 
   graphql@16.8.1: {}
 
@@ -8538,8 +8535,8 @@ snapshots:
 
   has-dynamic-import@2.1.0:
     dependencies:
-      call-bind: 1.0.7
-      get-intrinsic: 1.2.4
+      call-bind: 1.0.8
+      get-intrinsic: 1.2.6
 
   has-flag@3.0.0: {}
 
@@ -8769,7 +8766,7 @@ snapshots:
 
   is-string@1.1.0:
     dependencies:
-      call-bind: 1.0.7
+      call-bind: 1.0.8
       has-tostringtag: 1.0.2
 
   is-subdir@1.2.0:
@@ -9107,7 +9104,7 @@ snapshots:
     dependencies:
       define-data-property: 1.1.4
       functions-have-names: 1.2.3
-      gopd: 1.0.1
+      gopd: 1.2.0
       has-property-descriptors: 1.0.2
       hasown: 2.0.2
       isarray: 2.0.5
@@ -9228,7 +9225,7 @@ snapshots:
 
   object-is@1.1.6:
     dependencies:
-      call-bind: 1.0.7
+      call-bind: 1.0.8
       define-properties: 1.2.1
 
   object-keys@1.1.1: {}
@@ -9499,7 +9496,7 @@ snapshots:
 
   qs@6.13.1:
     dependencies:
-      side-channel: 1.0.6
+      side-channel: 1.1.0
 
   querystringify@2.2.0: {}
 
@@ -9693,7 +9690,7 @@ snapshots:
 
   regexp.prototype.flags@1.5.3:
     dependencies:
-      call-bind: 1.0.7
+      call-bind: 1.0.8
       define-properties: 1.2.1
       es-errors: 1.3.0
       set-function-name: 2.0.2
@@ -9783,7 +9780,7 @@ snapshots:
 
   rxjs@7.8.1:
     dependencies:
-      tslib: 2.7.0
+      tslib: 2.8.1
 
   safe-array-concat@1.1.2:
     dependencies:
@@ -10171,7 +10168,7 @@ snapshots:
       '@ljharb/resumer': 0.1.3
       '@ljharb/through': 2.3.13
       array.prototype.every: 1.1.7
-      call-bind: 1.0.7
+      call-bind: 1.0.8
       deep-equal: 2.2.3
       defined: 1.0.1
       dotignore: 0.1.2
@@ -10258,8 +10255,6 @@ snapshots:
       strip-bom: 3.0.0
 
   tslib@2.6.2: {}
-
-  tslib@2.7.0: {}
 
   tslib@2.8.1: {}
 
