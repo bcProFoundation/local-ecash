@@ -537,11 +537,11 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                   rules={{
                     required: {
                       value: true,
-                      message: 'XEC amount is required!'
+                      message: 'Amount is required!'
                     },
                     pattern: {
                       value: /^-?[0-9]\d*\.?\d*$/,
-                      message: 'XEC amount is invalid!'
+                      message: 'Amount is invalid!'
                     },
                     validate: value => {
                       const numberValue = parseFloat(value);
