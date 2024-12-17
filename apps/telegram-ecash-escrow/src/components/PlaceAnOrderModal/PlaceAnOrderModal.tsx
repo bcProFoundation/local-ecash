@@ -584,7 +584,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                     : post.postOffer.paymentMethods[0]?.paymentMethod?.id !== 5 && (
                         <div>
                           You will receive <span className="amount-receive">{amountXEC.toLocaleString('de-DE')}</span>{' '}
-                          {post.postOffer.coinPayment ?? post.postOffer.localCurrency ?? 'XEC'}
+                          XEC
                           <div>Price: {textAmountPer1MXEC}</div>
                         </div>
                       )}
