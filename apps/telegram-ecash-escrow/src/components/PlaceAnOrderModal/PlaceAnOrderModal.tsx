@@ -19,7 +19,6 @@ import {
   UtxoInNodeInput,
   WalletContextNode
 } from '@bcpros/redux-store';
-import styled from '@emotion/styled';
 import { ChevronLeft } from '@mui/icons-material';
 import {
   Box,
@@ -41,6 +40,7 @@ import {
   useMediaQuery,
   useTheme
 } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import { TransitionProps } from '@mui/material/transitions';
 import { fromHex, Script, shaRmd160 } from 'ecash-lib';
 import _ from 'lodash';
@@ -56,178 +56,167 @@ interface PlaceAnOrderModalProps {
   post: any;
 }
 
-const StyledDialog = styled(Dialog)`
-  .MuiPaper-root {
-    background-image: url('/bg-dialog.svg');
-    background-repeat: no-repeat;
-    background-size: cover;
-    width: 500px;
-    height: 100vh;
-    max-height: 100%;
-    margin: 0;
-    @media (max-width: 576px) {
-      width: 100%;
+const StyledDialog = styled(Dialog)(({ theme }) => ({
+  '.MuiPaper-root': {
+    background: theme.palette.background.default,
+    backgroundRepeat: 'no-repeat',
+    backgroundSize: 'cover',
+    width: 500,
+    height: '100vh',
+    maxHeight: '100%',
+    margin: 0,
+    [theme.breakpoints.down('sm')]: {
+      width: '100%' // Media query for small screens
     }
-  }
+  },
 
-  .MuiIconButton-root {
-    width: fit-content;
-    svg {
-      font-size: 32px;
+  '.MuiIconButton-root': {
+    width: 'fit-content',
+    svg: {
+      fontSize: 32
     }
-  }
+  },
 
-  .MuiDialogTitle-root {
-    padding: 0 16px;
-    padding-top: 16px;
-    font-size: 26px;
-    text-align: center;
-  }
+  '.MuiDialogTitle-root': {
+    padding: '16px',
+    fontSize: 26,
+    textAlign: 'center'
+  },
 
-  .MuiDialogContent-root {
-    padding: 0;
-  }
+  '.MuiDialogContent-root': {
+    padding: 0
+  },
 
-  .MuiDialogActions-root {
-    justify-content: space-evenly;
-    padding: 16px;
-    padding-bottom: 32px;
-
-    button {
-      text-transform: math-auto;
-      width: 100%;
-
-      &.confirm-btn {
-        color: white;
+  '.MuiDialogActions-root': {
+    justifyContent: 'space-evenly',
+    padding: '16px',
+    paddingBottom: '32px',
+    button: {
+      textTransform: 'math-auto',
+      width: '100%',
+      '&.confirm-btn': {
+        color: theme.palette.common.white // Use theme color
       }
     }
-  }
+  },
 
-  .back-btn {
-    padding: 0;
-    position: absolute;
-    left: 8px;
-    top: 20px;
-    // border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 12px;
+  '.back-btn': {
+    padding: 0,
+    position: 'absolute',
+    left: 8,
+    top: 20,
+    borderRadius: 12,
+    svg: {
+      fontSize: 32
+    }
+  },
 
-    svg {
-      font-size: 32px;
+  '.offer-info': {
+    color: 'rgba(255, 255, 255, 0.6)',
+    padding: 16,
+    '&:before': {
+      position: 'absolute',
+      content: "''",
+      width: 4,
+      height: 33,
+      background: '#2bb6f6',
+      borderTopRightRadius: 16,
+      borderBottomRightRadius: 16,
+      filter: 'drop-shadow(0 0 3px #2bb6f6)'
+    },
+    span: {
+      fontSize: '12px !important',
+      marginLeft: 16
     }
   }
+}));
 
-  .offer-info {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.6);
-    padding: 16px;
+const PlaceAnOrderWrap = styled('div')(({ theme }) => ({
+  padding: 16,
 
-    &:before {
-      position: absolute;
-      content: '';
-      width: 4px;
-      height: 33px;
-      background: #2bb6f6;
-      border-top-right-radius: 16px;
-      border-bottom-right-radius: 16px;
-      filter: drop-shadow(0 0 3px #2bb6f6);
-    }
+  '.form-input': {
+    width: '100%'
+  },
 
-    span {
-      margin-left: 16px;
-    }
-  }
-`;
-
-const PlaceAnOrderWrap = styled.div`
-  padding: 16px;
-
-  .form-input {
-    width: 100%;
-  }
-
-  .payment-method-wrap {
-    display: flex;
-    flex-direction: row;
-    gap: 16px;
-    justify-content: space-between;
-    margin: 16px 0;
-
-    .MuiFormControlLabel-root {
-      .MuiTypography-root {
-        font-size: 14px;
+  '.payment-method-wrap': {
+    display: 'flex',
+    flexDirection: 'row',
+    gap: 16,
+    justifyContent: 'space-between',
+    margin: '16px 0',
+    '.MuiFormControlLabel-root': {
+      '.MuiTypography-root': {
+        fontSize: 14
       }
     }
-  }
+  },
 
-  .disclaim-wrap {
-    .lable {
-      text-align: center;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-      padding-bottom: 12px;
-      margin-bottom: 16px;
-      color: rgba(255, 255, 255, 0.5);
+  '.disclaim-wrap': {
+    '.lable': {
+      textAlign: 'center',
+      borderBottom: `1px solid rgba(255, 255, 255, 0.2)`,
+      paddingBottom: 12,
+      marginBottom: 16,
+      color: 'rgba(255, 255, 255, 0.5)'
+    },
+
+    '.title': {
+      fontSize: 13
+    },
+
+    '.MuiFormControlLabel-label': {
+      fontSize: 14
     }
+  },
 
-    .title {
-      font-size: 13px;
-    }
-
-    .MuiFormControlLabel-label {
-      font-size: 14px;
-    }
-  }
-
-  .deposit-wrap {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    margin-top: 16px;
-
-    .deposit-info {
-      align-self: center;
-
-      p {
-        &::first-of-type {
-          margin-bottom: 6px;
-        }
-
-        &.deposit-status {
-          color: #66bb6a;
+  '.deposit-wrap': {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, 1fr)',
+    marginTop: 16,
+    '.deposit-info': {
+      alignSelf: 'center',
+      p: {
+        '&::first-of-type': {
+          marginBottom: 6
+        },
+        '&.deposit-status': {
+          color: '#66bb6a'
         }
       }
-    }
+    },
 
-    .address-code {
-      .qr-code {
-        padding: 0;
-        svg {
-          width: 100%;
-          height: 100%;
+    '.address-code': {
+      '.qr-code': {
+        padding: 0,
+        svg: {
+          width: '100%',
+          height: '100%'
         }
       }
-    }
+    },
 
-    .address-string {
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 2px 12px;
-      text-align: center;
-      grid-column-start: 1;
-      grid-column-end: 4;
-
-      button {
-        svg {
-          font-size: 21px;
+    '.address-string': {
+      borderRadius: 12,
+      border: `1px solid rgba(255, 255, 255, 0.2)`,
+      padding: '2px 12px',
+      textAlign: 'center',
+      gridColumnStart: 1,
+      gridColumnEnd: 4,
+      button: {
+        svg: {
+          fontSize: 21
         }
       }
     }
-  }
-  .text-receive-amount {
-    margin-top: 10px;
-    .amount-receive {
-      font-weight: bold;
+  },
+
+  '.text-receive-amount': {
+    marginTop: 10,
+    '.amount-receive': {
+      fontWeight: 'bold'
     }
   }
-`;
+}));
 
 const StyledBox = styled(Box)`
   position: absolute;
@@ -438,13 +427,13 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     const totalBalanceFormat = totalValidAmount.toLocaleString('de-DE');
 
     return (
-      <div style={{ color: 'white' }}>
-        <p>
+      <div>
+        <Typography component="p" variant="body1">
           Your wallet: {totalBalanceFormat} {COIN.XEC}
-        </p>
-        <p>
+        </Typography>
+        <Typography component="p" variant="body1">
           Security fee (1%): {fee1Percent.toLocaleString('de-DE')} {COIN.XEC}
-        </p>
+        </Typography>
       </div>
     );
   };
@@ -553,9 +542,9 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
         </IconButton>
         <DialogTitle>Place an order</DialogTitle>
         <Typography className="offer-info" variant="body2">
-          <span>{`Offer Id: ${post.id}`}</span>
+          <Typography component="span" variant="body1">{`Offer Id: ${post.id}`}</Typography>
           <br />
-          <span>{`By: ${post.account.telegramUsername} • posted on: ${new Date(post.createdAt).toLocaleString()}`}</span>
+          <Typography component="span">{`By: ${post.account.telegramUsername} • posted on: ${new Date(post.createdAt).toLocaleString()}`}</Typography>
         </Typography>
         <DialogContent>
           <PlaceAnOrderWrap>

@@ -10,7 +10,6 @@ import {
   useSliceSelector as useLixiSliceSelector,
   useSocket
 } from '@bcpros/redux-store';
-import styled from '@emotion/styled';
 import { Wallet } from '@mui/icons-material';
 import CircleIcon from '@mui/icons-material/Circle';
 import GavelOutlinedIcon from '@mui/icons-material/GavelOutlined';
@@ -18,74 +17,52 @@ import InventoryOutlinedIcon from '@mui/icons-material/InventoryOutlined';
 import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import { IconButton, Slide, Typography } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import { useSession } from 'next-auth/react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import useAuthorization from '../Auth/use-authorization.hooks';
 
-const Tabs = styled.div`
-  position: fixed;
-  z-index: 999;
-  bottom: 0;
-  display: grid;
-  justify-items: center;
-  width: 100%;
-  max-width: 100%;
-  background: rgba(255, 255, 255, 0.07);
-  padding: 8px 0;
-  backdrop-filter: blur(8px);
-`;
+const Tabs = styled('div')(({}) => ({
+  position: 'fixed',
+  zIndex: 999,
+  bottom: 0,
+  display: 'grid',
+  justifyItems: 'center',
+  width: '100%',
+  maxWidth: '100%',
+  background: 'rgba(255, 255, 255, 0.07)',
+  padding: '8px 0',
+  backdropFilter: 'blur(8px)'
+}));
 
-const TabMenu = styled.div`
-  width: 100%;
-  text-align: center;
-
-  button {
-    padding-bottom: 4px;
-    color: #696f74;
-    svg {
-      font-size: 28px;
+const TabMenu = styled('div')(({ theme }) => ({
+  width: '100%',
+  textAlign: 'center',
+  button: {
+    paddingBottom: '4px',
+    color: '#696f74',
+    svg: {
+      fontSize: '28px'
+    },
+    '&:hover': {
+      color: theme.palette.primary.main
     }
+  },
+
+  p: {
+    color: '#696f74',
+    fontSize: '12px'
+  },
+
+  '&.active button': {
+    color: theme.custom.colorItem
+  },
+  '&.active p': {
+    color: theme.custom.colorItem,
+    fontWeight: 600
   }
-
-  p {
-    color: #696f74;
-    font-size: 12px;
-  }
-
-  &.active {
-    button {
-      color: white;
-    }
-
-    p {
-      color: white;
-      font-weight: 600;
-    }
-  }
-`;
-
-const PopoverStyled = styled.div`
-  .content-action {
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-
-    .item-action {
-      display: flex;
-      gap: 5px;
-      padding: 3px 0;
-      button {
-        padding: 0;
-      }
-      button,
-      p {
-        color: #c7cdd3;
-      }
-    }
-  }
-`;
+}));
 
 const StyledSlide = styled(Slide)`
   padding-bottom: 16px;

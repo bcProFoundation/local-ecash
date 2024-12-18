@@ -11,9 +11,9 @@ import {
   TimelineQueryItem,
   useSliceDispatch as useLixiSliceDispatch
 } from '@bcpros/redux-store';
-import styled from '@emotion/styled';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import { Button, IconButton, Typography } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -22,41 +22,40 @@ import useAuthorization from '../Auth/use-authorization.hooks';
 import { BackupModalProps } from '../Common/BackupModal';
 import { BuyButtonStyled } from '../OfferItem/OfferItem';
 
-const OfferDetailWrap = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  cursor: pointer;
+const OfferDetailWrap = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '8px',
+  cursor: 'pointer',
+  background: theme.custom.bgItem,
+  borderRadius: '10px',
+  padding: '16px',
+  marginBottom: '16px',
 
-  background: linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05));
-  border-radius: 10px;
-  padding: 16px;
-  margin-bottom: 16px;
+  '.first-line-offer': {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    margin: 0,
+    paddingBottom: '0px',
+    height: '1.5rem'
+  },
 
-  .first-line-offer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin: 0;
-    padding-bottom: 0px;
-    height: 1.5rem;
-  }
+  '.prefix': {
+    fontSize: '14px',
+    color: '#79869b'
+  },
 
-  .prefix {
-    font-size: 14px;
-    color: #79869b;
-  }
-
-  .payment-group-btns {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    button {
-      border-radius: 10px;
-      text-transform: capitalize;
+  '.payment-group-btns': {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '10px',
+    button: {
+      borderRadius: '10px',
+      textTransform: 'capitalize'
     }
   }
-`;
+}));
 
 type OfferItemProps = {
   timelineItem?: TimelineQueryItem;
