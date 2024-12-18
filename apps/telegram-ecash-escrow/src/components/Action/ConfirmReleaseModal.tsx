@@ -1,7 +1,6 @@
 'use client';
 
 import { COIN } from '@bcpros/lixi-models';
-import { isValidCoinAddress } from '@bcpros/redux-store';
 import {
   getSelectedWalletPath,
   parseCashAddressToPrefix,
