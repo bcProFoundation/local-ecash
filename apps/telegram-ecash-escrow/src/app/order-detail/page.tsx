@@ -26,7 +26,6 @@ import {
   userSubcribeEscrowOrderChannel,
   WalletContextNode
 } from '@bcpros/redux-store';
-import styled from '@emotion/styled';
 import CheckIcon from '@mui/icons-material/Check';
 import ClearIcon from '@mui/icons-material/Clear';
 import HorizontalRuleIcon from '@mui/icons-material/HorizontalRule';
@@ -43,6 +42,7 @@ import {
   TextField,
   Typography
 } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import { fromHex, Script, shaRmd160, Tx } from 'ecash-lib';
 import cashaddr from 'ecashaddrjs';
 import _ from 'lodash';
@@ -51,39 +51,39 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
-const OrderDetailPage = styled.div`
-  min-height: 100vh;
-  background-image: url('/bg-dialog.svg');
-  background-repeat: no-repeat;
-  background-size: cover;
-`;
+const OrderDetailPage = styled('div')(({ theme }) => ({
+  minHeight: '100vh',
+  background: theme.palette.background.default,
+  backgroundRepeat: 'no-repeat',
+  backgroundSize: 'cover'
+}));
 
-const OrderDetailContent = styled.div`
-  padding: 0 16px;
+const OrderDetailContent = styled('div')(({ theme }) => ({
+  padding: '0 16px',
 
-  .group-button-wrap {
-    width: 100%;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    padding-bottom: 16px;
+  '.group-button-wrap': {
+    width: '100%',
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, 1fr)',
+    gap: '16px',
+    borderBottom: `1px solid rgba(255, 255, 255, 0.2)`,
+    paddingBottom: '16px',
 
-    button {
-      text-transform: none;
-      color: white;
+    button: {
+      textTransform: 'none',
+      color: theme.palette.common.white
     }
   }
-`;
+}));
 
-const ActionStatusRelease = styled.div`
-  .MuiFormGroup-root {
-    margin-bottom: 5px;
+const ActionStatusRelease = styled('div')(() => ({
+  '.MuiFormGroup-root': {
+    marginBottom: '5px'
+  },
+  '.MuiFormControl-root': {
+    marginBottom: '5px'
   }
-  .MuiFormControl-root {
-    margin-bottom: 5px;
-  }
-`;
+}));
 
 const OrderDetail = () => {
   const dispatch = useLixiSliceDispatch();

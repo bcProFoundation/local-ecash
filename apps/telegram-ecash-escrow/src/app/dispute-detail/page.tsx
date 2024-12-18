@@ -26,7 +26,6 @@ import {
   userSubcribeEscrowOrderChannel,
   WalletContextNode
 } from '@bcpros/redux-store';
-import styled from '@emotion/styled';
 import { ChevronLeft } from '@mui/icons-material';
 import {
   Backdrop,
@@ -45,6 +44,7 @@ import {
   useMediaQuery,
   useTheme
 } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import { TransitionProps } from '@mui/material/transitions';
 import { fromHex, Script, shaRmd160 } from 'ecash-lib';
 import _ from 'lodash';
@@ -53,128 +53,129 @@ import { useSearchParams } from 'next/navigation';
 import React, { useContext, useEffect, useState } from 'react';
 import SwipeableViews from 'react-swipeable-views';
 
-const DisputeDetailInfoWrap = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+const DisputeDetailInfoWrap = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '8px',
 
-  .prefix {
-    font-size: 14px;
-    color: #79869b;
+  '.prefix': {
+    fontSize: '14px',
+    color: '#79869b'
+  },
+
+  '.amount-escrowed': {
+    color: '#66bb6a'
+  },
+
+  '.amount-seller': {
+    color: '#29b6f6'
+  },
+
+  '.amount-buyer': {
+    color: '#f44336'
   }
+}));
 
-  .amount-escrowed {
-    color: #66bb6a;
+const ResolveDisputeWrap = styled('div')(({ theme }) => ({
+  padding: '16px',
+
+  '.group-btn-chat': {
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: '8px',
+    borderTop: '1px dashed gray',
+    paddingTop: '8px',
+    marginTop: '16px',
+
+    '.chat-btn': {
+      width: 'fit-content',
+      justifyContent: 'flex-start',
+      textTransform: 'none',
+      gap: '8px',
+      padding: '10px',
+      color: '#fff',
+      fontWeight: 600
+    }
+  },
+
+  '.resolve-btn': {
+    marginTop: '15px',
+    color: '#fff',
+    fontWeight: 600
   }
+}));
 
-  .amount-seller {
-    color: #29b6f6;
-  }
+const StyledReleaseDialog = styled(Dialog)(({ theme }) => ({
+  '.MuiPaper-root': {
+    background: theme.palette.background.default,
+    backgroundRepeat: 'no-repeat',
+    backgroundSize: 'cover',
+    width: '500px',
+    height: '100vh',
+    maxHeight: '100%',
+    margin: 0,
 
-  .amount-buyer {
-    color: #f44336;
-  }
-`;
+    [theme.breakpoints.down('sm')]: {
+      width: '100%'
+    }
+  },
 
-const ResolveDisputeWrap = styled.div`
-  padding: 16px;
+  '.MuiIconButton-root': {
+    width: 'fit-content',
 
-  .group-btn-chat {
-    display: flex;
-    justify-content: space-between;
-    gap: 8px;
-    border-top: 1px dashed gray;
-    padding-top: 8px;
-    margin-top: 16px;
+    svg: {
+      fontSize: '32px'
+    }
+  },
 
-    .chat-btn {
-      width: fit-content;
-      justify-content: flex-start;
-      text-transform: none;
-      gap: 8px;
-      padding: 10px;
-      color: #fff;
-      font-weight: 600;
+  '.MuiDialogTitle-root': {
+    padding: '0 16px',
+    paddingTop: '16px',
+    fontSize: '26px',
+    textAlign: 'center'
+  },
+
+  '.MuiDialogContent-root': {
+    padding: 0
+  },
+
+  '.back-btn': {
+    padding: 0,
+    position: 'absolute',
+    left: '8px',
+    top: '20px',
+    borderRadius: '12px',
+
+    svg: {
+      fontSize: '32px'
     }
   }
+}));
 
-  .resolve-btn {
-    margin-top: 15px;
-    color: #fff;
-    font-weight: 600;
-  }
-`;
+const ReleaseDisputeWrap = styled('div')(({ theme }) => ({
+  padding: '16px',
 
-const StyledReleaseDialog = styled(Dialog)`
-  .MuiPaper-root {
-    background-image: url('/bg-dialog.svg');
-    background-repeat: no-repeat;
-    background-size: cover;
-    width: 500px;
-    height: 100vh;
-    max-height: 100%;
-    margin: 0;
-    @media (max-width: 576px) {
-      width: 100%;
+  '.seller-release, .buyer-release': {
+    textAlign: 'center',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px',
+    marginBottom: '32px',
+
+    button: {
+      color: 'white',
+      textTransform: 'none'
+    },
+
+    '.disclaim-buyer': {
+      color: '#f57c00'
+    },
+
+    '.disclaim-seller': {
+      color: '#29b6f6'
     }
   }
-
-  .MuiIconButton-root {
-    width: fit-content;
-    svg {
-      font-size: 32px;
-    }
-  }
-
-  .MuiDialogTitle-root {
-    padding: 0 16px;
-    padding-top: 16px;
-    font-size: 26px;
-    text-align: center;
-  }
-
-  .MuiDialogContent-root {
-    padding: 0;
-  }
-
-  .back-btn {
-    padding: 0;
-    position: absolute;
-    left: 8px;
-    top: 20px;
-    border-radius: 12px;
-
-    svg {
-      font-size: 32px;
-    }
-  }
-`;
-
-const ReleaseDisputeWrap = styled.div`
-  padding: 16px;
-
-  .seller-release,
-  .buyer-release {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    margin-bottom: 32px;
-
-    button {
-      color: white;
-      text-transform: none;
-    }
-
-    .disclaim-buyer {
-      color: #f57c00;
-    }
-
-    .disclaim-seller {
-      color: #29b6f6;
-    }
-  }
-`;
+}));
 
 const Transition = React.forwardRef(function Transition(
   props: TransitionProps & {

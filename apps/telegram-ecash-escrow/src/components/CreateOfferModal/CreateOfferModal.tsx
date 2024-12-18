@@ -16,7 +16,6 @@ import {
   useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
-import styled from '@emotion/styled';
 import { Close } from '@mui/icons-material';
 import {
   Button,
@@ -41,6 +40,7 @@ import {
   useMediaQuery,
   useTheme
 } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import { TransitionProps } from '@mui/material/transitions';
 import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -49,144 +49,133 @@ import FilterListModal from '../FilterList/FilterListModal';
 import { FormControlWithNativeSelect } from '../FilterOfferModal/FilterOfferModal';
 import CustomToast from '../Toast/CustomToast';
 
-const StyledDialog = styled(Dialog)`
-  .MuiPaper-root {
-    background-image: url('/bg-dialog.svg');
-    background-repeat: no-repeat;
-    background-size: cover;
-    width: 500px;
-    height: 100vh;
-    max-height: 100%;
-    margin: 0;
-    @media (max-width: 576px) {
-      width: 100%;
+const StyledDialog = styled(Dialog)(({ theme }) => ({
+  '.MuiPaper-root': {
+    background: theme.palette.background.default,
+    backgroundRepeat: 'no-repeat',
+    backgroundSize: 'cover',
+    width: '500px',
+    height: '100vh',
+    maxHeight: '100%',
+    margin: 0,
+    [theme.breakpoints.down('sm')]: {
+      width: '100%'
     }
-  }
+  },
 
-  .heading {
-    font-size: 18px;
-    font-weight: bold;
-  }
+  '.heading': {
+    fontSize: '18px',
+    fontWeight: 'bold'
+  },
 
-  .bold {
-    font-weight: bold;
-  }
+  '.bold': {
+    fontWeight: 'bold'
+  },
 
-  .prefix {
-    font-size: 15px;
-    color: #79869b;
-  }
+  '.prefix, .label': {
+    fontSize: '15px',
+    color: theme.palette.text.secondary
+  },
 
-  .label {
-    color: #79869b;
-    margin-top: 8px;
-    margin-bottom: 4px;
-  }
+  '.label': {
+    marginTop: '8px',
+    marginBottom: '4px'
+  },
 
-  .container-step2 {
-    .margin-component {
-      .MuiInputBase-root {
-        border-radius: 0px !important;
-        .MuiInputBase-input {
-          text-align: center;
-        }
+  '.container-step2 .margin-component .MuiInputBase-root': {
+    borderRadius: 0,
+    '& .MuiInputBase-input': {
+      textAlign: 'center'
+    }
+  },
+
+  '.container-step3 .payment-wrap': {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, 1fr)',
+    gap: '16px',
+
+    '.payment-method, .payment-currency': {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '0.5rem',
+
+      button: {
+        textTransform: 'none',
+        color: theme.palette.common.white
+      }
+    }
+  },
+
+  '.back-btn': {
+    padding: 0,
+    position: 'absolute',
+    left: '8px',
+    top: '20px',
+    borderRadius: '12px',
+
+    svg: {
+      fontSize: '32px'
+    }
+  },
+
+  '.MuiDialogActions-root': {
+    justifyContent: 'space-evenly',
+    padding: '16px 16px 32px',
+
+    button: {
+      textTransform: 'none',
+      width: '100%',
+      '&.confirm-btn': {
+        color: theme.palette.common.white
       }
     }
   }
+}));
 
-  .container-step3 {
-    .payment-wrap {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
+const PercentInputWrap = styled('div')(({ theme }) => ({
+  margin: '16px 0',
+  display: 'grid',
+  gridTemplateColumns: 'max-content 1fr max-content',
+  borderRadius: '9px',
+  border: `1px solid ${theme.palette.grey[500]}`,
+  minHeight: '48px',
 
-      .payment-method,
-      .payment-currency {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
+  '.btn-minus, .btn-plus': {
+    width: '15%',
+    borderRadius: 0,
+    border: 0
+  },
 
-        button {
-          text-transform: none;
-          color: white;
-        }
-      }
-    }
+  '.btn-minus': {
+    borderTopLeftRadius: '8px',
+    borderBottomLeftRadius: '8px'
+  },
+
+  '.btn-plus': {
+    borderTopRightRadius: '8px',
+    borderBottomRightRadius: '8px'
+  },
+
+  input: {
+    height: '36px'
+  },
+
+  fieldset: {
+    border: '0 !important'
   }
+}));
 
-  .back-btn {
-    padding: 0;
-    position: absolute;
-    left: 8px;
-    top: 20px;
-    border-radius: 12px;
+const OrderLimitWrap = styled('div')(() => ({
+  paddingLeft: '16px',
+  paddingTop: '16px',
 
-    svg {
-      font-size: 32px;
-    }
+  '.group-input': {
+    display: 'grid',
+    gridTemplateColumns: '1fr max-content 1fr',
+    gap: '16px',
+    alignItems: 'baseline'
   }
-
-  .MuiDialogActions-root {
-    justify-content: space-evenly;
-    padding: 16px;
-    padding-bottom: 32px;
-
-    button {
-      text-transform: math-auto;
-      width: 100%;
-
-      &.confirm-btn {
-        color: white;
-      }
-    }
-  }
-`;
-
-const PercentInputWrap = styled.div`
-  margin: 16px 0;
-  display: grid;
-  grid-template-columns: max-content 1fr max-content;
-  border-radius: 9px;
-  border: 1px solid gray;
-  min-height: 48px;
-
-  .btn-minus,
-  .btn-plus {
-    width: 15%;
-    border-radius: 0;
-    boder: 0;
-  }
-
-  .btn-minus {
-    border-top-left-radius: 8px;
-    border-bottom-left-radius: 8px;
-  }
-
-  .btn-plus {
-    border-bottom-right-radius: 8px;
-    border-top-right-radius: 8px;
-  }
-
-  input {
-    height: 36px;
-  }
-
-  fieldset {
-    border: 0 !important;
-  }
-`;
-
-const OrderLimitWrap = styled.div`
-  padding-left: 16px;
-  padding-top: 16px;
-
-  .group-input {
-    display: grid;
-    grid-template-columns: 1fr max-content 1fr;
-    gap: 16px;
-    align-items: baseline;
-  }
-`;
+}));
 
 interface CreateOfferModalProps {
   offer?: OfferQueryItem;

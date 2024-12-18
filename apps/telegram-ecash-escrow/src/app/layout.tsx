@@ -10,7 +10,7 @@
 
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v13-appRouter';
 import { ThemeProvider } from '@mui/material/styles';
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import ActionSheet from '../components/ActionSheet/ActionSheet';
 import ModalManager from '../components/ModalManager';
 import ToastNotificationManage from '../components/ToastNotificationManage';
@@ -19,9 +19,19 @@ import { UtxoProvider } from '../store/context/utxoProvider';
 import ReduxProvider from '../store/provider';
 import { TelegramAuthProvider } from '../store/telegram-auth-provider';
 import { TelegramMiniAppProvider } from '../store/telegram-mini-app-provider';
-import theme from '../theme/theme';
+import { darkTheme, lightTheme } from '../theme/theme';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // const ThemeContext = createContext();
+
+  const [mode, setMode] = useState('dark'); // Default mode is 'light'
+
+  const theme = useMemo(() => (mode === 'light' ? lightTheme : darkTheme), [mode]);
+
+  const toggleTheme = () => {
+    setMode(prevMode => (prevMode === 'light' ? 'dark' : 'light'));
+  };
+
   return (
     <html lang="en">
       <head>
