@@ -601,6 +601,7 @@ const OrderDetail = () => {
     if (!isSeller && currentData?.escrowOrder?.escrowOrderStatus === EscrowOrderStatus.Escrow && !alwaysShow) {
       return;
     }
+
     return (
       !isArbiOrMod && (
         <React.Fragment>

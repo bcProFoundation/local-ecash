@@ -388,10 +388,11 @@ export default function DisputeDetail() {
   }, [socket, isEscrowOrderSuccess]);
 
   if (
+    isEscrowOrderSuccess &&
     escrowOrder?.arbitratorAccount.hash160 !== selectedWalletPath?.hash160 &&
     escrowOrder?.moderatorAccount.hash160 !== selectedWalletPath?.hash160
   ) {
-    return <div>Not allowed to view this dispute</div>;
+    return <div style={{ color: 'white' }}>Not allowed to view this dispute</div>;
   }
 
   if (_.isEmpty(id) || _.isNil(id) || isError) {
@@ -402,19 +403,19 @@ export default function DisputeDetail() {
 
   return (
     <MobileLayout>
+      <MiniAppBackdrop />
       {(isLoadingDispute || isUninitializedDispute) && (
         <Backdrop sx={theme => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })} open={true}>
           <CircularProgress color="inherit" />
         </Backdrop>
       )}
-      <MiniAppBackdrop />
       <TickerHeader title="Dispute detail" />
       {disputeQueryData?.dispute && (
         <ResolveDisputeWrap>
           <DisputeDetailInfoWrap>
             <Typography variant="body1">
               <span className="prefix">Dispute by: </span>
-              {disputeQueryData?.dispute.createdBy === escrowOrder.sellerAccount.publicKey ? 'Seller' : 'Buyer'}
+              {disputeQueryData?.dispute.createdBy === escrowOrder?.sellerAccount.publicKey ? 'Seller' : 'Buyer'}
             </Typography>
             {disputeQueryData?.dispute?.reason && (
               <Typography variant="body1">
@@ -432,11 +433,11 @@ export default function DisputeDetail() {
             </Typography>
             <Typography variant="body1">
               <span className="prefix">Seller: </span>
-              {escrowOrder.sellerAccount.telegramUsername}
+              {escrowOrder?.sellerAccount.telegramUsername}
             </Typography>
             <Typography variant="body1">
               <span className="prefix">Buyer: </span>
-              {escrowOrder.buyerAccount.telegramUsername}
+              {escrowOrder?.buyerAccount.telegramUsername}
             </Typography>
             <Typography>
               <span className="prefix">Escrow Address: </span>
@@ -447,24 +448,24 @@ export default function DisputeDetail() {
                   maxWidth: '100%',
                   display: 'inline-block'
                 }}
-                href={`${coinInfo[COIN.XEC].blockExplorerUrl}/address/${escrowOrder.escrowAddress}`}
+                href={`${coinInfo[COIN.XEC].blockExplorerUrl}/address/${escrowOrder?.escrowAddress}`}
                 target="_blank"
               >
-                <span>{escrowOrder.escrowAddress}</span>
+                <span>{escrowOrder?.escrowAddress}</span>
               </a>
             </Typography>
             <Typography variant="body1" className="amount-escrowed">
               <span className="prefix">Escrowed amount: </span>
-              {escrowOrder.amount} {COIN.XEC}
+              {escrowOrder?.amount} {COIN.XEC}
             </Typography>
             <Typography variant="body1" className="amount-seller">
               <span className="prefix">Dispute fee by seller: </span>
-              {calDisputeFee(escrowOrder.amount)} {COIN.XEC}
+              {calDisputeFee(escrowOrder?.amount)} {COIN.XEC}
             </Typography>
             {escrowOrder?.buyerDepositTx && (
               <Typography variant="body1" className="amount-buyer">
                 <span className="prefix">Dispute fee by buyer: </span>
-                {calDisputeFee(escrowOrder.amount)} {COIN.XEC}
+                {calDisputeFee(escrowOrder?.amount)} {COIN.XEC}
               </Typography>
             )}
           </DisputeDetailInfoWrap>
@@ -474,7 +475,7 @@ export default function DisputeDetail() {
               color="info"
               variant="contained"
               onClick={() =>
-                handleTelegramClick(escrowOrder.sellerAccount.telegramUsername, escrowOrder.sellerAccount.publicKey)
+                handleTelegramClick(escrowOrder?.sellerAccount.telegramUsername, escrowOrder?.sellerAccount.publicKey)
               }
               disabled={isLoading || isFetching}
             >
@@ -486,7 +487,7 @@ export default function DisputeDetail() {
               color="info"
               variant="contained"
               onClick={() =>
-                handleTelegramClick(escrowOrder.buyerAccount.telegramUsername, escrowOrder.buyerAccount.publicKey)
+                handleTelegramClick(escrowOrder?.buyerAccount.telegramUsername, escrowOrder?.buyerAccount.publicKey)
               }
               disabled={isLoading || isFetching}
             >
