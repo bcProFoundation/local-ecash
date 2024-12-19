@@ -1,5 +1,4 @@
 'use client';
-import MiniAppBackdrop from '@/src/components/Common/MiniAppBackdrop';
 import MobileLayout from '@/src/components/layout/MobileLayout';
 import { TabPanel } from '@/src/components/Tab/Tab';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
@@ -329,6 +328,8 @@ export default function DisputeDetail() {
         await updateOrderTrigger({ input: { orderId: id, status, txid } })
           .unwrap()
           .then(() => {
+            dispatch(disputeApi.api.util.resetApiState());
+
             switch (status) {
               case EscrowOrderStatus.Complete:
                 setReleaseByArb(true);
@@ -384,7 +385,7 @@ export default function DisputeDetail() {
     escrowOrder?.escrowOrderStatus !== EscrowOrderStatus.Complete &&
       isEscrowOrderSuccess &&
       socket &&
-      dispatch(userSubcribeEscrowOrderChannel(escrowOrder.id));
+      dispatch(userSubcribeEscrowOrderChannel(escrowOrder?.id));
   }, [socket, isEscrowOrderSuccess]);
 
   if (
@@ -396,14 +397,11 @@ export default function DisputeDetail() {
   }
 
   if (_.isEmpty(id) || _.isNil(id) || isError) {
-    return <div>Invalid dispute id</div>;
+    return <div style={{ color: 'white' }}>Invalid dispute id</div>;
   }
-
-  if (isLoadingDispute) return <div>Loading...</div>;
 
   return (
     <MobileLayout>
-      <MiniAppBackdrop />
       {(isLoadingDispute || isUninitializedDispute) && (
         <Backdrop sx={theme => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })} open={true}>
           <CircularProgress color="inherit" />
@@ -420,7 +418,7 @@ export default function DisputeDetail() {
             {disputeQueryData?.dispute?.reason && (
               <Typography variant="body1">
                 <span className="prefix">Reason: </span>
-                {disputeQueryData.dispute.reason}
+                {disputeQueryData?.dispute.reason}
               </Typography>
             )}
             <Typography variant="body1">

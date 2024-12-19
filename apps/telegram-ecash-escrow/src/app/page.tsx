@@ -27,7 +27,6 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
-import MiniAppBackdrop from '../components/Common/MiniAppBackdrop';
 import MobileLayout from '../components/layout/MobileLayout';
 
 const WrapHome = styled.div``;
@@ -197,7 +196,6 @@ export default function Home() {
 
   return (
     <MobileLayout>
-      <MiniAppBackdrop />
       <WrapHome>
         <Slide direction="down" in={newPostAvailable && visible}>
           <StyledBadge className="badge-new-offer" color="info" onClick={handleRefresh}>
