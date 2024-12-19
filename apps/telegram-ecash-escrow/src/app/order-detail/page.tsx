@@ -519,6 +519,7 @@ const OrderDetail = () => {
     ) {
       return;
     }
+
     return (
       !isArbiOrMod && (
         <React.Fragment>
@@ -606,7 +607,6 @@ const OrderDetail = () => {
           <CircularProgress color="inherit" />
         </Backdrop>
       )}
-      <MiniAppBackdrop />
       <OrderDetailPage>
         <TickerHeader title="Order Detail" />
         {currentData?.escrowOrder && (
