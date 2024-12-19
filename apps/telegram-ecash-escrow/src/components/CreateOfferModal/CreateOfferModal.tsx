@@ -371,10 +371,15 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
           <FormHelperText error={true}>{errors.percentage.message as string}</FormHelperText>
         )}
         <Typography className="example-value">
-          For each <span className="bold">${Intl.NumberFormat('de-DE').format(fixAmount)}</span> worth of {coinCurrency}{' '}
-          that you sell, you will get{' '}
-          <span className="bold">${Intl.NumberFormat('de-DE').format(fixAmount * (percentageValue / 100))}</span>{' '}
-          margin.
+          <span className="bold">Example: </span> If you sell <span className="bold">XEC</span> worth{' '}
+          <span className="bold">
+            {Intl.NumberFormat('de-DE').format(fixAmount)} {coinCurrency}
+          </span>
+          , you will receive{' '}
+          <span className="bold">
+            {Intl.NumberFormat('de-DE').format(fixAmount * (1 + percentageValue / 100))} {coinCurrency}
+          </span>{' '}
+          in return
         </Typography>
       </div>
     </Grid>
