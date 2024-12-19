@@ -1,7 +1,6 @@
 'use client';
 
 import ConfirmCancelModal from '@/src/components/Cancel/ConfirmCancelModal';
-import MiniAppBackdrop from '@/src/components/Common/MiniAppBackdrop';
 import OrderDetailInfo from '@/src/components/DetailInfo/OrderDetailInfo';
 import MobileLayout from '@/src/components/layout/MobileLayout';
 import QRCode from '@/src/components/QRcode/QRcode';
@@ -601,6 +600,7 @@ const OrderDetail = () => {
     if (!isSeller && currentData?.escrowOrder?.escrowOrderStatus === EscrowOrderStatus.Escrow && !alwaysShow) {
       return;
     }
+
     return (
       !isArbiOrMod && (
         <React.Fragment>
@@ -688,7 +688,6 @@ const OrderDetail = () => {
           <CircularProgress color="inherit" />
         </Backdrop>
       )}
-      <MiniAppBackdrop />
       <OrderDetailPage>
         <TickerHeader title="Order Detail" />
         {currentData?.escrowOrder && (
