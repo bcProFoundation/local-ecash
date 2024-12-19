@@ -11,6 +11,7 @@
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v13-appRouter';
 import React from 'react';
 import ActionSheet from '../components/ActionSheet/ActionSheet';
+import MiniAppBackdrop from '../components/Common/MiniAppBackdrop';
 import ModalManager from '../components/ModalManager';
 import ToastNotificationManage from '../components/ToastNotificationManage';
 import { AppThemeProvider } from '../store/context/appThemeProvider';
