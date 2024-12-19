@@ -52,6 +52,19 @@ const OrderDetailWrap = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
+
+    .wrap-order-id {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .order-id {
+      display: inline-block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   }
 `;
 
@@ -140,10 +153,10 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
 
   return (
     <OrderDetailWrap onClick={() => router.push(`/order-detail?id=${order.id}`)}>
-      <Typography className="order-first-line" variant="body1">
-        <div>
+      <Typography className="order-first-line" variant="body1" component="div">
+        <div className="wrap-order-id">
           <span className="prefix">No: </span>
-          {order.id}
+          <span className="order-id">{order.id}</span>
         </div>
         <div className="order-type">
           {order.sellerAccount.id === selectedAccount?.id && (

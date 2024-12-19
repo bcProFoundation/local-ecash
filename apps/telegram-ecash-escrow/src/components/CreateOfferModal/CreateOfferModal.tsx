@@ -279,11 +279,11 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       marginPercentage: Number(data?.percentage ?? 0),
       orderLimitMin: minNum,
       orderLimitMax: maxNum,
-      locationId: data?.city?.id ?? data?.country?.id?.toString() ?? null
+      locationId: data?.city?.id ?? null
     };
 
     //Just have location when paymentmethods is 1 or 2
-    if (option !== 1 && option !== 2) {
+    if (option !== 1) {
       input.locationId = null;
     }
 
@@ -447,7 +447,6 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                 control={control}
                 rules={{
                   validate: value => {
-                    // if (!value && !currencyState) return 'Currency is required';
                     if (!value) return 'Currency is required';
 
                     return true;
@@ -470,7 +469,12 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                       }}
                     >
                       <option aria-label="None" value="" />
-                      {LIST_CURRENCIES_USED.map(item => {
+                      {LIST_CURRENCIES_USED.sort((a, b) => {
+                        if (a.name < b.name) return -1;
+                        if (a.name > b.name) return 1;
+
+                        return 0;
+                      }).map(item => {
                         return (
                           <option key={item.code} value={`${item.code}:${item.fixAmount}`}>
                             {item.name} ({item.code})
@@ -541,7 +545,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
             </Grid>
           </>
         )}
-        {(option === 1 || option === 2) && (
+        {option === 1 && (
           <>
             <Grid item xs={12}>
               <Typography variant="body2" className="label">
@@ -597,58 +601,57 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                 )}
               />
             </Grid>
-            {option === 1 && (
-              <Grid item xs={6}>
-                <Controller
-                  name="state"
-                  control={control}
-                  rules={{
-                    validate: value => {
-                      if (!value) return 'State is required';
 
-                      return true;
-                    }
-                  }}
-                  render={({ field: { onChange, value, onBlur, ref } }) => (
-                    <FormControl fullWidth>
-                      <TextField
-                        label="State"
-                        variant="outlined"
-                        fullWidth
-                        onChange={onChange}
-                        onBlur={onBlur}
-                        value={value?.adminNameAscii ?? ''}
-                        inputRef={ref}
-                        onClick={() => setOpenStateList(true)}
-                        disabled={!getValues('country')}
-                        InputProps={{
-                          endAdornment: getValues('state') && (
-                            <InputAdornment position="end">
-                              <IconButton
-                                style={{ padding: 0, width: '13px' }}
-                                onClick={e => {
-                                  e.stopPropagation();
-                                  setValue('state', null);
-                                  setValue('city', null);
-                                }}
-                              >
-                                <Close />
-                              </IconButton>
-                            </InputAdornment>
-                          ),
-                          readOnly: true
-                        }}
-                      />
-                      {errors && errors?.state && (
-                        <FormHelperText error={true}>{errors.state.message as string}</FormHelperText>
-                      )}
-                    </FormControl>
-                  )}
-                />
-              </Grid>
-            )}
+            <Grid item xs={6}>
+              <Controller
+                name="state"
+                control={control}
+                rules={{
+                  validate: value => {
+                    if (!value) return 'State is required';
 
-            {option === 1 && getValues('country') && getValues('state') && (
+                    return true;
+                  }
+                }}
+                render={({ field: { onChange, value, onBlur, ref } }) => (
+                  <FormControl fullWidth>
+                    <TextField
+                      label="State"
+                      variant="outlined"
+                      fullWidth
+                      onChange={onChange}
+                      onBlur={onBlur}
+                      value={value?.adminNameAscii ?? ''}
+                      inputRef={ref}
+                      onClick={() => setOpenStateList(true)}
+                      disabled={!getValues('country')}
+                      InputProps={{
+                        endAdornment: getValues('state') && (
+                          <InputAdornment position="end">
+                            <IconButton
+                              style={{ padding: 0, width: '13px' }}
+                              onClick={e => {
+                                e.stopPropagation();
+                                setValue('state', null);
+                                setValue('city', null);
+                              }}
+                            >
+                              <Close />
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                        readOnly: true
+                      }}
+                    />
+                    {errors && errors?.state && (
+                      <FormHelperText error={true}>{errors.state.message as string}</FormHelperText>
+                    )}
+                  </FormControl>
+                )}
+              />
+            </Grid>
+
+            {getValues('country') && getValues('state') && (
               <Grid item xs={12}>
                 <Controller
                   name="city"
@@ -878,14 +881,6 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                 : [getValues('city')?.cityAscii, getValues('city')?.adminNameAscii, getValues('city')?.country]
                     .filter(Boolean)
                     .join(', ')}
-            </Typography>
-          </Grid>
-        )}
-        {option === 2 && (
-          <Grid item xs={12}>
-            <Typography variant="body1">
-              <span className="prefix">Location: </span>
-              {offer?.location ? offer.location.country : getValues('country')?.name}
             </Typography>
           </Grid>
         )}
