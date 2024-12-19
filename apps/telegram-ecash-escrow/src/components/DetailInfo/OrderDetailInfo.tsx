@@ -150,11 +150,11 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
   }, [rateData]);
 
   return (
-    <OrderDetailWrap onClick={() => router.push(`/order-detail?id=${order?.id}`)}>
-      <Typography className="order-first-line" variant="body1">
-        <div>
+    <OrderDetailWrap onClick={() => router.push(`/order-detail?id=${order.id}`)}>
+      <Typography className="order-first-line" variant="body1" component="div">
+        <div className="wrap-order-id">
           <span className="prefix">No: </span>
-          {order?.id}
+          <span className="order-id">{order.id}</span>
         </div>
         <div className="order-type">
           {order?.sellerAccount.id === selectedAccount?.id && (
