@@ -2,7 +2,6 @@
 
 import ConfirmCancelModal from '@/src/components/Action/ConfirmCancelModal';
 import ConfirmReleaseModal from '@/src/components/Action/ConfirmReleaseModal';
-import MiniAppBackdrop from '@/src/components/Common/MiniAppBackdrop';
 import OrderDetailInfo from '@/src/components/DetailInfo/OrderDetailInfo';
 import MobileLayout from '@/src/components/layout/MobileLayout';
 import QRCode from '@/src/components/QRcode/QRcode';

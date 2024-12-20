@@ -159,12 +159,12 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
         <div className="order-type">
           {order?.sellerAccount.id === selectedAccount?.id && (
             <Button className="btn-order-type" size="small" color="info" variant="outlined">
-              Sell Order
+              Sell
             </Button>
           )}
           {order?.buyerAccount.id === selectedAccount?.id && (
             <Button className="btn-order-type" size="small" color="info" variant="outlined">
-              Buy Order
+              Buy
             </Button>
           )}
         </div>
