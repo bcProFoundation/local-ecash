@@ -20,6 +20,7 @@ import {
 } from '@bcpros/redux-store';
 import { ChevronLeft } from '@mui/icons-material';
 import {
+  Box,
   Button,
   Checkbox,
   Dialog,
@@ -29,6 +30,7 @@ import {
   FormControlLabel,
   Grid,
   IconButton,
+  Modal,
   Radio,
   RadioGroup,
   Slide,
@@ -215,6 +217,29 @@ const PlaceAnOrderWrap = styled('div')(({ theme }) => ({
   }
 }));
 
+const StyledBox = styled(Box)`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  border: 2px solid #000;
+  text-align: center;
+
+  .group-button-wrap {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    padding-bottom: 16px;
+
+    button {
+      text-transform: none;
+      color: white;
+    }
+  }
+`;
+
 const Transition = React.forwardRef(function Transition(
   props: TransitionProps & {
     children: React.ReactElement;
@@ -243,6 +268,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const [textAmountPer1MXEC, setTextAmountPer1MXEC] = useState('');
   const [escrowScript, setEscrowScript] = useState<Escrow>(null);
   const [nonce, setNonce] = useState<string>(null);
+  const [confirm, setConfirm] = useState(false);
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
 
   const { useCreateEscrowOrderMutation, useGetModeratorAccountQuery, useGetRandomArbitratorAccountQuery } =
@@ -264,7 +290,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const {
     handleSubmit,
     formState: { errors },
-    setError: setErrorForm,
+    // setError: setErrorForm,
     clearErrors,
     control,
     trigger,
@@ -415,7 +441,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     if (!rateData) return 0;
     let amountXEC = 0;
     let amountCoinOrCurrency = 0;
-    let textAmountPer1MXEC = 1000000;
+    const textAmountPer1MXEC = 1000000;
     //if payment is crypto, we convert from coin => USD => XEC
     if (post?.postOffer?.coinPayment) {
       const coinPayment = post.postOffer.coinPayment.toLowerCase();
@@ -540,6 +566,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                       if (numberValue < minValue || numberValue > maxValue)
                         return `Amount must between ${minValue}-${maxValue}`;
                       if (amountXEC < 5.46) return `You need to buy amount greater than 5.46 XEC`;
+
                       return true;
                     }
                   }}
@@ -663,7 +690,13 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
             className="confirm-btn"
             color="info"
             variant="contained"
-            onClick={handleSubmit(handleCreateEscrowOrder)}
+            onClick={() => {
+              if (post?.account?.telegramUsername.startsWith('@')) {
+                handleSubmit(handleCreateEscrowOrder)(); //need parenthesis to call handleSubmit
+              } else {
+                setConfirm(true);
+              }
+            }}
             autoFocus
             disabled={(isBuyerDeposit && !checkBuyerEnoughFund()) || loading}
           >
@@ -685,6 +718,30 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
         type="error"
         autoHideDuration={3500}
       />
+
+      <Modal
+        open={confirm}
+        onClose={() => setConfirm(false)}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <StyledBox sx={{ bgcolor: 'background.paper', boxShadow: 24, p: 4 }}>
+          <h4 id="modal-modal-title" style={{ color: 'white', marginTop: '0' }}>
+            The seller does not have a Telegram username so it will be difficult to communicate.
+            <br />
+            <br />
+            Are you sure you want to continue?
+          </h4>
+          <div className="group-button-wrap">
+            <Button variant="contained" fullWidth onClick={() => setConfirm(false)}>
+              Cancel
+            </Button>
+            <Button variant="contained" fullWidth color="warning" onClick={handleSubmit(handleCreateEscrowOrder)}>
+              Continue
+            </Button>
+          </div>
+        </StyledBox>
+      </Modal>
     </React.Fragment>
   );
 };

@@ -5,6 +5,7 @@ import { ChevronLeft } from '@mui/icons-material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import { IconButton, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import React from 'react';
 
@@ -55,9 +56,14 @@ const TickerHeader: React.FC<TickerHeaderProps> = ({
 }) => {
   const router = useRouter();
   const dispatch = useLixiSliceDispatch();
+  const { data } = useSession();
 
   const handleOpenCreateOffer = () => {
-    dispatch(openModal('CreateOfferModal', {}));
+    if (data?.user?.name.startsWith('@')) {
+      dispatch(openModal('CreateOfferModal', {}));
+    } else {
+      dispatch(openModal('RequiredUsernameModal', {}));
+    }
   };
 
   return (
