@@ -4,6 +4,7 @@ import { COIN, coinInfo } from '@bcpros/lixi-models';
 import {
   DisputeStatus,
   EscrowOrderQueryItem,
+  EscrowOrderStatus,
   fiatCurrencyApi,
   getSelectedAccount,
   getSelectedWalletPath,
@@ -202,11 +203,14 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
           {order?.paymentMethod.name}
         </Button>
       </Typography>
-      {selectedWalletPath?.hash160 === order?.sellerAccount?.hash160 && order?.paymentMethod.id !== 5 && (
-        <Typography variant="body1">
-          <span className="prefix">Margin of current price:</span> {marginCurrentPrice.toFixed(2)}%
-        </Typography>
-      )}
+      {selectedWalletPath?.hash160 === order?.sellerAccount?.hash160 &&
+        order?.paymentMethod.id !== 5 &&
+        (order?.escrowOrderStatus === EscrowOrderStatus.Pending ||
+          order?.escrowOrderStatus === EscrowOrderStatus.Escrow) && (
+          <Typography variant="body1">
+            <span className="prefix">Margin of current price:</span> {marginCurrentPrice.toFixed(2)}%
+          </Typography>
+        )}
       {order?.message && (
         <Typography variant="body1">
           <span className="prefix">Message: </span>

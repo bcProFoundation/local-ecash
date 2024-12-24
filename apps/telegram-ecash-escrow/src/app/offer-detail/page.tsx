@@ -90,7 +90,7 @@ const OfferDetail = () => {
       <>
         <div className="list-item">
           <hr />
-          <Stack direction="row" gap="20px" justifyContent="center">
+          <Stack className="group-btn-order" direction="row" gap="20px" justifyContent="center">
             <Button
               onClick={() => setOrderStatus(EscrowOrderStatus.Pending)}
               className={`btn-timeline ${orderStatus === EscrowOrderStatus.Pending ? 'active' : ''}`}
