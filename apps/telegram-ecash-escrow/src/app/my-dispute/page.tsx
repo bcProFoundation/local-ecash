@@ -7,7 +7,7 @@ import MobileLayout from '@/src/components/layout/MobileLayout';
 import { TabType } from '@/src/store/constants';
 import { DisputeStatus, useInfiniteMyDisputeQuery } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
-import { Skeleton, Tab, Tabs, Typography } from '@mui/material';
+import { CircularProgress, Skeleton, Tab, Tabs, Typography } from '@mui/material';
 import React, { useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import SwipeableViews from 'react-swipeable-views';
@@ -43,6 +43,11 @@ const MyDisputePage = styled.div`
     bottom: 10%;
   }
 
+  .MuiCircularProgress-root {
+    display: block;
+    margin: 0 auto;
+  }
+
   .list-item {
     div:not(.payment-group-btns) {
       border-bottom: 2px dashed rgba(255, 255, 255, 0.3);
@@ -71,6 +76,7 @@ export default function MyDispute() {
     data: dataDisputeActive,
     hasNext: hasNextDisputeActive,
     isFetching: isFetchingDisputeActive,
+    isLoading: isLoadingDisputeActive,
     fetchNext: fetchNextDisputeActive
   } = useInfiniteMyDisputeQuery({
     first: 20,
@@ -80,6 +86,7 @@ export default function MyDispute() {
     data: dataDisputeResolved,
     hasNext: hasNextDisputeResolved,
     isFetching: isFetchingDisputeResolved,
+    isLoading: isLoadingDisputeResolved,
     fetchNext: fetchNextDisputeResolved
   } = useInfiniteMyDisputeQuery({
     first: 20,
@@ -128,57 +135,65 @@ export default function MyDispute() {
           <SwipeableViews index={value} onChangeIndex={handleChangeIndex}>
             <TabPanel value={value} index={0}>
               <div className="list-item">
-                {dataDisputeActive.length > 0 ? (
-                  <InfiniteScroll
-                    dataLength={dataDisputeActive.length}
-                    next={loadMoreItemsDisputeActive}
-                    hasMore={hasNextDisputeActive}
-                    loader={
-                      <>
-                        <Skeleton variant="text" />
-                        <Skeleton variant="text" />
-                      </>
-                    }
-                    scrollableTarget="scrollableDiv"
-                    scrollThreshold={'100px'}
-                  >
-                    {dataDisputeActive.map(item => {
-                      return <DisputeDetailInfo timelineItem={item} key={item.id} />;
-                    })}
-                  </InfiniteScroll>
+                {isFetchingDisputeActive ? (
+                  <CircularProgress />
                 ) : (
-                  <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No dispute yet</Typography>
+                  dataDisputeActive && (
+                    <InfiniteScroll
+                      dataLength={dataDisputeActive.length}
+                      next={loadMoreItemsDisputeActive}
+                      hasMore={hasNextDisputeActive}
+                      endMessage={
+                        <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No dispute here</Typography>
+                      }
+                      loader={
+                        <>
+                          <Skeleton variant="text" />
+                          <Skeleton variant="text" />
+                        </>
+                      }
+                      scrollableTarget="scrollableDiv"
+                      scrollThreshold={'100px'}
+                    >
+                      {dataDisputeActive.map(item => {
+                        return <DisputeDetailInfo timelineItem={item} key={item.id} />;
+                      })}
+                    </InfiniteScroll>
+                  )
                 )}
               </div>
             </TabPanel>
             <TabPanel value={value} index={1}>
               <div className="list-item">
-                {dataDisputeResolved.length > 0 ? (
-                  <InfiniteScroll
-                    dataLength={dataDisputeResolved.length}
-                    next={loadMoreItemsDisputeResolved}
-                    hasMore={hasNextDisputeResolved}
-                    loader={
-                      <>
-                        <Skeleton variant="text" />
-                        <Skeleton variant="text" />
-                      </>
-                    }
-                    scrollableTarget="scrollableDiv"
-                    scrollThreshold={'100px'}
-                  >
-                    {dataDisputeResolved.map(item => {
-                      return <DisputeDetailInfo timelineItem={item} key={item.id} />;
-                    })}
-                  </InfiniteScroll>
+                {isLoadingDisputeResolved ? (
+                  <CircularProgress />
                 ) : (
-                  <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No offer here</Typography>
+                  dataDisputeResolved && (
+                    <InfiniteScroll
+                      dataLength={dataDisputeResolved.length}
+                      next={loadMoreItemsDisputeResolved}
+                      hasMore={hasNextDisputeResolved}
+                      endMessage={
+                        <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No dispute here</Typography>
+                      }
+                      loader={
+                        <>
+                          <Skeleton variant="text" />
+                          <Skeleton variant="text" />
+                        </>
+                      }
+                      scrollableTarget="scrollableDiv"
+                      scrollThreshold={'100px'}
+                    >
+                      {dataDisputeResolved.map(item => {
+                        return <DisputeDetailInfo timelineItem={item} key={item.id} />;
+                      })}
+                    </InfiniteScroll>
+                  )
                 )}
               </div>
             </TabPanel>
           </SwipeableViews>
-
-          {/* <Fab route="/my-offer/new" icon={<Add />} /> */}
         </MyDisputePage>
       </AuthorizationLayout>
     </MobileLayout>
