@@ -26,14 +26,14 @@ const OfferDetailPage = styled.div`
   background-size: cover;
 
   .list-item {
-    div:not(.payment-group-btns) {
+    .group-btn-order {
       border-bottom: 2px dashed rgba(255, 255, 255, 0.3);
       padding-bottom: 16px;
       margin: 10px 5px;
+    }
 
-      &:last-of-type {
-        border-bottom: 0;
-      }
+    .infinite-scroll-component {
+      padding: 16px;
     }
 
     .btn-timeline {
@@ -90,7 +90,7 @@ const OfferDetail = () => {
       <>
         <div className="list-item">
           <hr />
-          <Stack direction="row" gap="20px" justifyContent="center">
+          <Stack className="group-btn-order" direction="row" gap="20px" justifyContent="center">
             <Button
               onClick={() => setOrderStatus(EscrowOrderStatus.Pending)}
               className={`btn-timeline ${orderStatus === EscrowOrderStatus.Pending ? 'active' : ''}`}
