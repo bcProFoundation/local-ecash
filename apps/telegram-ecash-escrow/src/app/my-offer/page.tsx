@@ -8,7 +8,7 @@ import { TabType } from '@/src/store/constants';
 import { OfferStatus, useInfiniteMyOffersQuery } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined';
-import { Skeleton, Tab, Tabs, Typography } from '@mui/material';
+import { CircularProgress, Skeleton, Tab, Tabs, Typography } from '@mui/material';
 import React, { useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import SwipeableViews from 'react-swipeable-views';
@@ -29,19 +29,23 @@ const MyOfferPage = styled.div`
     }
   }
 
-  .MuiTabs-indicator {
-    background-color: #0076c4;
-  }
+    .MuiTabs-indicator {
+      background-color: #0076c4;
+    }
 
-  .MuiBox-root {
-    padding: 16px;
-  }
+    .MuiBox-root {
+      padding: 16px;
+    }
+
+    .MuiCircularProgress-root {
+      display: block;
+      margin: 0 auto;
+    }
   }
 `;
 
 export default function MyOffer() {
   const [value, setValue] = useState(0);
-  const [open, setOpen] = useState<boolean>(false);
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
   };
@@ -54,6 +58,7 @@ export default function MyOffer() {
     data: dataOfferActive,
     hasNext: hasNextOfferActive,
     isFetching: isFetchingOfferActive,
+    isLoading: isLoadingOfferActive,
     fetchNext: fetchNextOfferActive
   } = useInfiniteMyOffersQuery({
     first: 20,
@@ -72,6 +77,7 @@ export default function MyOffer() {
     data: dataOfferArchive,
     hasNext: hasNextOfferArchive,
     isFetching: isFetchingOfferArchive,
+    isLoading: isLoadingOfferArchive,
     fetchNext: fetchNextOfferArchive
   } = useInfiniteMyOffersQuery({
     first: 20,
@@ -117,51 +123,61 @@ export default function MyOffer() {
           <SwipeableViews index={value} onChangeIndex={handleChangeIndex}>
             <TabPanel value={value} index={0}>
               <div className="list-item">
-                {dataOfferActive.length > 0 ? (
-                  <InfiniteScroll
-                    dataLength={dataOfferActive.length}
-                    next={loadMoreItemsOfferActive}
-                    hasMore={hasNextOfferActive}
-                    loader={
-                      <>
-                        <Skeleton variant="text" />
-                        <Skeleton variant="text" />
-                      </>
-                    }
-                    scrollableTarget="scrollableDiv"
-                    scrollThreshold={'100px'}
-                  >
-                    {dataOfferActive.map(item => {
-                      return <OfferDetailInfo timelineItem={item} key={item.id} />;
-                    })}
-                  </InfiniteScroll>
+                {isLoadingOfferActive ? (
+                  <CircularProgress />
                 ) : (
-                  <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No offer here</Typography>
+                  dataOfferActive && (
+                    <InfiniteScroll
+                      dataLength={dataOfferActive.length}
+                      next={loadMoreItemsOfferActive}
+                      hasMore={hasNextOfferActive}
+                      endMessage={
+                        <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No offer here</Typography>
+                      }
+                      loader={
+                        <>
+                          <Skeleton variant="text" />
+                          <Skeleton variant="text" />
+                        </>
+                      }
+                      scrollableTarget="scrollableDiv"
+                      scrollThreshold={'100px'}
+                    >
+                      {dataOfferActive.map(item => {
+                        return <OfferDetailInfo timelineItem={item} key={item.id} />;
+                      })}
+                    </InfiniteScroll>
+                  )
                 )}
               </div>
             </TabPanel>
             <TabPanel value={value} index={1}>
               <div className="list-item">
-                {dataOfferArchive.length > 0 ? (
-                  <InfiniteScroll
-                    dataLength={dataOfferArchive.length}
-                    next={loadMoreItemsOfferArchive}
-                    hasMore={hasNextOfferArchive}
-                    loader={
-                      <>
-                        <Skeleton variant="text" />
-                        <Skeleton variant="text" />
-                      </>
-                    }
-                    scrollableTarget="scrollableDiv"
-                    scrollThreshold={'100px'}
-                  >
-                    {dataOfferArchive.map(item => {
-                      return <OfferDetailInfo timelineItem={item} key={item.id} />;
-                    })}
-                  </InfiniteScroll>
+                {isLoadingOfferArchive ? (
+                  <CircularProgress />
                 ) : (
-                  <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No offer archive</Typography>
+                  dataOfferArchive && (
+                    <InfiniteScroll
+                      dataLength={dataOfferArchive.length}
+                      next={loadMoreItemsOfferArchive}
+                      hasMore={hasNextOfferArchive}
+                      endMessage={
+                        <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No offer here</Typography>
+                      }
+                      loader={
+                        <>
+                          <Skeleton variant="text" />
+                          <Skeleton variant="text" />
+                        </>
+                      }
+                      scrollableTarget="scrollableDiv"
+                      scrollThreshold={'100px'}
+                    >
+                      {dataOfferArchive.map(item => {
+                        return <OfferDetailInfo timelineItem={item} key={item.id} />;
+                      })}
+                    </InfiniteScroll>
+                  )
                 )}
               </div>
             </TabPanel>

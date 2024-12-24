@@ -1,6 +1,5 @@
 'use client';
 
-import MiniAppBackdrop from '@/src/components/Common/MiniAppBackdrop';
 import OfferDetailInfo from '@/src/components/DetailInfo/OfferDetailInfo';
 import OrderDetailInfo from '@/src/components/DetailInfo/OrderDetailInfo';
 import MobileLayout from '@/src/components/layout/MobileLayout';
@@ -13,6 +12,7 @@ import {
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
 import { usePostQuery } from '@bcpros/redux-store/build/main/store/post/posts.api';
+import { BorderBottom } from '@mui/icons-material';
 import { Backdrop, Button, CircularProgress, Skeleton, Stack, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import _ from 'lodash';
@@ -26,16 +26,35 @@ const OfferDetailPage = styled('div')(({ theme }) => ({
   backgroundRepeat: 'no-repeat',
   backgroundSize: 'cover',
 
+
   '.list-item': {
-    'div:not(.payment-group-btns)': {
+    '.group-btn-order': {
       borderBottom: '2px dashed rgba(255, 255, 255, 0.3)',
       paddingBottom: '16px',
       margin: '10px 5px',
-
-      '&:last-of-type': {
-        borderBottom: 0
-      }
     },
+    '.infinite-scroll-component': {
+      padding: '16px',
+    },
+    // 'div:not(.payment-group-btns)': {
+    //   borderBottom: '2px dashed rgba(255, 255, 255, 0.3)',
+    //   paddingBottom: '16px',
+    //   margin: '10px 5px',
+
+    //   '&:last-of-type': {
+    //     borderBottom: 0
+    //   }
+    // },
+  // .list-item {
+  //   .group-btn-order {
+  //     border-bottom: 2px dashed rgba(255, 255, 255, 0.3);
+  //     padding-bottom: 16px;
+  //     margin: 10px 5px;
+  //   }
+
+  //   .infinite-scroll-component {
+  //     padding: 16px;
+  //   }
 
     '.btn-timeline': {
       color: `${theme.palette.common.white} !important`,
@@ -86,12 +105,12 @@ const OfferDetail = () => {
     if (!token || !isAccountOffer) {
       return;
     }
+
     return (
       <>
         <div className="list-item">
           <hr />
-
-          <Stack direction="row" gap="20px" justifyContent="center">
+          <Stack className="group-btn-order" direction="row" gap="20px" justifyContent="center">
             <Button
               onClick={() => setOrderStatus(EscrowOrderStatus.Pending)}
               className={`btn-timeline ${orderStatus === EscrowOrderStatus.Pending ? 'active' : ''}`}
@@ -159,7 +178,6 @@ const OfferDetail = () => {
           <CircularProgress color="inherit" />
         </Backdrop>
       )}
-      <MiniAppBackdrop />
       <OfferDetailPage>
         <TickerHeader title="Offer Detail" />
         {currentData?.post?.postOffer && (
