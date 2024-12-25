@@ -8,7 +8,7 @@ import { TabType } from '@/src/store/constants';
 import { EscrowOrderQueryItem, EscrowOrderStatus, useInfiniteMyEscrowOrderQuery } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import InventoryOutlinedIcon from '@mui/icons-material/InventoryOutlined';
-import { CircularProgress, Skeleton, Tab, Tabs, Typography } from '@mui/material';
+import { Box, CircularProgress, Skeleton, Tab, Tabs, Typography } from '@mui/material';
 import React, { useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import SwipeableViews from 'react-swipeable-views';
@@ -74,6 +74,7 @@ export default function MyOrder() {
     },
     false
   );
+
   const {
     data: dataOrderEscrow,
     hasNext: hasNextOrderEscrow,
@@ -151,17 +152,12 @@ export default function MyOrder() {
           <SwipeableViews index={value} onChangeIndex={handleChangeIndex}>
             <TabPanel value={value} index={0}>
               <div className="list-item">
-                {isLoadingOrderPending ? (
-                  <CircularProgress />
-                ) : (
-                  dataOrderPending && (
+                {!isFetchingOrderPending ? (
+                  dataOrderPending.length > 0 ? (
                     <InfiniteScroll
                       dataLength={dataOrderPending.length}
                       next={loadMoreItemsOrderPending}
                       hasMore={hasNextOrderPending}
-                      endMessage={
-                        <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No orders here</Typography>
-                      }
                       loader={
                         <>
                           <Skeleton variant="text" />
@@ -174,23 +170,24 @@ export default function MyOrder() {
                         return <OrderDetailInfo item={item as EscrowOrderQueryItem} key={item.id} />;
                       })}
                     </InfiniteScroll>
+                  ) : (
+                    <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No orders here</Typography>
                   )
+                ) : (
+                  <Box sx={{ height: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <CircularProgress color="primary" />
+                  </Box>
                 )}
               </div>
             </TabPanel>
             <TabPanel value={value} index={1}>
               <div className="list-item">
-                {isLoadingOrderEscrow ? (
-                  <CircularProgress />
-                ) : (
-                  dataOrderEscrow && (
+                {!isFetchingOrderEscrow ? (
+                  dataOrderEscrow.length > 0 ? (
                     <InfiniteScroll
                       dataLength={dataOrderEscrow.length}
                       next={loadMoreItemsOrderEscrow}
                       hasMore={hasNextOrderEscrow}
-                      endMessage={
-                        <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No orders here</Typography>
-                      }
                       loader={
                         <>
                           <Skeleton variant="text" />
@@ -203,23 +200,24 @@ export default function MyOrder() {
                         return <OrderDetailInfo item={item as EscrowOrderQueryItem} key={item.id} />;
                       })}
                     </InfiniteScroll>
+                  ) : (
+                    <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No orders here</Typography>
                   )
+                ) : (
+                  <Box sx={{ height: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <CircularProgress color="primary" />
+                  </Box>
                 )}
               </div>
             </TabPanel>
             <TabPanel value={value} index={2}>
               <div className="list-item">
-                {isLoadingOrderUnactive ? (
-                  <CircularProgress />
-                ) : (
-                  dataOrderUnactive && (
+                {!isFetchingOrderUnactive ? (
+                  dataOrderUnactive.length > 0 ? (
                     <InfiniteScroll
                       dataLength={dataOrderUnactive.length}
                       next={loadMoreItemsOrderUnactive}
                       hasMore={hasNextOrderUnactive}
-                      endMessage={
-                        <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No orders here</Typography>
-                      }
                       loader={
                         <>
                           <Skeleton variant="text" />
@@ -233,7 +231,13 @@ export default function MyOrder() {
                         return <OrderDetailInfo item={item as EscrowOrderQueryItem} key={item.id} />;
                       })}
                     </InfiniteScroll>
+                  ) : (
+                    <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No orders here</Typography>
                   )
+                ) : (
+                  <Box sx={{ height: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <CircularProgress color="primary" />
+                  </Box>
                 )}
               </div>
             </TabPanel>
