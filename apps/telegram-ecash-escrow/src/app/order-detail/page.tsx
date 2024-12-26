@@ -100,10 +100,7 @@ const OrderDetail = () => {
   const [addressToRelease, setAddressToRelease] = useState('');
 
   const { useEscrowOrderQuery, useUpdateEscrowOrderStatusMutation } = escrowOrderApi;
-  const { isLoading, currentData, isError, isSuccess, isUninitialized } = useEscrowOrderQuery(
-    { id: id! },
-    { skip: !id || !token }
-  );
+  const { currentData, isError, isSuccess } = useEscrowOrderQuery({ id: id! }, { skip: !id || !token });
   const [updateOrderTrigger] = useUpdateEscrowOrderStatusMutation();
 
   useEffect(() => {
@@ -605,14 +602,9 @@ const OrderDetail = () => {
 
   return (
     <MobileLayout>
-      {(isLoading || isUninitialized) && (
-        <Backdrop sx={theme => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })} open={true}>
-          <CircularProgress color="inherit" />
-        </Backdrop>
-      )}
       <OrderDetailPage>
         <TickerHeader title="Order Detail" />
-        {currentData?.escrowOrder && (
+        {currentData?.escrowOrder ? (
           <OrderDetailContent>
             <OrderDetailInfo item={currentData?.escrowOrder} />
             <br />
@@ -621,6 +613,10 @@ const OrderDetail = () => {
             {escrowActionButtons()}
             {telegramButton()}
           </OrderDetailContent>
+        ) : (
+          <div style={{ display: 'flex', justifyContent: 'center', height: '100vh' }}>
+            <CircularProgress style={{ color: 'white', margin: 'auto' }} />
+          </div>
         )}
 
         <ConfirmCancelModal

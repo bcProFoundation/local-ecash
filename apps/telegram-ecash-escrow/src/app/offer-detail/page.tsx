@@ -16,7 +16,7 @@ import { Button, CircularProgress, Skeleton, Stack, Typography } from '@mui/mate
 import { styled } from '@mui/material/styles';
 import _ from 'lodash';
 import { useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 
 const OfferDetailPage = styled('div')(({ theme }) => ({
@@ -56,7 +56,7 @@ const OfferDetail = () => {
 
   const [orderStatus, setOrderStatus] = useState<EscrowOrderStatus>(EscrowOrderStatus.Pending);
 
-  const { isLoading, currentData, isError, isUninitialized } = usePostQuery({ id: id! }, { skip: !id });
+  const { currentData, isError } = usePostQuery({ id: id! }, { skip: !id });
   const {
     data: escrowOrdersData,
     hasNext: hasNextEscrowOrders,
@@ -153,21 +153,22 @@ const OfferDetail = () => {
 
   return (
     <MobileLayout>
-      {(isLoading || isUninitialized) && (
-        <Backdrop sx={theme => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })} open={true}>
-          <CircularProgress color="inherit" />
-        </Backdrop>
-      )}
       <OfferDetailPage>
         <TickerHeader title="Offer Detail" />
-        {currentData?.post?.postOffer && (
-          <OfferDetailInfo
-            post={currentData?.post}
-            isShowBuyButton={currentData && currentData?.post?.accountId === selectedAccount?.id ? false : true}
-            isItemTimeline={false}
-          />
+        {currentData?.post?.postOffer ? (
+          <React.Fragment>
+            <OfferDetailInfo
+              post={currentData?.post}
+              isShowBuyButton={currentData && currentData?.post?.accountId === selectedAccount?.id ? false : true}
+              isItemTimeline={false}
+            />
+            {ListButtonComponent()}
+          </React.Fragment>
+        ) : (
+          <div style={{ display: 'flex', justifyContent: 'center', height: '100vh' }}>
+            <CircularProgress style={{ color: 'white', margin: 'auto' }} />
+          </div>
         )}
-        {ListButtonComponent()}
       </OfferDetailPage>
     </MobileLayout>
   );
