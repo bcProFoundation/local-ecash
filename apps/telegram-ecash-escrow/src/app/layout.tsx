@@ -25,7 +25,7 @@ import { darkTheme, lightTheme } from '../theme/theme';
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   // const ThemeContext = createContext();
 
-  const [mode, setMode] = useState('dark'); // Default mode is 'light'
+  const [mode, setMode] = useState('light'); // Default mode is 'light'
 
   const theme = useMemo(() => (mode === 'light' ? lightTheme : darkTheme), [mode]);
 

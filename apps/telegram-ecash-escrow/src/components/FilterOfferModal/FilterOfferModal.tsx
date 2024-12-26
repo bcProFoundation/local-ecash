@@ -139,13 +139,12 @@ const FilterWrap = styled('div')(({ theme }) => ({
 
     button: {
       textTransform: 'none',
-      borderColor: 'rgba(255, 255, 255, 0.2)',
       fontSize: '14px',
       padding: '8px',
 
       '&.active': {
         fontWeight: 'bold',
-        borderColor: 'rgb(41, 142, 23)'
+        border: '2px solid rgb(41, 142, 23)'
       }
     }
   }

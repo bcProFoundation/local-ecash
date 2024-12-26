@@ -29,8 +29,8 @@ import CheckIcon from '@mui/icons-material/Check';
 import ClearIcon from '@mui/icons-material/Clear';
 import HorizontalRuleIcon from '@mui/icons-material/HorizontalRule';
 import TrendingFlatIcon from '@mui/icons-material/TrendingFlat';
-import { styled } from '@mui/material/styles';
 import { Backdrop, Button, CircularProgress, Stack, Typography } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import { fromHex, Script, shaRmd160, Tx } from 'ecash-lib';
 import cashaddr from 'ecashaddrjs';
 import _ from 'lodash';
@@ -42,7 +42,11 @@ const OrderDetailPage = styled('div')(({ theme }) => ({
   minHeight: '100vh',
   background: theme.palette.background.default,
   backgroundRepeat: 'no-repeat',
-  backgroundSize: 'cover'
+  backgroundSize: 'cover',
+
+  '.icon-rule': {
+    color: theme.custom.colorItem
+  }
 }));
 
 const OrderDetailContent = styled('div')(({ theme }) => ({
@@ -357,11 +361,11 @@ const OrderDetail = () => {
           <Stack direction="row" spacing={2} justifyContent="center" margin="20px">
             <Image width={50} height={50} src="/safebox-open.svg" alt="" />
             <Stack direction="row" spacing={0} justifyContent="center" color="white" alignItems="center">
-              <HorizontalRuleIcon />
-              <HorizontalRuleIcon />
+              <HorizontalRuleIcon className="icon-rule" />
+              <HorizontalRuleIcon className="icon-rule" />
               <ClearIcon color="error" />
-              <HorizontalRuleIcon />
-              <TrendingFlatIcon />
+              <HorizontalRuleIcon className="icon-rule" />
+              <TrendingFlatIcon className="icon-rule" />
             </Stack>
             <Image width={50} height={50} src="/safebox-close.svg" alt="" />
           </Stack>
@@ -574,23 +578,23 @@ const OrderDetail = () => {
     return (
       <div style={{ color: 'white' }}>
         {currentData?.escrowOrder.buyerDepositTx && (
-          <p style={{ fontWeight: 'bold' }}>
+          <Typography style={{ fontWeight: 'bold' }}>
             *Buyer deposited the fee ({calDisputeFee} {COIN.XEC})
-          </p>
+          </Typography>
         )}
-        <p>
+        <Typography>
           Your wallet: {totalBalanceFormat} {COIN.XEC}
-        </p>
-        <p>
+        </Typography>
+        <Typography>
           Dispute fee (1%): {fee1Percent.toLocaleString('de-DE')} {COIN.XEC}
-        </p>
-        <p>
+        </Typography>
+        <Typography>
           Withdraw fee: {estimatedFee(currentData?.escrowOrder.escrowScript).toLocaleString('de-DE')} {COIN.XEC}
-        </p>
-        <p style={{ fontWeight: 'bold' }}>
+        </Typography>
+        <Typography style={{ fontWeight: 'bold' }}>
           Total: {totalAmountWithDepositAndEscrowFee().toLocaleString('de-DE')} {COIN.XEC}
           <span style={{ fontSize: '14px', color: 'gray' }}> (Excluding miner&apos;s fees)</span>
-        </p>
+        </Typography>
       </div>
     );
   };

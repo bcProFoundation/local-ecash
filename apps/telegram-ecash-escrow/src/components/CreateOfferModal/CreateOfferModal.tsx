@@ -129,6 +129,10 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
         color: theme.palette.common.white
       }
     }
+  },
+
+  '.MuiButton-root': {
+    color: '#fff'
   }
 }));
 

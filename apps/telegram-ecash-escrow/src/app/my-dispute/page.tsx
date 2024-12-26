@@ -7,8 +7,8 @@ import MobileLayout from '@/src/components/layout/MobileLayout';
 import { TabType } from '@/src/store/constants';
 import { DisputeStatus, useInfiniteMyDisputeQuery } from '@bcpros/redux-store';
 
-import { styled } from '@mui/material/styles';
 import { CircularProgress, Skeleton, Tab, Tabs, Typography } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import React, { useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import SwipeableViews from 'react-swipeable-views';
@@ -43,21 +43,19 @@ const MyDisputePage = styled('div')(({ theme }) => ({
   '.MuiFab-root': {
     bottom: '10%'
   },
-  
-  '.MuiCircularProgress-root': {  
+
+  '.MuiCircularProgress-root': {
     display: 'block',
-    margin: '0 auto',
+    margin: '0 auto'
   },
-  
+
   '.list-item': {
     'div:not(.payment-group-btns)': {
       borderBottom: '2px dashed rgba(255, 255, 255, 0.3)',
       paddingBottom: '16px',
-      marginBottom: '16px',
+      marginBottom: '16px'
     }
   }
-
-
 }));
 
 export default function MyDispute() {

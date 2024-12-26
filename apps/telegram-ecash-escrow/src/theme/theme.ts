@@ -2,6 +2,29 @@
 
 import { createTheme } from '@mui/material/styles';
 
+// Extend Theme to include custom properties
+declare module '@mui/material/styles' {
+  interface Theme {
+    custom: {
+      bgItem: string;
+      bgItem2: string;
+      bgItem3: string;
+      bgItem4: string;
+      colorItem: string;
+    };
+  }
+
+  interface ThemeOptions {
+    custom?: {
+      bgItem?: string;
+      bgItem2?: string;
+      bgItem3?: string;
+      bgItem4?: string;
+      colorItem?: string;
+    };
+  }
+}
+
 export const darkTheme = createTheme({
   palette: {
     primary: {
@@ -13,11 +36,21 @@ export const darkTheme = createTheme({
     mode: 'dark',
     background: {
       default: 'url(/bg-dialog.svg)', // Light gray background
-      paper: '#ffffff' // White background for paper elements
+      paper: '#2f2f2f' // White background for paper elements
+    },
+    text: {
+      primary: '#fff'
     },
     grey: {
       '300': '#f1f1f147'
     }
+  },
+  custom: {
+    bgItem: 'rgba(255, 255, 255, 0.08)',
+    bgItem2: '#121212',
+    bgItem3: 'rgba(255, 255, 255, 0.08)',
+    bgItem4: 'rgba(255, 255, 255, 0.1)',
+    colorItem: '#fff'
   },
   typography: {
     h1: {
@@ -35,11 +68,20 @@ export const darkTheme = createTheme({
     h5: {
       color: '#fff'
     },
+    h6: {
+      color: '#fff'
+    },
     body1: {
       color: '#fff'
     },
     body2: {
       color: '#fff'
+    },
+    subtitle1: {
+      color: 'rgba(255, 255, 255, 0.6)'
+    },
+    subtitle2: {
+      color: '#edeff099'
     }
   },
   components: {
@@ -78,7 +120,7 @@ export const lightTheme = createTheme({
     },
     mode: 'light', // Set mode to 'light'
     background: {
-      default: '#fff', // Light gray background
+      default: '#f4f7fa', // Light gray background
       paper: '#fff' // White background for paper elements
     },
     text: {
@@ -88,6 +130,13 @@ export const lightTheme = createTheme({
     grey: {
       '300': '#e0e0e0'
     }
+  },
+  custom: {
+    bgItem: '#e9e9ea',
+    bgItem2: '#8d8d8d',
+    bgItem3: '#fff',
+    bgItem4: '#fff',
+    colorItem: '#000'
   },
   typography: {
     h1: {
@@ -105,10 +154,19 @@ export const lightTheme = createTheme({
     h5: {
       color: '#000'
     },
+    h6: {
+      color: '#000'
+    },
     body1: {
       color: '#555555'
     },
     body2: {
+      color: '#555555'
+    },
+    subtitle1: {
+      color: 'rgba(0, 0, 0, 0.4)'
+    },
+    subtitle2: {
       color: '#555555'
     }
   },
@@ -129,9 +187,9 @@ export const lightTheme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
-          color: '#000',
           fontWeight: 600,
-          borderRadius: '8px'
+          borderRadius: '8px',
+          borderColor: '#adafb3'
         }
       }
     }

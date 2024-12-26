@@ -1,7 +1,7 @@
 'use client';
 import Footer from '@/src/components/Footer/Footer';
-import MobileLayout from '@/src/components/layout/MobileLayout';
 import CustomToast from '@/src/components/Toast/CustomToast';
+import MobileLayout from '@/src/components/layout/MobileLayout';
 import {
   getSelectedAccount,
   getSelectedWalletPath,
@@ -10,7 +10,6 @@ import {
   useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
-import styled from '@emotion/styled';
 import { CheckCircleOutline } from '@mui/icons-material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
@@ -23,62 +22,61 @@ import {
   Stack,
   Typography
 } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import { signOut, useSession } from 'next-auth/react';
 import { useState } from 'react';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 
-const ContainerSetting = styled.div`
-  padding: 1rem;
-  .setting-content {
-    padding: 0 0 4rem;
-    .setting-item {
-      margin-bottom: 1rem;
-      .title {
-        padding-top: 1rem;
-        padding-bottom: 0.5rem;
-        font-size: 16px;
-        font-weight: 400;
-        color: #edeff099;
-      }
-      .ico-alert {
-        align-self: center !important;
+const ContainerSetting = styled('div')(({ theme }) => ({
+  padding: '1rem',
+  '.setting-content': {
+    padding: '0 0 4rem',
+    '.setting-item': {
+      marginBottom: '1rem',
+      '.title': {
+        paddingTop: '1rem',
+        paddingBottom: '0.5rem',
+        fontSize: '16px',
+        fontWeight: 'bold'
+      },
+      '.ico-alert': {
+        alignSelf: 'center !important'
       }
     }
+  },
 
-    .address-string {
-      font-size: 14px;
-      font-weight: 500;
-      text-align: center;
-      margin: 1rem 0;
-      color: #28a5e0;
-      text-overflow: ellipsis;
-      overflow: hidden;
-    }
-  }
-  .collapse-backup-seed {
-    margin: 0 !important;
-    .MuiAccordionSummary-content {
-      margin: 0 0 0px !important;
-    }
-  }
+  '.address-string': {
+    fontSize: '14px',
+    fontWeight: '500',
+    textAlign: 'center',
+    margin: '1rem 0',
+    color: '#28a5e0',
+    textOverflow: 'ellipsis',
+    overflow: 'hidden'
+  },
 
-  .MuiCollapse-wrapper {
-    .MuiAccordionDetails-root {
-      padding: 0 16px 10px !important;
-      display: flex;
-      justify-content: center;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-      .mnemonic {
-        color: #edeff099;
-        text-align: center;
+  '.collapse-backup-seed': {
+    margin: '0 !important',
+    '.MuiAccordionSummary-content': {
+      margin: '0 0 0px !important'
+    }
+  },
+
+  '.MuiCollapse-wrapper': {
+    '.MuiAccordionDetails-root': {
+      padding: '0 16px 10px !important',
+      display: 'flex',
+      justifyContent: 'center',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: '10px',
+      '.mnemonic': {
+        // color: '#edeff099',
+        textAlign: 'center'
       }
     }
   }
-    
-  }
-`;
+}));
 
 export default function Setting() {
   const { data: sessionData } = useSession();
@@ -155,8 +153,10 @@ export default function Setting() {
               Backup your account
             </Typography>
             <Alert icon={<CheckCircleOutline className="ico-alert" fontSize="inherit" />} severity="warning">
-              Your seed phrase is the only way to restore your account. Write it down. Keep it safe. Do not share with
-              anyone!
+              <Typography variant="subtitle2">
+                Your seed phrase is the only way to restore your account. Write it down. Keep it safe. Do not share with
+                anyone!
+              </Typography>
             </Alert>
             <Accordion className="collapse-backup-seed">
               <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
@@ -171,7 +171,7 @@ export default function Setting() {
                   text={selectedMnemonic}
                   onCopy={handleOnCopy}
                 >
-                  <Typography variant="body2" className="mnemonic">
+                  <Typography variant="subtitle2" className="mnemonic">
                     {selectedMnemonic}
                   </Typography>
                 </CopyToClipboard>
@@ -183,7 +183,7 @@ export default function Setting() {
               Sign out
             </Typography>
             <Alert icon={<CheckCircleOutline className="ico-alert" fontSize="inherit" />} severity="error">
-              Sign out of the current session
+              <Typography variant="subtitle2">Sign out of the current session</Typography>
             </Alert>
             <Accordion className="collapse-backup-seed">
               <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
@@ -195,7 +195,8 @@ export default function Setting() {
                   style={{
                     display: 'inline-block',
                     width: '100%',
-                    fontWeight: 'bold'
+                    fontWeight: 'bold',
+                    color: '#fff'
                   }}
                   onClick={() => handleSignOut()}
                 >

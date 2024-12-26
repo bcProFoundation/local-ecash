@@ -156,7 +156,7 @@ const BoostModal: React.FC<BoostModalProps> = ({ amount, post }: BoostModalProps
     <StyledDialog open={true} onClose={() => handleCloseModal()} TransitionComponent={Transition}>
       <DialogTitle>Boost your offer</DialogTitle>
       <DialogContent>
-        <Typography style={{ color: 'rgba(255, 255, 255, 0.6)', marginBottom: '5px' }}>
+        <Typography variant="subtitle1" style={{ marginBottom: '5px' }}>
           *Boosted offers (100 XEC) are notified on Telegram channel and are ranked higher in the P2P Market feed
         </Typography>
       </DialogContent>

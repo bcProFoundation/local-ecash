@@ -14,11 +14,11 @@ import {
   useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
-import styled from '@emotion/styled';
 import ArrowCircleUpRoundedIcon from '@mui/icons-material/ArrowCircleUpRounded';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Button, Card, CardContent, Collapse, IconButton, Typography } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
@@ -26,73 +26,77 @@ import React, { useContext, useEffect, useState } from 'react';
 import useAuthorization from '../Auth/use-authorization.hooks';
 import { BackupModalProps } from '../Common/BackupModal';
 
-const CardWrapper = styled(Card)`
-  margin-top: 16px;
-  background-color: rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
+const CardWrapper = styled(Card)(({ theme }) => ({
+  marginTop: 16,
+  backgroundColor: theme.custom.bgItem,
+  borderRadius: 16,
 
-  .prefix {
-    font-size: 12px;
-    color: #79869b;
-  }
+  '.prefix': {
+    fontSize: '12px',
+    color: '#79869b'
+  },
 
-  .MuiCardContent-root {
-    padding: 16px 16px 0 16px;
-  }
+  '.MuiCardContent-root': {
+    padding: '16px 16px 0 16px'
+  },
 
-  .MuiCollapse-root {
-    .MuiCardContent-root {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      padding: 8px 16px 0;
-    }
+  '.MuiCollapse-root': {
+    '.MuiCardContent-root': {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8,
+      padding: '8px 16px 0'
+    },
 
-    .payment-group-btns {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      button {
-        border-radius: 10px;
+    '.payment-group-btns': {
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: 10,
+      '& button': {
+        borderRadius: '10px'
       }
     }
-  }
+  },
 
-  .action-section {
-    display: flex;
-    justify-content: space-between;
-    padding: 12px 16px;
-    align-items: center;
-    gap: 10px;
+  '.action-section': {
+    display: 'flex',
+    justifyContent: 'space-between',
+    padding: '12px 16px',
+    alignItems: 'center',
+    gap: '10px'
   }
-`;
+}));
 
-export const BuyButtonStyled = styled(Button)`
-  display: flex;
-  gap: 8px;
-  font-weight: 600;
-  margin: 0;
-  background: #0076c4;
-  width: fit-content;
-  filter: drop-shadow(0px 0px 3px #0076c4);
-  color: white;
-  box-shadow: none;
-  border-radius: 12px;
-  font-size: 13px;
-`;
+export const BuyButtonStyled = styled(Button)(({ theme }) => ({
+  display: 'flex',
+  gap: 8,
+  fontWeight: 600,
+  margin: 0,
+  background: '#0076c4',
+  width: 'fit-content',
+  filter: 'drop-shadow(0px 0px 3px #0076c4)',
+  color: 'white',
+  boxShadow: 'none',
+  borderRadius: '12px',
+  fontSize: '13px',
 
-const OfferShowWrapItem = styled.div`
-  backdrop-filter: blur(4px);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  .push-offer-wrap,
-  .minmax-collapse-wrap {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  '&:disabled': {
+    backgroundColor: theme.palette.action.disabledBackground,
+    color: theme.palette.action.disabled
   }
-`;
+}));
+
+const OfferShowWrapItem = styled('div')(({ theme }) => ({
+  backdropFilter: 'blur(4px)',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '8px',
+  '.push-offer-wrap, .minmax-collapse-wrap': {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  }
+}));
 
 type OfferItemProps = {
   timelineItem?: TimelineQueryItem;

@@ -7,8 +7,8 @@ import MobileLayout from '@/src/components/layout/MobileLayout';
 import { TabType } from '@/src/store/constants';
 import { EscrowOrderQueryItem, EscrowOrderStatus, useInfiniteMyEscrowOrderQuery } from '@bcpros/redux-store';
 import InventoryOutlinedIcon from '@mui/icons-material/InventoryOutlined';
-import { styled } from '@mui/material/styles';
 import { CircularProgress, Skeleton, Tab, Tabs, Typography } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import React, { useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import SwipeableViews from 'react-swipeable-views';
@@ -21,7 +21,7 @@ const MyOrderPage = styled('div')(({ theme }) => ({
   paddingBottom: '85px',
 
   '.MuiTab-root': {
-    color: theme.palette.common.white,
+    color: theme.custom.colorItem,
     textTransform: 'none',
     fontWeight: 600,
     fontSize: '16px',
@@ -42,9 +42,8 @@ const MyOrderPage = styled('div')(({ theme }) => ({
 
   '.MuiCircularProgress-root': {
     display: 'block',
-    margin: '0 auto',
+    margin: '0 auto'
   }
-
 }));
 
 export default function MyOrder() {

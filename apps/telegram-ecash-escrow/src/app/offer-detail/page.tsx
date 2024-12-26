@@ -12,7 +12,6 @@ import {
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
 import { usePostQuery } from '@bcpros/redux-store/build/main/store/post/posts.api';
-import { BorderBottom } from '@mui/icons-material';
 import { Backdrop, Button, CircularProgress, Skeleton, Stack, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import _ from 'lodash';
@@ -26,35 +25,15 @@ const OfferDetailPage = styled('div')(({ theme }) => ({
   backgroundRepeat: 'no-repeat',
   backgroundSize: 'cover',
 
-
   '.list-item': {
     '.group-btn-order': {
       borderBottom: '2px dashed rgba(255, 255, 255, 0.3)',
       paddingBottom: '16px',
-      margin: '10px 5px',
+      margin: '10px 5px'
     },
     '.infinite-scroll-component': {
-      padding: '16px',
+      padding: '16px'
     },
-    // 'div:not(.payment-group-btns)': {
-    //   borderBottom: '2px dashed rgba(255, 255, 255, 0.3)',
-    //   paddingBottom: '16px',
-    //   margin: '10px 5px',
-
-    //   '&:last-of-type': {
-    //     borderBottom: 0
-    //   }
-    // },
-  // .list-item {
-  //   .group-btn-order {
-  //     border-bottom: 2px dashed rgba(255, 255, 255, 0.3);
-  //     padding-bottom: 16px;
-  //     margin: 10px 5px;
-  //   }
-
-  //   .infinite-scroll-component {
-  //     padding: 16px;
-  //   }
 
     '.btn-timeline': {
       color: `${theme.palette.common.white} !important`,

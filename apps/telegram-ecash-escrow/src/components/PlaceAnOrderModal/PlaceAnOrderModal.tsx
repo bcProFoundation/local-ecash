@@ -111,7 +111,6 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
   },
 
   '.offer-info': {
-    fontSize: 12,
     color: 'rgba(255, 255, 255, 0.6)',
     padding: 16,
     '&:before': {
@@ -125,6 +124,7 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
       filter: 'drop-shadow(0 0 3px #2bb6f6)'
     },
     span: {
+      fontSize: '12px !important',
       marginLeft: 16
     }
   }
@@ -426,13 +426,13 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     const totalBalanceFormat = totalValidAmount.toLocaleString('de-DE');
 
     return (
-      <div style={{ color: 'white' }}>
-        <p>
+      <div>
+        <Typography component="p" variant="body1">
           Your wallet: {totalBalanceFormat} {COIN.XEC}
-        </p>
-        <p>
+        </Typography>
+        <Typography component="p" variant="body1">
           Dispute fee (1%): {fee1Percent.toLocaleString('de-DE')} {COIN.XEC}
-        </p>
+        </Typography>
       </div>
     );
   };
@@ -537,9 +537,9 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
         </IconButton>
         <DialogTitle>Place an order</DialogTitle>
         <Typography className="offer-info" variant="body2">
-          <span>{`Offer Id: ${post.id}`}</span>
+          <Typography component="span" variant="body1">{`Offer Id: ${post.id}`}</Typography>
           <br />
-          <span>{`By: ${post.account.telegramUsername} • posted on: ${new Date(post.createdAt).toLocaleString()}`}</span>
+          <Typography component="span">{`By: ${post.account.telegramUsername} • posted on: ${new Date(post.createdAt).toLocaleString()}`}</Typography>
         </Typography>
         <DialogContent>
           <PlaceAnOrderWrap>

@@ -106,7 +106,7 @@ const FilterListModal: React.FC<FilterListModalProps> = props => {
                   onClick={() => handleSelect(option)}
                   fullWidth
                   variant="text"
-                  style={{ textTransform: 'capitalize', color: '#fff', fontSize: '1.1rem' }}
+                  style={{ textTransform: 'capitalize', fontSize: '1.1rem' }}
                   sx={{ justifyContent: 'flex-start', textAlign: 'left' }}
                 >
                   {option?.name}
@@ -115,7 +115,7 @@ const FilterListModal: React.FC<FilterListModalProps> = props => {
               {filteredOptions.length === 0 && (
                 <Button
                   variant="text"
-                  style={{ textTransform: 'capitalize', color: '#fff', fontSize: '1.1rem' }}
+                  style={{ textTransform: 'capitalize', fontSize: '1.1rem' }}
                   sx={{ justifyContent: 'flex-start', textAlign: 'left' }}
                 >
                   Nothing here
