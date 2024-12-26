@@ -282,7 +282,6 @@ export default function Setting() {
           type="info"
         />
       </ContainerSetting>
-      <Footer />
     </MobileLayout>
   );
 }
