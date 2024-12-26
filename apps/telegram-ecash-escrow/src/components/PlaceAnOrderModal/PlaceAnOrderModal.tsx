@@ -442,7 +442,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
           Your wallet: {totalBalanceFormat} {COIN.XEC}
         </p>
         <p>
-          Dispute fee (1%): {fee1Percent.toLocaleString('de-DE')} {COIN.XEC}
+          Security fee (1%): {fee1Percent.toLocaleString('de-DE')} {COIN.XEC}
         </p>
       </div>
     );
@@ -639,6 +639,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                       label="Message"
                       variant="outlined"
                       error={errors.message ? true : false}
+                      placeholder="Private message to the seller. E.g. I want to buy XEC via bank transfer."
                       helperText={
                         errors.message
                           ? (errors.message?.message as string)
@@ -667,7 +668,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
             </RadioGroup>
             <div className="disclaim-wrap">
               <Typography className="title" variant="body2">
-                * Deposit a dispute fee to have a higher chance of being accepted. Dispute fees will be returned if
+                * Deposit a security fee to have a higher chance of being accepted. The security fee will be returned if
                 there is no dispute.
               </Typography>
               <Controller
@@ -677,7 +678,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                 render={({ field: { onChange, onBlur, value, ref } }) => (
                   <FormControlLabel
                     control={<Checkbox onChange={onChange} onBlur={onBlur} checked={value} inputRef={ref} />}
-                    label={`I want to deposit dispute fees (1%): ${calDisputeFee} XEC`}
+                    label={`I want to deposit security fee (1%): ${calDisputeFee} XEC`}
                   />
                 )}
               />

@@ -13,7 +13,7 @@ import {
 import styled from '@emotion/styled';
 import { Button, Typography } from '@mui/material';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const OrderDetailWrap = styled.div`
   display: flex;
@@ -178,8 +178,18 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
         {order?.escrowOffer.message}
       </Typography>
       <Typography variant="body1">
-        <span className="prefix">Ordered by: </span>
-        {order?.buyerAccount.telegramUsername}
+        {order?.sellerAccount.id === selectedAccount?.id && (
+          <React.Fragment>
+            <span className="prefix">Ordered by: </span>
+            {order?.buyerAccount.telegramUsername}
+          </React.Fragment>
+        )}
+        {order?.buyerAccount.id === selectedAccount?.id && (
+          <React.Fragment>
+            <span className="prefix">Offered by: </span>
+            {order?.sellerAccount.telegramUsername}
+          </React.Fragment>
+        )}
       </Typography>
       <Typography variant="body1">
         <span className="prefix">Ordered at: </span>
