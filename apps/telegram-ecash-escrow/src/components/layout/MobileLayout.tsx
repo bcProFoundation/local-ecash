@@ -31,17 +31,6 @@ const Content = styled.div`
     box-shadow: none;
   }
 `;
-export const WrapFooter = styled.div`
-  .Footer-content {
-    padding-bottom: 16px;
-    width: 500px;
-    @media (max-width: 576px) {
-      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
-      width: 100%;
-      box-shadow: none;
-    }
-  }
-`;
 
 export default function MobileLayout({ children }: { children: React.ReactNode }) {
   return (
