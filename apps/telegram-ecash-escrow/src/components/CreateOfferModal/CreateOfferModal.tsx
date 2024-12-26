@@ -42,7 +42,7 @@ import {
   useTheme
 } from '@mui/material';
 import { TransitionProps } from '@mui/material/transitions';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import FilterListLocationModal from '../FilterList/FilterListLocationModal';
 import FilterListModal from '../FilterList/FilterListModal';
@@ -227,6 +227,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   const [openCountryList, setOpenCountryList] = useState(false);
   const [openStateList, setOpenStateList] = useState(false);
   const [openCityList, setOpenCityList] = useState(false);
+
+  const dialogContentRef = useRef<HTMLDivElement>(null);
 
   const {
     handleSubmit,
@@ -848,7 +850,10 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                   style={{ marginTop: '16px' }}
                   className="form-input"
                   onChange={onChange}
-                  onBlur={onBlur}
+                  onBlur={() => {
+                    dialogContentRef.current.style.paddingBottom = '20px';
+                    onBlur;
+                  }}
                   value={value}
                   name={name}
                   inputRef={ref}
@@ -858,6 +863,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                   multiline
                   minRows={3}
                   maxRows={10}
+                  onFocus={() => (dialogContentRef.current.style.paddingBottom = '40vh')}
                 />
               </FormControl>
             )}
@@ -995,7 +1001,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       <IconButton className="back-btn" onClick={() => handleCloseModal()}>
         <Close />
       </IconButton>
-      <DialogContent>{stepContents[`stepContent${activeStep}`]}</DialogContent>
+      <DialogContent ref={dialogContentRef}>{stepContents[`stepContent${activeStep}`]}</DialogContent>
       <DialogActions>
         <Button
           variant="contained"
