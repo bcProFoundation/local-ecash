@@ -184,8 +184,6 @@ export default function Footer() {
       });
   }, [socket]);
 
-  console.log('visible', visible);
-
   //No footer at offer detail and order-detail
   return (
     pathName !== '/order-detail' &&

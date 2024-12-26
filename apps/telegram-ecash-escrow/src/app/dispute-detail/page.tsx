@@ -28,7 +28,6 @@ import {
 import styled from '@emotion/styled';
 import { ChevronLeft } from '@mui/icons-material';
 import {
-  Backdrop,
   Button,
   CircularProgress,
   Dialog,
@@ -210,12 +209,7 @@ export default function DisputeDetail() {
   const { useDisputeQuery } = disputeApi;
   const { useEscrowOrderQuery, useUpdateEscrowOrderStatusMutation, useLazyArbiRequestTelegramChatQuery } =
     escrowOrderApi;
-  const {
-    isLoading: isLoadingDispute,
-    currentData: disputeQueryData,
-    isUninitialized: isUninitializedDispute,
-    isError
-  } = useDisputeQuery({ id: id! }, { skip: !id || !token });
+  const { currentData: disputeQueryData, isError } = useDisputeQuery({ id: id! }, { skip: !id || !token });
   const { currentData: escrowOrderQueryData, isSuccess: isEscrowOrderSuccess } = useEscrowOrderQuery(
     { id: disputeQueryData?.dispute.escrowOrder.id },
     { skip: !disputeQueryData?.dispute.escrowOrder.id }
@@ -402,13 +396,8 @@ export default function DisputeDetail() {
 
   return (
     <MobileLayout>
-      {(isLoadingDispute || isUninitializedDispute) && (
-        <Backdrop sx={theme => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })} open={true}>
-          <CircularProgress color="inherit" />
-        </Backdrop>
-      )}
       <TickerHeader title="Dispute detail" />
-      {disputeQueryData?.dispute && (
+      {disputeQueryData?.dispute ? (
         <ResolveDisputeWrap>
           <DisputeDetailInfoWrap>
             <Typography variant="body1">
@@ -504,6 +493,10 @@ export default function DisputeDetail() {
             {escrowOrder?.dispute.status === DisputeStatus.Resolved ? 'The dispute has been resolved' : 'Resolve'}
           </Button>
         </ResolveDisputeWrap>
+      ) : (
+        <div style={{ display: 'flex', justifyContent: 'center', height: '100vh' }}>
+          <CircularProgress style={{ color: 'white', margin: 'auto' }} />
+        </div>
       )}
 
       <StyledReleaseDialog
