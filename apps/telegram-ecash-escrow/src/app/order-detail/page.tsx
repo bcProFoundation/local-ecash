@@ -30,7 +30,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import ClearIcon from '@mui/icons-material/Clear';
 import HorizontalRuleIcon from '@mui/icons-material/HorizontalRule';
 import TrendingFlatIcon from '@mui/icons-material/TrendingFlat';
-import { Backdrop, Button, CircularProgress, Stack, Typography } from '@mui/material';
+import { Button, CircularProgress, Stack, Typography } from '@mui/material';
 import { fromHex, Script, shaRmd160, Tx } from 'ecash-lib';
 import cashaddr from 'ecashaddrjs';
 import _ from 'lodash';
@@ -96,10 +96,7 @@ const OrderDetail = () => {
   const [addressToRelease, setAddressToRelease] = useState('');
 
   const { useEscrowOrderQuery, useUpdateEscrowOrderStatusMutation } = escrowOrderApi;
-  const { isLoading, currentData, isError, isSuccess, isUninitialized } = useEscrowOrderQuery(
-    { id: id! },
-    { skip: !id || !token }
-  );
+  const { currentData, isError, isSuccess } = useEscrowOrderQuery({ id: id! }, { skip: !id || !token });
   const [updateOrderTrigger] = useUpdateEscrowOrderStatusMutation();
 
   useEffect(() => {
@@ -601,14 +598,9 @@ const OrderDetail = () => {
 
   return (
     <MobileLayout>
-      {(isLoading || isUninitialized) && (
-        <Backdrop sx={theme => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })} open={true}>
-          <CircularProgress color="inherit" />
-        </Backdrop>
-      )}
       <OrderDetailPage>
         <TickerHeader title="Order Detail" />
-        {currentData?.escrowOrder && (
+        {currentData?.escrowOrder ? (
           <OrderDetailContent>
             <OrderDetailInfo item={currentData?.escrowOrder} />
             <br />
@@ -617,6 +609,10 @@ const OrderDetail = () => {
             {escrowActionButtons()}
             {telegramButton()}
           </OrderDetailContent>
+        ) : (
+          <div style={{ display: 'flex', justifyContent: 'center', height: '100vh' }}>
+            <CircularProgress style={{ color: 'white', margin: 'auto' }} />
+          </div>
         )}
 
         <ConfirmCancelModal
