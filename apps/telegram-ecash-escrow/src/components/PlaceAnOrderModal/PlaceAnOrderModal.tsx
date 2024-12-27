@@ -503,6 +503,10 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     dispatch(closeModal());
   };
 
+  const showMargin = () => {
+    return post.postOffer.paymentMethods[0]?.paymentMethod?.id !== 5 && !post.postOffer.coinOthers;
+  };
+
   //cal escrow script
   useEffect(() => {
     calEscrowScript();
@@ -515,7 +519,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
 
   //convert to XEC
   useEffect(() => {
-    if (post.postOffer.paymentMethods[0]?.paymentMethod?.id !== 5 && !post.postOffer.coinOthers) {
+    if (showMargin()) {
       convertToAmountXEC();
     } else {
       setAmountXEC(Number(amountValue) ?? 0);
@@ -613,8 +617,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                 <Typography component={'div'} className="text-receive-amount">
                   {amountXEC < 5.46
                     ? 'You need to buy amount greater than 5.46 XEC'
-                    : post.postOffer.paymentMethods[0]?.paymentMethod?.id !== 5 &&
-                      !post.postOffer.coinOthers && (
+                    : showMargin() && (
                         <div>
                           You will receive <span className="amount-receive">{amountXEC.toLocaleString('de-DE')}</span>{' '}
                           XEC

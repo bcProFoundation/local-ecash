@@ -135,6 +135,10 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
     setMarginCurrentPrice(marginMarketPriceAndOrderPrice);
   };
 
+  const showMargin = () => {
+    return order?.paymentMethod?.id !== 5 && !order?.escrowOffer?.coinOthers;
+  };
+
   //get rate data
   useEffect(() => {
     //just set if seller
@@ -148,7 +152,7 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
 
   //convert to XEC
   useEffect(() => {
-    if (order?.paymentMethod.id !== 5 && !order?.escrowOffer?.coinOthers) {
+    if (showMargin()) {
       convertXECToAmount();
     }
   }, [rateData]);
@@ -185,7 +189,7 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
         <span className="prefix">Ordered at: </span>
         {new Date(order?.createdAt).toLocaleString('en-US')}
       </Typography>
-      {order?.paymentMethod?.id !== 5 && !order?.escrowOffer?.coinOthers && (
+      {showMargin() && (
         <Typography variant="body1">
           <span className="prefix">Price: </span>
           {order?.price}
@@ -194,7 +198,7 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
       <Typography variant="body1">
         <span className="prefix">Order amount:</span> {order?.amount} {coinInfo[COIN.XEC].ticker}
       </Typography>
-      {order?.paymentMethod.id !== 5 && !order?.escrowOffer?.coinOthers && (
+      {showMargin() && (
         <Typography variant="body1">
           <span className="prefix">Payment amount:</span> {order?.amountCoinOrCurrency}{' '}
           {order?.escrowOffer?.coinPayment ?? order?.escrowOffer?.localCurrency ?? 'XEC'}
@@ -212,8 +216,7 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
         )}
       </Typography>
       {selectedWalletPath?.hash160 === order?.sellerAccount?.hash160 &&
-        order?.paymentMethod.id !== 5 &&
-        !order?.escrowOffer?.coinOthers &&
+        showMargin() &&
         (order?.escrowOrderStatus === EscrowOrderStatus.Pending ||
           order?.escrowOrderStatus === EscrowOrderStatus.Escrow) && (
           <Typography variant="body1">

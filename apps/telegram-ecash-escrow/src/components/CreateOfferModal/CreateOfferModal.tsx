@@ -332,6 +332,10 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
     dispatch(closeModal());
   };
 
+  const showMargin = () => {
+    return option !== 5 && !coinValue?.includes(COIN_OTHERS);
+  };
+
   const marginComponent = (
     <Grid item xs={12}>
       <div className="margin-component">
@@ -801,7 +805,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
             )}
           />
         </Grid>
-        {option !== 5 && !coinValue?.includes(COIN_OTHERS) && marginComponent}
+        {showMargin() && marginComponent}
         <OrderLimitWrap>
           <Typography variant="body2" className="label">
             {`Order limit (${coinCurrency})`}
@@ -967,7 +971,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
             <span className="prefix">Headline: </span> {getValues('message')}
           </Typography>
         </Grid>
-        {option !== 5 && !coinValue?.includes(COIN_OTHERS) && (
+        {showMargin() && (
           <Grid item xs={12}>
             <Typography variant="body1">
               <span className="prefix">Price: </span> {percentageValue}% on top of market price
