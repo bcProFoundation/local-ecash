@@ -1,5 +1,6 @@
 'use client';
 
+import { COIN_OTHERS } from '@/src/store/constants';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { formatNumber } from '@/src/store/util';
 import {
@@ -203,7 +204,11 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
   };
 
   useEffect(() => {
-    setCoinCurrency(post?.postOffer?.localCurrency ?? post?.postOffer?.coinPayment ?? 'XEC');
+    setCoinCurrency(
+      post?.postOffer?.localCurrency ??
+        (post?.postOffer?.coinPayment?.includes(COIN_OTHERS) ? 'XEC' : post?.postOffer?.coinPayment) ??
+        'XEC'
+    );
   }, []);
 
   //convert to XEC
@@ -286,12 +291,18 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
                     </Button>
                   );
                 })}
+
+              {offerData?.coinOthers && (
+                <Button size="small" color="success" variant="outlined">
+                  {offerData.coinOthers}
+                </Button>
+              )}
             </div>
           </CardContent>
         </Collapse>
 
         <Typography component={'div'} className="action-section">
-          {offerData?.paymentMethods[0]?.paymentMethod?.id !== 5 ? (
+          {offerData?.paymentMethods[0]?.paymentMethod?.id !== 5 && !offerData?.coinOthers ? (
             <Typography variant="body2">
               <span className="prefix">Price: </span>Market price +{post?.postOffer?.marginPercentage ?? 0}%{' '}
               {coinCurrency !== 'XEC' && (
