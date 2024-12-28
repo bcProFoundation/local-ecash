@@ -1,5 +1,6 @@
 'use client';
 
+import { COIN_OTHERS } from '@/src/store/constants';
 import { UtxoContext } from '@/src/store/context/utxoProvider';
 import { buyerDepositFee, Escrow, splitUtxos } from '@/src/store/escrow';
 import { convertXECToSatoshi, estimatedFee } from '@/src/store/util';
@@ -502,6 +503,10 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     dispatch(closeModal());
   };
 
+  const showMargin = () => {
+    return post.postOffer.paymentMethods[0]?.paymentMethod?.id !== 5 && !post.postOffer.coinOthers;
+  };
+
   //cal escrow script
   useEffect(() => {
     calEscrowScript();
@@ -514,7 +519,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
 
   //convert to XEC
   useEffect(() => {
-    if (post.postOffer.paymentMethods[0]?.paymentMethod?.id !== 5) {
+    if (showMargin()) {
       convertToAmountXEC();
     } else {
       setAmountXEC(Number(amountValue) ?? 0);
@@ -598,7 +603,11 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                       InputProps={{
                         endAdornment: (
                           <Typography variant="subtitle1">
-                            {post.postOffer.coinPayment ?? post.postOffer.localCurrency ?? 'XEC'}
+                            {post.postOffer.localCurrency ??
+                              (post.postOffer.coinPayment?.includes(COIN_OTHERS)
+                                ? 'XEC'
+                                : post.postOffer.coinPayment) ??
+                              'XEC'}
                           </Typography>
                         )
                       }}
@@ -608,7 +617,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                 <Typography component={'div'} className="text-receive-amount">
                   {amountXEC < 5.46
                     ? 'You need to buy amount greater than 5.46 XEC'
-                    : post.postOffer.paymentMethods[0]?.paymentMethod?.id !== 5 && (
+                    : showMargin() && (
                         <div>
                           You will receive <span className="amount-receive">{amountXEC.toLocaleString('de-DE')}</span>{' '}
                           XEC
