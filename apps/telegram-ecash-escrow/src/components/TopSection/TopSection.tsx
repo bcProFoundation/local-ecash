@@ -47,8 +47,12 @@ const TopSection: React.FC = () => {
                 : 'All the world'}
             </Typography>
           </div>
-          <div onClick={() => setOpen(true)}>
-            {(coin || fiatCurrency) && <Typography>• {coin ?? fiatCurrency} </Typography>}
+          <div onClick={() => setOpen(true)} style={{ display: 'flex', alignItems: 'end', gap: '2px' }}>
+            {coin || fiatCurrency ? (
+              <Typography fontWeight="bold"> {coin ?? fiatCurrency} </Typography>
+            ) : (
+              <Typography fontWeight="bold">Filter</Typography>
+            )}
             <IconButton>
               <FilterAltOutlined />
             </IconButton>

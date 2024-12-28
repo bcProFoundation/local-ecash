@@ -126,6 +126,7 @@ const SendComponent: React.FC<SendComponentProps> = props => {
   const calFee1Percent = useMemo(() => {
     const fee1Percent = parseFloat((Number(amountValue || 0) / 100).toFixed(2));
     const dustXEC = coinInfo[COIN.XEC].dustSats / Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
+
     return Math.max(fee1Percent, dustXEC);
   }, [amountValue]);
 
@@ -217,14 +218,21 @@ const SendComponent: React.FC<SendComponentProps> = props => {
           control={control}
           render={({ field }) => (
             <FormControlLabel
-              control={<Checkbox {...field} checked={field.value} onChange={e => field.onChange(e.target.checked)} />}
-              label="Donate 1% to keep this service running"
+              control={
+                <Checkbox
+                  {...field}
+                  checked={field.value}
+                  onChange={e => field.onChange(e.target.checked)}
+                  style={{ paddingTop: '3px' }}
+                />
+              }
+              label="💙 Donate 1% to keep this service running 💙"
             />
           )}
         />
         {isDonateGNC && (
           <Typography>
-            {calFee1Percent.toLocaleString('de-DE')} {COIN.XEC} will be sent to GNC to maintains this app
+            {calFee1Percent.toLocaleString('de-DE')} {COIN.XEC} will be sent to Local eCash to maintains this app
           </Typography>
         )}
       </div>

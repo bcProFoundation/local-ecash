@@ -110,6 +110,7 @@ export default function Wallet() {
     };
     if (!seedBackupTime || isGreaterThanOneMonth) {
       dispatch(openModal('BackupModal', backupModalProps));
+
       return;
     }
 
