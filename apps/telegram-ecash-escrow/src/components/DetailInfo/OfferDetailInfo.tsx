@@ -1,5 +1,6 @@
 'use client';
 
+import { COIN_OTHERS } from '@/src/store/constants';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { formatNumber } from '@/src/store/util';
 import {
@@ -47,7 +48,6 @@ const OfferDetailWrap = styled('div')(({ theme }) => ({
 
   '.payment-group-btns': {
     display: 'flex',
-    justifyContent: 'space-between',
     flexWrap: 'wrap',
     gap: '10px',
     button: {
@@ -110,6 +110,14 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
     }
   };
 
+  const getCoinCurrency = () => {
+    return (
+      offerData?.localCurrency ??
+      (offerData?.coinPayment?.includes(COIN_OTHERS) ? 'XEC' : offerData?.coinPayment) ??
+      'XEC'
+    );
+  };
+
   return (
     <OfferDetailWrap onClick={() => router.push(`/offer-detail?id=${offerData.postId}`)}>
       <div className="first-line-offer">
@@ -123,7 +131,7 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
           </IconButton>
         )}
       </div>
-      {offerData?.paymentMethods[0]?.paymentMethod?.id !== 5 && (
+      {offerData?.paymentMethods[0]?.paymentMethod?.id !== 5 && !offerData?.coinOthers && (
         <Typography variant="body1">
           <span className="prefix">Price: </span>
           Market price +{offerData?.marginPercentage}%
@@ -131,8 +139,8 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
       )}
       <Typography variant="body1">
         <span className="prefix">Min-max: </span>
-        {formatNumber(offerData?.orderLimitMin)} {offerData?.coinPayment ?? offerData?.localCurrency ?? 'XEC'} - {''}
-        {formatNumber(offerData?.orderLimitMax)} {offerData?.coinPayment ?? offerData?.localCurrency ?? 'XEC'}
+        {formatNumber(offerData?.orderLimitMin)} {getCoinCurrency()} - {''}
+        {formatNumber(offerData?.orderLimitMax)} {getCoinCurrency()}
       </Typography>
       {(stateName || countryName) && (
         <Typography variant="body2">
@@ -156,6 +164,11 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
               </Button>
             );
           })}
+        {offerData?.coinOthers && (
+          <Button size="small" color="success" variant="outlined">
+            {offerData.coinOthers}
+          </Button>
+        )}
         {isShowBuyButton && (
           <BuyButtonStyled variant="contained" onClick={e => handleBuyClick(e)}>
             Buy

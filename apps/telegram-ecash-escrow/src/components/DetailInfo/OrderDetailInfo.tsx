@@ -13,7 +13,7 @@ import {
 import { Button, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const OrderDetailWrap = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -132,6 +132,10 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
     setMarginCurrentPrice(marginMarketPriceAndOrderPrice);
   };
 
+  const showMargin = () => {
+    return order?.paymentMethod?.id !== 5 && !order?.escrowOffer?.coinOthers;
+  };
+
   //get rate data
   useEffect(() => {
     //just set if seller
@@ -145,7 +149,7 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
 
   //convert to XEC
   useEffect(() => {
-    if (order?.paymentMethod.id !== 5) {
+    if (showMargin()) {
       convertXECToAmount();
     }
   }, [rateData]);
@@ -175,14 +179,24 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
         {order?.escrowOffer.message}
       </Typography>
       <Typography variant="body1">
-        <span className="prefix">Ordered by: </span>
-        {order?.buyerAccount.telegramUsername}
+        {order?.sellerAccount.id === selectedAccount?.id && (
+          <React.Fragment>
+            <span className="prefix">Ordered by: </span>
+            {order?.buyerAccount.telegramUsername}
+          </React.Fragment>
+        )}
+        {order?.buyerAccount.id === selectedAccount?.id && (
+          <React.Fragment>
+            <span className="prefix">Offered by: </span>
+            {order?.sellerAccount.telegramUsername}
+          </React.Fragment>
+        )}
       </Typography>
       <Typography variant="body1">
         <span className="prefix">Ordered at: </span>
         {new Date(order?.createdAt).toLocaleString('en-US')}
       </Typography>
-      {order?.paymentMethod?.id !== 5 && (
+      {showMargin() && (
         <Typography variant="body1">
           <span className="prefix">Price: </span>
           {order?.price}
@@ -191,7 +205,7 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
       <Typography variant="body1">
         <span className="prefix">Order amount:</span> {order?.amount} {coinInfo[COIN.XEC].ticker}
       </Typography>
-      {order?.paymentMethod.id !== 5 && (
+      {showMargin() && (
         <Typography variant="body1">
           <span className="prefix">Payment amount:</span> {order?.amountCoinOrCurrency}{' '}
           {order?.escrowOffer?.coinPayment ?? order?.escrowOffer?.localCurrency ?? 'XEC'}
@@ -202,9 +216,14 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
         <Button className="btn-payment" size="small" color="success" variant="outlined">
           {order?.paymentMethod.name}
         </Button>
+        {order?.escrowOffer?.coinOthers && (
+          <Button className="btn-payment" size="small" color="success" variant="outlined">
+            {order.escrowOffer.coinOthers}
+          </Button>
+        )}
       </Typography>
       {selectedWalletPath?.hash160 === order?.sellerAccount?.hash160 &&
-        order?.paymentMethod.id !== 5 &&
+        showMargin() &&
         (order?.escrowOrderStatus === EscrowOrderStatus.Pending ||
           order?.escrowOrderStatus === EscrowOrderStatus.Escrow) && (
           <Typography variant="body1">

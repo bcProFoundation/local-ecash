@@ -2,8 +2,8 @@
 
 import OfferDetailInfo from '@/src/components/DetailInfo/OfferDetailInfo';
 import OrderDetailInfo from '@/src/components/DetailInfo/OrderDetailInfo';
-import MobileLayout from '@/src/components/layout/MobileLayout';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
+import MobileLayout from '@/src/components/layout/MobileLayout';
 import {
   EscrowOrderQueryItem,
   EscrowOrderStatus,
@@ -12,11 +12,11 @@ import {
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
 import { usePostQuery } from '@bcpros/redux-store/build/main/store/post/posts.api';
-import { Backdrop, Button, CircularProgress, Skeleton, Stack, Typography } from '@mui/material';
+import { Button, CircularProgress, Skeleton, Stack, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import _ from 'lodash';
 import { useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 
 const OfferDetailPage = styled('div')(({ theme }) => ({
@@ -55,7 +55,7 @@ const OfferDetail = () => {
 
   const [orderStatus, setOrderStatus] = useState<EscrowOrderStatus>(EscrowOrderStatus.Pending);
 
-  const { isLoading, currentData, isError, isUninitialized } = usePostQuery({ id: id! }, { skip: !id });
+  const { currentData, isError } = usePostQuery({ id: id! }, { skip: !id });
   const {
     data: escrowOrdersData,
     hasNext: hasNextEscrowOrders,
@@ -152,21 +152,22 @@ const OfferDetail = () => {
 
   return (
     <MobileLayout>
-      {(isLoading || isUninitialized) && (
-        <Backdrop sx={theme => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })} open={true}>
-          <CircularProgress color="inherit" />
-        </Backdrop>
-      )}
       <OfferDetailPage>
         <TickerHeader title="Offer Detail" />
-        {currentData?.post?.postOffer && (
-          <OfferDetailInfo
-            post={currentData?.post}
-            isShowBuyButton={currentData && currentData?.post?.accountId === selectedAccount?.id ? false : true}
-            isItemTimeline={false}
-          />
+        {currentData?.post?.postOffer ? (
+          <React.Fragment>
+            <OfferDetailInfo
+              post={currentData?.post}
+              isShowBuyButton={currentData && currentData?.post?.accountId === selectedAccount?.id ? false : true}
+              isItemTimeline={false}
+            />
+            {ListButtonComponent()}
+          </React.Fragment>
+        ) : (
+          <div style={{ display: 'flex', justifyContent: 'center', height: '100vh' }}>
+            <CircularProgress style={{ color: 'white', margin: 'auto' }} />
+          </div>
         )}
-        {ListButtonComponent()}
       </OfferDetailPage>
     </MobileLayout>
   );

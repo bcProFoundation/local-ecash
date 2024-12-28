@@ -1,6 +1,6 @@
 'use client';
 
-import { LIST_COIN } from '@/src/store/constants';
+import { COIN_OTHERS, LIST_COIN } from '@/src/store/constants';
 import { LIST_CURRENCIES_USED } from '@bcpros/lixi-models';
 import {
   Location,
@@ -448,6 +448,9 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
                               </option>
                             );
                           })}
+                          <option key="Others" value={COIN_OTHERS}>
+                            {COIN_OTHERS}
+                          </option>
                         </NativeSelect>
                         {errors && errors?.coin && (
                           <FormHelperText error={true}>{errors.coin.message as string}</FormHelperText>

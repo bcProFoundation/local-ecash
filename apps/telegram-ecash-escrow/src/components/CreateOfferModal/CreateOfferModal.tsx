@@ -1,6 +1,6 @@
 'use client';
 
-import { LIST_COIN } from '@/src/store/constants';
+import { COIN_OTHERS, LIST_COIN } from '@/src/store/constants';
 import { LIST_CURRENCIES_USED, Location } from '@bcpros/lixi-models';
 import {
   Coin,
@@ -42,7 +42,7 @@ import {
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { TransitionProps } from '@mui/material/transitions';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import FilterListLocationModal from '../FilterList/FilterListLocationModal';
 import FilterListModal from '../FilterList/FilterListModal';
@@ -169,7 +169,7 @@ const PercentInputWrap = styled('div')(({ theme }) => ({
   }
 }));
 
-const OrderLimitWrap = styled('div')(() => ({
+const OrderLimitWrap = styled('div')(({ theme }) => ({
   paddingLeft: '16px',
   paddingTop: '16px',
 
@@ -177,7 +177,11 @@ const OrderLimitWrap = styled('div')(() => ({
     display: 'grid',
     gridTemplateColumns: '1fr max-content 1fr',
     gap: '16px',
-    alignItems: 'baseline'
+    alignItems: 'baseline',
+
+    '.label-to': {
+      color: theme.custom.colorItem
+    }
   }
 }));
 
@@ -221,6 +225,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   const [openStateList, setOpenStateList] = useState(false);
   const [openCityList, setOpenCityList] = useState(false);
 
+  const dialogContentRef = useRef<HTMLDivElement>(null);
+
   const {
     handleSubmit,
     control,
@@ -237,7 +243,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       max: `${offer?.orderLimitMax ?? ''}`,
       option: offer?.paymentMethods[0]?.paymentMethod.id ?? '',
       currency: null,
-      coin: null,
+      coin: offer?.coinPayment ?? null,
+      coinOthers: offer?.coinOthers ?? '',
       percentage: offer?.marginPercentage ?? 0,
       note: offer?.noteOffer ?? '',
       country: null,
@@ -268,6 +275,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       noteOffer: data.note,
       paymentMethodIds: [option],
       coinPayment: data?.coin ? data.coin.split(':')[0] : null,
+      coinOthers: data?.coinOthers ? data.coinOthers : null,
       localCurrency: data?.currency ? data.currency.split(':')[0] : null,
       marginPercentage: Number(data?.percentage ?? 0),
       orderLimitMin: minNum,
@@ -321,6 +329,10 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
 
   const handleCloseModal = () => {
     dispatch(closeModal());
+  };
+
+  const showMargin = () => {
+    return option !== 5 && !coinValue?.includes(COIN_OTHERS);
   };
 
   const marginComponent = (
@@ -533,6 +545,9 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                           </option>
                         );
                       })}
+                      <option key="Others" value={`${COIN_OTHERS}:0`}>
+                        {COIN_OTHERS}
+                      </option>
                     </NativeSelect>
                     {errors && errors?.coin && (
                       <FormHelperText error={true}>{errors.coin.message as string}</FormHelperText>
@@ -541,6 +556,41 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                 )}
               />
             </Grid>
+
+            {coinValue?.includes(COIN_OTHERS) && (
+              <Grid item xs={4}>
+                <Controller
+                  name="coinOthers"
+                  control={control}
+                  rules={{
+                    required: {
+                      value: true,
+                      message: 'Coin others is required!'
+                    }
+                  }}
+                  render={({ field: { onChange, onBlur, value, name, ref } }) => (
+                    <FormControl fullWidth={true}>
+                      <TextField
+                        className="form-input"
+                        onChange={onChange}
+                        onBlur={onBlur}
+                        value={value}
+                        name={name}
+                        inputRef={ref}
+                        id="coinOthers"
+                        label="Coin Others"
+                        error={errors.coinOthers && true}
+                        helperText={errors.coinOthers && (errors.coinOthers?.message as string)}
+                        variant="standard"
+                        inputProps={{
+                          maxLength: 12
+                        }}
+                      />
+                    </FormControl>
+                  )}
+                />
+              </Grid>
+            )}
           </>
         )}
         {option === 1 && (
@@ -705,6 +755,23 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
     </div>
   );
 
+  const placeholderOfferNote = () => {
+    switch (option) {
+      case 1:
+        return 'A public note attached to your offer. For example: "Exchanging XEC to cash, only meeting in public places at daytime!"';
+      case 2:
+        return 'A public note attached to your offer. For example: "Bank transfer in Vietnam only. Available from 9AM to 5PM workdays."';
+      case 3:
+        return 'A public note attached to your offer. For example: "Bank transfer in Vietnam only. Available from 9AM to 5PM workdays."';
+      case 4:
+        return 'A public note attached to your offer. For example: "Accepting USDT on TRX and ETH network."';
+      case 5:
+        return 'A public note attached to your offer. For example: "Exchanging XEC for a logo design. Send your proposal along with a proposed price.';
+      default:
+        return 'Input offer note';
+    }
+  };
+
   const stepContent2 = (
     <div className="container-step2">
       <Grid container spacing={2}>
@@ -737,7 +804,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
             )}
           />
         </Grid>
-        {option !== 5 && marginComponent}
+        {showMargin() && marginComponent}
         <OrderLimitWrap>
           <Typography variant="body2" className="label">
             {`Order limit (${coinCurrency})`}
@@ -782,7 +849,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                 </FormControl>
               )}
             />
-            <Typography variant="h6" style={{ color: 'white' }}>
+            <Typography variant="h6" className="label-to">
               to
             </Typography>
             <Controller
@@ -841,16 +908,20 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                   style={{ marginTop: '16px' }}
                   className="form-input"
                   onChange={onChange}
-                  onBlur={onBlur}
+                  onBlur={() => {
+                    dialogContentRef.current.style.paddingBottom = '20px';
+                    onBlur;
+                  }}
                   value={value}
                   name={name}
                   inputRef={ref}
                   id="note"
-                  placeholder="Input offer note..."
+                  placeholder={placeholderOfferNote()}
                   variant="filled"
                   multiline
                   minRows={3}
                   maxRows={10}
+                  onFocus={() => (dialogContentRef.current.style.paddingBottom = '40vh')}
                 />
               </FormControl>
             )}
@@ -903,7 +974,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
             <span className="prefix">Headline: </span> {getValues('message')}
           </Typography>
         </Grid>
-        {option !== 5 && (
+        {showMargin() && (
           <Grid item xs={12}>
             <Typography variant="body1">
               <span className="prefix">Price: </span> {percentageValue}% on top of market price
@@ -969,7 +1040,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   useEffect(() => {
     const currency = currencyValue?.split(':')[0];
     const coin = coinValue?.split(':')[0];
-    setCoinCurrency(currency ?? coin ?? 'XEC');
+
+    setCoinCurrency(currency ?? (coin?.includes(COIN_OTHERS) ? 'XEC' : coin) ?? 'XEC');
   }, [currencyValue, coinValue]);
 
   return (
@@ -988,7 +1060,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       <IconButton className="back-btn" onClick={() => handleCloseModal()}>
         <Close />
       </IconButton>
-      <DialogContent>{stepContents[`stepContent${activeStep}`]}</DialogContent>
+      <DialogContent ref={dialogContentRef}>{stepContents[`stepContent${activeStep}`]}</DialogContent>
       <DialogActions>
         <Button
           variant="contained"

@@ -27,7 +27,6 @@ import {
 } from '@bcpros/redux-store';
 import { ChevronLeft } from '@mui/icons-material';
 import {
-  Backdrop,
   Button,
   CircularProgress,
   Dialog,
@@ -211,12 +210,7 @@ export default function DisputeDetail() {
   const { useDisputeQuery } = disputeApi;
   const { useEscrowOrderQuery, useUpdateEscrowOrderStatusMutation, useLazyArbiRequestTelegramChatQuery } =
     escrowOrderApi;
-  const {
-    isLoading: isLoadingDispute,
-    currentData: disputeQueryData,
-    isUninitialized: isUninitializedDispute,
-    isError
-  } = useDisputeQuery({ id: id! }, { skip: !id || !token });
+  const { currentData: disputeQueryData, isError } = useDisputeQuery({ id: id! }, { skip: !id || !token });
   const { currentData: escrowOrderQueryData, isSuccess: isEscrowOrderSuccess } = useEscrowOrderQuery(
     { id: disputeQueryData?.dispute.escrowOrder.id },
     { skip: !disputeQueryData?.dispute.escrowOrder.id }
@@ -403,13 +397,8 @@ export default function DisputeDetail() {
 
   return (
     <MobileLayout>
-      {(isLoadingDispute || isUninitializedDispute) && (
-        <Backdrop sx={theme => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })} open={true}>
-          <CircularProgress color="inherit" />
-        </Backdrop>
-      )}
       <TickerHeader title="Dispute detail" />
-      {disputeQueryData?.dispute && (
+      {disputeQueryData?.dispute ? (
         <ResolveDisputeWrap>
           <DisputeDetailInfoWrap>
             <Typography variant="body1">
@@ -458,12 +447,12 @@ export default function DisputeDetail() {
               {escrowOrder?.amount} {COIN.XEC}
             </Typography>
             <Typography variant="body1" className="amount-seller">
-              <span className="prefix">Dispute fee by seller: </span>
+              <span className="prefix">Security fee by seller: </span>
               {calDisputeFee(escrowOrder?.amount)} {COIN.XEC}
             </Typography>
             {escrowOrder?.buyerDepositTx && (
               <Typography variant="body1" className="amount-buyer">
-                <span className="prefix">Dispute fee by buyer: </span>
+                <span className="prefix">Security fee by buyer: </span>
                 {calDisputeFee(escrowOrder?.amount)} {COIN.XEC}
               </Typography>
             )}
@@ -505,6 +494,10 @@ export default function DisputeDetail() {
             {escrowOrder?.dispute.status === DisputeStatus.Resolved ? 'The dispute has been resolved' : 'Resolve'}
           </Button>
         </ResolveDisputeWrap>
+      ) : (
+        <div style={{ display: 'flex', justifyContent: 'center', height: '100vh' }}>
+          <CircularProgress style={{ color: 'white', margin: 'auto' }} />
+        </div>
       )}
 
       <StyledReleaseDialog
@@ -562,7 +555,7 @@ export default function DisputeDetail() {
                     Release to Buyer
                   </Button>
                   <Typography className="disclaim-buyer" textAlign="center" variant="body2">
-                    *You will collect {calDisputeFee(escrowOrder?.amount)} {COIN.XEC} (dispute fees) from seller
+                    *You will collect {calDisputeFee(escrowOrder?.amount)} {COIN.XEC} (security fee) from seller
                   </Typography>
                 </div>
               </TabPanel>
@@ -590,7 +583,7 @@ export default function DisputeDetail() {
                     Return to Seller
                   </Button>
                   <Typography className="disclaim-seller" textAlign="center" variant="body2">
-                    *You will collect {calDisputeFee(escrowOrder?.amount)} {COIN.XEC} (dispute fees) from{' '}
+                    *You will collect {calDisputeFee(escrowOrder?.amount)} {COIN.XEC} (security fee) from{' '}
                     {escrowOrder?.buyerDepositTx ? 'buyer' : 'seller'}
                   </Typography>
                 </div>

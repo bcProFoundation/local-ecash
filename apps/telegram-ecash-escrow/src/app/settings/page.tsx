@@ -1,5 +1,4 @@
 'use client';
-import Footer from '@/src/components/Footer/Footer';
 import CustomToast from '@/src/components/Toast/CustomToast';
 import MobileLayout from '@/src/components/layout/MobileLayout';
 import {
@@ -282,7 +281,6 @@ export default function Setting() {
           type="info"
         />
       </ContainerSetting>
-      <Footer />
     </MobileLayout>
   );
 }
