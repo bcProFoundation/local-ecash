@@ -54,6 +54,10 @@ const PopoverStyled = styled('div')(({ theme }) => ({
   '.no-border-btn': {
     padding: 0,
     minWidth: 0
+  },
+
+  button: {
+    color: theme.palette.text.secondary
   }
 }));
 

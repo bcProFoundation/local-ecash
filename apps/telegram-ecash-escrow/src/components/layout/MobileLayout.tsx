@@ -15,7 +15,7 @@ const WrapMobile = styled('div')(({ theme }) => ({
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
-  background: 'linear-gradient(to right, #0f2027, #203a43, #2c5364)'
+  background: theme.custom.bgMain
 }));
 
 const Content = styled('div')(({ theme }) => ({

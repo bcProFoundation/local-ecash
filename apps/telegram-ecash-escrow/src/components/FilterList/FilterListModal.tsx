@@ -53,6 +53,10 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
 
   '.MuiDialogContent-root': {
     padding: 0
+  },
+
+  button: {
+    color: theme.palette.text.secondary
   }
 }));
 

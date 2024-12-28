@@ -92,6 +92,11 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
     }
   },
 
+  button: {
+    color: theme.palette.text.secondary,
+    borderColor: '#adafb3'
+  },
+
   '.close-btn': {
     padding: '6px',
     position: 'absolute',

@@ -3,10 +3,14 @@ import Footer from '@/src/components/Footer/Footer';
 import CustomToast from '@/src/components/Toast/CustomToast';
 import MobileLayout from '@/src/components/layout/MobileLayout';
 import {
+  getCurrentThemes,
+  getIsSystemThemes,
   getSelectedAccount,
   getSelectedWalletPath,
   getWalletMnemonic,
   removeAllWallets,
+  setCurrentThemes,
+  setIsSystemThemes,
   useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
@@ -19,6 +23,7 @@ import {
   Alert,
   Backdrop,
   Button,
+  NativeSelect,
   Stack,
   Typography
 } from '@mui/material';
@@ -71,7 +76,6 @@ const ContainerSetting = styled('div')(({ theme }) => ({
       alignItems: 'center',
       gap: '10px',
       '.mnemonic': {
-        // color: '#edeff099',
         textAlign: 'center'
       }
     }
@@ -84,8 +88,28 @@ export default function Setting() {
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
   const selectedMnemonic = useLixiSliceSelector(getWalletMnemonic);
   const selectedAccount = useLixiSliceSelector(getSelectedAccount);
+  const isSystemTheme = useLixiSliceSelector(getIsSystemThemes);
+  const currentTheme = useLixiSliceSelector(getCurrentThemes);
 
   const [openToastCopySuccess, setOpenToastCopySuccess] = useState(false);
+
+  const themeOptions = [
+    {
+      id: 1,
+      value: 'dark',
+      label: 'Dark'
+    },
+    {
+      id: 2,
+      value: 'light',
+      label: 'Light'
+    },
+    {
+      id: 3,
+      value: 'system',
+      label: 'System default'
+    }
+  ];
 
   const handleOnCopy = () => {
     setOpenToastCopySuccess(true);
@@ -94,6 +118,15 @@ export default function Setting() {
   const handleSignOut = () => {
     dispatch(removeAllWallets());
     signOut({ redirect: true, callbackUrl: '/' });
+  };
+
+  const handleChangeTheme = selectedTheme => {
+    if (selectedTheme === 'system') {
+      dispatch(setIsSystemThemes(true));
+    } else {
+      dispatch(setCurrentThemes(selectedTheme));
+      dispatch(setIsSystemThemes(false));
+    }
   };
 
   if (selectedWalletPath === null && sessionData) {
@@ -204,6 +237,26 @@ export default function Setting() {
                 </Button>
               </AccordionDetails>
             </Accordion>
+          </div>
+
+          <div className="setting-item">
+            <Typography variant="subtitle1" className="title">
+              Themes
+            </Typography>
+            <NativeSelect
+              fullWidth
+              id="select-theme"
+              defaultValue={isSystemTheme ? 'system' : currentTheme}
+              onChange={e => handleChangeTheme(e.target.value)}
+            >
+              {themeOptions.map(item => {
+                return (
+                  <option key={item.id} value={item.value}>
+                    {item.label}
+                  </option>
+                );
+              })}
+            </NativeSelect>
           </div>
 
           {/*TODO: delete account*/}

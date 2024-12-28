@@ -6,20 +6,24 @@ import { createTheme } from '@mui/material/styles';
 declare module '@mui/material/styles' {
   interface Theme {
     custom: {
+      bgMain: string;
       bgItem: string;
       bgItem2: string;
       bgItem3: string;
       bgItem4: string;
+      bgItem5: string;
       colorItem: string;
     };
   }
 
   interface ThemeOptions {
     custom?: {
+      bgMain?: string;
       bgItem?: string;
       bgItem2?: string;
       bgItem3?: string;
       bgItem4?: string;
+      bgItem5?: string;
       colorItem?: string;
     };
   }
@@ -39,17 +43,20 @@ export const darkTheme = createTheme({
       paper: '#2f2f2f' // White background for paper elements
     },
     text: {
-      primary: '#fff'
+      primary: '#fff',
+      secondary: '#fff'
     },
     grey: {
       '300': '#f1f1f147'
     }
   },
   custom: {
+    bgMain: 'linear-gradient(to right, #0f2027, #203a43, #2c5364)',
     bgItem: 'rgba(255, 255, 255, 0.08)',
     bgItem2: '#121212',
     bgItem3: 'rgba(255, 255, 255, 0.08)',
     bgItem4: 'rgba(255, 255, 255, 0.1)',
+    bgItem5: '#2c2c2c',
     colorItem: '#fff'
   },
   typography: {
@@ -132,10 +139,12 @@ export const lightTheme = createTheme({
     }
   },
   custom: {
+    bgMain: 'linear-gradient(to right, #026693, #357591, #026693)',
     bgItem: '#e9e9ea',
     bgItem2: '#8d8d8d',
     bgItem3: '#fff',
     bgItem4: '#fff',
+    bgItem5: '#e9e9ea',
     colorItem: '#000'
   },
   typography: {
@@ -188,8 +197,7 @@ export const lightTheme = createTheme({
       styleOverrides: {
         root: {
           fontWeight: 600,
-          borderRadius: '8px',
-          borderColor: '#adafb3'
+          borderRadius: '8px'
         }
       }
     }
