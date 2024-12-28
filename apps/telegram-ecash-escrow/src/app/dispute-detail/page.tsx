@@ -446,12 +446,12 @@ export default function DisputeDetail() {
               {escrowOrder?.amount} {COIN.XEC}
             </Typography>
             <Typography variant="body1" className="amount-seller">
-              <span className="prefix">Dispute fee by seller: </span>
+              <span className="prefix">Security fee by seller: </span>
               {calDisputeFee(escrowOrder?.amount)} {COIN.XEC}
             </Typography>
             {escrowOrder?.buyerDepositTx && (
               <Typography variant="body1" className="amount-buyer">
-                <span className="prefix">Dispute fee by buyer: </span>
+                <span className="prefix">Security fee by buyer: </span>
                 {calDisputeFee(escrowOrder?.amount)} {COIN.XEC}
               </Typography>
             )}
@@ -554,7 +554,7 @@ export default function DisputeDetail() {
                     Release to Buyer
                   </Button>
                   <Typography className="disclaim-buyer" textAlign="center" variant="body2">
-                    *You will collect {calDisputeFee(escrowOrder?.amount)} {COIN.XEC} (dispute fees) from seller
+                    *You will collect {calDisputeFee(escrowOrder?.amount)} {COIN.XEC} (security fee) from seller
                   </Typography>
                 </div>
               </TabPanel>
@@ -582,7 +582,7 @@ export default function DisputeDetail() {
                     Return to Seller
                   </Button>
                   <Typography className="disclaim-seller" textAlign="center" variant="body2">
-                    *You will collect {calDisputeFee(escrowOrder?.amount)} {COIN.XEC} (dispute fees) from{' '}
+                    *You will collect {calDisputeFee(escrowOrder?.amount)} {COIN.XEC} (security fee) from{' '}
                     {escrowOrder?.buyerDepositTx ? 'buyer' : 'seller'}
                   </Typography>
                 </div>
