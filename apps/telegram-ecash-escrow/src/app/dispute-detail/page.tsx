@@ -26,14 +26,17 @@ import {
   WalletContextNode
 } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
-import { ChevronLeft } from '@mui/icons-material';
+import { ChevronLeft, InfoOutlined } from '@mui/icons-material';
 import {
+  Alert,
+  AlertTitle,
   Button,
   CircularProgress,
   Dialog,
   DialogContent,
   DialogTitle,
   IconButton,
+  Link,
   Slide,
   Stack,
   Tab,
@@ -416,7 +419,7 @@ export default function DisputeDetail() {
             </Typography>
             <Typography variant="body1">
               <span className="prefix">Created At: </span>
-              {new Date(escrowOrder?.createdAt).toLocaleString('en-US')}
+              {new Date(escrowOrder?.createdAt).toLocaleString('vi-VN')}
             </Typography>
             <Typography variant="body1">
               <span className="prefix">Seller: </span>
@@ -456,6 +459,42 @@ export default function DisputeDetail() {
               </Typography>
             )}
           </DisputeDetailInfoWrap>
+          {escrowOrder?.dispute.status === DisputeStatus.Resolved ? (
+            <Alert icon={<InfoOutlined fontSize="inherit" />} severity="info" sx={{ borderRadius: '8px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <AlertTitle>
+                  <b>Resolved at: {new Date(escrowOrder?.updatedAt).toLocaleString('vi-VN')}</b>
+                </AlertTitle>
+                <b style={{ fontSize: '15px' }}>
+                  {escrowOrder?.escrowOrderStatus === EscrowOrderStatus.Complete
+                    ? 'The fund have been forwarded to the buyer. '
+                    : 'The fund have been returned to the seller. '}
+                </b>
+                <br />
+                <Link
+                  target="_blank"
+                  rel="noopener"
+                  href={
+                    escrowOrder?.releaseTxid
+                      ? `${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${escrowOrder?.releaseTxid}`
+                      : `${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${escrowOrder?.returnTxid}`
+                  }
+                >
+                  <b>View Transaction</b>
+                </Link>
+              </div>
+            </Alert>
+          ) : (
+            <Button
+              className="resolve-btn"
+              color="primary"
+              variant="contained"
+              fullWidth
+              onClick={() => setOpenReleaseModal(true)}
+            >
+              Resolve
+            </Button>
+          )}
           <div className="group-btn-chat">
             <Button
               className="chat-btn"
@@ -482,16 +521,6 @@ export default function DisputeDetail() {
               <Image width={32} height={32} alt="" src={'/ico-telegram.svg'} />
             </Button>
           </div>
-          <Button
-            className="resolve-btn"
-            color="primary"
-            variant="contained"
-            fullWidth
-            onClick={() => setOpenReleaseModal(true)}
-            disabled={escrowOrder?.dispute.status === DisputeStatus.Resolved}
-          >
-            {escrowOrder?.dispute.status === DisputeStatus.Resolved ? 'The dispute has been resolved' : 'Resolve'}
-          </Button>
         </ResolveDisputeWrap>
       ) : (
         <div style={{ display: 'flex', justifyContent: 'center', height: '100vh' }}>

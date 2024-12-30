@@ -197,7 +197,7 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
       </Typography>
       <Typography variant="body1">
         <span className="prefix">Ordered at: </span>
-        {new Date(order?.createdAt).toLocaleString('en-US')}
+        {new Date(order?.createdAt).toLocaleString('vi-VN')}
       </Typography>
       {showMargin() && (
         <Typography variant="body1">

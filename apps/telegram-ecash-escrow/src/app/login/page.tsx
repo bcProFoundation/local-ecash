@@ -65,6 +65,7 @@ const WrapLoginPage = styled.div`
   margin-top: 40%;
   padding: 20px;
   border-radius: 25px;
+  text-align: center;
 `;
 
 export default function Login() {
@@ -121,8 +122,12 @@ export default function Login() {
   return (
     <MobileLayout>
       <WrapLoginPage>
-        <Typography variant="h5">Welcome to Local eCash</Typography>
-        <h2 style={{ color: 'white' }}>Please login to continue</h2>
+        <Typography variant="h4" fontWeight="bold">
+          Welcome to Local eCash
+        </Typography>
+        <Typography style={{ color: 'white', marginTop: 10, marginBottom: 10 }} variant="h5">
+          Please login to continue
+        </Typography>
         <LoginButton
           botUsername={process.env.NEXT_PUBLIC_BOT_USERNAME!}
           onAuthCallback={async (data: TelegramAuthData) => {

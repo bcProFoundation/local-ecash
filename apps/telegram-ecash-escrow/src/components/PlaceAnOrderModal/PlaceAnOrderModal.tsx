@@ -289,11 +289,11 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
 
   const { currentData: moderatorCurrentData, isError: moderatorIsError } = useGetModeratorAccountQuery(
     {},
-    { skip: !data }
+    { skip: !data, refetchOnMountOrArgChange: true }
   );
   const { currentData: arbitratorCurrentData, isError: arbitratorIsError } = useGetRandomArbitratorAccountQuery(
     {},
-    { skip: !data }
+    { skip: !data, refetchOnMountOrArgChange: true }
   );
 
   const { useGetFiatRateQuery } = fiatCurrencyApi;
@@ -555,7 +555,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
         <Typography className="offer-info" variant="body2">
           <span>{`Offer Id: ${post.id}`}</span>
           <br />
-          <span>{`By: ${post.account.telegramUsername} • posted on: ${new Date(post.createdAt).toLocaleString()}`}</span>
+          <span>{`By: ${post.account.telegramUsername} • posted on: ${new Date(post.createdAt).toLocaleString('vi-VN')}`}</span>
         </Typography>
         <DialogContent>
           <PlaceAnOrderWrap>
@@ -648,6 +648,8 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                       label="Message"
                       variant="outlined"
                       error={errors.message ? true : false}
+                      multiline={true}
+                      maxRows={2}
                       placeholder="Private message to the seller. E.g. I want to buy XEC via bank transfer."
                       helperText={
                         errors.message
