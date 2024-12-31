@@ -25,12 +25,12 @@ import {
   userSubcribeEscrowOrderChannel,
   WalletContextNode
 } from '@bcpros/redux-store';
-import styled from '@emotion/styled';
 import CheckIcon from '@mui/icons-material/Check';
 import ClearIcon from '@mui/icons-material/Clear';
 import HorizontalRuleIcon from '@mui/icons-material/HorizontalRule';
 import TrendingFlatIcon from '@mui/icons-material/TrendingFlat';
 import { Button, CircularProgress, Stack, Typography } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import { fromHex, Script, shaRmd160, Tx } from 'ecash-lib';
 import cashaddr from 'ecashaddrjs';
 import _ from 'lodash';
@@ -38,39 +38,43 @@ import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useContext, useEffect, useMemo, useState } from 'react';
 
-const OrderDetailPage = styled.div`
-  min-height: 100vh;
-  background-image: url('/bg-dialog.svg');
-  background-repeat: no-repeat;
-  background-size: cover;
-`;
+const OrderDetailPage = styled('div')(({ theme }) => ({
+  minHeight: '100vh',
+  background: theme.palette.background.default,
+  backgroundRepeat: 'no-repeat',
+  backgroundSize: 'cover',
 
-const OrderDetailContent = styled.div`
-  padding: 0 16px;
+  '.icon-rule': {
+    color: theme.custom.colorItem
+  }
+}));
 
-  .group-button-wrap {
-    width: 100%;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    padding-bottom: 16px;
+const OrderDetailContent = styled('div')(({ theme }) => ({
+  padding: '0 16px',
 
-    button {
-      text-transform: none;
-      color: white;
+  '.group-button-wrap': {
+    width: '100%',
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, 1fr)',
+    gap: '16px',
+    borderBottom: `1px solid rgba(255, 255, 255, 0.2)`,
+    paddingBottom: '16px',
+
+    button: {
+      textTransform: 'none',
+      color: theme.palette.common.white
     }
   }
-`;
+}));
 
-const ActionStatusRelease = styled.div`
-  .MuiFormGroup-root {
-    margin-bottom: 5px;
+const ActionStatusRelease = styled('div')(() => ({
+  '.MuiFormGroup-root': {
+    marginBottom: '5px'
+  },
+  '.MuiFormControl-root': {
+    marginBottom: '5px'
   }
-  .MuiFormControl-root {
-    margin-bottom: 5px;
-  }
-`;
+}));
 
 const OrderDetail = () => {
   const dispatch = useLixiSliceDispatch();
@@ -369,11 +373,11 @@ const OrderDetail = () => {
           <Stack direction="row" spacing={2} justifyContent="center" margin="20px">
             <Image width={50} height={50} src="/safebox-open.svg" alt="" />
             <Stack direction="row" spacing={0} justifyContent="center" color="white" alignItems="center">
-              <HorizontalRuleIcon />
-              <HorizontalRuleIcon />
+              <HorizontalRuleIcon className="icon-rule" />
+              <HorizontalRuleIcon className="icon-rule" />
               <ClearIcon color="error" />
-              <HorizontalRuleIcon />
-              <TrendingFlatIcon />
+              <HorizontalRuleIcon className="icon-rule" />
+              <TrendingFlatIcon className="icon-rule" />
             </Stack>
             <Image width={50} height={50} src="/safebox-close.svg" alt="" />
           </Stack>
@@ -586,23 +590,23 @@ const OrderDetail = () => {
     return (
       <div style={{ color: 'white' }}>
         {currentData?.escrowOrder.buyerDepositTx && (
-          <p style={{ fontWeight: 'bold' }}>
+          <Typography style={{ fontWeight: 'bold' }}>
             *Buyer deposited the fee ({calDisputeFee} {COIN.XEC})
-          </p>
+          </Typography>
         )}
-        <p>
+        <Typography>
           Your wallet: {totalBalanceFormat} {COIN.XEC}
-        </p>
-        <p>
+        </Typography>
+        <Typography>
           Security fee (1%): {fee1Percent.toLocaleString('de-DE')} {COIN.XEC}
-        </p>
-        <p>
+        </Typography>
+        <Typography>
           Withdraw fee: {estimatedFee(currentData?.escrowOrder.escrowScript).toLocaleString('de-DE')} {COIN.XEC}
-        </p>
-        <p style={{ fontWeight: 'bold' }}>
+        </Typography>
+        <Typography style={{ fontWeight: 'bold' }}>
           Total: {totalAmountWithDepositAndEscrowFee().toLocaleString('de-DE')} {COIN.XEC}
           <span style={{ fontSize: '14px', color: 'gray' }}> (Excluding miner&apos;s fees)</span>
-        </p>
+        </Typography>
       </div>
     );
   };

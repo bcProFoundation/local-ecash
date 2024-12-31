@@ -12,41 +12,41 @@ import {
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
 import { usePostQuery } from '@bcpros/redux-store/build/main/store/post/posts.api';
-import styled from '@emotion/styled';
 import { Button, CircularProgress, Skeleton, Stack, Typography } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import _ from 'lodash';
 import { useSearchParams } from 'next/navigation';
 import React, { useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 
-const OfferDetailPage = styled.div`
-  min-height: 100vh;
-  background-image: url('/bg-dialog.svg');
-  background-repeat: no-repeat;
-  background-size: cover;
+const OfferDetailPage = styled('div')(({ theme }) => ({
+  minHeight: '100vh',
+  background: theme.palette.background.default,
+  backgroundRepeat: 'no-repeat',
+  backgroundSize: 'cover',
 
-  .list-item {
-    .group-btn-order {
-      border-bottom: 2px dashed rgba(255, 255, 255, 0.3);
-      padding-bottom: 16px;
-      margin: 10px 5px;
-    }
+  '.list-item': {
+    '.group-btn-order': {
+      borderBottom: `2px dashed ${theme.custom.borderColor}`,
+      paddingBottom: '16px',
+      margin: '10px 5px'
+    },
 
-    .infinite-scroll-component {
-      padding: 16px;
-    }
+    '.infinite-scroll-component': {
+      padding: '16px'
+    },
 
-    .btn-timeline {
-      color: white !important;
-      text-transform: math-auto;
-      border-color: rgba(255, 255, 255, 0.2);
-    }
-    .active {
-      border: 1px solid rgba(255, 255, 255, 1);
+    '.btn-timeline': {
+      color: `${theme.palette.common.white} !important`,
+      textTransform: 'none',
+      borderColor: 'rgba(255, 255, 255, 0.2)'
+    },
+
+    '.active': {
+      border: '1px solid rgba(255, 255, 255, 1)'
     }
   }
-`;
-
+}));
 const OfferDetail = () => {
   const token = sessionStorage.getItem('Authorization');
   const search = useSearchParams();

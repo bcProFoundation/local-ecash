@@ -54,3 +54,9 @@ export const LIST_COIN = [
     fixAmount: 100
   }
 ];
+
+export const THEMES_TYPE = {
+  LIGHT: 'light',
+  DARK: 'dark',
+  SYSTEM: 'system'
+};

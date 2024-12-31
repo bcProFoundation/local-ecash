@@ -7,7 +7,6 @@ import {
   parseCashAddressToPrefix,
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
-import styled from '@emotion/styled';
 import { ChevronLeft } from '@mui/icons-material';
 import {
   Button,
@@ -23,70 +22,71 @@ import {
   Slide,
   Typography
 } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import { TransitionProps } from '@mui/material/transitions';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
-const StyledDialog = styled(Dialog)`
-  .MuiPaper-root {
-    background-image: url('/bg-dialog.svg');
-    background-repeat: no-repeat;
-    background-size: cover;
-    width: 500px;
-    box-sizing: border-box;
-    padding: 16px;
-    margin: 0;
-    @media (max-width: 576px) {
-      width: 100%;
+const StyledDialog = styled(Dialog)(({ theme }) => ({
+  '.MuiPaper-root': {
+    background: theme.palette.background.default,
+    backgroundRepeat: 'no-repeat',
+    backgroundSize: 'cover',
+    width: '500px',
+    boxSizing: 'border-box',
+    padding: '16px',
+    margin: 0,
+    '@media (max-width: 576px)': {
+      width: '100%'
+    }
+  },
+
+  '.MuiDialogTitle-root': {
+    padding: '0 16px',
+    paddingTop: '16px',
+    fontSize: '26px',
+    textAlign: 'center'
+  },
+
+  '.MuiFormControl-root': {
+    marginTop: '5px'
+  },
+
+  '.MuiDialogContent-root': {
+    padding: 0
+  },
+
+  '.confirm-btn': {
+    width: '100%',
+    color: '#fff'
+  },
+
+  '.back-btn': {
+    padding: 0,
+    position: 'absolute',
+    left: '8px',
+    top: '20px',
+    borderRadius: '12px',
+
+    svg: {
+      fontSize: '32px'
     }
   }
+}));
 
-  .MuiDialogTitle-root {
-    padding: 0 16px 16px 16px;
-    font-size: 26px;
-    text-align: center;
+const ActionStatusRelease = styled('div')(({ theme }) => ({
+  '.verified-container': {
+    display: 'flex',
+    gap: '10px',
+    alignItems: 'flex-start'
+  },
+  '.MuiFormGroup-root': {
+    marginBottom: '5px'
+  },
+  '.MuiFormControl-root': {
+    marginBottom: '5px'
   }
-
-  .MuiFormControl-root {
-    margin-top: 5px;
-  }
-
-  .MuiDialogContent-root {
-    padding: 0;
-  }
-
-  .create-dispute-btn {
-    width: 100%;
-    color: #fff;
-  }
-
-  .back-btn {
-    padding: 0;
-    position: absolute;
-    left: 8px;
-    top: 20px;
-    border-radius: 12px;
-
-    svg {
-      font-size: 32px;
-    }
-  }
-`;
-
-const ActionStatusRelease = styled.div`
-  .verified-container {
-    display: flex;
-    gap: 10px;
-    align-items: flex-start;
-  }
-
-  .MuiFormGroup-root {
-    margin-bottom: 5px;
-  }
-  .MuiFormControl-root {
-    margin-bottom: 5px;
-  }
-`;
+}));
 
 interface ConfirmReleaseModalProps {
   isOpen: boolean;

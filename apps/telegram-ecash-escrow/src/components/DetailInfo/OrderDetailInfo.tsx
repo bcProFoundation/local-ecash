@@ -10,65 +10,62 @@ import {
   getSelectedWalletPath,
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
-import styled from '@emotion/styled';
 import { Button, Typography } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
-const OrderDetailWrap = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  cursor: pointer;
+const OrderDetailWrap = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '8px',
+  cursor: 'pointer',
+  background: theme.custom.bgItem,
+  borderRadius: '10px',
+  padding: '16px',
+  marginBottom: '16px',
+  '.prefix': {
+    fontSize: '14px',
+    color: '#79869b'
+  },
+  '.btn-payment': {
+    borderRadius: '16px',
+    fontSize: '12px',
+    textTransform: 'none'
+  },
 
-  background: linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.15));
-  border-radius: 10px;
-  padding: 16px;
-  margin-bottom: 16px;
+  '.payment-method-wrap': {
+    display: 'flex',
+    gap: '10px',
+    alignItems: 'center'
+  },
 
-  .prefix {
-    font-size: 14px;
-    color: #79869b;
+  '.btn-order-type': {
+    fontSize: '12px',
+    borderRadius: '16px',
+    textTransform: 'none'
+  },
+
+  '.order-first-line': {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: '5px'
+  },
+
+  '.wrap-order-id': {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '5px'
+  },
+
+  '.order-id': {
+    display: 'inline-block',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis'
   }
-
-  .btn-payment {
-    border-radius: 16px;
-    font-size: 12px;
-    text-transform: none;
-  }
-
-  .payment-method-wrap {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-  }
-
-  .btn-order-type {
-    font-size: 12px;
-    border-radius: 16px;
-    text-transform: none;
-  }
-
-  .order-first-line {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 5px;
-
-    .wrap-order-id {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .order-id {
-      display: inline-block;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-  }
-`;
+}));
 
 type OrderItemProps = {
   item?: EscrowOrderQueryItem;

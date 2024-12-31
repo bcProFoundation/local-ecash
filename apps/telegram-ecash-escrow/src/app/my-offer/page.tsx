@@ -6,43 +6,40 @@ import AuthorizationLayout from '@/src/components/layout/AuthorizationLayout';
 import MobileLayout from '@/src/components/layout/MobileLayout';
 import { TabType } from '@/src/store/constants';
 import { OfferStatus, useInfiniteMyOffersQuery } from '@bcpros/redux-store';
-import styled from '@emotion/styled';
 import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined';
 import { CircularProgress, Skeleton, Tab, Tabs, Typography } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import React, { useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import SwipeableViews from 'react-swipeable-views';
 
-const MyOfferPage = styled.div`
-  min-height: 100vh;
-  padding-bottom: 85px;
-
-  .MuiTab-root {
-    color: white;
-    text-transform: none;
-    font-weight: 600;
-    font-size: 16px;
-
-    &.Mui-selected {
-      background-color: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(8px);
+const MyOfferPage = styled('div')(({ theme }) => ({
+  minHeight: '100vh',
+  paddingBottom: '85px',
+  '.MuiTab-root': {
+    color: theme.custom.colorItem,
+    textTransform: 'none',
+    fontWeight: 600,
+    fontSize: '16px',
+    '&.Mui-selected': {
+      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+      backdropFilter: 'blur(8px)'
     }
+  },
+
+  '.MuiTabs-indicator': {
+    backgroundColor: '#0076c4'
+  },
+
+  '.MuiBox-root': {
+    padding: '16px'
+  },
+
+  '.MuiCircularProgress-root': {
+    display: 'block',
+    margin: '0 auto'
   }
-
-    .MuiTabs-indicator {
-      background-color: #0076c4;
-    }
-
-    .MuiBox-root {
-      padding: 16px;
-    }
-
-    .MuiCircularProgress-root {
-      display: block;
-      margin: 0 auto;
-    }
-  }
-`;
+}));
 
 export default function MyOffer() {
   const [value, setValue] = useState(0);

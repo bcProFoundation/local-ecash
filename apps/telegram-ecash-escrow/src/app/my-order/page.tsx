@@ -6,45 +6,45 @@ import AuthorizationLayout from '@/src/components/layout/AuthorizationLayout';
 import MobileLayout from '@/src/components/layout/MobileLayout';
 import { TabType } from '@/src/store/constants';
 import { EscrowOrderQueryItem, EscrowOrderStatus, useInfiniteMyEscrowOrderQuery } from '@bcpros/redux-store';
-import styled from '@emotion/styled';
 import InventoryOutlinedIcon from '@mui/icons-material/InventoryOutlined';
 import { Box, CircularProgress, Skeleton, Tab, Tabs, Typography } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import React, { useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import SwipeableViews from 'react-swipeable-views';
 
-const MyOrderPage = styled.div`
-  min-height: 100vh;
-  background-image: url('/bg-dialog.svg');
-  background-repeat: no-repeat;
-  background-size: cover;
-  padding-bottom: 85px;
+const MyOrderPage = styled('div')(({ theme }) => ({
+  minHeight: '100vh',
+  background: theme.palette.background.default,
+  backgroundRepeat: 'no-repeat',
+  backgroundSize: 'cover',
+  paddingBottom: '85px',
 
-  .MuiTab-root {
-    color: white;
-    text-transform: none;
-    font-weight: 600;
-    font-size: 16px;
+  '.MuiTab-root': {
+    color: theme.custom.colorItem,
+    textTransform: 'none',
+    fontWeight: 600,
+    fontSize: '16px',
 
-    &.Mui-selected {
-      background-color: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(8px);
+    '&.Mui-selected': {
+      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+      backdropFilter: 'blur(8px)'
     }
-  }
+  },
 
-  .MuiTabs-indicator {
-    background-color: #0076c4;
-  }
+  '.MuiTabs-indicator': {
+    backgroundColor: theme.palette.primary.main || '#0076c4'
+  },
 
-  .MuiBox-root {
-    padding: 16px;
-  }
+  '.MuiBox-root': {
+    padding: '16px'
+  },
 
-  .MuiCircularProgress-root {
-    display: block;
-    margin: 0 auto;
+  '.MuiCircularProgress-root': {
+    display: 'block',
+    margin: '0 auto'
   }
-`;
+}));
 
 export default function MyOrder() {
   const [value, setValue] = useState(Number(sessionStorage.getItem('my-order-tab')) || 0);
