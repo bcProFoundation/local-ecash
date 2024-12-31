@@ -1087,7 +1087,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
             setSuccess(false);
             handleCloseModal();
           }}
-          content={`Offer ${isEdit ? 'updated' : 'created'} successfully`}
+          content={`Offer ${isEdit ? 'updated' : 'created'} successfully!`}
           type="success"
           autoHideDuration={3000}
         />

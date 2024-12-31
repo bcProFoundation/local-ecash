@@ -129,7 +129,7 @@ export default function MyOffer() {
                       next={loadMoreItemsOfferActive}
                       hasMore={hasNextOfferActive}
                       endMessage={
-                        <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No offer here</Typography>
+                        <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No active offer here</Typography>
                       }
                       loader={
                         <>
@@ -159,7 +159,9 @@ export default function MyOffer() {
                       next={loadMoreItemsOfferArchive}
                       hasMore={hasNextOfferArchive}
                       endMessage={
-                        <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No offer here</Typography>
+                        <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>
+                          No archived offer here
+                        </Typography>
                       }
                       loader={
                         <>
