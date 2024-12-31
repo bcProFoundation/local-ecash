@@ -5,10 +5,16 @@ import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
 import AuthorizationLayout from '@/src/components/layout/AuthorizationLayout';
 import MobileLayout from '@/src/components/layout/MobileLayout';
 import { TabType } from '@/src/store/constants';
-import { OfferStatus, useInfiniteMyOffersQuery } from '@bcpros/redux-store';
+import {
+  OfferStatus,
+  openModal,
+  useInfiniteMyOffersQuery,
+  useSliceDispatch as useLixiSliceDispatch
+} from '@bcpros/redux-store';
 import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined';
-import { CircularProgress, Skeleton, Tab, Tabs, Typography } from '@mui/material';
+import { Button, CircularProgress, Skeleton, Tab, Tabs, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import { useSession } from 'next-auth/react';
 import React, { useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import SwipeableViews from 'react-swipeable-views';
@@ -38,10 +44,22 @@ const MyOfferPage = styled('div')(({ theme }) => ({
   '.MuiCircularProgress-root': {
     display: 'block',
     margin: '0 auto'
+  },
+
+  '.end-message': {
+    textAlign: 'center',
+    marginTop: '1rem',
+    button: {
+      width: '100%',
+      marginTop: '1rem',
+      textTransform: 'none'
+    }
   }
 }));
 
 export default function MyOffer() {
+  const dispatch = useLixiSliceDispatch();
+  const { data } = useSession();
   const [value, setValue] = useState(0);
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
@@ -89,6 +107,14 @@ export default function MyOffer() {
     }
   };
 
+  const handleOpenCreateOffer = () => {
+    if (data?.user?.name.startsWith('@')) {
+      dispatch(openModal('CreateOfferModal', {}));
+    } else {
+      dispatch(openModal('RequiredUsernameModal', {}));
+    }
+  };
+
   return (
     <MobileLayout>
       <AuthorizationLayout>
@@ -129,7 +155,18 @@ export default function MyOffer() {
                       next={loadMoreItemsOfferActive}
                       hasMore={hasNextOfferActive}
                       endMessage={
-                        <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>No active offer here</Typography>
+                        // Need to improve! (just for pilot this time)
+                        // Issue: All custom useInfinite hooks have a mismatch between loading state and data.
+                        // When loading state is false, data should have but it not available shortly afterward,
+                        // leading to a delay in synchronization.
+                        dataOfferActive.length === 0 && (
+                          <Typography className="end-message" component={'div'}>
+                            <Typography>You haven't got any offer yet.</Typography>
+                            <Button variant="contained" onClick={() => handleOpenCreateOffer()}>
+                              Create my first offer
+                            </Button>
+                          </Typography>
+                        )
                       }
                       loader={
                         <>
