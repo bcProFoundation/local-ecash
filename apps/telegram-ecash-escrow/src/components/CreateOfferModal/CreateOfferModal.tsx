@@ -574,9 +574,10 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                         name={name}
                         inputRef={ref}
                         id="coinOthers"
-                        label="Coin Others"
+                        label="Ticker"
                         error={errors.coinOthers && true}
                         helperText={errors.coinOthers && (errors.coinOthers?.message as string)}
+                        placeholder="E.g. PEPE"
                         variant="standard"
                         inputProps={{
                           maxLength: 12
