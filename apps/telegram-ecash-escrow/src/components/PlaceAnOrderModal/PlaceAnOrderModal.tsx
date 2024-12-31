@@ -399,7 +399,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
       dispatch(
         showToast('success', {
           message: 'Success',
-          description: 'Create order successfully!'
+          description: 'Order created successfully!'
         })
       );
       handleCloseModal();
