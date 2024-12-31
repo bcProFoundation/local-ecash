@@ -92,7 +92,7 @@ const TickerHeader: React.FC<TickerHeaderProps> = ({
         {iconHeader && <IconButton className="icon-header">{iconHeader}</IconButton>}
         {title}
         {showBtnCreateOffer && (
-          <Button className="icon-header btn-create-offer" variant="contained">
+          <Button onClick={() => handleOpenCreateOffer()} className="icon-header btn-create-offer" variant="contained">
             Create
           </Button>
         )}{' '}
