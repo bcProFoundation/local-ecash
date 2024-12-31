@@ -2,7 +2,8 @@
 
 import { openModal, useSliceDispatch as useLixiSliceDispatch } from '@bcpros/redux-store';
 import { ChevronLeft } from '@mui/icons-material';
-import { Button, IconButton, Typography } from '@mui/material';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import { IconButton, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
@@ -24,13 +25,6 @@ const Header = styled('div')(({ theme }) => ({
     '.MuiSvgIcon-root': {
       color: theme.custom.colorItem
     }
-  },
-
-  '.btn-create-offer': {
-    textTransform: 'capitalize',
-    fontSize: '12px',
-    top: '2px',
-    left: '5px'
   },
 
   h4: {
@@ -90,12 +84,7 @@ const TickerHeader: React.FC<TickerHeaderProps> = ({
       )}
       <Typography variant="h4">
         {iconHeader && <IconButton className="icon-header">{iconHeader}</IconButton>}
-        {title}
-        {showBtnCreateOffer && (
-          <Button onClick={() => handleOpenCreateOffer()} className="icon-header btn-create-offer" variant="contained">
-            Create
-          </Button>
-        )}{' '}
+        {title} {showBtnCreateOffer && <AddCircleOutlineIcon onClick={handleOpenCreateOffer} />}{' '}
       </Typography>
     </Header>
   );
