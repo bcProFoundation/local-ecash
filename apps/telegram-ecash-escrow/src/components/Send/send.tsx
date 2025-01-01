@@ -37,6 +37,18 @@ const WrapComponent = styled.div`
     margin-top: 10px;
     color: #fff;
   }
+
+  .MuiFormControlLabel-root {
+    margin-top: 7px;
+  }
+
+  .amount-donate-gnc {
+    font-size: 14px;
+  }
+
+  .bold {
+    font-weight: bold;
+  }
 `;
 interface SendComponentProps {
   totalValidAmount: number;
@@ -61,7 +73,7 @@ const SendComponent: React.FC<SendComponentProps> = props => {
     defaultValues: {
       address: '',
       amount: 0,
-      isDonateGNC: true
+      isDonateGNC: false
     }
   });
 
@@ -231,8 +243,11 @@ const SendComponent: React.FC<SendComponentProps> = props => {
           )}
         />
         {isDonateGNC && (
-          <Typography>
-            {calFee1Percent.toLocaleString('de-DE')} {COIN.XEC} will be sent to Local eCash to maintains this app
+          <Typography className="amount-donate-gnc">
+            <span className="bold">
+              {calFee1Percent.toLocaleString('de-DE')} {COIN.XEC}{' '}
+            </span>{' '}
+            will be sent to Local eCash to maintains this app
           </Typography>
         )}
       </div>

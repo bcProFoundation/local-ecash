@@ -141,13 +141,16 @@ const PlaceAnOrderWrap = styled('div')(({ theme }) => ({
   '.payment-method-wrap': {
     display: 'flex',
     flexDirection: 'row',
-    gap: 16,
-    justifyContent: 'space-between',
+    alignItems: 'center',
     margin: '16px 0',
     '.MuiFormControlLabel-root': {
       '.MuiTypography-root': {
         fontSize: 14
       }
+    },
+
+    '.label-coinOthers': {
+      height: 30
     }
   },
 
@@ -432,7 +435,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
           Your wallet: {totalBalanceFormat} {COIN.XEC}
         </Typography>
         <Typography component="p" variant="body1">
-          Security fee (1%): {fee1Percent.toLocaleString('de-DE')} {COIN.XEC}
+          Security deposit (1%): {fee1Percent.toLocaleString('de-DE')} {COIN.XEC}
         </Typography>
       </div>
     );
@@ -662,14 +665,19 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                   />
                 );
               })}
+              {post.postOffer?.coinOthers && (
+                <Button size="small" color="success" variant="contained" className="label-coinOthers">
+                  {post.postOffer.coinOthers}
+                </Button>
+              )}
               {errors.paymentMethod && (
                 <Typography color="error">{errors?.paymentMethod?.message as string}</Typography>
               )}
             </RadioGroup>
             <div className="disclaim-wrap">
               <Typography className="title" variant="body2">
-                * Deposit a security fee to have a higher chance of being accepted. The security fee will be returned if
-                there is no dispute.
+                * Deposit a security deposit to have a higher chance of being accepted. The security deposit will be
+                returned if there is no dispute.
               </Typography>
               <Controller
                 name="isDepositFee"
@@ -678,7 +686,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                 render={({ field: { onChange, onBlur, value, ref } }) => (
                   <FormControlLabel
                     control={<Checkbox onChange={onChange} onBlur={onBlur} checked={value} inputRef={ref} />}
-                    label={`I want to deposit security fee (1%): ${calDisputeFee} XEC`}
+                    label={`I want to deposit security deposit (1%): ${calDisputeFee} XEC`}
                   />
                 )}
               />

@@ -159,12 +159,16 @@ export default function MyOffer() {
                         // Issue: All custom useInfinite hooks have a mismatch between loading state and data.
                         // When loading state is false, data should have but it not available shortly afterward,
                         // leading to a delay in synchronization.
-                        dataOfferActive.length === 0 && (
+                        dataOfferActive.length === 0 && dataOfferArchive.length === 0 ? (
                           <Typography className="end-message" component={'div'}>
-                            <Typography>You haven't got any offer yet.</Typography>
+                            <Typography> You haven't created any offer yet</Typography>
                             <Button variant="contained" onClick={() => handleOpenCreateOffer()}>
                               Create my first offer
                             </Button>
+                          </Typography>
+                        ) : (
+                          <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>
+                            No active offer here
                           </Typography>
                         )
                       }

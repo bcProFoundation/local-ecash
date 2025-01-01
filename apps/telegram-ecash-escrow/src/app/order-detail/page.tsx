@@ -598,7 +598,7 @@ const OrderDetail = () => {
           Your wallet: {totalBalanceFormat} {COIN.XEC}
         </Typography>
         <Typography>
-          Security fee (1%): {fee1Percent.toLocaleString('de-DE')} {COIN.XEC}
+          Security deposit (1%): {fee1Percent.toLocaleString('de-DE')} {COIN.XEC}
         </Typography>
         <Typography>
           Withdraw fee: {estimatedFee(currentData?.escrowOrder.escrowScript).toLocaleString('de-DE')} {COIN.XEC}
