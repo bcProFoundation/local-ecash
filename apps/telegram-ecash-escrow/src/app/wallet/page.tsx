@@ -10,6 +10,7 @@ import { SettingContext } from '@/src/store/context/settingProvider';
 import { UtxoContext } from '@/src/store/context/utxoProvider';
 import { COIN } from '@bcpros/lixi-models';
 import {
+  getSeedBackupTime,
   getSelectedWalletPath,
   openModal,
   parseCashAddressToPrefix,
@@ -89,8 +90,9 @@ export default function Wallet() {
   const dispatch = useLixiSliceDispatch();
 
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
+  const lastSeedBackupTimeOnDevice = useLixiSliceSelector(getSeedBackupTime);
   const settingContext = useContext(SettingContext);
-  const seedBackupTime = settingContext?.setting?.lastSeedBackupTime ?? '';
+  const seedBackupTime = settingContext?.setting?.lastSeedBackupTime ?? lastSeedBackupTimeOnDevice ?? '';
 
   const [address, setAddress] = useState(parseCashAddressToPrefix(COIN.XEC, selectedWalletPath?.cashAddress));
   const [openReceive, setOpenReceive] = useState(true);

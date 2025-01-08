@@ -4,12 +4,14 @@ import { COIN_OTHERS } from '@/src/store/constants';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { formatNumber } from '@/src/store/util';
 import {
+  getSeedBackupTime,
   OfferStatus,
   openActionSheet,
   openModal,
   PostQueryItem,
   TimelineQueryItem,
-  useSliceDispatch as useLixiSliceDispatch
+  useSliceDispatch as useLixiSliceDispatch,
+  useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import { Button, IconButton, Typography } from '@mui/material';
@@ -46,13 +48,18 @@ const OfferDetailWrap = styled('div')(({ theme }) => ({
     color: '#79869b'
   },
 
-  '.payment-group-btns': {
+  '.action-section': {
     display: 'flex',
-    flexWrap: 'wrap',
-    gap: '10px',
+    justifyContent: 'space-between',
     button: {
       borderRadius: '10px',
       textTransform: 'capitalize'
+    },
+
+    '.payment-group-btns': {
+      button: {
+        marginRight: '10px'
+      }
     }
   }
 }));
@@ -70,8 +77,9 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
   const { status } = useSession();
   const askAuthorization = useAuthorization();
 
+  const lastSeedBackupTimeOnDevice = useLixiSliceSelector(getSeedBackupTime);
   const settingContext = useContext(SettingContext);
-  const seedBackupTime = settingContext?.setting?.lastSeedBackupTime ?? '';
+  const seedBackupTime = settingContext?.setting?.lastSeedBackupTime ?? lastSeedBackupTimeOnDevice ?? '';
 
   const postData = timelineItem?.data as PostQueryItem;
   const offerData = postData?.postOffer ?? post?.postOffer;
@@ -81,7 +89,7 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
 
   const handleClickAction = e => {
     e.stopPropagation();
-    dispatch(openActionSheet('OfferActionSheet', { offer: offerData }));
+    dispatch(openActionSheet('OfferActionSheet', { post: postData }));
   };
 
   const handleBuyClick = e => {
@@ -154,21 +162,23 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
           {offerData.noteOffer}
         </Typography>
       )}
-      <div className="payment-group-btns">
-        {offerData?.paymentMethods &&
-          offerData.paymentMethods?.length > 0 &&
-          offerData.paymentMethods.map(item => {
-            return (
-              <Button size="small" color="success" variant="outlined" key={item.paymentMethod.name}>
-                {item.paymentMethod.name}
-              </Button>
-            );
-          })}
-        {offerData?.coinOthers && (
-          <Button size="small" color="success" variant="outlined">
-            {offerData.coinOthers}
-          </Button>
-        )}
+      <div className="action-section">
+        <div className="payment-group-btns">
+          {offerData?.paymentMethods &&
+            offerData.paymentMethods?.length > 0 &&
+            offerData.paymentMethods.map(item => {
+              return (
+                <Button size="small" color="success" variant="outlined" key={item.paymentMethod.name}>
+                  {item.paymentMethod.name}
+                </Button>
+              );
+            })}
+          {offerData?.coinOthers && (
+            <Button size="small" color="success" variant="outlined">
+              {offerData.coinOthers}
+            </Button>
+          )}
+        </div>
         {isShowBuyButton && (
           <BuyButtonStyled variant="contained" onClick={e => handleBuyClick(e)}>
             Buy

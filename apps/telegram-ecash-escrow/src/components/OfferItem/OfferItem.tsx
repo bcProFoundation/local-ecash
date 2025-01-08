@@ -1,6 +1,6 @@
 'use client';
 
-import { COIN_OTHERS } from '@/src/store/constants';
+import { COIN_OTHERS, COIN_USD_STABLECOIN_TICKET } from '@/src/store/constants';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { formatNumber } from '@/src/store/util';
 import {
@@ -10,6 +10,7 @@ import {
   TimelineQueryItem,
   accountsApi,
   fiatCurrencyApi,
+  getSeedBackupTime,
   getSelectedWalletPath,
   openModal,
   useSliceDispatch as useLixiSliceDispatch,
@@ -105,19 +106,22 @@ type OfferItemProps = {
 
 export default function OfferItem({ timelineItem }: OfferItemProps) {
   const searchParams = useSearchParams();
+  const { status } = useSession();
+  const askAuthorization = useAuthorization();
   const dispatch = useLixiSliceDispatch();
+
   const post = timelineItem?.data as PostQueryItem;
   const offerData = post?.postOffer;
   const countryName = offerData?.location?.country ?? offerData?.country?.name;
   const stateName = offerData?.location?.adminNameAscii;
   const cityName = offerData?.location?.cityAscii;
-  const { status } = useSession();
-  const askAuthorization = useAuthorization();
-  const { useGetAccountByAddressQuery } = accountsApi;
-  const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
-  const settingContext = useContext(SettingContext);
-  const seedBackupTime = settingContext?.setting?.lastSeedBackupTime ?? '';
 
+  const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
+  const lastSeedBackupTimeOnDevice = useLixiSliceSelector(getSeedBackupTime);
+  const settingContext = useContext(SettingContext);
+  const seedBackupTime = settingContext?.setting?.lastSeedBackupTime ?? lastSeedBackupTimeOnDevice ?? '';
+
+  const { useGetAccountByAddressQuery } = accountsApi;
   const { currentData: accountQueryData } = useGetAccountByAddressQuery(
     { address: selectedWalletPath?.xAddress },
     { skip: !selectedWalletPath }
@@ -165,8 +169,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
       return;
     }
 
-    const amountBoost = 100;
-    dispatch(openModal('BoostModal', { amount: amountBoost, post: post }));
+    dispatch(openModal('BoostModal', { post: post }));
   };
 
   const handleExpandClick = () => {
@@ -178,7 +181,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
     let amountXEC = 1000000;
     let amountCoinOrCurrency = 0;
     //if payment is crypto, we convert from coin => USD
-    if (post?.postOffer?.coinPayment) {
+    if (post?.postOffer?.coinPayment && post?.postOffer?.coinPayment !== COIN_USD_STABLECOIN_TICKET) {
       const coinPayment = post.postOffer.coinPayment.toLowerCase();
       const rateArrayCoin = rateData.find(item => item.coin === coinPayment);
       const rateArrayXec = rateData.find(item => item.coin === 'xec');

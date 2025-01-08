@@ -7,6 +7,7 @@ import {
   boostApi,
   BoostForType,
   BoostType,
+  closeActionSheet,
   closeModal,
   CreateBoostInput,
   getSelectedWalletPath,
@@ -16,17 +17,8 @@ import {
 } from '@bcpros/redux-store';
 import { styled } from '@mui/material/styles';
 
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Portal,
-  Slide,
-  Typography,
-  useTheme
-} from '@mui/material';
+import { BOOST_AMOUNT } from '@/src/store/constants';
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Portal, Slide, Typography } from '@mui/material';
 import { TransitionProps } from '@mui/material/transitions';
 import { fromHex, toHex } from 'ecash-lib';
 import cashaddr from 'ecashaddrjs';
@@ -85,7 +77,6 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
 }));
 
 interface BoostModalProps {
-  amount: number;
   post: PostQueryItem;
   classStyle?: string;
 }
@@ -99,12 +90,11 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const BoostModal: React.FC<BoostModalProps> = ({ amount, post }: BoostModalProps) => {
+const BoostModal: React.FC<BoostModalProps> = ({ post }: BoostModalProps) => {
   const { totalValidAmount, totalValidUtxos } = useContext(UtxoContext);
 
   const dispatch = useLixiSliceDispatch();
   const selectedWallet = useLixiSliceSelector(getSelectedWalletPath);
-  const theme = useTheme();
 
   const [error, setError] = useState(false);
   const [notEnoughMoney, setNotEnoughMoney] = useState(false);
@@ -127,6 +117,7 @@ const BoostModal: React.FC<BoostModalProps> = ({ amount, post }: BoostModalProps
       const { hash: hashXEC } = cashaddr.decode(GNCAddress, false);
       const GNCHash = Buffer.from(hashXEC).toString('hex');
 
+      const amount = BOOST_AMOUNT;
       if (totalValidAmount < amount) {
         setNotEnoughMoney(true);
       }
@@ -181,6 +172,7 @@ const BoostModal: React.FC<BoostModalProps> = ({ amount, post }: BoostModalProps
           handleClose={() => {
             setBoostSuccess(false);
             handleCloseModal();
+            dispatch(closeActionSheet());
           }}
           content="Boost offer successful"
           type="success"
@@ -190,6 +182,7 @@ const BoostModal: React.FC<BoostModalProps> = ({ amount, post }: BoostModalProps
           handleClose={() => {
             setError(false);
             handleCloseModal();
+            dispatch(closeActionSheet());
           }}
           content="Boost offer failed!"
           type="error"
@@ -200,6 +193,7 @@ const BoostModal: React.FC<BoostModalProps> = ({ amount, post }: BoostModalProps
           handleClose={() => {
             setNotEnoughMoney(false);
             handleCloseModal();
+            dispatch(closeActionSheet());
           }}
           content="Not enough XEC to boost!"
           type="error"
