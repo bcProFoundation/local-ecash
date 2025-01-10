@@ -19,6 +19,7 @@ import {
 import { Close } from '@mui/icons-material';
 import {
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
@@ -245,7 +246,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       note: offer?.noteOffer ?? '',
       country: null,
       state: null,
-      city: null
+      city: null,
+      hideFromHome: false
     }
   });
 
@@ -276,7 +278,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       marginPercentage: Number(data?.percentage ?? 0),
       orderLimitMin: minNum,
       orderLimitMax: maxNum,
-      locationId: data?.city?.id ?? null
+      locationId: data?.city?.id ?? null,
+      hideFromHome: data?.hideFromHome ?? false
     };
 
     //Just have location when paymentmethods is 1 or 2
@@ -394,6 +397,23 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
             *You are selling XEC
           </Typography>
         </Grid>
+        <Grid item xs={12} style={{ padding: '10px 16px 0' }}>
+          <Controller
+            name="hideFromHome"
+            control={control}
+            rules={{
+              required: false
+            }}
+            render={({ field: { onChange, onBlur, value, ref } }) => (
+              <FormControlLabel
+                control={<Checkbox checked={value || false} onChange={onChange} onBlur={onBlur} inputRef={ref} />}
+                label="Hide from Marketplace"
+              />
+            )}
+          />
+          {errors?.hideFromHome && <FormHelperText error>{errors.hideFromHome.message as string}</FormHelperText>}
+        </Grid>
+
         <Grid item xs={12}>
           <Typography variant="body2" className="label">
             Payment method
@@ -989,6 +1009,13 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
             <span className="prefix">Offer note: </span> {getValues('note')}
           </Typography>
         </Grid>
+        {getValues('hideFromHome') && (
+          <Grid item xs={12}>
+            <Typography variant="body1">
+              <span style={{ fontSize: '15px', fontWeight: 'bold' }}>*Hide from Marketplace </span>
+            </Typography>
+          </Grid>
+        )}
       </Grid>
     </div>
   );
