@@ -23,7 +23,7 @@ import { Button, Card, CardContent, Collapse, IconButton, Typography } from '@mu
 import { styled } from '@mui/material/styles';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useContext, useEffect, useState } from 'react';
 import useAuthorization from '../Auth/use-authorization.hooks';
 import { BackupModalProps } from '../Common/BackupModal';
@@ -105,9 +105,11 @@ type OfferItemProps = {
 };
 
 export default function OfferItem({ timelineItem }: OfferItemProps) {
-  const searchParams = useSearchParams();
   const { status } = useSession();
   const askAuthorization = useAuthorization();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
   const dispatch = useLixiSliceDispatch();
 
   const post = timelineItem?.data as PostQueryItem;
@@ -172,8 +174,13 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
     dispatch(openModal('BoostModal', { post: post }));
   };
 
-  const handleExpandClick = () => {
+  const handleExpandClick = e => {
+    e.stopPropagation();
     setExpanded(!expanded);
+  };
+
+  const handleItemClick = () => {
+    router.push(`/offer-detail?id=${offerData.postId}`);
   };
 
   const convertXECToAmount = async () => {
@@ -249,17 +256,13 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
         <span className="prefix">Headline: </span>
         {offerData?.message}
       </Typography>
-      <div className="minmax-collapse-wrap">
+      <div className="minmax-collapse-wrap" onClick={e => handleExpandClick(e)}>
         <Typography variant="body2">
           <span className="prefix">Min / max: </span>
           {formatNumber(offerData?.orderLimitMin)} {coinCurrency} - {formatNumber(offerData?.orderLimitMax)}{' '}
           {coinCurrency}
         </Typography>
-        {expanded ? (
-          <ExpandLessIcon onClick={handleExpandClick} style={{ cursor: 'pointer' }} />
-        ) : (
-          <ExpandMoreIcon onClick={handleExpandClick} style={{ cursor: 'pointer' }} />
-        )}
+        {expanded ? <ExpandLessIcon style={{ cursor: 'pointer' }} /> : <ExpandMoreIcon style={{ cursor: 'pointer' }} />}
       </div>
     </OfferShowWrapItem>
   );
@@ -268,7 +271,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
 
   return (
     <React.Fragment>
-      <CardWrapper onClick={handleExpandClick}>
+      <CardWrapper onClick={handleItemClick}>
         <CardContent>{OfferItem}</CardContent>
         <Collapse in={expanded} timeout="auto" unmountOnExit className="hidden-item-wrap">
           <CardContent>

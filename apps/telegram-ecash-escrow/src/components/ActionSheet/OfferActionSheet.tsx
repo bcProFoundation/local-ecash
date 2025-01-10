@@ -55,6 +55,11 @@ export default function OfferActionSheet({ post }: OfferActionSheetProps) {
     dispatch(openModal('BoostModal', { post: post }));
   };
 
+  const handleClickShare = () => {
+    dispatch(openModal('ShareSocialModal', { offer: offer }));
+    dispatch(closeActionSheet());
+  };
+
   const handleClose = () => {
     setOpen(false);
     setTimeout(() => {
@@ -78,6 +83,11 @@ export default function OfferActionSheet({ post }: OfferActionSheetProps) {
         <ListItem key={'Boost'} disablePadding>
           <ListItemButton onClick={handleBoostOffer}>
             <ListItemText primary={'Boost offer'} />
+          </ListItemButton>
+        </ListItem>
+        <ListItem key={'Share'} disablePadding>
+          <ListItemButton onClick={handleClickShare}>
+            <ListItemText primary={'Share offer'} />
           </ListItemButton>
         </ListItem>
       </ListStyled>
