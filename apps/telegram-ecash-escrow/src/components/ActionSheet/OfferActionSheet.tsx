@@ -1,6 +1,6 @@
 import {
-  OfferQueryItem,
   OfferStatus,
+  PostQueryItem,
   UpdateOfferStatusInput,
   closeActionSheet,
   offerApi,
@@ -26,11 +26,13 @@ const ListStyled = styled(List)(({ theme }) => ({
 }));
 
 interface OfferActionSheetProps {
-  offer: OfferQueryItem;
+  post: PostQueryItem;
 }
 
-export default function OfferActionSheet({ offer }: OfferActionSheetProps) {
+export default function OfferActionSheet({ post }: OfferActionSheetProps) {
+  const offer = post?.postOffer;
   const dispatch = useLixiSliceDispatch();
+
   const [open, setOpen] = useState(true);
 
   const { useUpdateOfferStatusMutation } = offerApi;
@@ -49,6 +51,10 @@ export default function OfferActionSheet({ offer }: OfferActionSheetProps) {
     triggerUpdateOfferStatus({ input });
   };
 
+  const handleBoostOffer = async () => {
+    dispatch(openModal('BoostModal', { post: post }));
+  };
+
   const handleClose = () => {
     setOpen(false);
     setTimeout(() => {
@@ -64,9 +70,14 @@ export default function OfferActionSheet({ offer }: OfferActionSheetProps) {
             <ListItemText primary={'Edit offer'} />
           </ListItemButton>
         </ListItem>
-        <ListItem key={'Archived'} disablePadding>
+        <ListItem key={'Archive'} disablePadding>
           <ListItemButton onClick={handleClickArchive}>
-            <ListItemText primary={'Archived offer'} />
+            <ListItemText primary={'Archive offer'} />
+          </ListItemButton>
+        </ListItem>
+        <ListItem key={'Boost'} disablePadding>
+          <ListItemButton onClick={handleBoostOffer}>
+            <ListItemText primary={'Boost offer'} />
           </ListItemButton>
         </ListItem>
       </ListStyled>

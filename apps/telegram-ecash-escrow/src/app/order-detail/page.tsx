@@ -565,7 +565,7 @@ const OrderDetail = () => {
       isSeller && (
         <QRCode
           address={parseCashAddressToPrefix(COIN.XEC, selectedWalletPath?.cashAddress)}
-          amount={totalAmountWithDepositAndEscrowFee()}
+          amount={Number(totalAmountWithDepositAndEscrowFee().toFixed(2))}
           width="60%"
         />
       )

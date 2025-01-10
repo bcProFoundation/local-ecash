@@ -1,6 +1,6 @@
 'use client';
 
-import { COIN_OTHERS, LIST_COIN } from '@/src/store/constants';
+import { COIN_OTHERS, COIN_USD_STABLECOIN_TICKET, LIST_COIN } from '@/src/store/constants';
 import { LIST_CURRENCIES_USED, Location } from '@bcpros/lixi-models';
 import {
   Coin,
@@ -537,7 +537,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                         if (item.ticker === 'XEC') return;
                         return (
                           <option key={item.ticker} value={`${item.ticker}:${item.fixAmount}`}>
-                            {item.name} ({item.ticker})
+                            {item.name} {item.ticker !== COIN_USD_STABLECOIN_TICKET && `(${item.ticker})`}
                           </option>
                         );
                       })}

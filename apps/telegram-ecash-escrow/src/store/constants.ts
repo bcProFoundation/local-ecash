@@ -9,6 +9,8 @@ export enum TabType {
 }
 
 export const COIN_OTHERS = 'Others';
+export const COIN_USD_STABLECOIN = 'USD Stablecoins';
+export const COIN_USD_STABLECOIN_TICKET = 'USD';
 
 export const LIST_COIN = [
   {
@@ -52,6 +54,12 @@ export const LIST_COIN = [
     name: 'LiteCoin',
     ticker: 'LTC',
     fixAmount: 100
+  },
+  {
+    id: 9,
+    name: COIN_USD_STABLECOIN,
+    ticker: COIN_USD_STABLECOIN_TICKET,
+    fixAmount: 100
   }
 ];
 
@@ -60,3 +68,5 @@ export const THEMES_TYPE = {
   DARK: 'dark',
   SYSTEM: 'system'
 };
+
+export const BOOST_AMOUNT = 100;
