@@ -239,7 +239,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       min: `${offer?.orderLimitMin ?? ''}`,
       max: `${offer?.orderLimitMax ?? ''}`,
       option: offer?.paymentMethods[0]?.paymentMethod.id ?? '',
-      currency: null,
+      currency: offer?.localCurrency ?? null,
       coin: offer?.coinPayment ?? null,
       coinOthers: offer?.coinOthers ?? '',
       percentage: offer?.marginPercentage ?? 0,

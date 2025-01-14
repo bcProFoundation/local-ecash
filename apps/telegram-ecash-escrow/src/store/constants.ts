@@ -5,7 +5,9 @@ export enum TabType {
   BUYER = 'Buyer',
   SELLER = 'Seller',
   PENDING = 'Pending',
-  ESCROWED = 'Escrowed'
+  ESCROWED = 'Escrowed',
+  SEND = 'Send',
+  RECEIVE = 'Receive'
 }
 
 export const COIN_OTHERS = 'Others';
