@@ -20,7 +20,6 @@ import {
   userSubcribeEscrowOrderChannel,
   WalletContextNode
 } from '@bcpros/redux-store';
-import { useUpdateEscrowOrderSignatoryMutation } from '@bcpros/redux-store/build/main/store/escrow/escrow-order/escrow-order.api';
 import { ChevronLeft, InfoOutlined } from '@mui/icons-material';
 import {
   Alert,
@@ -207,8 +206,12 @@ export default function DisputeDetail() {
   const [valueTab, setValueTab] = useState(0);
 
   const { useDisputeQuery, useUpdateDisputeMutation } = disputeApi;
-  const { useEscrowOrderQuery, useUpdateEscrowOrderStatusMutation, useLazyArbiRequestTelegramChatQuery } =
-    escrowOrderApi;
+  const {
+    useEscrowOrderQuery,
+    useUpdateEscrowOrderStatusMutation,
+    useLazyArbiRequestTelegramChatQuery,
+    useUpdateEscrowOrderSignatoryMutation
+  } = escrowOrderApi;
   const { currentData: disputeQueryData, isError } = useDisputeQuery({ id: id! }, { skip: !id || !token });
   const { currentData: escrowOrderQueryData, isSuccess: isEscrowOrderSuccess } = useEscrowOrderQuery(
     { id: disputeQueryData?.dispute.escrowOrder.id },

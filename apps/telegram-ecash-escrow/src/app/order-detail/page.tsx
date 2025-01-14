@@ -38,7 +38,6 @@ import {
   userSubcribeEscrowOrderChannel,
   WalletContextNode
 } from '@bcpros/redux-store';
-import { useUpdateEscrowOrderSignatoryMutation } from '@bcpros/redux-store/build/main/store/escrow/escrow-order/escrow-order.api';
 import CheckIcon from '@mui/icons-material/Check';
 import ClearIcon from '@mui/icons-material/Clear';
 import HorizontalRuleIcon from '@mui/icons-material/HorizontalRule';
@@ -128,7 +127,8 @@ const OrderDetail = () => {
     }
   ]);
 
-  const { useEscrowOrderQuery, useUpdateEscrowOrderStatusMutation } = escrowOrderApi;
+  const { useEscrowOrderQuery, useUpdateEscrowOrderStatusMutation, useUpdateEscrowOrderSignatoryMutation } =
+    escrowOrderApi;
   const { currentData, isError, isSuccess } = useEscrowOrderQuery({ id: id! }, { skip: !id || !token });
   const [updateOrderTrigger] = useUpdateEscrowOrderStatusMutation();
   const [updateEscrowOrderSignatoryTrigger] = useUpdateEscrowOrderSignatoryMutation();
