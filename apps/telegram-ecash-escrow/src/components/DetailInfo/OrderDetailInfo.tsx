@@ -175,10 +175,6 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
         </div>
       </Typography>
       <Typography variant="body1">
-        <span className="prefix">Offer: </span>
-        {order?.escrowOffer.message}
-      </Typography>
-      <Typography variant="body1">
         {order?.sellerAccount.id === selectedAccount?.id && (
           <React.Fragment>
             <span className="prefix">Ordered by: </span>
@@ -230,17 +226,26 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
             <span className="prefix">Margin of current price:</span> {marginCurrentPrice.toFixed(2)}%
           </Typography>
         )}
-      {order?.message && (
-        <Typography variant="body1">
-          <span className="prefix">Message: </span>
-          {order?.message}
-        </Typography>
-      )}
       <Typography variant="body1">
         <span className="prefix">Status: </span>
         {order?.dispute && order?.dispute?.status === DisputeStatus.Active
           ? 'Dispute'
           : order?.escrowOrderStatus?.toLowerCase()?.replace(/^./, char => char.toUpperCase())}
+      </Typography>
+      <Typography>
+        <span className="prefix">Escrow Address: </span>
+        <a
+          style={{
+            color: 'cornflowerblue',
+            wordWrap: 'break-word',
+            maxWidth: '100%',
+            display: 'inline-block'
+          }}
+          href={`${coinInfo[COIN.XEC].blockExplorerUrl}/address/${order?.escrowAddress}`}
+          target="_blank"
+        >
+          <span>{order?.escrowAddress}</span>
+        </a>
       </Typography>
     </OrderDetailWrap>
   );
