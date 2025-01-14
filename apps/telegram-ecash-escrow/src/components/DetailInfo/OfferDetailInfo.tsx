@@ -1,15 +1,15 @@
 'use client';
 
-import { COIN_OTHERS } from '@/src/store/constants';
+import { COIN_OTHERS, COIN_USD_STABLECOIN_TICKET } from '@/src/store/constants';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { formatNumber } from '@/src/store/util';
 import {
-  getSeedBackupTime,
   OfferStatus,
-  openActionSheet,
-  openModal,
   PostQueryItem,
   TimelineQueryItem,
+  getSeedBackupTime,
+  openActionSheet,
+  openModal,
   useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
@@ -176,6 +176,11 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
           {offerData?.coinOthers && (
             <Button size="small" color="success" variant="outlined">
               {offerData.coinOthers}
+            </Button>
+          )}
+          {offerData?.coinPayment === COIN_USD_STABLECOIN_TICKET && (
+            <Button size="small" color="success" variant="outlined">
+              {offerData.coinPayment}
             </Button>
           )}
         </div>

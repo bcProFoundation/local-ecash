@@ -4,10 +4,13 @@ import { BackupModalProps } from '@/src/components/Common/BackupModal';
 import Header from '@/src/components/Header/Header';
 import QRCode from '@/src/components/QRcode/QRcode';
 import SendComponent from '@/src/components/Send/send';
+import { TabPanel } from '@/src/components/Tab/Tab';
 import AuthorizationLayout from '@/src/components/layout/AuthorizationLayout';
 import MobileLayout from '@/src/components/layout/MobileLayout';
+import { TabType } from '@/src/store/constants';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { UtxoContext } from '@/src/store/context/utxoProvider';
+import { formatNumber } from '@/src/store/util';
 import { COIN } from '@bcpros/lixi-models';
 import {
   getSeedBackupTime,
@@ -17,11 +20,11 @@ import {
   useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
-import { Backdrop, Button, Stack, Typography } from '@mui/material';
+import { Backdrop, Button, Stack, Tab, Tabs, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { signOut, useSession } from 'next-auth/react';
-import Image from 'next/image';
 import { useContext, useState } from 'react';
+import SwipeableViews from 'react-swipeable-views';
 
 const WrapWallet = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -29,11 +32,20 @@ const WrapWallet = styled('div')(({ theme }) => ({
   padding: '1rem',
   paddingBottom: '85px',
   minHeight: '100svh',
-  '.shape-reg-footer': {
-    position: 'absolute',
-    zIndex: -1,
-    bottom: 0,
-    right: 0
+
+  '.MuiTab-root': {
+    color: theme.custom.colorItem,
+    textTransform: 'none',
+    fontWeight: 600,
+    fontSize: '16px',
+    '&.Mui-selected': {
+      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+      backdropFilter: 'blur(8px)'
+    }
+  },
+
+  '.MuiTabs-indicator': {
+    backgroundColor: '#0076c4'
   }
 }));
 
@@ -55,19 +67,6 @@ const WrapContentWallet = styled('div')(({ theme }) => ({
       '.coin-ticker': {
         fontSize: '13px'
       }
-    }
-  },
-
-  '.group-btn': {
-    display: 'flex',
-    gap: '10px',
-    button: {
-      background: '#0076c4',
-      width: '100%',
-      color: '#fff',
-      fontWeight: 600,
-      borderRadius: '12px',
-      textTransform: 'capitalize'
     }
   }
 }));
@@ -95,11 +94,25 @@ export default function Wallet() {
   const seedBackupTime = settingContext?.setting?.lastSeedBackupTime ?? lastSeedBackupTimeOnDevice ?? '';
 
   const [address, setAddress] = useState(parseCashAddressToPrefix(COIN.XEC, selectedWalletPath?.cashAddress));
-  const [openReceive, setOpenReceive] = useState(true);
 
   const { totalValidAmount, totalValidUtxos } = useContext(UtxoContext);
 
-  const handleOpenSend = () => {
+  const [value, setValue] = useState(1);
+  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    if (newValue === 0 && !isBackup()) {
+      return;
+    }
+    setValue(newValue);
+  };
+
+  const handleChangeIndex = (index: number) => {
+    if (index === 0 && !isBackup()) {
+      return;
+    }
+    setValue(index);
+  };
+
+  const isBackup = () => {
     //check backup
     const oneMonthLater = new Date(seedBackupTime);
     oneMonthLater.setMonth(oneMonthLater.getMonth() + 1);
@@ -110,13 +123,13 @@ export default function Wallet() {
       isFromSetting: true,
       isFromHome: false
     };
+
     if (!seedBackupTime || isGreaterThanOneMonth) {
       dispatch(openModal('BackupModal', backupModalProps));
 
-      return;
+      return false;
     }
-
-    setOpenReceive(false);
+    return true;
   };
 
   if (selectedWalletPath === null && sessionData) {
@@ -152,29 +165,43 @@ export default function Wallet() {
               <Typography variant="h5">Balance</Typography>
               <div className="amount">
                 <Typography variant="h5">
-                  {totalValidAmount ?? 0} <span className="coin-ticker">XEC</span>
+                  {formatNumber(totalValidAmount ?? 0)} <span className="coin-ticker">XEC</span>
                 </Typography>
               </div>
             </div>
-            <div className="group-btn">
-              <Button color="success" variant="contained" className="btn-send" onClick={() => handleOpenSend()}>
-                Send
-              </Button>
-              <Button color="success" variant="contained" className="btn-receive" onClick={() => setOpenReceive(true)}>
-                Receive
-              </Button>
+            <div>
+              <Tabs
+                value={value}
+                onChange={handleChange}
+                indicatorColor="secondary"
+                textColor="inherit"
+                variant="fullWidth"
+              >
+                <Tab
+                  label={TabType.SEND}
+                  id={`full-width-tab-${TabType.SEND}`}
+                  aria-controls={`full-width-tabpanel-${TabType.SEND}`}
+                />
+                <Tab
+                  label={TabType.RECEIVE}
+                  id={`full-width-tab-${TabType.RECEIVE}`}
+                  aria-controls={`full-width-tabpanel-${TabType.RECEIVE}`}
+                />
+              </Tabs>
+              <SwipeableViews index={value} onChangeIndex={handleChangeIndex}>
+                <TabPanel value={value} index={0}>
+                  <SendWrap>
+                    <SendComponent totalValidAmount={totalValidAmount} totalValidUtxos={totalValidUtxos} />
+                  </SendWrap>
+                </TabPanel>
+                <TabPanel value={value} index={1}>
+                  <ReceiveWrap>
+                    <QRCode address={address} />
+                  </ReceiveWrap>
+                </TabPanel>
+              </SwipeableViews>
             </div>
-            {openReceive ? (
-              <ReceiveWrap>
-                <QRCode address={address} />
-              </ReceiveWrap>
-            ) : (
-              <SendWrap>
-                <SendComponent totalValidAmount={totalValidAmount} totalValidUtxos={totalValidUtxos} />
-              </SendWrap>
-            )}
           </WrapContentWallet>
-          <Image width={200} height={200} className="shape-reg-footer" src="/shape-reg-footer.svg" alt="" />
         </WrapWallet>
       </AuthorizationLayout>
     </MobileLayout>

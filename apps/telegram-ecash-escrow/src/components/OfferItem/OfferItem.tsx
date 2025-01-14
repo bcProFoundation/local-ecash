@@ -303,6 +303,11 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
                   {offerData.coinOthers}
                 </Button>
               )}
+              {offerData?.coinPayment === COIN_USD_STABLECOIN_TICKET && (
+                <Button size="small" color="success" variant="outlined">
+                  {offerData.coinPayment}
+                </Button>
+              )}
             </div>
           </CardContent>
         </Collapse>
