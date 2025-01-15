@@ -164,7 +164,9 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
 
   const [expanded, setExpanded] = React.useState(false);
 
-  const handleBoost = async () => {
+  const handleBoost = async e => {
+    e.stopPropagation();
+
     if (status === 'unauthenticated') {
       askAuthorization();
 
@@ -247,7 +249,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
         </Typography>
         {(accountQueryData?.getAccountByAddress.role === Role.Moderator ||
           post?.account.hash160 === selectedWalletPath?.hash160) && (
-          <IconButton onClick={handleBoost}>
+          <IconButton onClick={e => handleBoost(e)}>
             <ArrowCircleUpRoundedIcon />
           </IconButton>
         )}

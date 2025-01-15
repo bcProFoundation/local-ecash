@@ -162,6 +162,11 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
           {offerData.noteOffer}
         </Typography>
       )}
+      {offerData?.hideFromHome && (
+        <Typography variant="body1">
+          <span style={{ fontSize: '14px' }}>*Hidden from Marketplace</span>
+        </Typography>
+      )}
       <div className="action-section">
         <div className="payment-group-btns">
           {offerData?.paymentMethods &&

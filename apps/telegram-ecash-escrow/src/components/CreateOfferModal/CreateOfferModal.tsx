@@ -19,7 +19,6 @@ import {
 import { Close } from '@mui/icons-material';
 import {
   Button,
-  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
@@ -128,6 +127,22 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
       width: '100%',
       '&.confirm-btn': {
         color: theme.palette.common.white
+      }
+    },
+
+    '.button-group': {
+      width: '100%',
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: '2%',
+
+      '.button-back, .button-create': {
+        width: '49%'
+      },
+
+      '.button-create-hide': {
+        marginTop: '7px',
+        width: '100%'
       }
     }
   },
@@ -246,8 +261,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       note: offer?.noteOffer ?? '',
       country: null,
       state: null,
-      city: null,
-      hideFromHome: false
+      city: null
     }
   });
 
@@ -264,7 +278,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
     setActiveStep(prevActiveStep => prevActiveStep - 1);
   };
 
-  const handleCreateOffer = async data => {
+  const handleCreateOffer = async (data, isHidden) => {
     setLoading(true);
     const minNum = parseFloat(data.min);
     const maxNum = parseFloat(data.max);
@@ -279,7 +293,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       orderLimitMin: minNum,
       orderLimitMax: maxNum,
       locationId: data?.city?.id ?? null,
-      hideFromHome: data?.hideFromHome ?? false
+      hideFromHome: isHidden
     };
 
     //Just have location when paymentmethods is 1 or 2
@@ -396,22 +410,6 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
           <Typography fontStyle={'italic'} className="heading" variant="body2">
             *You are selling XEC
           </Typography>
-        </Grid>
-        <Grid item xs={12} style={{ padding: '10px 16px 0' }}>
-          <Controller
-            name="hideFromHome"
-            control={control}
-            rules={{
-              required: false
-            }}
-            render={({ field: { onChange, onBlur, value, ref } }) => (
-              <FormControlLabel
-                control={<Checkbox checked={value || false} onChange={onChange} onBlur={onBlur} inputRef={ref} />}
-                label="Hide from Marketplace"
-              />
-            )}
-          />
-          {errors?.hideFromHome && <FormHelperText error>{errors.hideFromHome.message as string}</FormHelperText>}
         </Grid>
 
         <Grid item xs={12}>
@@ -1009,13 +1007,6 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
             <span className="prefix">Offer note: </span> {getValues('note')}
           </Typography>
         </Grid>
-        {getValues('hideFromHome') && (
-          <Grid item xs={12}>
-            <Typography variant="body1">
-              <span style={{ fontSize: '15px', fontWeight: 'bold' }}>*Hide from Marketplace </span>
-            </Typography>
-          </Grid>
-        )}
       </Grid>
     </div>
   );
@@ -1086,23 +1077,38 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       </IconButton>
       <DialogContent ref={dialogContentRef}>{stepContents[`stepContent${activeStep}`]}</DialogContent>
       <DialogActions>
-        <Button
-          variant="contained"
-          onClick={() => handleBack()}
-          disabled={isEdit ? activeStep === 2 : activeStep === 1}
-        >
-          Back
-        </Button>
-        <Button
-          variant="contained"
-          color="success"
-          onClick={activeStep !== 3 ? handleSubmit(handleNext) : handleSubmit(handleCreateOffer)}
-          disabled={loading}
-        >
-          {activeStep === 1 && 'Next'}
-          {activeStep === 2 && 'Preview'}
-          {activeStep === 3 && `${isEdit ? 'Update' : 'Create'} offer`}
-        </Button>
+        <div className="button-group">
+          <Button
+            className="button-back"
+            variant="contained"
+            onClick={() => handleBack()}
+            disabled={isEdit ? activeStep === 2 : activeStep === 1}
+          >
+            Back
+          </Button>
+          <Button
+            className="button-create"
+            variant="contained"
+            color="success"
+            onClick={activeStep !== 3 ? handleSubmit(handleNext) : handleSubmit(data => handleCreateOffer(data, false))}
+            disabled={loading}
+          >
+            {activeStep === 1 && 'Next'}
+            {activeStep === 2 && 'Preview'}
+            {activeStep === 3 && `${isEdit ? 'Update' : 'Create'} offer`}
+          </Button>
+          {activeStep === 3 && !isEdit && (
+            <Button
+              className="button-create-hide"
+              variant="contained"
+              color="success"
+              onClick={handleSubmit(data => handleCreateOffer(data, true))}
+              disabled={loading}
+            >
+              Create offer and hide from Marketplace
+            </Button>
+          )}
+        </div>
       </DialogActions>
 
       <Portal>
