@@ -80,11 +80,13 @@ export default function OfferActionSheet({ post }: OfferActionSheetProps) {
             <ListItemText primary={'Archive offer'} />
           </ListItemButton>
         </ListItem>
-        <ListItem key={'Boost'} disablePadding>
-          <ListItemButton onClick={handleBoostOffer}>
-            <ListItemText primary={'Boost offer'} />
-          </ListItemButton>
-        </ListItem>
+        {!offer?.hideFromHome && (
+          <ListItem key={'Boost'} disablePadding>
+            <ListItemButton onClick={handleBoostOffer}>
+              <ListItemText primary={'Boost offer'} />
+            </ListItemButton>
+          </ListItem>
+        )}
         <ListItem key={'Share'} disablePadding>
           <ListItemButton onClick={handleClickShare}>
             <ListItemText primary={'Share offer'} />
