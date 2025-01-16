@@ -11,20 +11,32 @@ import { TabType } from '@/src/store/constants';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { UtxoContext } from '@/src/store/context/utxoProvider';
 import { formatNumber } from '@/src/store/util';
-import { COIN } from '@bcpros/lixi-models';
+import { COIN, coinInfo } from '@bcpros/lixi-models';
 import {
+  WalletContextNode,
+  chronikNode,
+  convertHashToEcashAddress,
+  formatDate,
   getSeedBackupTime,
   getSelectedWalletPath,
+  getWalletState,
   openModal,
   parseCashAddressToPrefix,
   useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
-import { Backdrop, Button, Stack, Tab, Tabs, Typography } from '@mui/material';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import SendIcon from '@mui/icons-material/Send';
+import { Box, Card, CardContent, CircularProgress, Link, Stack, Tab, Tabs, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { signOut, useSession } from 'next-auth/react';
-import { useContext, useState } from 'react';
+import { Tx_InNode } from 'chronik-client';
+import { fromHex } from 'ecash-lib';
+import _, { Dictionary } from 'lodash';
+import React, { useContext, useEffect, useState } from 'react';
 import SwipeableViews from 'react-swipeable-views';
+
+const { getTxHistoryChronik: getTxHistoryChronikNode } = chronikNode;
 
 const WrapWallet = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -85,19 +97,35 @@ const SendWrap = styled('div')(({ theme }) => ({
 }));
 
 export default function Wallet() {
-  const { data: sessionData } = useSession();
   const dispatch = useLixiSliceDispatch();
-
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
   const lastSeedBackupTimeOnDevice = useLixiSliceSelector(getSeedBackupTime);
+  const walletState = useLixiSliceSelector(getWalletState);
+
+  const Wallet = useContext(WalletContextNode);
   const settingContext = useContext(SettingContext);
-  const seedBackupTime = settingContext?.setting?.lastSeedBackupTime ?? lastSeedBackupTimeOnDevice ?? '';
-
-  const [address, setAddress] = useState(parseCashAddressToPrefix(COIN.XEC, selectedWalletPath?.cashAddress));
-
   const { totalValidAmount, totalValidUtxos } = useContext(UtxoContext);
 
   const [value, setValue] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [address, setAddress] = useState(parseCashAddressToPrefix(COIN.XEC, selectedWalletPath?.cashAddress));
+  const [walletHistory, setWalletHistory] = useState<
+    Dictionary<
+      (Tx_InNode & {
+        parsed: chronikNode.ParsedChronikTx_InNode;
+      })[]
+    >
+  >();
+
+  const { XPI, chronik } = Wallet;
+  const seedBackupTime = settingContext?.setting?.lastSeedBackupTime ?? lastSeedBackupTimeOnDevice ?? '';
+
+  const formatAddress = (address: string) => {
+    if (!address) return;
+
+    return address.slice(-8);
+  };
+
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     if (newValue === 0 && !isBackup()) {
       return;
@@ -111,6 +139,33 @@ export default function Wallet() {
     }
     setValue(index);
   };
+
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+
+      await getTxHistoryChronikNode(chronik, XPI, walletState, 0)
+        .then(({ chronikTxHistory }) => {
+          const orderedWalletParsedHistory = _.orderBy(chronikTxHistory, x => x.timeFirstSeen, 'desc');
+
+          const walletParsedHistoryGroupByDate = _.groupBy(orderedWalletParsedHistory, item => {
+            const currentMonth = new Date().getMonth();
+            const dateTime = new Date(formatDate(item.timeFirstSeen.toString()));
+            if (currentMonth == dateTime.getMonth()) return 'Recent';
+            const month = dateTime.toLocaleString('en', { month: 'long' });
+
+            return month + ' ' + dateTime.getFullYear();
+          });
+
+          setWalletHistory(walletParsedHistoryGroupByDate);
+        })
+        .catch(e => {
+          console.log('Error when getTxHistoryChronikNode', e);
+        });
+
+      setLoading(false);
+    })();
+  }, [walletState.walletStatusNode]);
 
   const isBackup = () => {
     //check backup
@@ -129,30 +184,9 @@ export default function Wallet() {
 
       return false;
     }
+
     return true;
   };
-
-  if (selectedWalletPath === null && sessionData) {
-    return (
-      <Backdrop sx={theme => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })} open={true}>
-        <Stack>
-          <Typography variant="h5" align="center">
-            No wallet detected
-          </Typography>
-          <Typography variant="body1" align="center">
-            Please sign out and try again!
-          </Typography>
-          <Button
-            variant="contained"
-            style={{ marginTop: '15px' }}
-            onClick={() => signOut({ redirect: true, callbackUrl: '/' })}
-          >
-            Sign Out
-          </Button>
-        </Stack>
-      </Backdrop>
-    );
-  }
 
   return (
     <MobileLayout>
@@ -198,6 +232,93 @@ export default function Wallet() {
                   <ReceiveWrap>
                     <QRCode address={address} />
                   </ReceiveWrap>
+                  <Typography variant="h5" align="center" marginTop="10px" fontWeight="bold">
+                    Transaction History
+                  </Typography>
+                  {loading ? (
+                    <Box sx={{ height: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <CircularProgress color="primary" />
+                    </Box>
+                  ) : (
+                    <div style={{ height: '380px', overflow: 'auto', marginTop: '10px' }}>
+                      {!_.isEmpty(walletHistory) ? (
+                        Object.keys(walletHistory).map(index => {
+                          return (
+                            <React.Fragment key={index}>
+                              <Typography variant="h6" marginTop="10px" fontWeight="bold">
+                                {index}
+                              </Typography>
+                              {walletHistory[index].map(item => {
+                                return (
+                                  <Card key={item.txid} sx={{ marginTop: '10px' }}>
+                                    <CardContent sx={{ padding: '10px !important' }}>
+                                      <div
+                                        style={{
+                                          display: 'flex',
+                                          justifyContent: 'space-between',
+                                          alignItems: 'center'
+                                        }}
+                                      >
+                                        <Stack direction={'row'} spacing={1.5}>
+                                          {item.parsed.incoming ? (
+                                            <FileDownloadIcon sx={{ fontSize: '40px' }} color="primary" />
+                                          ) : (
+                                            <SendIcon sx={{ fontSize: '40px' }} />
+                                          )}
+                                          <Stack spacing={0.5}>
+                                            <Typography>
+                                              <span>{item.parsed.incoming ? 'Received from: ' : 'Sent to: '}</span>
+                                              <Link
+                                                style={{ fontWeight: 'bold' }}
+                                                href={`${coinInfo[COIN.XEC].blockExplorerUrl}/address/${item.parsed.incoming ? convertHashToEcashAddress(fromHex(item.parsed.replyAddressHash)) : convertHashToEcashAddress(fromHex(item.parsed.destinationAddressHash))}`}
+                                                target="_blank"
+                                                rel="noopener"
+                                              >
+                                                {item.parsed.incoming
+                                                  ? formatAddress(
+                                                      convertHashToEcashAddress(fromHex(item.parsed.replyAddressHash))
+                                                    )
+                                                  : formatAddress(
+                                                      convertHashToEcashAddress(
+                                                        fromHex(item.parsed.destinationAddressHash)
+                                                      )
+                                                    )}
+                                              </Link>
+                                            </Typography>
+                                            <Typography fontSize="12px">
+                                              {new Date(item.timeFirstSeen * 1000).toLocaleString('vi-VN')}
+                                            </Typography>
+                                          </Stack>
+                                        </Stack>
+                                        <Stack spacing={0.5}>
+                                          <Typography fontSize="17px" fontWeight={'bold'}>
+                                            {item.parsed.incoming ? '+ ' : '- '}
+                                            {formatNumber(parseFloat(item.parsed.xecAmount) ?? 0)} XEC
+                                          </Typography>
+                                          <Link
+                                            style={{ textAlign: 'right' }}
+                                            href={`${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${item.txid}`}
+                                            target="_blank"
+                                            rel="noopener"
+                                          >
+                                            <OpenInNewIcon fontSize="small" sx={{ cursor: 'pointer' }} />
+                                          </Link>
+                                        </Stack>
+                                      </div>
+                                    </CardContent>
+                                  </Card>
+                                );
+                              })}
+                            </React.Fragment>
+                          );
+                        })
+                      ) : (
+                        <Typography variant="body1" align="center" marginTop="10px">
+                          So empty... Maybe this wallet need some XEC?
+                        </Typography>
+                      )}
+                    </div>
+                  )}
                 </TabPanel>
               </SwipeableViews>
             </div>
