@@ -1,6 +1,6 @@
 'use client';
 
-import { COIN_OTHERS, COIN_USD_STABLECOIN_TICKET, LIST_COIN } from '@/src/store/constants';
+import { COIN_OTHERS, COIN_USD_STABLECOIN_TICKER, LIST_COIN } from '@/src/store/constants';
 import { LIST_CURRENCIES_USED, Location } from '@bcpros/lixi-models';
 import {
   Coin,
@@ -133,17 +133,8 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
     '.button-group': {
       width: '100%',
       display: 'flex',
-      flexWrap: 'wrap',
-      gap: '2%',
-
-      '.button-back, .button-create': {
-        width: '49%'
-      },
-
-      '.button-create-hide': {
-        marginTop: '7px',
-        width: '100%'
-      }
+      flexDirection: 'column',
+      gap: '7px'
     }
   },
 
@@ -555,7 +546,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                         if (item.ticker === 'XEC') return;
                         return (
                           <option key={item.ticker} value={`${item.ticker}:${item.fixAmount}`}>
-                            {item.name} {item.ticker !== COIN_USD_STABLECOIN_TICKET && `(${item.ticker})`}
+                            {item.name} {item.ticker !== COIN_USD_STABLECOIN_TICKER && `(${item.ticker})`}
                           </option>
                         );
                       })}
@@ -571,7 +562,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
               />
             </Grid>
 
-            {coinValue?.includes(COIN_OTHERS) && (
+            {(coinValue?.includes(COIN_OTHERS) || coinValue?.includes(COIN_USD_STABLECOIN_TICKER)) && (
               <Grid item xs={4}>
                 <Controller
                   name="coinOthers"
@@ -579,7 +570,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                   rules={{
                     required: {
                       value: true,
-                      message: 'Coin others is required!'
+                      message: 'Ticker is required!'
                     }
                   }}
                   render={({ field: { onChange, onBlur, value, name, ref } }) => (
@@ -972,13 +963,13 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
           <div className="payment-wrap">
             <div className="payment-method">
               <Typography>Payment method</Typography>
-              <Button variant="contained" color="success">
+              <Button variant="outlined" color="success">
                 {paymentMethods[Number(option ?? '1') - 1]?.name}
               </Button>
             </div>
             <div className="payment-currency">
               <Typography>Payment currency</Typography>
-              <Button variant="contained" color="warning">
+              <Button variant="outlined" color="warning">
                 {coinCurrency}
               </Button>
             </div>
@@ -1078,14 +1069,17 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       <DialogContent ref={dialogContentRef}>{stepContents[`stepContent${activeStep}`]}</DialogContent>
       <DialogActions>
         <div className="button-group">
-          <Button
-            className="button-back"
-            variant="contained"
-            onClick={() => handleBack()}
-            disabled={isEdit ? activeStep === 2 : activeStep === 1}
-          >
-            Back
-          </Button>
+          {activeStep === 3 && !isEdit && (
+            <Button
+              className="button-create-hide"
+              variant="contained"
+              color="success"
+              onClick={handleSubmit(data => handleCreateOffer(data, true))}
+              disabled={loading}
+            >
+              Create unlisted offer
+            </Button>
+          )}
           <Button
             className="button-create"
             variant="contained"
@@ -1095,19 +1089,16 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
           >
             {activeStep === 1 && 'Next'}
             {activeStep === 2 && 'Preview'}
-            {activeStep === 3 && `${isEdit ? 'Update' : 'Create'} offer`}
+            {activeStep === 3 && `${isEdit ? 'Update' : 'Create listed'} offer`}
           </Button>
-          {activeStep === 3 && !isEdit && (
-            <Button
-              className="button-create-hide"
-              variant="contained"
-              color="success"
-              onClick={handleSubmit(data => handleCreateOffer(data, true))}
-              disabled={loading}
-            >
-              Create offer and hide from Marketplace
-            </Button>
-          )}
+          <Button
+            className="button-back"
+            variant="contained"
+            onClick={() => handleBack()}
+            disabled={isEdit ? activeStep === 2 : activeStep === 1}
+          >
+            Back
+          </Button>
         </div>
       </DialogActions>
 

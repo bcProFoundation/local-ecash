@@ -12,7 +12,7 @@ export enum TabType {
 
 export const COIN_OTHERS = 'Others';
 export const COIN_USD_STABLECOIN = 'USD Stablecoins';
-export const COIN_USD_STABLECOIN_TICKET = 'USD';
+export const COIN_USD_STABLECOIN_TICKER = 'USD';
 
 export const LIST_COIN = [
   {
@@ -60,7 +60,7 @@ export const LIST_COIN = [
   {
     id: 9,
     name: COIN_USD_STABLECOIN,
-    ticker: COIN_USD_STABLECOIN_TICKET,
+    ticker: COIN_USD_STABLECOIN_TICKER,
     fixAmount: 100
   }
 ];

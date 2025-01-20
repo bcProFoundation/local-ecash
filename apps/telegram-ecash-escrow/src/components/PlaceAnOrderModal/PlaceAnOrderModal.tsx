@@ -1,6 +1,6 @@
 'use client';
 
-import { COIN_OTHERS, COIN_USD_STABLECOIN_TICKET } from '@/src/store/constants';
+import { COIN_OTHERS, COIN_USD_STABLECOIN_TICKER } from '@/src/store/constants';
 import { UtxoContext } from '@/src/store/context/utxoProvider';
 import { Escrow, buyerDepositFee, splitUtxos } from '@/src/store/escrow';
 import { convertXECToSatoshi, estimatedFee } from '@/src/store/util';
@@ -447,7 +447,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     let amountCoinOrCurrency = 0;
     const textAmountPer1MXEC = 1000000;
     //if payment is crypto, we convert from coin => USD => XEC
-    if (post?.postOffer?.coinPayment && post?.postOffer?.coinPayment !== COIN_USD_STABLECOIN_TICKET) {
+    if (post?.postOffer?.coinPayment && post?.postOffer?.coinPayment !== COIN_USD_STABLECOIN_TICKER) {
       const coinPayment = post.postOffer.coinPayment.toLowerCase();
       const rateArrayCoin = rateData.find(item => item.coin === coinPayment);
       const rateArrayXec = rateData.find(item => item.coin === 'xec');

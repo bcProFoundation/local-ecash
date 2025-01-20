@@ -1,6 +1,6 @@
 'use client';
 
-import { COIN_USD_STABLECOIN_TICKET } from '@/src/store/constants';
+import { COIN_USD_STABLECOIN_TICKER } from '@/src/store/constants';
 import { COIN, coinInfo } from '@bcpros/lixi-models';
 import {
   DisputeStatus,
@@ -110,7 +110,7 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
     const amountXEC = 1000000;
     let amountCoinOrCurrency = 0;
     //if payment is crypto, we convert from coin => USD
-    if (order?.escrowOffer?.coinPayment && order?.escrowOffer?.coinPayment !== COIN_USD_STABLECOIN_TICKET) {
+    if (order?.escrowOffer?.coinPayment && order?.escrowOffer?.coinPayment !== COIN_USD_STABLECOIN_TICKER) {
       const coinPayment = order?.escrowOffer.coinPayment.toLowerCase();
       const rateArrayCoin = rateData.find(item => item.coin === coinPayment);
       const rateArrayXec = rateData.find(item => item.coin === 'xec');
@@ -216,11 +216,6 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
         {order?.escrowOffer?.coinOthers && (
           <Button className="btn-payment" size="small" color="success" variant="outlined">
             {order.escrowOffer.coinOthers}
-          </Button>
-        )}
-        {order?.escrowOffer?.coinPayment === COIN_USD_STABLECOIN_TICKET && (
-          <Button className="btn-payment" size="small" color="success" variant="outlined">
-            {order.escrowOffer.coinPayment}
           </Button>
         )}
       </Typography>

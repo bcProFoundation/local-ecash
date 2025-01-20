@@ -1,6 +1,6 @@
 'use client';
 
-import { COIN_OTHERS, COIN_USD_STABLECOIN_TICKET } from '@/src/store/constants';
+import { COIN_OTHERS, COIN_USD_STABLECOIN_TICKER } from '@/src/store/constants';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { formatNumber } from '@/src/store/util';
 import {
@@ -190,7 +190,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
     let amountXEC = 1000000;
     let amountCoinOrCurrency = 0;
     //if payment is crypto, we convert from coin => USD
-    if (post?.postOffer?.coinPayment && post?.postOffer?.coinPayment !== COIN_USD_STABLECOIN_TICKET) {
+    if (post?.postOffer?.coinPayment && post?.postOffer?.coinPayment !== COIN_USD_STABLECOIN_TICKER) {
       const coinPayment = post.postOffer.coinPayment.toLowerCase();
       const rateArrayCoin = rateData.find(item => item.coin === coinPayment);
       const rateArrayXec = rateData.find(item => item.coin === 'xec');
@@ -303,11 +303,6 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
               {offerData?.coinOthers && (
                 <Button size="small" color="success" variant="outlined">
                   {offerData.coinOthers}
-                </Button>
-              )}
-              {offerData?.coinPayment === COIN_USD_STABLECOIN_TICKET && (
-                <Button size="small" color="success" variant="outlined">
-                  {offerData.coinPayment}
                 </Button>
               )}
             </div>
