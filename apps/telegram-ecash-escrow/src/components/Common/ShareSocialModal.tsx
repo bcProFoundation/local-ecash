@@ -65,13 +65,14 @@ const ShareSocialModal: React.FC<ShareSocialModalProps> = ({ offer }) => {
   const dispatch = useLixiSliceDispatch();
 
   const sizeIcon = 50;
-  const pageLink = `https://t.me/${process.env.NEXT_PUBLIC_BOT_USERNAME}?startapp=offer__detail__${offer?.postId}`;
+  const linkWeb = `${process.env.NEXT_PUBLIC_WEB_LINK}/offer-detail?id=${offer?.postId}`;
+  const linkTelegram = `https://t.me/${process.env.NEXT_PUBLIC_BOT_USERNAME}?startapp=offer__detail__${offer?.postId}`;
 
   const shareOptions = [
     {
       label: 'Twitter',
       icon: (
-        <TwitterShareButton url={pageLink}>
+        <TwitterShareButton url={linkWeb}>
           <TwitterIcon size={sizeIcon} round />
         </TwitterShareButton>
       )
@@ -79,7 +80,7 @@ const ShareSocialModal: React.FC<ShareSocialModalProps> = ({ offer }) => {
     {
       label: 'Facebook',
       icon: (
-        <FacebookShareButton url={pageLink}>
+        <FacebookShareButton url={linkWeb}>
           <FacebookIcon size={sizeIcon} round />
         </FacebookShareButton>
       )
@@ -87,7 +88,7 @@ const ShareSocialModal: React.FC<ShareSocialModalProps> = ({ offer }) => {
     {
       label: 'LinkedIn ',
       icon: (
-        <LinkedinShareButton url={pageLink}>
+        <LinkedinShareButton url={linkWeb}>
           <LinkedinIcon size={sizeIcon} round />
         </LinkedinShareButton>
       )
@@ -95,7 +96,7 @@ const ShareSocialModal: React.FC<ShareSocialModalProps> = ({ offer }) => {
     {
       label: 'Reddit',
       icon: (
-        <RedditShareButton url={pageLink}>
+        <RedditShareButton url={linkWeb}>
           <RedditIcon size={sizeIcon} round />
         </RedditShareButton>
       )
@@ -103,7 +104,7 @@ const ShareSocialModal: React.FC<ShareSocialModalProps> = ({ offer }) => {
     {
       label: 'Messenger',
       icon: (
-        <FacebookMessengerShareButton url={pageLink} appId="521270401588372">
+        <FacebookMessengerShareButton url={linkWeb} appId="521270401588372">
           <FacebookMessengerIcon size={sizeIcon} round />
         </FacebookMessengerShareButton>
       )
@@ -111,7 +112,7 @@ const ShareSocialModal: React.FC<ShareSocialModalProps> = ({ offer }) => {
     {
       label: 'Telegram',
       icon: (
-        <TelegramShareButton url={pageLink}>
+        <TelegramShareButton url={linkTelegram}>
           <TelegramIcon size={sizeIcon} round />
         </TelegramShareButton>
       )
@@ -119,7 +120,7 @@ const ShareSocialModal: React.FC<ShareSocialModalProps> = ({ offer }) => {
     {
       label: 'WhatsApp',
       icon: (
-        <WhatsappShareButton url={pageLink}>
+        <WhatsappShareButton url={linkWeb}>
           <WhatsappIcon size={sizeIcon} round />
         </WhatsappShareButton>
       )
@@ -133,7 +134,7 @@ const ShareSocialModal: React.FC<ShareSocialModalProps> = ({ offer }) => {
         description: 'Link copied to clipboard!'
       })
     );
-    navigator.clipboard.writeText(pageLink);
+    navigator.clipboard.writeText(linkWeb);
   };
 
   const handleCloseModal = () => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { COIN_OTHERS, COIN_USD_STABLECOIN_TICKET } from '@/src/store/constants';
+import { COIN_OTHERS } from '@/src/store/constants';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { formatNumber } from '@/src/store/util';
 import {
@@ -162,11 +162,11 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
           {offerData.noteOffer}
         </Typography>
       )}
-      {offerData?.hideFromHome && (
-        <Typography variant="body1">
-          <span style={{ fontSize: '14px' }}>*Hidden from Marketplace</span>
-        </Typography>
-      )}
+
+      <Typography variant="body1">
+        <span style={{ fontSize: '14px' }}>*{offerData?.hideFromHome ? 'Unlisted' : 'Listed'}</span>
+      </Typography>
+
       <div className="action-section">
         <div className="payment-group-btns">
           {offerData?.paymentMethods &&
@@ -181,11 +181,6 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
           {offerData?.coinOthers && (
             <Button size="small" color="success" variant="outlined">
               {offerData.coinOthers}
-            </Button>
-          )}
-          {offerData?.coinPayment === COIN_USD_STABLECOIN_TICKET && (
-            <Button size="small" color="success" variant="outlined">
-              {offerData.coinPayment}
             </Button>
           )}
         </div>
