@@ -1,12 +1,15 @@
 import {
   OfferStatus,
   PostQueryItem,
+  UpdateOfferHideFromHomeInput,
   UpdateOfferStatusInput,
   closeActionSheet,
   offerApi,
   openModal,
+  showToast,
   useSliceDispatch as useLixiSliceDispatch
 } from '@bcpros/redux-store';
+import { useUpdateOfferHideFromHomeMutation } from '@bcpros/redux-store/build/main/store/escrow/offer/offer.api';
 import { Box, List, ListItem, ListItemButton, ListItemText, SwipeableDrawer, styled } from '@mui/material';
 import { useState } from 'react';
 
@@ -37,6 +40,7 @@ export default function OfferActionSheet({ post }: OfferActionSheetProps) {
 
   const { useUpdateOfferStatusMutation } = offerApi;
   const [triggerUpdateOfferStatus] = useUpdateOfferStatusMutation();
+  const [updateOfferHideFromHomeTrigger] = useUpdateOfferHideFromHomeMutation();
 
   const editOffer = () => {
     dispatch(openModal('CreateOfferModal', { offer: offer, isEdit: true }));
@@ -49,6 +53,33 @@ export default function OfferActionSheet({ post }: OfferActionSheetProps) {
       status: OfferStatus.Archive
     };
     triggerUpdateOfferStatus({ input });
+  };
+
+  const handleListUnlistOffer = async () => {
+    let inputUpdateOffer: UpdateOfferHideFromHomeInput = {
+      id: offer?.postId,
+      hideFromHome: !offer?.hideFromHome
+    };
+    await updateOfferHideFromHomeTrigger({ input: inputUpdateOffer })
+      .unwrap()
+      .then(() => {
+        dispatch(
+          showToast('success', {
+            message: 'Success',
+            description: `${offer?.hideFromHome ? 'List' : 'Unlist'} offer successfully!`
+          })
+        );
+      })
+      .catch(err => {
+        dispatch(
+          showToast('error', {
+            message: 'error',
+            description: `Something wrong when ${offer?.hideFromHome ? 'list' : 'unlist'} offer!`
+          })
+        );
+      });
+
+    handleClose();
   };
 
   const handleBoostOffer = async () => {
@@ -78,6 +109,11 @@ export default function OfferActionSheet({ post }: OfferActionSheetProps) {
         <ListItem key={'Archive'} disablePadding>
           <ListItemButton onClick={handleClickArchive}>
             <ListItemText primary={'Archive offer'} />
+          </ListItemButton>
+        </ListItem>
+        <ListItem key={'ListUnlist'} disablePadding>
+          <ListItemButton onClick={handleListUnlistOffer}>
+            <ListItemText primary={`${offer?.hideFromHome ? 'List' : 'Unlist'} offer`} />
           </ListItemButton>
         </ListItem>
         {!offer?.hideFromHome && (
