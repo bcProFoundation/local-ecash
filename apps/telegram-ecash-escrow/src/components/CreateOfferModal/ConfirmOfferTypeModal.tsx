@@ -18,6 +18,7 @@ import React from 'react';
 
 interface ConfirmOfferTypeModalProps {
   isOpen: boolean;
+  isLoading: boolean;
   onDissmissModal?: (value: boolean) => void;
   createOffer?: (isHidden: boolean) => void;
 }
@@ -94,10 +95,14 @@ const ConfirmOfferTypeModal: React.FC<ConfirmOfferTypeModalProps> = props => {
         <IconButton className="back-btn" onClick={() => props.onDissmissModal!(false)}>
           <ChevronLeft />
         </IconButton>
-        <DialogTitle paddingTop="0px !important">Confirmation</DialogTitle>
+        <DialogTitle paddingTop="0px !important">Confirm Offer Type</DialogTitle>
         <DialogContent>
-          <Typography sx={{ fontSize: '16px', marginTop: '10px' }}>
-            Would you like to list your offer on the Marketplace?
+          <Typography component={'div'} sx={{ fontSize: '16px', marginTop: '10px' }}>
+            <div>Choose your offer type:</div>
+            <div style={{ fontSize: '15px' }}>
+              - <b>Listed</b>: Your offer is listed on Marketplace and visible to everyone.
+              <br />- <b>Unlisted</b>: Your offer is not listed on Marketplace. Only you can see it.
+            </div>
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -108,6 +113,7 @@ const ConfirmOfferTypeModal: React.FC<ConfirmOfferTypeModalProps> = props => {
             onClick={() => {
               props.createOffer!(false);
             }}
+            disabled={props.isLoading}
             autoFocus
           >
             Listed
@@ -119,6 +125,7 @@ const ConfirmOfferTypeModal: React.FC<ConfirmOfferTypeModalProps> = props => {
             onClick={() => {
               props.createOffer!(true);
             }}
+            disabled={props.isLoading}
             autoFocus
           >
             Unlisted
