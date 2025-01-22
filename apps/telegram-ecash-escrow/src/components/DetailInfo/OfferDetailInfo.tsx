@@ -163,12 +163,13 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
         </Typography>
       )}
 
-      <Typography variant="body1">
-        <span style={{ fontSize: '14px' }}>*{offerData?.hideFromHome ? 'Unlisted' : 'Listed'}</span>
-      </Typography>
-
       <div className="action-section">
         <div className="payment-group-btns">
+          <Button size="small" color="info" variant="outlined">
+            <Typography variant="body1" style={{ fontWeight: 'bold' }}>
+              <span style={{ fontSize: '14px' }}>{offerData?.hideFromHome ? 'Unlisted' : 'Listed'}</span>
+            </Typography>
+          </Button>
           {offerData?.paymentMethods &&
             offerData.paymentMethods?.length > 0 &&
             offerData.paymentMethods.map(item => {

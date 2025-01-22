@@ -270,6 +270,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
   );
 
   if (offerData?.status == OfferStatus.Archive) return <div></div>;
+  if (offerData?.hideFromHome) return <div></div>;
 
   return (
     <React.Fragment>

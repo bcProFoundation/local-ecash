@@ -2,16 +2,17 @@
 
 import { UtxoContext } from '@/src/store/context/utxoProvider';
 import { withdrawFund } from '@/src/store/escrow';
-import { COIN } from '@bcpros/lixi-models';
+import { COIN, Role } from '@bcpros/lixi-models';
 import {
-  boostApi,
   BoostForType,
   BoostType,
+  CreateBoostInput,
+  PostQueryItem,
+  boostApi,
   closeActionSheet,
   closeModal,
-  CreateBoostInput,
+  getSelectedAccount,
   getSelectedWalletPath,
-  PostQueryItem,
   useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
@@ -59,6 +60,12 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
     flexDirection: 'column',
     alignItems: 'flex-start',
 
+    '.group-btn': {
+      display: 'flex',
+      width: '100%',
+      gap: '10px'
+    },
+
     '.boost-info': {
       marginTop: '10px',
       marginLeft: '0'
@@ -95,6 +102,7 @@ const BoostModal: React.FC<BoostModalProps> = ({ post }: BoostModalProps) => {
 
   const dispatch = useLixiSliceDispatch();
   const selectedWallet = useLixiSliceSelector(getSelectedWalletPath);
+  const selectedAccount = useLixiSliceSelector(getSelectedAccount);
 
   const [error, setError] = useState(false);
   const [notEnoughMoney, setNotEnoughMoney] = useState(false);
@@ -108,7 +116,7 @@ const BoostModal: React.FC<BoostModalProps> = ({ post }: BoostModalProps) => {
     dispatch(closeModal());
   };
 
-  const handleCreateBoost = async () => {
+  const handleCreateBoost = async (boostType: BoostType) => {
     try {
       setLoading(true);
       const myPk = fromHex(selectedWallet?.publicKey);
@@ -129,7 +137,7 @@ const BoostModal: React.FC<BoostModalProps> = ({ post }: BoostModalProps) => {
         boostedValue: amount,
         boostForId: post?.id || '',
         boostForType: BoostForType.Post,
-        boostType: BoostType.Up,
+        boostType: boostType,
         txHex: toHex(txBuild)
       };
       await createBoostTrigger({ data: createBoostInput })
@@ -152,18 +160,37 @@ const BoostModal: React.FC<BoostModalProps> = ({ post }: BoostModalProps) => {
         </Typography>
       </DialogContent>
       <DialogActions style={{ flexBasis: 'column', padding: 0 }}>
-        <Button
-          className="create-boost-btn"
-          color="info"
-          variant="contained"
-          onClick={() => handleCreateBoost()}
-          disabled={loading}
-        >
-          100 XEC to boost
-        </Button>
+        <div className="group-btn">
+          {selectedAccount?.role === Role.MODERATOR && (
+            <Button
+              className="create-boost-btn"
+              color="info"
+              variant="contained"
+              onClick={() => handleCreateBoost(BoostType.Down)}
+              disabled={loading}
+            >
+              100 XEC to downvote
+            </Button>
+          )}
+          <Button
+            className="create-boost-btn"
+            color="info"
+            variant="contained"
+            onClick={() => handleCreateBoost(BoostType.Up)}
+            disabled={loading}
+          >
+            100 XEC to boost
+          </Button>
+        </div>
         <Typography className="boost-info">
-          Boosted <span className="bold">{post.boostScore.boostScore / 100}</span> times by you:{' '}
-          <span className="bold">{post.boostScore.boostScore}</span> {COIN.XEC}
+          <Typography>
+            Boosted <span className="bold">{post.boostScore.boostUp / 100}</span> times by you:{' '}
+            <span className="bold">{post.boostScore.boostUp}</span> {COIN.XEC}
+          </Typography>
+          <Typography>
+            Downvote <span className="bold">{post.boostScore.boostDown / 100}</span> times by moderator:{' '}
+            <span className="bold">{post.boostScore.boostDown}</span> {COIN.XEC}
+          </Typography>
         </Typography>
       </DialogActions>
       <Portal>

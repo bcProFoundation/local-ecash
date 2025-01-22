@@ -48,6 +48,7 @@ import FilterListLocationModal from '../FilterList/FilterListLocationModal';
 import FilterListModal from '../FilterList/FilterListModal';
 import { FormControlWithNativeSelect } from '../FilterOfferModal/FilterOfferModal';
 import CustomToast from '../Toast/CustomToast';
+import ConfirmOfferTypeModal from './ConfirmOfferTypeModal';
 
 const StyledDialog = styled(Dialog)(({ theme }) => ({
   '.MuiPaper-root': {
@@ -133,7 +134,6 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
     '.button-group': {
       width: '100%',
       display: 'flex',
-      flexDirection: 'column',
       gap: '7px'
     }
   },
@@ -227,6 +227,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   const [openCountryList, setOpenCountryList] = useState(false);
   const [openStateList, setOpenStateList] = useState(false);
   const [openCityList, setOpenCityList] = useState(false);
+  const [openConfirmType, setOpenConfirmType] = useState(false);
 
   const dialogContentRef = useRef<HTMLDivElement>(null);
 
@@ -271,8 +272,9 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
 
   const handleCreateOffer = async (data, isHidden) => {
     setLoading(true);
-    const minNum = parseFloat(data.min);
-    const maxNum = parseFloat(data.max);
+    const minNum = parseFloat(parseFloat(data.min).toFixed(2));
+    const maxNum = parseFloat(parseFloat(data.max).toFixed(2));
+
     const input = {
       message: data.message,
       noteOffer: data.note,
@@ -320,6 +322,16 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
         .catch(err => {
           setError(true);
         });
+    }
+  };
+
+  const handleCreateUpdate = () => {
+    if (isEdit) {
+      handleSubmit(data => {
+        handleCreateOffer(data, false);
+      })();
+    } else {
+      setOpenConfirmType(true);
     }
   };
 
@@ -964,13 +976,13 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
             <div className="payment-method">
               <Typography>Payment method</Typography>
               <Button variant="outlined" color="success">
-                {paymentMethods[Number(option ?? '1') - 1]?.name}
+                <Typography>{paymentMethods[Number(option ?? '1') - 1]?.name}</Typography>
               </Button>
             </div>
             <div className="payment-currency">
               <Typography>Payment currency</Typography>
               <Button variant="outlined" color="warning">
-                {coinCurrency}
+                <Typography>{coinCurrency}</Typography>
               </Button>
             </div>
           </div>
@@ -1069,28 +1081,6 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       <DialogContent ref={dialogContentRef}>{stepContents[`stepContent${activeStep}`]}</DialogContent>
       <DialogActions>
         <div className="button-group">
-          {activeStep === 3 && !isEdit && (
-            <Button
-              className="button-create-hide"
-              variant="contained"
-              color="success"
-              onClick={handleSubmit(data => handleCreateOffer(data, true))}
-              disabled={loading}
-            >
-              Create unlisted offer
-            </Button>
-          )}
-          <Button
-            className="button-create"
-            variant="contained"
-            color="success"
-            onClick={activeStep !== 3 ? handleSubmit(handleNext) : handleSubmit(data => handleCreateOffer(data, false))}
-            disabled={loading}
-          >
-            {activeStep === 1 && 'Next'}
-            {activeStep === 2 && 'Preview'}
-            {activeStep === 3 && `${isEdit ? 'Update' : 'Create listed'} offer`}
-          </Button>
           <Button
             className="button-back"
             variant="contained"
@@ -1098,6 +1088,17 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
             disabled={isEdit ? activeStep === 2 : activeStep === 1}
           >
             Back
+          </Button>
+          <Button
+            className="button-create"
+            variant="contained"
+            color="success"
+            onClick={activeStep !== 3 ? handleSubmit(handleNext) : () => handleCreateUpdate()}
+            disabled={loading}
+          >
+            {activeStep === 1 && 'Next'}
+            {activeStep === 2 && 'Preview'}
+            {activeStep === 3 && `${isEdit ? 'Update' : 'Create'} offer`}
           </Button>
         </div>
       </DialogActions>
@@ -1159,6 +1160,16 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
         setSelectedItem={value => {
           setValue('city', value);
           clearErrors('city');
+        }}
+      />
+
+      <ConfirmOfferTypeModal
+        isOpen={openConfirmType}
+        onDissmissModal={value => setOpenConfirmType(value)}
+        createOffer={isHidden => {
+          handleSubmit(data => {
+            handleCreateOffer(data, isHidden);
+          })();
         }}
       />
     </StyledDialog>
