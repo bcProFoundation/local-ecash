@@ -1,6 +1,6 @@
 'use client';
 
-import { COIN_USD_STABLECOIN_TICKER } from '@/src/store/constants';
+import { COIN_OTHERS, COIN_USD_STABLECOIN_TICKER } from '@/src/store/constants';
 import { COIN, coinInfo } from '@bcpros/lixi-models';
 import {
   DisputeStatus,
@@ -134,7 +134,7 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
   };
 
   const showMargin = () => {
-    return order?.paymentMethod?.id !== 5 && !order?.escrowOffer?.coinOthers;
+    return order?.paymentMethod?.id !== 5 && order?.escrowOffer?.coinPayment !== COIN_OTHERS;
   };
 
   //get rate data

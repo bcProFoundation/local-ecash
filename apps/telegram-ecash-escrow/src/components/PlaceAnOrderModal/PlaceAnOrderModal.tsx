@@ -496,7 +496,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   };
 
   const showMargin = () => {
-    return post.postOffer.paymentMethods[0]?.paymentMethod?.id !== 5 && !post.postOffer.coinOthers;
+    return post.postOffer.paymentMethods[0]?.paymentMethod?.id !== 5 && post.postOffer.coinPayment !== COIN_OTHERS;
   };
 
   //cal escrow script
