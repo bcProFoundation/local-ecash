@@ -96,21 +96,6 @@ const SendWrap = styled('div')(({ theme }) => ({
   marginTop: '10px'
 }));
 
-const TransactionHistoryContainer = styled('div')(({ theme }) => ({
-  height: '380px',
-  overflow: 'auto',
-  marginTop: '10px',
-  '::-webkit-scrollbar': {
-    '-webkit-appearance': 'none',
-    width: '2px'
-  },
-  '::-webkit-scrollbar-thumb': {
-    'border-radius': '4px',
-    'background-color': 'gray',
-    'box-shadow': '0 0 1px rgba(255, 255, 255, 0.5)'
-  }
-}));
-
 export default function Wallet() {
   const dispatch = useLixiSliceDispatch();
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
@@ -255,7 +240,7 @@ export default function Wallet() {
                       <CircularProgress color="primary" />
                     </Box>
                   ) : (
-                    <TransactionHistoryContainer>
+                    <React.Fragment>
                       {!_.isEmpty(walletHistory) ? (
                         Object.keys(walletHistory).map(index => {
                           return (
@@ -332,7 +317,7 @@ export default function Wallet() {
                           So empty... Maybe this wallet need some XEC?
                         </Typography>
                       )}
-                    </TransactionHistoryContainer>
+                    </React.Fragment>
                   )}
                 </TabPanel>
               </SwipeableViews>

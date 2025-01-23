@@ -4,6 +4,7 @@ import Header from '@/src/components/Header/Header';
 import OfferItem from '@/src/components/OfferItem/OfferItem';
 import TopSection from '@/src/components/TopSection/TopSection';
 import {
+  PostQueryItem,
   TimelineQueryItem,
   axiosClient,
   getCountries,
@@ -149,6 +150,26 @@ export default function Home() {
     dispatch(getPaymenMethods());
     dispatch(getCountries());
   }, []);
+
+  useEffect(() => {
+    if (!isFetching) {
+      const offerUnlisted = data.filter(item => (item.data as PostQueryItem).postOffer?.hideFromHome);
+      const offerShowed = data.length - offerUnlisted.length;
+      if (offerShowed < 4) {
+        loadMoreItems();
+      }
+    }
+  }, [data.length]);
+
+  useEffect(() => {
+    if (!isFetchingFilter) {
+      const offerUnlistedFilter = dataFilter.filter(item => (item.data as PostQueryItem).postOffer?.hideFromHome);
+      const offerShowedFilter = dataFilter.length - offerUnlistedFilter.length;
+      if (offerShowedFilter < 4) {
+        loadMoreItemsFilter();
+      }
+    }
+  }, [dataFilter.length]);
 
   return (
     <MobileLayout>

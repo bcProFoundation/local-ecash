@@ -1165,6 +1165,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
 
       <ConfirmOfferTypeModal
         isOpen={openConfirmType}
+        isLoading={loading}
         onDissmissModal={value => setOpenConfirmType(value)}
         createOffer={isHidden => {
           handleSubmit(data => {
