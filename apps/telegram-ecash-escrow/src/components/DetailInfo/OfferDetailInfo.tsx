@@ -139,7 +139,7 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
           </IconButton>
         )}
       </div>
-      {offerData?.paymentMethods[0]?.paymentMethod?.id !== 5 && !offerData?.coinOthers && (
+      {offerData?.paymentMethods[0]?.paymentMethod?.id !== 5 && offerData?.coinPayment !== COIN_OTHERS && (
         <Typography variant="body1">
           <span className="prefix">Price: </span>
           Market price +{offerData?.marginPercentage}%

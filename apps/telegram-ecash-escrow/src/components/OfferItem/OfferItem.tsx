@@ -311,7 +311,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
         </Collapse>
 
         <Typography component={'div'} className="action-section">
-          {offerData?.paymentMethods[0]?.paymentMethod?.id !== 5 && !offerData?.coinOthers ? (
+          {offerData?.paymentMethods[0]?.paymentMethod?.id !== 5 && offerData?.coinPayment !== COIN_OTHERS ? (
             <Typography variant="body2">
               <span className="prefix">Price: </span>Market price +{post?.postOffer?.marginPercentage ?? 0}%{' '}
               {coinCurrency !== 'XEC' && (
