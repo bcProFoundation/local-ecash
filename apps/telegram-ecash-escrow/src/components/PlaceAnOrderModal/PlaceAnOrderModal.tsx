@@ -284,7 +284,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     { skip: !data, refetchOnMountOrArgChange: true }
   );
   const { currentData: arbitratorCurrentData, isError: arbitratorIsError } = useGetRandomArbitratorAccountQuery(
-    {},
+    { offerId: post.id },
     { skip: !data, refetchOnMountOrArgChange: true }
   );
 
