@@ -137,6 +137,17 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
     return order?.paymentMethod?.id !== 5 && order?.escrowOffer?.coinPayment !== COIN_OTHERS;
   };
 
+  const orderStatus = () => {
+    if (order?.escrowOrderStatus === EscrowOrderStatus.Escrow && order?.releaseSignatory) {
+      return 'Released';
+    }
+
+    if (order?.dispute && order?.dispute?.status === DisputeStatus.Active) return 'Dispute';
+    else {
+      return order?.escrowOrderStatus?.toLowerCase()?.replace(/^./, char => char.toUpperCase());
+    }
+  };
+
   //get rate data
   useEffect(() => {
     //just set if seller
@@ -229,9 +240,7 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
         )}
       <Typography variant="body1">
         <span className="prefix">Status: </span>
-        {order?.dispute && order?.dispute?.status === DisputeStatus.Active
-          ? 'Dispute'
-          : order?.escrowOrderStatus?.toLowerCase()?.replace(/^./, char => char.toUpperCase())}
+        {orderStatus()}
       </Typography>
       <Typography>
         <span className="prefix">Escrow Address: </span>
