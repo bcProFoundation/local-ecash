@@ -271,6 +271,8 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
 
   if (offerData?.status == OfferStatus.Archive) return <div></div>;
   if (offerData?.hideFromHome) return <div></div>;
+  //hide item have negative score
+  if (post?.boostScore?.boostScore < 0) return <div></div>;
 
   return (
     <React.Fragment>

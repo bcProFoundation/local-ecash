@@ -2,16 +2,17 @@
 
 import { UtxoContext } from '@/src/store/context/utxoProvider';
 import { withdrawFund } from '@/src/store/escrow';
-import { COIN, Role } from '@bcpros/lixi-models';
+import { COIN } from '@bcpros/lixi-models';
 import {
   BoostForType,
   BoostType,
   CreateBoostInput,
   PostQueryItem,
+  Role,
+  accountsApi,
   boostApi,
   closeActionSheet,
   closeModal,
-  getSelectedAccount,
   getSelectedWalletPath,
   useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector
@@ -102,7 +103,12 @@ const BoostModal: React.FC<BoostModalProps> = ({ post }: BoostModalProps) => {
 
   const dispatch = useLixiSliceDispatch();
   const selectedWallet = useLixiSliceSelector(getSelectedWalletPath);
-  const selectedAccount = useLixiSliceSelector(getSelectedAccount);
+  const { useGetAccountByAddressQuery } = accountsApi;
+
+  const { currentData: accountQueryData } = useGetAccountByAddressQuery(
+    { address: selectedWallet?.xAddress },
+    { skip: !selectedWallet?.xAddress }
+  );
 
   const [error, setError] = useState(false);
   const [notEnoughMoney, setNotEnoughMoney] = useState(false);
@@ -161,11 +167,11 @@ const BoostModal: React.FC<BoostModalProps> = ({ post }: BoostModalProps) => {
       </DialogContent>
       <DialogActions style={{ flexBasis: 'column', padding: 0 }}>
         <div className="group-btn">
-          {selectedAccount?.role === Role.MODERATOR && (
+          {accountQueryData?.getAccountByAddress?.role === Role.Moderator && (
             <Button
               className="create-boost-btn"
-              color="info"
               variant="contained"
+              style={{ backgroundColor: '#a41208' }}
               onClick={() => handleCreateBoost(BoostType.Down)}
               disabled={loading}
             >
@@ -182,7 +188,7 @@ const BoostModal: React.FC<BoostModalProps> = ({ post }: BoostModalProps) => {
             100 XEC to boost
           </Button>
         </div>
-        <Typography className="boost-info">
+        <Typography component={'div'} className="boost-info">
           <Typography>
             Boosted <span className="bold">{post.boostScore.boostUp / 100}</span> times by you:{' '}
             <span className="bold">{post.boostScore.boostUp}</span> {COIN.XEC}
