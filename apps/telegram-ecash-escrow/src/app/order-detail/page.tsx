@@ -359,7 +359,7 @@ const OrderDetail = () => {
       } else {
         const { signatoryOwnerHash160 } = currentData.escrowOrder;
         const { hash160: arbHash160, publicKey: arbPk } = currentData.escrowOrder.arbitratorAccount;
-        const { hash160: modHash160, publicKey: modPk } = currentData.escrowOrder.arbitratorAccount;
+        const { hash160: modHash160, publicKey: modPk } = currentData.escrowOrder.moderatorAccount;
         const arbSignedSignatory = signatoryOwnerHash160 === arbHash160;
 
         signatory = arbSignedSignatory
@@ -440,7 +440,7 @@ const OrderDetail = () => {
       } else {
         const { signatoryOwnerHash160 } = currentData.escrowOrder;
         const { hash160: arbHash160, publicKey: arbPk } = currentData.escrowOrder.arbitratorAccount;
-        const { hash160: modHash160, publicKey: modPk } = currentData.escrowOrder.arbitratorAccount;
+        const { hash160: modHash160, publicKey: modPk } = currentData.escrowOrder.moderatorAccount;
         const arbSignedSignatory = signatoryOwnerHash160 === arbHash160;
 
         signatory =
