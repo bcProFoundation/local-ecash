@@ -275,10 +275,10 @@ const OrderDetail = () => {
         }
       })
         .unwrap()
-        .then(() => setRelease(true))
-        .catch(() => setError(true));
+        .then(() => setRelease(true));
     } catch (e) {
       console.log(e);
+      setError(true);
     }
 
     setLoading(false);
@@ -312,10 +312,10 @@ const OrderDetail = () => {
         }
       })
         .unwrap()
-        .then(() => setCancel(true))
-        .catch(() => setError(true));
+        .then(() => setCancel(true));
     } catch (e) {
       console.log(e);
+      setError(true);
     }
 
     setLoading(false);
@@ -397,10 +397,10 @@ const OrderDetail = () => {
         }
       })
         .unwrap()
-        .then(() => setClaim(true))
-        .catch(() => setError(true));
+        .then(() => setClaim(true));
     } catch (e) {
       console.log(e);
+      setError(true);
     }
 
     setLoading(false);
@@ -479,10 +479,10 @@ const OrderDetail = () => {
         }
       })
         .unwrap()
-        .then(() => setClaim(true))
-        .catch(() => setError(true));
+        .then(() => setClaim(true));
     } catch (e) {
       console.log(e);
+      setError(true);
     }
 
     setLoading(false);
