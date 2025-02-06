@@ -93,8 +93,8 @@ const OrderDetailInfo = ({
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
   const selectedAccount = useLixiSliceSelector(getSelectedAccount);
 
-  const { useGetFiatRateQuery } = fiatCurrencyApi;
-  const { data: fiatData } = useGetFiatRateQuery();
+  const { useGetAllFiatRateQuery } = fiatCurrencyApi;
+  const { data: fiatData } = useGetAllFiatRateQuery();
 
   const revertCompactNumber = compact => {
     const regex = /([\d.]+)([MKB]?)?/; // Match number and optional suffix
@@ -127,17 +127,18 @@ const OrderDetailInfo = ({
       const coinPayment = order?.escrowOffer.coinPayment.toLowerCase();
       const rateArrayCoin = rateData.find(item => item.coin === coinPayment);
       const rateArrayXec = rateData.find(item => item.coin === 'xec');
-      const latestRateCoin = rateArrayCoin?.rates?.reduce((max, item) => (item.ts > max.ts ? item : max));
-      const latestRateXec = rateArrayXec?.rates?.reduce((max, item) => (item.ts > max.ts ? item : max));
-      const rateCoinPerXec = latestRateCoin?.rate / latestRateXec?.rate;
+      const latestRateCoin = rateArrayCoin?.rate;
+      const latestRateXec = rateArrayXec?.rate;
+      const rateCoinPerXec = latestRateCoin / latestRateXec;
       amountXEC = Number(order.amountCoinOrCurrency ?? '0') * rateCoinPerXec;
-      amountCoinOrCurrency = (latestRateXec?.rate * CONST_AMOUNT_XEC) / latestRateCoin?.rate; //1M XEC (USD) / rateCoin (USD)
+      amountCoinOrCurrency = (latestRateXec * CONST_AMOUNT_XEC) / latestRateCoin; //1M XEC (USD) / rateCoin (USD) 
+
     } else {
       //convert from currency to XEC
       const rateArrayXec = rateData.find(item => item.coin === 'xec');
-      const latestRateXec = rateArrayXec?.rates?.reduce((max, item) => (item.ts > max.ts ? item : max));
-      amountXEC = Number(order.amountCoinOrCurrency ?? '0') / latestRateXec?.rate;
-      amountCoinOrCurrency = CONST_AMOUNT_XEC * latestRateXec?.rate;
+      const latestRateXec = rateArrayXec?.rate;
+      amountXEC = Number(order.amountCoinOrCurrency ?? '0') / latestRateXec;
+      amountCoinOrCurrency = CONST_AMOUNT_XEC * latestRateXec;
     }
 
     //we just need code below in buyOffer
@@ -224,12 +225,12 @@ const OrderDetailInfo = ({
   useEffect(() => {
     //just set if seller or buyOffer
     if (selectedWalletPath?.hash160 === order?.sellerAccount?.hash160 || isBuyOffer) {
-      const rateData = fiatData?.getFiatRate?.find(
+      const rateData = fiatData?.getAllFiatRate?.find(
         item => item.currency === (order?.escrowOffer?.localCurrency ?? 'USD')
       );
       setRateData(rateData?.fiatRates);
     }
-  }, [order?.escrowOffer?.localCurrency, fiatData?.getFiatRate]);
+  }, [order?.escrowOffer?.localCurrency, fiatData?.getAllFiatRate]);
 
   //convert to XEC
   useEffect(() => {
