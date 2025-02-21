@@ -100,7 +100,7 @@ const OfferShowWrapItem = styled('div')(({ theme }) => ({
 
     '.reputation-account': {
       fontSize: '11px',
-      color: '#ecf3f1'
+      color: theme.custom.colorItem1
     }
   }
 }));
@@ -256,9 +256,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
       <div className="push-offer-wrap">
         <Typography variant="body2" onClick={handleUserNameClick}>
           <span className="prefix">By: </span> {post?.account?.telegramUsername ?? ''}{' '}
-          <span className="reputation-account">
-            - Trade: {post?.account?.accountStatsOrder?.totalOrder} | {post?.account?.accountStatsOrder?.completionRate}%
-          </span>
+          <span className="reputation-account">- ✅ {post?.account?.accountStatsOrder?.completedOrder} trades</span>
         </Typography>
         {(accountQueryData?.getAccountByAddress.role === Role.Moderator ||
           post?.account.hash160 === selectedWalletPath?.hash160) && (
