@@ -90,7 +90,6 @@ const ProfileDetail = () => {
         dataLength={dataOfferActive.length}
         next={loadMoreItemsOfferActive}
         hasMore={hasNextOfferActive}
-        endMessage={<p>hello</p>}
         loader={
           <>
             <Skeleton variant="text" />
@@ -138,9 +137,6 @@ const ProfileDetail = () => {
           <div className="info-detail">
             <div>
               <Typography>
-                Total trade: {accountQueryData?.getAccountByAddress?.accountStatsOrder?.totalOrder}
-              </Typography>
-              <Typography>
                 Donation: {accountQueryData?.getAccountByAddress?.accountStatsOrder?.donationAmount} XEC
               </Typography>
             </div>
@@ -148,7 +144,9 @@ const ProfileDetail = () => {
               <Typography>
                 Completed order: {accountQueryData?.getAccountByAddress?.accountStatsOrder?.completedOrder}
               </Typography>
-              <Typography>Rate: {accountQueryData?.getAccountByAddress?.accountStatsOrder?.completionRate}%</Typography>
+              <Typography>
+                Unique trades: {accountQueryData?.getAccountByAddress?.accountStatsOrder?.uniqueTrades}
+              </Typography>
             </div>
           </div>
         </div>
