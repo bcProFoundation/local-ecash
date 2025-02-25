@@ -131,7 +131,7 @@ export default function Home() {
           return result.data;
         })
         .catch(({ response }) => {
-          console.log(response.data.message);
+          console.log(response?.data.message);
         });
 
       if (country && country === 'US') {

@@ -8,11 +8,9 @@
  */
 'use client';
 
-import { Typography } from '@mui/material';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v13-appRouter';
 import InAppSpy from 'inapp-spy';
-import Image from 'next/image';
-import React from 'react';
+import React, { useEffect } from 'react';
 import ActionSheet from '../components/ActionSheet/ActionSheet';
 import MiniAppBackdrop from '../components/Common/MiniAppBackdrop';
 import Footer from '../components/Footer/Footer';
@@ -26,7 +24,26 @@ import { TelegramAuthProvider } from '../store/telegram-auth-provider';
 import { TelegramMiniAppProvider } from '../store/telegram-mini-app-provider';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const { isInApp, ua } = InAppSpy();
+  const { isInApp } = InAppSpy();
+
+  useEffect(() => {
+    if (isInApp) {
+      const message = 'Are you sure you want to leave? Unsaved changes may be lost.';
+
+      const handleBeforeUnload = event => {
+        event.preventDefault();
+        event.returnValue = message; // Standard for most browsers
+
+        return message; // For some older browsers
+      };
+
+      window.addEventListener('beforeunload', handleBeforeUnload);
+
+      return () => {
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+      };
+    }
+  }, []);
 
   return (
     <html lang="en">
@@ -44,62 +61,26 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="commit-hash" content={process.env.NEXT_PUBLIC_COMMIT_HASH} />
       </head>
       <body style={{ background: '#04080F', margin: '0' }}>
-        {!isInApp ? (
-          <TelegramAuthProvider>
-            <ReduxProvider>
-              <TelegramMiniAppProvider>
-                <AppRouterCacheProvider>
-                  <SettingProvider>
-                    <UtxoProvider>
-                      <AppThemeProvider>
-                        <MiniAppBackdrop />
-                        <ModalManager />
-                        <ToastNotificationManage />
-                        {children}
-                        <ActionSheet />
-                        <Footer />
-                      </AppThemeProvider>
-                    </UtxoProvider>
-                  </SettingProvider>
-                </AppRouterCacheProvider>
-              </TelegramMiniAppProvider>
-            </ReduxProvider>
-          </TelegramAuthProvider>
-        ) : (
+        <TelegramAuthProvider>
           <ReduxProvider>
-            <AppThemeProvider>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  flexDirection: 'column',
-                  height: '100vh',
-                  justifyContent: 'center'
-                }}
-              >
-                <Typography variant="h5">Detected in app browser</Typography>
-                <Typography variant="h6">Please open in external browser</Typography>
-                {ua.includes('iPhone') || ua.includes('iPad') ? (
-                  <Image
-                    width={320}
-                    height={500}
-                    src="/ios-instruction.png"
-                    alt=""
-                    style={{ borderRadius: 15, marginTop: 10 }}
-                  />
-                ) : (
-                  <Image
-                    width={320}
-                    height={150}
-                    src="/android-instruction.png"
-                    alt=""
-                    style={{ borderRadius: 15, marginTop: 10 }}
-                  />
-                )}
-              </div>
-            </AppThemeProvider>
+            <TelegramMiniAppProvider>
+              <AppRouterCacheProvider>
+                <SettingProvider>
+                  <UtxoProvider>
+                    <AppThemeProvider>
+                      <MiniAppBackdrop />
+                      <ModalManager />
+                      <ToastNotificationManage />
+                      {children}
+                      <ActionSheet />
+                      <Footer />
+                    </AppThemeProvider>
+                  </UtxoProvider>
+                </SettingProvider>
+              </AppRouterCacheProvider>
+            </TelegramMiniAppProvider>
           </ReduxProvider>
-        )}
+        </TelegramAuthProvider>
       </body>
     </html>
   );
