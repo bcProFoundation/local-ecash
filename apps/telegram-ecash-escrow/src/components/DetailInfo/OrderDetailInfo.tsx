@@ -1,11 +1,12 @@
 'use client';
 
 import { COIN_OTHERS, COIN_USD_STABLECOIN_TICKER } from '@/src/store/constants';
-import { COIN, coinInfo } from '@bcpros/lixi-models';
+import { COIN, PAYMENT_METHOD, coinInfo } from '@bcpros/lixi-models';
 import {
   DisputeStatus,
   EscrowOrderQueryItem,
   EscrowOrderStatus,
+  OfferType,
   fiatCurrencyApi,
   getSelectedAccount,
   getSelectedWalletPath,
@@ -70,10 +71,21 @@ const OrderDetailWrap = styled('div')(({ theme }) => ({
 
 type OrderItemProps = {
   item?: EscrowOrderQueryItem;
+  amountXEC?: number;
+  textAmountPer1MXEC?: string;
+  setAmountXEC?: (value: number) => void;
+  setTextAmountPer1MXEC?: (text: string) => void;
 };
 
-const OrderDetailInfo = ({ item }: OrderItemProps) => {
+const OrderDetailInfo = ({
+  item,
+  amountXEC,
+  setAmountXEC,
+  textAmountPer1MXEC,
+  setTextAmountPer1MXEC
+}: OrderItemProps) => {
   const order = item;
+  const isBuyOffer = order?.escrowOffer?.type === OfferType.Buy;
   const router = useRouter();
   const [rateData, setRateData] = useState(null);
   const [marginCurrentPrice, setMarginCurrentPrice] = useState(0);
@@ -107,7 +119,8 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
 
   const convertXECToAmount = async () => {
     if (!rateData) return 0;
-    const amountXEC = 1000000;
+    const CONST_AMOUNT_XEC = 1000000;
+    let amountXEC = 0;
     let amountCoinOrCurrency = 0;
     //if payment is crypto, we convert from coin => USD
     if (order?.escrowOffer?.coinPayment && order?.escrowOffer?.coinPayment !== COIN_USD_STABLECOIN_TICKER) {
@@ -116,15 +129,44 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
       const rateArrayXec = rateData.find(item => item.coin === 'xec');
       const latestRateCoin = rateArrayCoin?.rates?.reduce((max, item) => (item.ts > max.ts ? item : max));
       const latestRateXec = rateArrayXec?.rates?.reduce((max, item) => (item.ts > max.ts ? item : max));
-
-      amountCoinOrCurrency = (latestRateXec?.rate * amountXEC) / latestRateCoin?.rate; //1M XEC (USD) / rateCoin (USD)
+      const rateCoinPerXec = latestRateCoin?.rate / latestRateXec?.rate;
+      amountXEC = Number(order.amountCoinOrCurrency ?? '0') * rateCoinPerXec;
+      amountCoinOrCurrency = (latestRateXec?.rate * CONST_AMOUNT_XEC) / latestRateCoin?.rate; //1M XEC (USD) / rateCoin (USD)
     } else {
       //convert from currency to XEC
       const rateArrayXec = rateData.find(item => item.coin === 'xec');
       const latestRateXec = rateArrayXec?.rates?.reduce((max, item) => (item.ts > max.ts ? item : max));
-      amountCoinOrCurrency = amountXEC * latestRateXec?.rate;
+      amountXEC = Number(order.amountCoinOrCurrency ?? '0') / latestRateXec?.rate;
+      amountCoinOrCurrency = CONST_AMOUNT_XEC * latestRateXec?.rate;
     }
 
+    //we just need code below in buyOffer
+    if (isBuyOffer) {
+      //set amount XEC (plus margin amount because we just use it in buyOffer)
+      const amountMargin = (amountXEC * order.escrowOffer.marginPercentage) / 100;
+
+      //dynamic amountXEC
+      amountXEC = amountXEC + amountMargin;
+      const amountXecRounded = parseFloat(amountXEC.toFixed(2));
+      amountXecRounded > 0 ? setAmountXEC(amountXecRounded) : setAmountXEC(0);
+
+      const compactNumberFormatter = new Intl.NumberFormat('en-GB', {
+        notation: 'compact',
+        compactDisplay: 'short',
+        maximumFractionDigits: 2
+      });
+
+      const amountWithPercentage = amountCoinOrCurrency * (1 + order?.escrowOffer?.marginPercentage / 100);
+      const amountFormatted =
+        amountWithPercentage < 1
+          ? amountWithPercentage.toFixed(5)
+          : compactNumberFormatter.format(amountWithPercentage);
+      setTextAmountPer1MXEC(
+        `${amountFormatted} ${order?.escrowOffer.coinPayment ?? order?.escrowOffer.localCurrency ?? 'XEC'} / 1M XEC`
+      );
+    }
+
+    //calculate marginPrice
     const compactNumber = order?.price.match(/[\d.]+[BMK]?/);
     const revertPriceOrder = revertCompactNumber(compactNumber[0]);
 
@@ -134,7 +176,32 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
   };
 
   const showMargin = () => {
-    return order?.paymentMethod?.id !== 5 && order?.escrowOffer?.coinPayment !== COIN_OTHERS;
+    return (
+      order?.paymentMethod?.id !== PAYMENT_METHOD.GOODS_SERVICES && order?.escrowOffer?.coinPayment !== COIN_OTHERS
+    );
+  };
+
+  const isShowDynamicValue = () => {
+    //dynamic value only pending and not for goods/service
+    return isBuyOffer && order?.escrowOrderStatus === EscrowOrderStatus.Pending && showMargin();
+  };
+
+  const paymentDetailInfo = () => {
+    if (isBuyOffer) {
+      if (item.paymentMethod?.id === PAYMENT_METHOD.BANK_TRANSFER) {
+        // bank
+        return [order?.bankInfo?.accountNameBank, order?.bankInfo?.bankName, order?.bankInfo?.accountNumberBank]
+          .filter(Boolean)
+          .join(', ');
+      }
+      if (item.paymentMethod?.id === PAYMENT_METHOD.PAYMENT_APP) {
+        // app
+        return [order?.bankInfo?.accountNameApp, order?.bankInfo?.appName, order?.bankInfo?.accountNumberApp]
+          .filter(Boolean)
+          .join(', ');
+      }
+    }
+    return null;
   };
 
   const orderStatus = () => {
@@ -155,8 +222,8 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
 
   //get rate data
   useEffect(() => {
-    //just set if seller
-    if (selectedWalletPath?.hash160 === order?.sellerAccount?.hash160) {
+    //just set if seller or buyOffer
+    if (selectedWalletPath?.hash160 === order?.sellerAccount?.hash160 || isBuyOffer) {
       const rateData = fiatData?.getFiatRate?.find(
         item => item.currency === (order?.escrowOffer?.localCurrency ?? 'USD')
       );
@@ -166,7 +233,7 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
 
   //convert to XEC
   useEffect(() => {
-    if (showMargin()) {
+    if (showMargin() || (isBuyOffer && showMargin())) {
       convertXECToAmount();
     }
   }, [rateData]);
@@ -194,13 +261,13 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
       <Typography variant="body1">
         {order?.sellerAccount.id === selectedAccount?.id && (
           <React.Fragment>
-            <span className="prefix">Ordered by: </span>
+            <span className="prefix">{order.escrowOffer.type === OfferType.Buy ? 'Offered' : 'Ordered'} by: </span>
             {order?.buyerAccount.telegramUsername}
           </React.Fragment>
         )}
         {order?.buyerAccount.id === selectedAccount?.id && (
           <React.Fragment>
-            <span className="prefix">Offered by: </span>
+            <span className="prefix">{order.escrowOffer.type === OfferType.Buy ? 'Ordered' : 'Offered'} by: </span>
             {order?.sellerAccount.telegramUsername}
           </React.Fragment>
         )}
@@ -212,11 +279,12 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
       {showMargin() && (
         <Typography variant="body1">
           <span className="prefix">Price: </span>
-          {order?.price}
+          {isShowDynamicValue() ? textAmountPer1MXEC : order?.price}
         </Typography>
       )}
       <Typography variant="body1">
-        <span className="prefix">Order amount:</span> {order?.amount} {coinInfo[COIN.XEC].ticker}
+        <span className="prefix">Order amount:</span> {isShowDynamicValue() ? amountXEC : order?.amount}{' '}
+        {coinInfo[COIN.XEC].ticker}
       </Typography>
       {showMargin() && (
         <Typography variant="body1">
@@ -234,10 +302,15 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
             {order.escrowOffer.coinOthers}
           </Button>
         )}
+        {order?.escrowOffer?.paymentApp && (
+          <Button size="small" color="success" variant="outlined">
+            {order.escrowOffer.paymentApp}
+          </Button>
+        )}
       </Typography>
       {selectedWalletPath?.hash160 === order?.sellerAccount?.hash160 &&
         showMargin() &&
-        (order?.escrowOrderStatus === EscrowOrderStatus.Pending ||
+        ((order?.escrowOrderStatus === EscrowOrderStatus.Pending && !isBuyOffer) ||
           order?.escrowOrderStatus === EscrowOrderStatus.Escrow) && (
           <Typography variant="body1">
             <span className="prefix">Margin of current price:</span> {marginCurrentPrice.toFixed(2)}%
@@ -262,6 +335,12 @@ const OrderDetailInfo = ({ item }: OrderItemProps) => {
           <span>{order?.escrowAddress}</span>
         </a>
       </Typography>
+      {paymentDetailInfo() !== null && (
+        <Typography>
+          <span className="prefix">Payment-detail: </span>
+          {paymentDetailInfo()}
+        </Typography>
+      )}
     </OrderDetailWrap>
   );
 };
