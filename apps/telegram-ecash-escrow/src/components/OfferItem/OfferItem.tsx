@@ -256,7 +256,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
       <div className="push-offer-wrap">
         <Typography variant="body2" onClick={handleUserNameClick}>
           <span className="prefix">By: </span> {post?.account?.telegramUsername ?? ''}{' '}
-          <span className="reputation-account">- ✅ {post?.account?.accountStatsOrder?.completedOrder} trades</span>
+          <span className="reputation-account">- ☑️ {post?.account?.accountStatsOrder?.completedOrder} trades</span>
         </Typography>
         {(accountQueryData?.getAccountByAddress.role === Role.Moderator ||
           post?.account.hash160 === selectedWalletPath?.hash160) && (
