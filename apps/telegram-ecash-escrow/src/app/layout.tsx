@@ -9,8 +9,7 @@
 'use client';
 
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v13-appRouter';
-import InAppSpy from 'inapp-spy';
-import React, { useEffect } from 'react';
+import React from 'react';
 import ActionSheet from '../components/ActionSheet/ActionSheet';
 import MiniAppBackdrop from '../components/Common/MiniAppBackdrop';
 import Footer from '../components/Footer/Footer';
@@ -24,27 +23,6 @@ import { TelegramAuthProvider } from '../store/telegram-auth-provider';
 import { TelegramMiniAppProvider } from '../store/telegram-mini-app-provider';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const { isInApp } = InAppSpy();
-
-  useEffect(() => {
-    if (isInApp) {
-      const message = 'Are you sure you want to leave? Unsaved changes may be lost.';
-
-      const handleBeforeUnload = event => {
-        event.preventDefault();
-        event.returnValue = message; // Standard for most browsers
-
-        return message; // For some older browsers
-      };
-
-      window.addEventListener('beforeunload', handleBeforeUnload);
-
-      return () => {
-        window.removeEventListener('beforeunload', handleBeforeUnload);
-      };
-    }
-  }, []);
-
   return (
     <html lang="en">
       <head>
