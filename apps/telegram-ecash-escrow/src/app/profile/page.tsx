@@ -4,17 +4,24 @@ import OfferDetailInfo from '@/src/components/DetailInfo/OfferDetailInfo';
 import Header from '@/src/components/Header/Header';
 import MobileLayout from '@/src/components/layout/MobileLayout';
 import { accountsApi, PostQueryItem, useInfiniteActiveOfferByAccountIdQuery } from '@bcpros/redux-store';
+import { ChevronLeft } from '@mui/icons-material';
 import AccountCircleRoundedIcon from '@mui/icons-material/AccountCircleRounded';
-import { Skeleton, Typography } from '@mui/material';
+import { IconButton, Skeleton, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import * as _ from 'lodash';
 import moment from 'moment';
 import { useSession } from 'next-auth/react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import InfiniteScroll from 'react-infinite-scroll-component';
 
 const ProfileDetaillPage = styled('div')(({ theme }) => ({
   padding: '1rem',
+
+  '.profile-heading': {
+    display: 'flex',
+    alignItems: 'center',
+    marginBottom: '5px'
+  },
 
   '.profile-info': {
     background: theme.custom.bgItem6,
@@ -30,6 +37,12 @@ const ProfileDetaillPage = styled('div')(({ theme }) => ({
       display: 'flex',
       justifyContent: 'space-between',
       marginTop: '10px'
+    },
+
+    '.info-item': {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '5px'
     }
   },
 
@@ -60,11 +73,13 @@ const ProfileDetail = () => {
   const search = useSearchParams();
   const addressAccount = search!.get('address');
   const { useGetAccountByAddressQuery } = accountsApi;
-  const { currentData: accountQueryData, isError } = useGetAccountByAddressQuery(
-    { address: addressAccount },
-    { skip: !addressAccount }
-  );
+  const {
+    currentData: accountQueryData,
+    isError,
+    isLoading
+  } = useGetAccountByAddressQuery({ address: addressAccount }, { skip: !addressAccount });
   const { data } = useSession();
+  const router = useRouter();
 
   const {
     data: dataOfferActive,
@@ -101,11 +116,19 @@ const ProfileDetail = () => {
       >
         {dataOfferActive.map(item => {
           const data = item?.data as PostQueryItem;
-          if (data?.postOffer?.hideFromHome) return <div></div>;
+          if (data?.postOffer?.hideFromHome) return null;
           return <OfferDetailInfo timelineItem={item} key={item.id} isItemTimeline={false} />;
         })}
       </InfiniteScroll>
     );
+  };
+
+  const loadingInfo = (info: string | number) => {
+    if (isLoading) {
+      return <Skeleton variant="text" width={20} />;
+    } else {
+      return info;
+    }
   };
 
   if (_.isEmpty(addressAccount) || _.isNil(addressAccount) || isError) {
@@ -116,9 +139,26 @@ const ProfileDetail = () => {
     <MobileLayout>
       <ProfileDetaillPage>
         <Header />
+        <div className="profile-heading">
+          <IconButton
+            className="back-btn"
+            onClick={() => {
+              if (window.history.length > 1) {
+                router.back();
+              } else {
+                router.push('/');
+              }
+            }}
+          >
+            <ChevronLeft />
+          </IconButton>
+          <Typography variant="h5"> User profile</Typography>
+        </div>
         <div className="profile-info">
           <div className="basic-info">
-            {data && data?.user?.image ? (
+            <AccountCircleRoundedIcon className="account-avatar-default" fontSize="large" />
+            {/* TODO: add image user */}
+            {/* {data && data?.user?.image ? (
               <StyledAvatar>
                 <picture>
                   <img src={data.user.image} alt="" />
@@ -126,26 +166,26 @@ const ProfileDetail = () => {
               </StyledAvatar>
             ) : (
               <AccountCircleRoundedIcon className="account-avatar-default" fontSize="large" />
-            )}
+            )} */}
             <div>
               <Typography>{accountQueryData?.getAccountByAddress?.telegramUsername}</Typography>
-              <Typography>
-                Joined: {moment(accountQueryData?.getAccountByAddress?.createdAt).format('DD/MM/YYYY')}
+              <Typography className="info-item">
+                Joined: {loadingInfo(moment(accountQueryData?.getAccountByAddress?.createdAt).format('DD/MM/YYYY'))}
               </Typography>
             </div>
           </div>
           <div className="info-detail">
             <div>
-              <Typography>
-                Donation: {accountQueryData?.getAccountByAddress?.accountStatsOrder?.donationAmount} XEC
+              <Typography className="info-item">
+                Donation: {loadingInfo(accountQueryData?.getAccountByAddress?.accountStatsOrder?.donationAmount)} XEC
               </Typography>
             </div>
             <div>
-              <Typography>
-                Completed order: {accountQueryData?.getAccountByAddress?.accountStatsOrder?.completedOrder}
+              <Typography className="info-item">
+                Completed order: {loadingInfo(accountQueryData?.getAccountByAddress?.accountStatsOrder?.completedOrder)}
               </Typography>
-              <Typography>
-                Unique trades: {accountQueryData?.getAccountByAddress?.accountStatsOrder?.uniqueTrades}
+              <Typography className="info-item">
+                Unique trades: {loadingInfo(accountQueryData?.getAccountByAddress?.accountStatsOrder?.uniqueTrades)}
               </Typography>
             </div>
           </div>
