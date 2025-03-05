@@ -1,14 +1,17 @@
 'use client';
 
 import { COIN_OTHERS, COIN_USD_STABLECOIN_TICKER } from '@/src/store/constants';
+import { LIST_BANK } from '@/src/store/constants/list-bank';
 import { UtxoContext } from '@/src/store/context/utxoProvider';
 import { Escrow, buyerDepositFee, splitUtxos } from '@/src/store/escrow';
 import { convertXECToSatoshi, estimatedFee } from '@/src/store/util';
-import { COIN, CreateEscrowOrderInput, coinInfo } from '@bcpros/lixi-models';
+import { BankInfoInput, COIN, CreateEscrowOrderInput, PAYMENT_METHOD, coinInfo } from '@bcpros/lixi-models';
 import {
+  OfferType,
   PostQueryItem,
   UtxoInNodeInput,
   WalletContextNode,
+  accountsApi,
   closeModal,
   convertEscrowScriptHashToEcashAddress,
   escrowOrderApi,
@@ -30,9 +33,12 @@ import {
   DialogContent,
   DialogTitle,
   FormControlLabel,
+  FormHelperText,
   Grid,
   IconButton,
+  InputLabel,
   Modal,
+  NativeSelect,
   Radio,
   RadioGroup,
   Slide,
@@ -49,6 +55,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { FormControlWithNativeSelect } from '../FilterOfferModal/FilterOfferModal';
 import QRCode from '../QRcode/QRcode';
 import CustomToast from '../Toast/CustomToast';
 
@@ -261,6 +268,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const currentModal = useLixiSliceSelector(getModals);
 
   const { post }: { post: PostQueryItem } = props;
+  const isBuyOffer = post.postOffer.type === OfferType.Buy;
   const { data } = useSession();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
   const Wallet = useContext(WalletContextNode);
@@ -294,6 +302,12 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const { useGetFiatRateQuery } = fiatCurrencyApi;
   const { data: fiatData } = useGetFiatRateQuery();
 
+  const { useGetAccountByAddressQuery } = accountsApi;
+  const { currentData: accountQueryData } = useGetAccountByAddressQuery(
+    { address: selectedWalletPath?.xAddress },
+    { skip: !selectedWalletPath?.xAddress }
+  );
+
   const {
     handleSubmit,
     formState: { errors },
@@ -303,13 +317,12 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     trigger,
     watch
   } = useForm();
-
   const amountValue = watch('amount');
   const isBuyerDeposit = watch('isDepositFee');
 
   const calEscrowScript = () => {
-    const sellerPk = fromHex(post.account.publicKey);
-    const buyerPk = fromHex(selectedWalletPath?.publicKey ?? '');
+    const sellerPk = isBuyOffer ? fromHex(selectedWalletPath?.publicKey ?? '') : fromHex(post.account.publicKey);
+    const buyerPk = isBuyOffer ? fromHex(post.account.publicKey) : fromHex(selectedWalletPath?.publicKey ?? '');
     const arbitratorPk = fromHex(arbitratorCurrentData?.getRandomArbitratorAccount?.publicKey ?? '');
     const moderatorPk = fromHex(moderatorCurrentData?.getModeratorAccount?.publicKey ?? '');
 
@@ -334,8 +347,17 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
       return;
     }
 
+    const bankInfo: BankInfoInput = {
+      bankName: data?.bankName ?? null,
+      accountNameBank: data?.bankName ? data?.accountName : null,
+      accountNumberBank: data?.bankName ? data?.accountNumber : null,
+      appName: post.postOffer?.paymentApp ?? null,
+      accountNameApp: post.postOffer?.paymentApp ? data?.accountName : null,
+      accountNumberApp: post.postOffer?.paymentApp ? data?.accountNumber : null
+    };
+
     const { amount, message, isDepositFee }: { amount: string; message: string; isDepositFee: boolean } = data;
-    const sellerId = post.accountId;
+    const offerAccountId = post.accountId;
     const moderatorId = moderatorCurrentData.getModeratorAccount.id;
     const arbitratorId = arbitratorCurrentData.getRandomArbitratorAccount.id;
 
@@ -386,7 +408,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
       const data: CreateEscrowOrderInput = {
         amount: amountXEC,
         amountCoinOrCurrency: parseFloat(amount),
-        sellerId,
+        offerAccountId,
         arbitratorId,
         moderatorId,
         escrowAddress,
@@ -397,7 +419,8 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
         postId: post.id,
         message: message,
         buyerDepositTx: hexTxBuyerDeposit,
-        utxoInProcess: foundUtxo
+        utxoInProcess: foundUtxo,
+        bankInfoInput: bankInfo
       };
 
       const result = await createOrderTrigger({ input: data }).unwrap();
@@ -444,6 +467,174 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     );
   };
 
+  const InfoPaymentDetail = () => {
+    const paymentMethodId = post?.postOffer?.paymentMethods[0]?.paymentMethod?.id;
+    if (paymentMethodId !== PAYMENT_METHOD.BANK_TRANSFER && paymentMethodId !== PAYMENT_METHOD.PAYMENT_APP) return;
+
+    const aufoFillData = (propertyName: string) => {
+      //check bank
+      if (
+        post.postOffer.paymentMethods[0]?.paymentMethod?.id === PAYMENT_METHOD.BANK_TRANSFER &&
+        accountQueryData?.getAccountByAddress?.bankInfo?.bankName
+      )
+        return accountQueryData?.getAccountByAddress?.bankInfo[`${propertyName}Bank`];
+
+      //check app
+      if (
+        post.postOffer.paymentMethods[0]?.paymentMethod?.id === PAYMENT_METHOD.PAYMENT_APP &&
+        accountQueryData?.getAccountByAddress?.bankInfo?.appName
+      )
+        return accountQueryData?.getAccountByAddress?.bankInfo[`${propertyName}App`];
+    };
+
+    return (
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <Typography variant="h6">Payment Details</Typography>
+        </Grid>
+        {paymentMethodId === PAYMENT_METHOD.BANK_TRANSFER &&
+          (post.postOffer.localCurrency === 'VND' ? (
+            <Grid item xs={12} style={{ paddingTop: 0, marginBottom: '10px' }}>
+              <Controller
+                name="bankName"
+                control={control}
+                defaultValue={accountQueryData?.getAccountByAddress?.bankInfo?.bankName}
+                rules={{
+                  validate: value => {
+                    if (!value) return 'Bank-name is required';
+
+                    return true;
+                  }
+                }}
+                render={({ field: { onChange, onBlur, value, ref } }) => (
+                  <FormControlWithNativeSelect>
+                    <InputLabel variant="outlined" htmlFor="select-bankName">
+                      Bank-name
+                    </InputLabel>
+                    <NativeSelect
+                      id="select-bankName"
+                      value={value ?? ''}
+                      onBlur={onBlur}
+                      ref={ref}
+                      onChange={e => {
+                        onChange(e);
+                      }}
+                    >
+                      <option aria-label="None" value="" />
+                      {LIST_BANK.sort((a, b) => {
+                        if (a.shortName < b.shortName) return -1;
+                        if (a.shortName > b.shortName) return 1;
+
+                        return 0;
+                      }).map(item => {
+                        return (
+                          <option key={item.id} value={`${item.shortName}`}>
+                            {item.shortName}
+                          </option>
+                        );
+                      })}
+                    </NativeSelect>
+                    {errors && errors?.bankName && (
+                      <FormHelperText error={true}>{errors.bankName.message as string}</FormHelperText>
+                    )}
+                  </FormControlWithNativeSelect>
+                )}
+              />
+            </Grid>
+          ) : (
+            <Grid item xs={12}>
+              <Controller
+                name="bankName"
+                control={control}
+                defaultValue={accountQueryData?.getAccountByAddress?.bankInfo?.bankName ?? ''}
+                rules={{
+                  validate: value => {
+                    return _.isEmpty(value) ? 'Bank-name is required' : true;
+                  }
+                }}
+                render={({ field: { onChange, onBlur, value, name, ref } }) => (
+                  <TextField
+                    onChange={onChange}
+                    onBlur={onBlur}
+                    value={value}
+                    name={name}
+                    inputRef={ref}
+                    className="form-input"
+                    id="bank-name"
+                    label="Bank Name"
+                    variant="outlined"
+                    error={errors.bankName ? true : false}
+                    multiline={true}
+                    maxRows={2}
+                    helperText={errors.bankName && (errors.bankName?.message as string)}
+                  />
+                )}
+              />
+            </Grid>
+          ))}
+        <Grid item xs={6}>
+          <Controller
+            name="accountName"
+            control={control}
+            defaultValue={aufoFillData('accountName')}
+            rules={{
+              validate: value => {
+                return _.isEmpty(value) ? 'Account-name is required' : true;
+              }
+            }}
+            render={({ field: { onChange, onBlur, value, name, ref } }) => (
+              <TextField
+                onChange={onChange}
+                onBlur={onBlur}
+                value={value}
+                name={name}
+                inputRef={ref}
+                className="form-input"
+                id="account-name"
+                label="Account Name"
+                variant="outlined"
+                error={errors.accountName ? true : false}
+                multiline={true}
+                maxRows={2}
+                helperText={errors.accountName && (errors.accountName?.message as string)}
+              />
+            )}
+          />
+        </Grid>
+        <Grid item xs={6}>
+          <Controller
+            name="accountNumber"
+            control={control}
+            defaultValue={aufoFillData('accountNumber')}
+            rules={{
+              validate: value => {
+                return _.isEmpty(value) ? 'Account-number is required' : true;
+              }
+            }}
+            render={({ field: { onChange, onBlur, value, name, ref } }) => (
+              <TextField
+                onChange={onChange}
+                onBlur={onBlur}
+                value={value}
+                name={name}
+                inputRef={ref}
+                className="form-input"
+                id="account-number"
+                label="Account Number"
+                variant="outlined"
+                error={errors.accountName ? true : false}
+                inputProps={{ maxLength: 20 }}
+                multiline={true}
+                maxRows={2}
+                helperText={errors.accountNumber && (errors.accountNumber?.message as string)}
+              />
+            )}
+          />
+        </Grid>
+      </Grid>
+    );
+  };
+
   const convertToAmountXEC = async () => {
     if (!rateData) return 0;
     let amountXEC = 0;
@@ -467,13 +658,20 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
       amountCoinOrCurrency = textAmountPer1MXEC * latestRateXec?.rate;
     }
 
-    //set amount XEC (minus fee network, withdraw fee, margin amount)
+    //cals fee
     const feeSats = XPI.BitcoinCash.getByteCount({ P2PKH: 5 }, { P2PKH: 1, P2SH: 1 }) * coinInfo[COIN.XEC].defaultFee; // assume worst case input is 5, because we estimate from buyer, so we don't know input of seller
     const feeAmount = parseFloat((feeSats / Math.pow(10, coinInfo[COIN.XEC].cashDecimals)).toFixed(2));
     const feeWithdraw = estimatedFee(Buffer.from(escrowScript.script().bytecode).toString('hex'));
     const amountMargin = (amountXEC * post.postOffer.marginPercentage) / 100;
 
-    amountXEC = amountXEC - amountMargin - feeAmount - feeWithdraw;
+    //whoever place an order bears the fee
+    if (isBuyOffer) {
+      //seller pays the fee
+      amountXEC = amountXEC + amountMargin;
+    } else {
+      //buyer pays the fee
+      amountXEC = amountXEC - amountMargin - feeAmount - feeWithdraw;
+    }
     const amountXecRounded = parseFloat(amountXEC.toFixed(2));
     if (amountXecRounded > 5.46) {
       clearErrors('amount');
@@ -528,7 +726,10 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   };
 
   const showMargin = () => {
-    return post.postOffer.paymentMethods[0]?.paymentMethod?.id !== 5 && post.postOffer.coinPayment !== COIN_OTHERS;
+    return (
+      post.postOffer.paymentMethods[0]?.paymentMethod?.id !== PAYMENT_METHOD.GOODS_SERVICES &&
+      post.postOffer.coinPayment !== COIN_OTHERS
+    );
   };
 
   //cal escrow script
@@ -643,8 +844,9 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                     ? 'You need to buy amount greater than 5.46 XEC'
                     : showMargin() && (
                         <div>
-                          You will receive <span className="amount-receive">{amountXEC.toLocaleString('de-DE')}</span>{' '}
-                          XEC
+                          You will {isBuyOffer ? 'send' : 'receive'}{' '}
+                          <span className="amount-receive">{amountXEC.toLocaleString('de-DE')}</span> XEC{' '}
+                          {isBuyOffer && '(estimated)'}
                           <div>Price: {textAmountPer1MXEC}</div>
                         </div>
                       )}
@@ -702,39 +904,48 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                   {post.postOffer.coinOthers}
                 </Button>
               )}
+              {post.postOffer?.paymentApp && (
+                <Button size="small" color="success" variant="contained" className="label-coinOthers">
+                  {post.postOffer.paymentApp}
+                </Button>
+              )}
               {errors.paymentMethod && (
                 <Typography color="error">{errors?.paymentMethod?.message as string}</Typography>
               )}
             </RadioGroup>
-            <div className="disclaim-wrap">
-              <Typography className="title" variant="body2">
-                * Deposit a security deposit to have a higher chance of being accepted. The security deposit will be
-                returned if there is no dispute.
-              </Typography>
-              <Controller
-                name="isDepositFee"
-                control={control}
-                defaultValue={false}
-                render={({ field: { onChange, onBlur, value, ref } }) => (
-                  <FormControlLabel
-                    control={<Checkbox onChange={onChange} onBlur={onBlur} checked={value} inputRef={ref} />}
-                    label={`I want to deposit security deposit (1%): ${calDisputeFee} XEC`}
-                  />
-                )}
-              />
-              {isBuyerDeposit && (
-                <div>
-                  {InfoEscrow()}
-                  {!checkBuyerEnoughFund() && (
-                    <QRCode
-                      address={parseCashAddressToPrefix(COIN.XEC, selectedWalletPath?.cashAddress)}
-                      amount={calDisputeFee}
-                      width="60%"
+            {isBuyOffer ? (
+              InfoPaymentDetail()
+            ) : (
+              <div className="disclaim-wrap">
+                <Typography className="title" variant="body2">
+                  * Deposit a security deposit to have a higher chance of being accepted. The security deposit will be
+                  returned if there is no dispute.
+                </Typography>
+                <Controller
+                  name="isDepositFee"
+                  control={control}
+                  defaultValue={false}
+                  render={({ field: { onChange, onBlur, value, ref } }) => (
+                    <FormControlLabel
+                      control={<Checkbox onChange={onChange} onBlur={onBlur} checked={value} inputRef={ref} />}
+                      label={`I want to deposit security deposit (1%): ${calDisputeFee} XEC`}
                     />
                   )}
-                </div>
-              )}
-            </div>
+                />
+                {isBuyerDeposit && (
+                  <div>
+                    {InfoEscrow()}
+                    {!checkBuyerEnoughFund() && (
+                      <QRCode
+                        address={parseCashAddressToPrefix(COIN.XEC, selectedWalletPath?.cashAddress)}
+                        amount={calDisputeFee}
+                        width="60%"
+                      />
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </PlaceAnOrderWrap>
         </DialogContent>
         <DialogActions>

@@ -3,8 +3,10 @@
 import { COIN_OTHERS, COIN_USD_STABLECOIN_TICKER } from '@/src/store/constants';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { formatNumber } from '@/src/store/util';
+import { PAYMENT_METHOD } from '@bcpros/lixi-models';
 import {
   OfferStatus,
+  OfferType,
   PostQueryItem,
   Role,
   TimelineQueryItem,
@@ -319,12 +321,18 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
                   {offerData.coinOthers}
                 </Button>
               )}
+              {offerData?.paymentApp && (
+                <Button size="small" color="success" variant="outlined">
+                  {offerData.paymentApp}
+                </Button>
+              )}
             </div>
           </CardContent>
         </Collapse>
 
         <Typography component={'div'} className="action-section">
-          {offerData?.paymentMethods[0]?.paymentMethod?.id !== 5 && offerData?.coinPayment !== COIN_OTHERS ? (
+          {offerData?.paymentMethods[0]?.paymentMethod?.id !== PAYMENT_METHOD.GOODS_SERVICES &&
+          offerData?.coinPayment !== COIN_OTHERS ? (
             <Typography variant="body2">
               <span className="prefix">Price: </span>Market price +{post?.postOffer?.marginPercentage ?? 0}%{' '}
               {coinCurrency !== 'XEC' && (
@@ -339,7 +347,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
             </Typography>
           )}
           <BuyButtonStyled variant="contained" onClick={e => handleBuyClick(e)}>
-            Buy
+            {offerData?.type === OfferType.Buy ? 'Sell' : 'Buy'}
             <Image width={25} height={25} src="/eCash.svg" alt="" />
           </BuyButtonStyled>
         </Typography>
