@@ -140,8 +140,8 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
   const [rateData, setRateData] = useState(null);
   const [amountPer1MXEC, setAmountPer1MXEC] = useState('');
 
-  const { useGetFiatRateQuery } = fiatCurrencyApi;
-  const { data: fiatData } = useGetFiatRateQuery();
+  const { useGetAllFiatRateQuery } = fiatCurrencyApi;
+  const { data: fiatData } = useGetAllFiatRateQuery();
 
   const handleBuyClick = e => {
     e.stopPropagation();
@@ -206,15 +206,15 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
       const coinPayment = post.postOffer.coinPayment.toLowerCase();
       const rateArrayCoin = rateData.find(item => item.coin === coinPayment);
       const rateArrayXec = rateData.find(item => item.coin === 'xec');
-      const latestRateCoin = rateArrayCoin?.rates?.reduce((max, item) => (item.ts > max.ts ? item : max));
-      const latestRateXec = rateArrayXec?.rates?.reduce((max, item) => (item.ts > max.ts ? item : max));
+      const latestRateCoin = rateArrayCoin?.rate;
+      const latestRateXec = rateArrayXec?.rate;
 
-      amountCoinOrCurrency = (latestRateXec?.rate * amountXEC) / latestRateCoin?.rate; //1M XEC (USD) / rateCoin (USD)
+      amountCoinOrCurrency = (latestRateXec * amountXEC) / latestRateCoin; //1M XEC (USD) / rateCoin (USD)
     } else {
       //convert from currency to XEC
       const rateArrayXec = rateData.find(item => item.coin === 'xec');
-      const latestRateXec = rateArrayXec?.rates?.reduce((max, item) => (item.ts > max.ts ? item : max));
-      amountCoinOrCurrency = amountXEC * latestRateXec?.rate;
+      const latestRateXec = rateArrayXec?.rate;
+      amountCoinOrCurrency = amountXEC * latestRateXec;
     }
 
     const compactNumberFormatter = new Intl.NumberFormat('en-GB', {
@@ -242,9 +242,11 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
 
   //get rate data
   useEffect(() => {
-    const rateData = fiatData?.getFiatRate?.find(item => item.currency === (post?.postOffer?.localCurrency ?? 'USD'));
+    const rateData = fiatData?.getAllFiatRate?.find(
+      item => item.currency === (post?.postOffer?.localCurrency ?? 'USD')
+    );
     setRateData(rateData?.fiatRates);
-  }, [post?.postOffer?.localCurrency, fiatData?.getFiatRate]);
+  }, [post?.postOffer?.localCurrency, fiatData?.getAllFiatRate]);
 
   //open placeAnOrderModal if offerId is in url
   useEffect(() => {

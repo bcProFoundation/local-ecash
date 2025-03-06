@@ -299,8 +299,8 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     { skip: !data, refetchOnMountOrArgChange: true }
   );
 
-  const { useGetFiatRateQuery } = fiatCurrencyApi;
-  const { data: fiatData } = useGetFiatRateQuery();
+  const { useGetAllFiatRateQuery } = fiatCurrencyApi;
+  const { data: fiatData } = useGetAllFiatRateQuery();
 
   const { useGetAccountByAddressQuery } = accountsApi;
   const { currentData: accountQueryData } = useGetAccountByAddressQuery(
@@ -645,17 +645,17 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
       const coinPayment = post.postOffer.coinPayment.toLowerCase();
       const rateArrayCoin = rateData.find(item => item.coin === coinPayment);
       const rateArrayXec = rateData.find(item => item.coin === 'xec');
-      const latestRateCoin = rateArrayCoin?.rates?.reduce((max, item) => (item.ts > max.ts ? item : max));
-      const latestRateXec = rateArrayXec?.rates?.reduce((max, item) => (item.ts > max.ts ? item : max));
-      const rateCoinPerXec = latestRateCoin?.rate / latestRateXec?.rate;
+      const latestRateCoin = rateArrayCoin?.rate;
+      const latestRateXec = rateArrayXec?.rate;
+      const rateCoinPerXec = latestRateCoin / latestRateXec;
       amountXEC = Number(amountValue ?? '0') * rateCoinPerXec;
-      amountCoinOrCurrency = (latestRateXec?.rate * textAmountPer1MXEC) / latestRateCoin?.rate;
+      amountCoinOrCurrency = (latestRateXec * textAmountPer1MXEC) / latestRateCoin;
     } else {
       //convert from currency to XEC
       const rateArrayXec = rateData.find(item => item.coin === 'xec');
-      const latestRateXec = rateArrayXec?.rates?.reduce((max, item) => (item.ts > max.ts ? item : max));
-      amountXEC = Number(amountValue ?? '0') / latestRateXec?.rate;
-      amountCoinOrCurrency = textAmountPer1MXEC * latestRateXec?.rate;
+      const latestRateXec = rateArrayXec?.rate;
+      amountXEC = Number(amountValue ?? '0') / latestRateXec;
+      amountCoinOrCurrency = textAmountPer1MXEC * latestRateXec;
     }
 
     //cals fee
@@ -753,9 +753,11 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
 
   //get rate data
   useEffect(() => {
-    const rateData = fiatData?.getFiatRate?.find(item => item.currency === (post?.postOffer?.localCurrency ?? 'USD'));
+    const rateData = fiatData?.getAllFiatRate?.find(
+      item => item.currency === (post?.postOffer?.localCurrency ?? 'USD')
+    );
     setRateData(rateData?.fiatRates);
-  }, [post?.postOffer?.localCurrency, fiatData?.getFiatRate]);
+  }, [post?.postOffer?.localCurrency, fiatData?.getAllFiatRate]);
 
   useEffect(() => {
     if (amountXEC && amountXEC !== 0) {
