@@ -19,8 +19,7 @@ import {
 } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import CachedRoundedIcon from '@mui/icons-material/CachedRounded';
-import { Badge, Box, CircularProgress, Skeleton, Slide, Typography, useTheme } from '@mui/material';
-import { useRouter } from 'next/navigation';
+import { Badge, Box, CircularProgress, Skeleton, Slide, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import MobileLayout from '../components/layout/MobileLayout';
@@ -80,8 +79,6 @@ const StyledBadge = styled(Badge)`
 `;
 
 export default function Home() {
-  const theme = useTheme();
-  const router = useRouter();
   const offerFilterConfig = useLixiSliceSelector(getOfferFilterConfig);
   const newPostAvailable = useLixiSliceSelector(getNewPostAvailable);
   const [visible, setVisible] = useState(true);

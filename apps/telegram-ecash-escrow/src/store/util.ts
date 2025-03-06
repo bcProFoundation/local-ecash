@@ -54,3 +54,7 @@ export const formatNumber = (number: number) => {
 
   return number.toLocaleString('en-US');
 };
+
+export const constructImagePath = (filePath: string) => {
+  return `https://api.telegram.org/file/bot${process.env.NEXT_PUBLIC_BOT_TOKEN}/${filePath}`;
+};

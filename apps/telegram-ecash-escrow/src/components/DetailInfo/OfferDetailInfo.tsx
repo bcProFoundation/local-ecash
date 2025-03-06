@@ -31,7 +31,7 @@ const OfferDetailWrap = styled('div')(({ theme }) => ({
   flexDirection: 'column',
   gap: '8px',
   cursor: 'pointer',
-  background: theme.custom.bgItem,
+  background: theme.custom.bgPrimary,
   borderRadius: '10px',
   padding: '16px',
   marginBottom: '16px',

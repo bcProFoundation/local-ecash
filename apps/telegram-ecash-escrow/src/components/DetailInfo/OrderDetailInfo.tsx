@@ -22,7 +22,7 @@ const OrderDetailWrap = styled('div')(({ theme }) => ({
   flexDirection: 'column',
   gap: '8px',
   cursor: 'pointer',
-  background: theme.custom.bgItem,
+  background: theme.custom.bgPrimary,
   borderRadius: '10px',
   padding: '16px',
   marginBottom: '16px',
@@ -86,9 +86,24 @@ const OrderDetailInfo = ({
 }: OrderItemProps) => {
   const order = item;
   const isBuyOffer = order?.escrowOffer?.type === OfferType.Buy;
+
   const router = useRouter();
   const [rateData, setRateData] = useState(null);
   const [marginCurrentPrice, setMarginCurrentPrice] = useState(0);
+
+  // Local state for standalone mode
+  const [localAmountXEC, setLocalAmountXEC] = useState(0);
+  const [localTextAmountPer1MXEC, setLocalTextAmountPer1MXEC] = useState('');
+
+  // Determine if component is in standalone mode
+  const isStandalone = setAmountXEC === undefined || setTextAmountPer1MXEC === undefined;
+
+  // Use the correct state and setter based on mode
+  const effectiveAmountXEC = isStandalone ? localAmountXEC : amountXEC;
+  const effectiveSetAmountXEC = isStandalone ? setLocalAmountXEC : setAmountXEC;
+
+  const effectiveTextAmount = isStandalone ? localTextAmountPer1MXEC : textAmountPer1MXEC;
+  const effectiveSetTextAmount = isStandalone ? setLocalTextAmountPer1MXEC : setTextAmountPer1MXEC;
 
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
   const selectedAccount = useLixiSliceSelector(getSelectedAccount);
@@ -131,8 +146,7 @@ const OrderDetailInfo = ({
       const latestRateXec = rateArrayXec?.rate;
       const rateCoinPerXec = latestRateCoin / latestRateXec;
       amountXEC = Number(order.amountCoinOrCurrency ?? '0') * rateCoinPerXec;
-      amountCoinOrCurrency = (latestRateXec * CONST_AMOUNT_XEC) / latestRateCoin; //1M XEC (USD) / rateCoin (USD) 
-
+      amountCoinOrCurrency = (latestRateXec * CONST_AMOUNT_XEC) / latestRateCoin; //1M XEC (USD) / rateCoin (USD)
     } else {
       //convert from currency to XEC
       const rateArrayXec = rateData.find(item => item.coin === 'xec');
@@ -149,7 +163,7 @@ const OrderDetailInfo = ({
       //dynamic amountXEC
       amountXEC = amountXEC + amountMargin;
       const amountXecRounded = parseFloat(amountXEC.toFixed(2));
-      amountXecRounded > 0 ? setAmountXEC(amountXecRounded) : setAmountXEC(0);
+      amountXecRounded > 0 ? effectiveSetAmountXEC(amountXecRounded) : effectiveSetAmountXEC(0);
 
       const compactNumberFormatter = new Intl.NumberFormat('en-GB', {
         notation: 'compact',
@@ -162,7 +176,7 @@ const OrderDetailInfo = ({
         amountWithPercentage < 1
           ? amountWithPercentage.toFixed(5)
           : compactNumberFormatter.format(amountWithPercentage);
-      setTextAmountPer1MXEC(
+      effectiveSetTextAmount(
         `${amountFormatted} ${order?.escrowOffer.coinPayment ?? order?.escrowOffer.localCurrency ?? 'XEC'} / 1M XEC`
       );
     }
@@ -280,11 +294,11 @@ const OrderDetailInfo = ({
       {showMargin() && (
         <Typography variant="body1">
           <span className="prefix">Price: </span>
-          {isShowDynamicValue() ? textAmountPer1MXEC : order?.price}
+          {isShowDynamicValue() ? effectiveTextAmount : order?.price}
         </Typography>
       )}
       <Typography variant="body1">
-        <span className="prefix">Order amount:</span> {isShowDynamicValue() ? amountXEC : order?.amount}{' '}
+        <span className="prefix">Order amount:</span> {isShowDynamicValue() ? effectiveAmountXEC : order?.amount}{' '}
         {coinInfo[COIN.XEC].ticker}
       </Typography>
       {showMargin() && (

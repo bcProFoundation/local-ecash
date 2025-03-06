@@ -62,7 +62,7 @@ const OrderDetailPage = styled('div')(({ theme }) => ({
   backgroundSize: 'cover',
 
   '.icon-rule': {
-    color: theme.custom.colorItem
+    color: theme.custom.colorPrimary
   }
 }));
 
@@ -845,13 +845,19 @@ const OrderDetail = () => {
         <div>
           {telegramButton(true, 'Chat with seller for payment details')}
           <div className="group-button-wrap">
-            {currentData.escrowOrder?.markAsPaid ? (
+            {isBuyOffer ? (
+              currentData.escrowOrder?.markAsPaid ? (
+                <Button color="warning" variant="contained" disabled={loading} onClick={() => handleCreateDispute()}>
+                  Dispute
+                </Button>
+              ) : (
+                <Button color="warning" variant="contained" disabled={loading} onClick={() => handleMarkAsPaid()}>
+                  Mark as paid
+                </Button>
+              )
+            ) : (
               <Button color="warning" variant="contained" disabled={loading} onClick={() => handleCreateDispute()}>
                 Dispute
-              </Button>
-            ) : (
-              <Button color="warning" variant="contained" disabled={loading} onClick={() => handleMarkAsPaid()}>
-                Mark as paid
               </Button>
             )}
             <Button

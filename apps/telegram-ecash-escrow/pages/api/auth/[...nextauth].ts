@@ -26,7 +26,7 @@ export const authOptions: NextAuthOptions = {
         try {
           let user;
           const validator = new AuthDataValidator({
-            botToken: `${process.env.BOT_TOKEN}`
+            botToken: `${process.env.NEXT_PUBLIC_BOT_TOKEN}`
           });
 
           if (!req.query.isMiniApp) {

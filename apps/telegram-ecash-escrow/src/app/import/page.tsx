@@ -41,7 +41,7 @@ const ContainerImportWallet = styled('div')(({ theme }) => ({
       gap: '8px',
 
       svg: {
-        color: theme.custom.colorItem
+        color: theme.custom.colorPrimary
       }
     }
   },
@@ -154,7 +154,6 @@ export default function ImportWallet() {
 
       setSuccess(true);
     } catch (e) {
-      console.log('🚀 ~ handleCreateNewWal ~ e:', e);
       setError(true);
     }
 
