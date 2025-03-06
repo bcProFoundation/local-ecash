@@ -89,8 +89,8 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
       paddingTop: '0',
       button: {
         width: '50%',
-        border: `1px solid ${theme.custom.borderColor}`,
-        color: theme.custom.colorItem
+        border: `1px solid ${theme.custom.borderPrimary}`,
+        color: theme.custom.colorPrimary
       },
       '.type-buy-btn': {
         borderRadius: '8px 0 0 8px'
@@ -114,7 +114,7 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
   '.container-step2': {
     '.buy-offer-text-example': {
       fontSize: '13px',
-      color: theme.custom.colorItem1
+      color: theme.custom.colorSecondary
     }
   },
 

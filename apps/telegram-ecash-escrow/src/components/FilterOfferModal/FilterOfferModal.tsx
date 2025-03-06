@@ -94,7 +94,7 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
 
   button: {
     color: theme.palette.text.secondary,
-    borderColor: theme.custom.borderColor1
+    borderColor: theme.custom.borderSecondary
   },
 
   '.close-btn': {
@@ -158,8 +158,8 @@ const FilterWrap = styled('div')(({ theme }) => ({
     paddingTop: '0',
     button: {
       width: '50%',
-      border: `1px solid ${theme.custom.borderColor}`,
-      color: theme.custom.colorItem
+      border: `1px solid ${theme.custom.borderPrimary}`,
+      color: theme.custom.colorPrimary
     },
     '.type-buy-btn': {
       borderRadius: '8px 0 0 8px'
