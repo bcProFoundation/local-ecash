@@ -19,10 +19,10 @@ import {
 } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import CachedRoundedIcon from '@mui/icons-material/CachedRounded';
-import { Badge, Box, CircularProgress, Skeleton, Slide, Typography, useTheme } from '@mui/material';
-import { useRouter } from 'next/navigation';
+import { Badge, Box, CircularProgress, Skeleton, Slide, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
+import FilterComponent from '../components/FilterOffer/FilterComponent';
 import MobileLayout from '../components/layout/MobileLayout';
 
 const WrapHome = styled.div``;
@@ -80,8 +80,6 @@ const StyledBadge = styled(Badge)`
 `;
 
 export default function Home() {
-  const theme = useTheme();
-  const router = useRouter();
   const offerFilterConfig = useLixiSliceSelector(getOfferFilterConfig);
   const newPostAvailable = useLixiSliceSelector(getNewPostAvailable);
   const [visible, setVisible] = useState(true);
@@ -182,6 +180,8 @@ export default function Home() {
           <Header />
           <TopSection />
 
+          <FilterComponent />
+
           <Section>
             <div className="content-wrap">
               <Typography className="title-offer" variant="body1">
@@ -194,6 +194,8 @@ export default function Home() {
               offerFilterConfig.cityName ||
               offerFilterConfig.coin ||
               offerFilterConfig.fiatCurrency ||
+              offerFilterConfig.paymentApp ||
+              offerFilterConfig.isBuyOffer !== undefined ||
               (offerFilterConfig.paymentMethodIds?.length ?? 0) > 0 ? (
                 !isLoadingFilter ? (
                   <InfiniteScroll

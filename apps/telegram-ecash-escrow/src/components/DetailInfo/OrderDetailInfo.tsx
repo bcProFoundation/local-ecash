@@ -131,8 +131,7 @@ const OrderDetailInfo = ({
       const latestRateXec = rateArrayXec?.rate;
       const rateCoinPerXec = latestRateCoin / latestRateXec;
       amountXEC = Number(order.amountCoinOrCurrency ?? '0') * rateCoinPerXec;
-      amountCoinOrCurrency = (latestRateXec * CONST_AMOUNT_XEC) / latestRateCoin; //1M XEC (USD) / rateCoin (USD) 
-
+      amountCoinOrCurrency = (latestRateXec * CONST_AMOUNT_XEC) / latestRateCoin; //1M XEC (USD) / rateCoin (USD)
     } else {
       //convert from currency to XEC
       const rateArrayXec = rateData.find(item => item.coin === 'xec');

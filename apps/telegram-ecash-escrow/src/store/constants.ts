@@ -7,7 +7,10 @@ export enum TabType {
   PENDING = 'Pending',
   ESCROWED = 'Escrowed',
   SEND = 'Send',
-  RECEIVE = 'Receive'
+  RECEIVE = 'Receive',
+  FIAT = 'Fiat currency',
+  CRYPTO = 'Crypto',
+  GOODS_SERVICES = 'Goods services'
 }
 
 export const COIN_OTHERS = 'Others';
@@ -72,3 +75,6 @@ export const THEMES_TYPE = {
 };
 
 export const BOOST_AMOUNT = 100;
+
+export const AllPaymentMethodIds = [1, 2, 3, 4, 5];
+export const AllPaymentMethodIdsFiat = [1, 2, 3];
