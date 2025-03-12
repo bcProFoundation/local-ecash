@@ -131,8 +131,7 @@ const OrderDetailInfo = ({
       const latestRateXec = rateArrayXec?.rate;
       const rateCoinPerXec = latestRateCoin / latestRateXec;
       amountXEC = Number(order.amountCoinOrCurrency ?? '0') * rateCoinPerXec;
-      amountCoinOrCurrency = (latestRateXec * CONST_AMOUNT_XEC) / latestRateCoin; //1M XEC (USD) / rateCoin (USD) 
-
+      amountCoinOrCurrency = (latestRateXec * CONST_AMOUNT_XEC) / latestRateCoin; //1M XEC (USD) / rateCoin (USD)
     } else {
       //convert from currency to XEC
       const rateArrayXec = rateData.find(item => item.coin === 'xec');
@@ -263,13 +262,13 @@ const OrderDetailInfo = ({
         {order?.sellerAccount.id === selectedAccount?.id && (
           <React.Fragment>
             <span className="prefix">{order.escrowOffer.type === OfferType.Buy ? 'Offered' : 'Ordered'} by: </span>
-            {order?.buyerAccount.telegramUsername}
+            {order?.buyerAccount.anonymousUsernameLocalecash}
           </React.Fragment>
         )}
         {order?.buyerAccount.id === selectedAccount?.id && (
           <React.Fragment>
             <span className="prefix">{order.escrowOffer.type === OfferType.Buy ? 'Ordered' : 'Offered'} by: </span>
-            {order?.sellerAccount.telegramUsername}
+            {order?.sellerAccount.anonymousUsernameLocalecash}
           </React.Fragment>
         )}
       </Typography>

@@ -168,7 +168,7 @@ const ProfileDetail = () => {
               <AccountCircleRoundedIcon className="account-avatar-default" fontSize="large" />
             )} */}
             <div>
-              <Typography>{accountQueryData?.getAccountByAddress?.telegramUsername}</Typography>
+              <Typography>{accountQueryData?.getAccountByAddress?.anonymousUsernameLocalecash}</Typography>
               <Typography className="info-item">
                 Joined: {loadingInfo(moment(accountQueryData?.getAccountByAddress?.createdAt).format('DD/MM/YYYY'))}
               </Typography>

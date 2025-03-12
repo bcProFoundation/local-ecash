@@ -259,7 +259,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
     <OfferShowWrapItem>
       <div className="push-offer-wrap">
         <Typography variant="body2" onClick={handleUserNameClick}>
-          <span className="prefix">By: </span> {post?.account?.telegramUsername ?? ''}{' '}
+          <span className="prefix">By: </span> {post?.account?.anonymousUsernameLocalecash ?? ''}{' '}
           <span className="reputation-account">- ☑️ {post?.account?.accountStatsOrder?.completedOrder} trades</span>
         </Typography>
         {(accountQueryData?.getAccountByAddress.role === Role.Moderator ||
