@@ -293,13 +293,13 @@ const OrderDetailInfo = ({
         {order?.sellerAccount.id === selectedAccount?.id && (
           <React.Fragment>
             <span className="prefix">{order.escrowOffer.type === OfferType.Buy ? 'Offered' : 'Ordered'} by: </span>
-            {order?.buyerAccount.telegramUsername}
+            {order?.buyerAccount.anonymousUsernameLocalecash}
           </React.Fragment>
         )}
         {order?.buyerAccount.id === selectedAccount?.id && (
           <React.Fragment>
             <span className="prefix">{order.escrowOffer.type === OfferType.Buy ? 'Ordered' : 'Offered'} by: </span>
-            {order?.sellerAccount.telegramUsername}
+            {order?.sellerAccount.anonymousUsernameLocalecash}
           </React.Fragment>
         )}
       </Typography>

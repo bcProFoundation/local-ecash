@@ -271,7 +271,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
       </div>
       <Typography variant="body2" onClick={handleUserNameClick}>
         <span className="prefix">{isBuyOffer ? 'Buyer' : 'Seller'}: </span> {post?.account?.telegramUsername ?? ''}{' '}
-        <span className="reputation-account">- ☑️ {post?.account?.accountStatsOrder?.completedOrder} trades</span>
+        <span className="reputation-account">- {post?.account?.accountStatsOrder?.completedOrder} trades</span>
       </Typography>
       <div className="minmax-collapse-wrap" onClick={e => handleExpandClick(e)}>
         <Typography variant="body2">
