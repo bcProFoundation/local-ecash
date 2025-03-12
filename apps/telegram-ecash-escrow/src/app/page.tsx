@@ -22,6 +22,7 @@ import CachedRoundedIcon from '@mui/icons-material/CachedRounded';
 import { Badge, Box, CircularProgress, Skeleton, Slide, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
+import FilterComponent from '../components/FilterOffer/FilterComponent';
 import MobileLayout from '../components/layout/MobileLayout';
 
 const WrapHome = styled.div``;
@@ -162,6 +163,8 @@ export default function Home() {
           <Header />
           <TopSection />
 
+          <FilterComponent />
+
           <Section>
             <div className="content-wrap">
               <Typography className="title-offer" variant="body1">
@@ -174,6 +177,8 @@ export default function Home() {
               offerFilterConfig.cityName ||
               offerFilterConfig.coin ||
               offerFilterConfig.fiatCurrency ||
+              offerFilterConfig.paymentApp ||
+              offerFilterConfig.isBuyOffer !== undefined ||
               (offerFilterConfig.paymentMethodIds?.length ?? 0) > 0 ? (
                 !isLoadingFilter ? (
                   <InfiniteScroll
