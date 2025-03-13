@@ -31,10 +31,12 @@ import {
   IconButton,
   InputAdornment,
   InputLabel,
+  MenuItem,
   NativeSelect,
   Portal,
   Radio,
   RadioGroup,
+  Select,
   Slide,
   TextField,
   Typography,
@@ -699,7 +701,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
               />
             </Grid>
 
-            {(coinValue?.includes(COIN_OTHERS) || coinValue?.includes(COIN_USD_STABLECOIN_TICKER)) && (
+            {coinValue?.includes(COIN_OTHERS) && (
               <Grid item xs={4}>
                 <Controller
                   name="coinOthers"
@@ -729,6 +731,35 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                           maxLength: 12
                         }}
                       />
+                    </FormControl>
+                  )}
+                />
+              </Grid>
+            )}
+
+            {coinValue?.includes(COIN_USD_STABLECOIN_TICKER) && (
+              <Grid item xs={4}>
+                <Controller
+                  name="coinOthers"
+                  control={control}
+                  render={({ field: { onChange, onBlur, value, name, ref } }) => (
+                    <FormControl fullWidth={true} variant="standard" error={errors.coinOthers && true}>
+                      <InputLabel id="coinOthers-label">Ticker</InputLabel>
+                      <Select
+                        className="form-input"
+                        onChange={onChange}
+                        onBlur={onBlur}
+                        value={value}
+                        name={name}
+                        inputRef={ref}
+                        id="coinOthers"
+                        labelId="coinOthers-label"
+                        label="Ticker"
+                      >
+                        <MenuItem value="USDT">USDT</MenuItem>
+                        <MenuItem value="USDC">USDC</MenuItem>
+                      </Select>
+                      {errors.coinOthers && <FormHelperText>{errors.coinOthers?.message as string}</FormHelperText>}
                     </FormControl>
                   )}
                 />

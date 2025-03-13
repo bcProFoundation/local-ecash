@@ -11,7 +11,7 @@ export enum TabType {
 }
 
 export const COIN_OTHERS = 'Others';
-export const COIN_USD_STABLECOIN = 'USD Stablecoins';
+export const COIN_USD_STABLECOIN = 'USD Stablecoin';
 export const COIN_USD_STABLECOIN_TICKER = 'USD';
 
 export const LIST_COIN = [
