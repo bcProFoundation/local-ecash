@@ -32,7 +32,7 @@ import { BackupModalProps } from '../Common/BackupModal';
 
 const CardWrapper = styled(Card)(({ theme }) => ({
   marginTop: 16,
-  backgroundColor: theme.custom.bgItem,
+  backgroundColor: theme.custom.bgPrimary,
   borderRadius: 16,
 
   '.prefix': {
@@ -102,7 +102,7 @@ const OfferShowWrapItem = styled('div')(({ theme }) => ({
 
     '.reputation-account': {
       fontSize: '11px',
-      color: theme.custom.colorItem1
+      color: theme.custom.colorSecondary
     }
   }
 }));

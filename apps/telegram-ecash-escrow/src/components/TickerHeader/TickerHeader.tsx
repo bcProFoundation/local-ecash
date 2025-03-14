@@ -32,7 +32,7 @@ const Header = styled('div')(({ theme }) => ({
   '.icon-header': {
     position: 'relative',
     '.MuiSvgIcon-root': {
-      color: theme.custom.colorItem
+      color: theme.custom.colorPrimary
     }
   },
 

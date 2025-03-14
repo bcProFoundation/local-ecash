@@ -27,7 +27,7 @@ const OfferDetailPage = styled('div')(({ theme }) => ({
 
   '.list-item': {
     '.group-btn-order': {
-      borderBottom: `2px dashed ${theme.custom.borderColor}`,
+      borderBottom: `2px dashed ${theme.custom.borderPrimary}`,
       paddingBottom: '16px',
       margin: '10px 5px'
     },
