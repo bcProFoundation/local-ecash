@@ -45,7 +45,7 @@ import FilterListModal from './FilterListModal';
 
 interface FilterCurrencyModal {
   isOpen: boolean;
-  onDissmissModal?: (value: boolean) => void;
+  onDismissModal?: (value: boolean) => void;
   setSelectedItem?: (value: FilterCurrencyType) => void;
 }
 
@@ -244,7 +244,7 @@ const FilterFiatPaymentMethodModal: React.FC<FilterCurrencyModal> = props => {
       value: null
     });
     dispatch(saveOfferFilterConfig(offerFilterInput));
-    props.onDissmissModal!(false);
+    props.onDismissModal!(false);
   };
 
   const getLocation = () => {
@@ -311,11 +311,11 @@ const FilterFiatPaymentMethodModal: React.FC<FilterCurrencyModal> = props => {
       <StyledDialog
         fullScreen={fullScreen}
         open={isOpen}
-        onClose={() => props.onDissmissModal!(false)}
+        onClose={() => props.onDismissModal!(false)}
         TransitionComponent={Transition}
       >
         <DialogTitle>
-          <IconButton className="back-btn" onClick={() => props.onDissmissModal!(false)}>
+          <IconButton className="back-btn" onClick={() => props.onDismissModal!(false)}>
             <ChevronLeft />
           </IconButton>
           <Typography style={{ fontSize: '20px', fontWeight: 'bold' }}>Select Payment-method</Typography>
@@ -542,7 +542,7 @@ const FilterFiatPaymentMethodModal: React.FC<FilterCurrencyModal> = props => {
             autoFocus
             onClick={() => {
               handleReset();
-              props.onDissmissModal!(false);
+              props.onDismissModal!(false);
             }}
           >
             Reset
@@ -561,7 +561,7 @@ const FilterFiatPaymentMethodModal: React.FC<FilterCurrencyModal> = props => {
 
       <FilterListModal
         isOpen={openCountryList}
-        onDissmissModal={value => setOpenCountryList(value)}
+        onDismissModal={value => setOpenCountryList(value)}
         setSelectedItem={async value => {
           setValue('country', value);
           clearErrors('country');
@@ -575,7 +575,7 @@ const FilterFiatPaymentMethodModal: React.FC<FilterCurrencyModal> = props => {
         isOpen={openStateList}
         listItems={listStates}
         propertyToSearch="adminNameAscii"
-        onDissmissModal={value => setOpenStateList(value)}
+        onDismissModal={value => setOpenStateList(value)}
         setSelectedItem={async value => {
           setValue('state', value);
           clearErrors('state');
@@ -588,7 +588,7 @@ const FilterFiatPaymentMethodModal: React.FC<FilterCurrencyModal> = props => {
         isOpen={openCityList}
         listItems={listCities}
         propertyToSearch="cityAscii"
-        onDissmissModal={value => setOpenCityList(value)}
+        onDismissModal={value => setOpenCityList(value)}
         setSelectedItem={value => {
           setValue('city', value);
           clearErrors('city');

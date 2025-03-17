@@ -300,11 +300,11 @@ const FilterComponent = () => {
       <FilterCurrencyModal
         isOpen={openCurrencyList}
         setSelectedItem={value => handleFilterCurrency(value)}
-        onDissmissModal={value => setOpenCurrencyList(value)}
+        onDismissModal={value => setOpenCurrencyList(value)}
       />
       <FilterFiatPaymentMethodModal
         isOpen={openPaymentMethodFilter}
-        onDissmissModal={value => setOpenPaymentMethodFilter(value)}
+        onDismissModal={value => setOpenPaymentMethodFilter(value)}
       />
     </React.Fragment>
   );

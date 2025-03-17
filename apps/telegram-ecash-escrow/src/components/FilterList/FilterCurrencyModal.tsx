@@ -27,7 +27,7 @@ import { FilterCurrencyType } from '../../store/type/types';
 
 interface FilterCurrencyModal {
   isOpen: boolean;
-  onDissmissModal?: (value: boolean) => void;
+  onDismissModal?: (value: boolean) => void;
   setSelectedItem?: (value: FilterCurrencyType) => void;
 }
 
@@ -100,7 +100,7 @@ const Transition = React.forwardRef(function Transition(
 });
 
 const FilterCurrencyModal: React.FC<FilterCurrencyModal> = props => {
-  const { isOpen, onDissmissModal, setSelectedItem } = props;
+  const { isOpen, onDismissModal, setSelectedItem } = props;
   const keyFilterTab = 'filter-currency-tab';
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
@@ -122,7 +122,7 @@ const FilterCurrencyModal: React.FC<FilterCurrencyModal> = props => {
       value: currency?.code ?? currency?.ticker
     };
     setSelectedItem(filterCurrency);
-    onDissmissModal(false);
+    onDismissModal(false);
   };
 
   const handleSelectGoodsServices = () => {
@@ -131,7 +131,7 @@ const FilterCurrencyModal: React.FC<FilterCurrencyModal> = props => {
       value: ''
     };
     setSelectedItem(filterCurrency);
-    onDissmissModal(false);
+    onDismissModal(false);
   };
 
   const searchTextField = (
@@ -238,11 +238,11 @@ const FilterCurrencyModal: React.FC<FilterCurrencyModal> = props => {
       <StyledDialog
         fullScreen={fullScreen}
         open={isOpen}
-        onClose={() => props.onDissmissModal!(false)}
+        onClose={() => props.onDismissModal!(false)}
         TransitionComponent={Transition}
       >
         <DialogTitle>
-          <IconButton className="back-btn" onClick={() => props.onDissmissModal!(false)}>
+          <IconButton className="back-btn" onClick={() => props.onDismissModal!(false)}>
             <ChevronLeft />
           </IconButton>
           <Typography style={{ fontSize: '20px', fontWeight: 'bold' }}>Select currency</Typography>
