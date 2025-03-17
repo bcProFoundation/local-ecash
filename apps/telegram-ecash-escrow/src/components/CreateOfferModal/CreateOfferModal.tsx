@@ -49,7 +49,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import FilterListLocationModal from '../FilterList/FilterListLocationModal';
 import FilterListModal from '../FilterList/FilterListModal';
-import { FormControlWithNativeSelect } from '../FilterOfferModal/FilterOfferModal';
+import { FormControlWithNativeSelect } from '../FilterOffer/FilterOfferModal';
 import CustomToast from '../Toast/CustomToast';
 import ConfirmOfferTypeModal from './ConfirmOfferTypeModal';
 
@@ -102,6 +102,9 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
       },
       '.inactive': {
         background: 'transparent'
+      },
+      '.active': {
+        color: '#fff'
       }
     }
   },
@@ -465,7 +468,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       <Grid container spacing={2}>
         <Grid item xs={12} className="type-btn-group">
           <Button
-            className={`type-buy-btn ${isBuyOffer ? '' : 'inactive'}`}
+            className={`type-buy-btn ${isBuyOffer ? 'active' : 'inactive'}`}
             variant="contained"
             color="success"
             onClick={() => setIsBuyOffer(true)}
@@ -473,7 +476,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
             Buy
           </Button>
           <Button
-            className={`type-sell-btn ${!isBuyOffer ? '' : 'inactive'}`}
+            className={`type-sell-btn ${!isBuyOffer ? 'active' : 'inactive'}`}
             variant="contained"
             color="error"
             onClick={() => setIsBuyOffer(false)}
@@ -483,7 +486,9 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
         </Grid>
         <Grid item xs={12}>
           <Typography fontStyle={'italic'} className="heading" variant="body2">
-            {isBuyOffer ? 'You are buying XEC. Your offer will by listed in Sell Crypto space' : 'You are selling XEC'}
+            {isBuyOffer
+              ? 'You are buying XEC. Your offer will be listed in Sell Crypto space'
+              : 'You are selling XEC. Your offer will be listed in Sell Crypto space'}
           </Typography>
         </Grid>
 
