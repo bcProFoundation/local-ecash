@@ -1,6 +1,6 @@
 'use client';
 
-import { COIN_OTHERS, COIN_USD_STABLECOIN_TICKER } from '@/src/store/constants';
+import { COIN_OTHERS, COIN_USD_STABLECOIN, COIN_USD_STABLECOIN_TICKER } from '@/src/store/constants';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { formatNumber } from '@/src/store/util';
 import { PAYMENT_METHOD } from '@bcpros/lixi-models';
@@ -41,7 +41,16 @@ const CardWrapper = styled(Card)(({ theme }) => ({
   },
 
   '.MuiCardContent-root': {
-    padding: '16px 16px 0 16px'
+    padding: '16px 16px 0 16px',
+
+    '.payment-group-btns': {
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: 5,
+      '& button': {
+        borderRadius: '10px'
+      }
+    }
   },
 
   '.MuiCollapse-root': {
@@ -50,15 +59,6 @@ const CardWrapper = styled(Card)(({ theme }) => ({
       flexDirection: 'column',
       gap: 8,
       padding: '8px 16px 0'
-    },
-
-    '.payment-group-btns': {
-      display: 'flex',
-      flexWrap: 'wrap',
-      gap: 10,
-      '& button': {
-        borderRadius: '10px'
-      }
     }
   },
 
@@ -121,6 +121,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
 
   const post = timelineItem?.data as PostQueryItem;
   const offerData = post?.postOffer;
+  const isBuyOffer = offerData?.type === OfferType.Buy;
   const countryName = offerData?.location?.country ?? offerData?.country?.name;
   const stateName = offerData?.location?.adminNameAscii;
   const cityName = offerData?.location?.cityAscii;
@@ -258,9 +259,8 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
   const OfferItem = (
     <OfferShowWrapItem>
       <div className="push-offer-wrap">
-        <Typography variant="body2" onClick={handleUserNameClick}>
-          <span className="prefix">By: </span> {post?.account?.telegramUsername ?? ''}{' '}
-          <span className="reputation-account">- ☑️ {post?.account?.accountStatsOrder?.completedOrder} trades</span>
+        <Typography variant="body2" style={{ fontWeight: 'bold' }}>
+          {offerData?.message}
         </Typography>
         {(accountQueryData?.getAccountByAddress.role === Role.Moderator ||
           post?.account.hash160 === selectedWalletPath?.hash160) && (
@@ -269,9 +269,9 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
           </IconButton>
         )}
       </div>
-      <Typography variant="body2">
-        <span className="prefix">Headline: </span>
-        {offerData?.message}
+      <Typography variant="body2" onClick={handleUserNameClick}>
+        <span className="prefix">{isBuyOffer ? 'Buyer' : 'Seller'}: </span> {post?.account?.telegramUsername ?? ''}{' '}
+        <span className="reputation-account">- ☑️ {post?.account?.accountStatsOrder?.completedOrder} trades</span>
       </Typography>
       <div className="minmax-collapse-wrap" onClick={e => handleExpandClick(e)}>
         <Typography variant="body2">
@@ -280,6 +280,34 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
           {coinCurrency}
         </Typography>
         {expanded ? <ExpandLessIcon style={{ cursor: 'pointer' }} /> : <ExpandMoreIcon style={{ cursor: 'pointer' }} />}
+      </div>
+      <div className="payment-group-btns">
+        {offerData?.paymentMethods &&
+          offerData.paymentMethods?.length > 0 &&
+          offerData.paymentMethods.map(item => {
+            return (
+              <Button size="small" color="success" variant="outlined" key={item.paymentMethod.name}>
+                {item.paymentMethod.name}
+              </Button>
+            );
+          })}
+
+        {(offerData?.coinPayment === COIN_USD_STABLECOIN_TICKER || offerData?.coinPayment === COIN_OTHERS) && (
+          <Button size="small" color="success" variant="outlined">
+            {offerData.coinPayment === COIN_USD_STABLECOIN_TICKER ? COIN_USD_STABLECOIN : COIN_OTHERS}
+          </Button>
+        )}
+
+        {offerData?.coinOthers && (
+          <Button size="small" color="success" variant="outlined">
+            {offerData.coinOthers}
+          </Button>
+        )}
+        {offerData?.paymentApp && (
+          <Button size="small" color="success" variant="outlined">
+            {offerData.paymentApp}
+          </Button>
+        )}
       </div>
     </OfferShowWrapItem>
   );
@@ -307,28 +335,6 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
                 {offerData.noteOffer}
               </Typography>
             )}
-            <div className="payment-group-btns">
-              {offerData?.paymentMethods &&
-                offerData.paymentMethods?.length > 0 &&
-                offerData.paymentMethods.map(item => {
-                  return (
-                    <Button size="small" color="success" variant="outlined" key={item.paymentMethod.name}>
-                      {item.paymentMethod.name}
-                    </Button>
-                  );
-                })}
-
-              {offerData?.coinOthers && (
-                <Button size="small" color="success" variant="outlined">
-                  {offerData.coinOthers}
-                </Button>
-              )}
-              {offerData?.paymentApp && (
-                <Button size="small" color="success" variant="outlined">
-                  {offerData.paymentApp}
-                </Button>
-              )}
-            </div>
           </CardContent>
         </Collapse>
 
@@ -336,12 +342,13 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
           {offerData?.paymentMethods[0]?.paymentMethod?.id !== PAYMENT_METHOD.GOODS_SERVICES &&
           offerData?.coinPayment !== COIN_OTHERS ? (
             <Typography variant="body2">
-              <span className="prefix">Price: </span>Market price +{post?.postOffer?.marginPercentage ?? 0}%{' '}
+              <span className="prefix">Price: </span>
               {coinCurrency !== 'XEC' && (
                 <span>
-                  (~ {amountPer1MXEC} {coinCurrency} / 1M XEC)
+                  ~ {amountPer1MXEC} {coinCurrency} / 1M XEC
                 </span>
-              )}
+              )}{' '}
+              ( Market price +{post?.postOffer?.marginPercentage ?? 0}% )
             </Typography>
           ) : (
             <Typography variant="body2">

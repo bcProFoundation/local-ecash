@@ -119,23 +119,6 @@ export default function Home() {
     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
   };
 
-  // useEffect(() => {
-  //   (async () => {
-  //     const country = await axiosClient
-  //       .get(`/api/countries/ipaddr`)
-  //       .then(result => {
-  //         return result.data;
-  //       })
-  //       .catch(({ response }) => {
-  //         console.log(response?.data.message);
-  //       });
-
-  //     if (country && country === 'US') {
-  //       return router.push('/not-available');
-  //     }
-  //   })();
-  // }, []);
-
   //reset flag for new-post when reload
   useEffect(() => {
     dispatch(setNewPostAvailable(false));
@@ -182,7 +165,7 @@ export default function Home() {
           <Section>
             <div className="content-wrap">
               <Typography className="title-offer" variant="body1">
-                Offer Watchlist
+                Offers
               </Typography>
             </div>
             <div className="offer-list">

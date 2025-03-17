@@ -58,7 +58,8 @@ const OrderDetailWrap = styled('div')(({ theme }) => ({
   '.wrap-order-id': {
     display: 'flex',
     alignItems: 'center',
-    gap: '5px'
+    gap: '5px',
+    cursor: 'pointer'
   },
 
   '.order-id': {
@@ -66,6 +67,10 @@ const OrderDetailWrap = styled('div')(({ theme }) => ({
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis'
+  },
+
+  button: {
+    pointerEvents: 'none'
   }
 }));
 
@@ -232,7 +237,17 @@ const OrderDetailInfo = ({
       }
     }
 
-    return order?.escrowOrderStatus?.toLowerCase()?.replace(/^./, char => char.toUpperCase());
+    const capitalizeStatus = order?.escrowOrderStatus?.toLowerCase()?.replace(/^./, char => char.toUpperCase());
+    let status = capitalizeStatus;
+    if (
+      order?.escrowOrderStatus === EscrowOrderStatus.Escrow ||
+      order?.escrowOrderStatus === EscrowOrderStatus.Cancel ||
+      order?.escrowOrderStatus === EscrowOrderStatus.Complete
+    ) {
+      status = capitalizeStatus + 'ed';
+    }
+
+    return status;
   };
 
   //get rate data
@@ -254,9 +269,9 @@ const OrderDetailInfo = ({
   }, [rateData]);
 
   return (
-    <OrderDetailWrap onClick={() => router.push(`/order-detail?id=${order.id}`)}>
+    <OrderDetailWrap>
       <Typography className="order-first-line" variant="body1" component="div">
-        <div className="wrap-order-id">
+        <div className="wrap-order-id" onClick={() => router.push(`/order-detail?id=${order.id}`)}>
           <span className="prefix">No: </span>
           <span className="order-id">{order.id}</span>
         </div>

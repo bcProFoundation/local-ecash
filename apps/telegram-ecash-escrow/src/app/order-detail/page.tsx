@@ -1040,7 +1040,7 @@ const OrderDetail = () => {
         <ConfirmCancelModal
           isOpen={openCancelModal}
           returnAction={value => handleBuyerReturnEscrow(value)}
-          onDissmissModal={value => setOpenCancelModal(value)}
+          onDismissModal={value => setOpenCancelModal(value)}
           isBuyerDeposit={currentData?.escrowOrder.buyerDepositTx ? true : false}
           disputeFee={calDisputeFee}
         />
@@ -1049,7 +1049,7 @@ const OrderDetail = () => {
           isOpen={openReleaseModal}
           disputeFee={calDisputeFee}
           returnAction={value => handleSellerReleaseEscrow(value)}
-          onDissmissModal={value => setOpenReleaseModal(value)}
+          onDismissModal={value => setOpenReleaseModal(value)}
         />
 
         <Stack zIndex={999}>

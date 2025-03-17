@@ -42,7 +42,7 @@ import FilterListModal from '../FilterList/FilterListModal';
 
 interface FilterOfferModalProps {
   isOpen: boolean;
-  onDissmissModal?: (value: boolean) => void;
+  onDismissModal?: (value: boolean) => void;
   onConfirmClick?: () => void;
 }
 
@@ -306,7 +306,7 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
     }
 
     dispatch(saveOfferFilterConfig(offerFilterInput));
-    props.onDissmissModal!(false);
+    props.onDismissModal!(false);
   };
 
   const handleReset = () => {
@@ -389,10 +389,10 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
     <StyledDialog
       fullScreen={fullScreen}
       open={props.isOpen}
-      onClose={() => props.onDissmissModal!(false)}
+      onClose={() => props.onDismissModal!(false)}
       TransitionComponent={Transition}
     >
-      <IconButton className="close-btn" onClick={() => props.onDissmissModal!(false)}>
+      <IconButton className="close-btn" onClick={() => props.onDismissModal!(false)}>
         <CloseOutlined />
       </IconButton>
       <DialogTitle>Filter</DialogTitle>
@@ -736,7 +736,7 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
           autoFocus
           onClick={() => {
             handleReset();
-            props.onDissmissModal!(false);
+            props.onDismissModal!(false);
           }}
         >
           Reset
@@ -747,7 +747,7 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
       </DialogActions>
       <FilterListModal
         isOpen={openCountryList}
-        onDissmissModal={value => setOpenCountryList(value)}
+        onDismissModal={value => setOpenCountryList(value)}
         setSelectedItem={async value => {
           setValue('country', value);
           clearErrors('country');
@@ -761,7 +761,7 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
         isOpen={openStateList}
         listItems={listStates}
         propertyToSearch="adminNameAscii"
-        onDissmissModal={value => setOpenStateList(value)}
+        onDismissModal={value => setOpenStateList(value)}
         setSelectedItem={async value => {
           setValue('state', value);
           clearErrors('state');
@@ -774,7 +774,7 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
         isOpen={openCityList}
         listItems={listCities}
         propertyToSearch="cityAscii"
-        onDissmissModal={value => setOpenCityList(value)}
+        onDismissModal={value => setOpenCityList(value)}
         setSelectedItem={value => {
           setValue('city', value);
           clearErrors('city');

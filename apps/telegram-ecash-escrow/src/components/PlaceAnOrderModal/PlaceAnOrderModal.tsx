@@ -18,7 +18,6 @@ import {
   fiatCurrencyApi,
   getModals,
   getSelectedWalletPath,
-  parseCashAddressToPrefix,
   showToast,
   useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector
@@ -27,7 +26,6 @@ import { ChevronLeft } from '@mui/icons-material';
 import {
   Box,
   Button,
-  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
@@ -56,8 +54,8 @@ import { useRouter } from 'next/navigation';
 import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { FormControlWithNativeSelect } from '../FilterOfferModal/FilterOfferModal';
-import QRCode from '../QRcode/QRcode';
 import CustomToast from '../Toast/CustomToast';
+import ConfirmDepositModal from './ConfirmDepositModal';
 
 interface PlaceAnOrderModalProps {
   isOpen: boolean;
@@ -284,6 +282,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const [escrowScript, setEscrowScript] = useState<Escrow>(null);
   const [nonce, setNonce] = useState<string>(null);
   const [confirm, setConfirm] = useState(false);
+  const [openConfirmDeposit, setOpenConfirmDeposit] = useState(false);
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
 
   const { useCreateEscrowOrderMutation, useGetModeratorAccountQuery, useGetRandomArbitratorAccountQuery } =
@@ -311,14 +310,12 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const {
     handleSubmit,
     formState: { errors },
-    // setError: setErrorForm,
     clearErrors,
     control,
     trigger,
     watch
   } = useForm();
   const amountValue = watch('amount');
-  const isBuyerDeposit = watch('isDepositFee');
 
   const calEscrowScript = () => {
     const sellerPk = isBuyOffer ? fromHex(selectedWalletPath?.publicKey ?? '') : fromHex(post.account.publicKey);
@@ -339,7 +336,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     setNonce(nonce);
   };
 
-  const handleCreateEscrowOrder = async data => {
+  const handleCreateEscrowOrder = async (data, isDepositFee) => {
     setLoading(true);
     if (moderatorIsError || arbitratorIsError) {
       setArbiDataError(true);
@@ -356,7 +353,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
       accountNumberApp: post.postOffer?.paymentApp ? data?.accountNumber : null
     };
 
-    const { amount, message, isDepositFee }: { amount: string; message: string; isDepositFee: boolean } = data;
+    const { amount, message }: { amount: string; message: string } = data;
     const offerAccountId = post.accountId;
     const moderatorId = moderatorCurrentData.getModeratorAccount.id;
     const arbitratorId = arbitratorCurrentData.getRandomArbitratorAccount.id;
@@ -449,22 +446,6 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
 
   const checkBuyerEnoughFund = () => {
     return totalValidAmount > calDisputeFee;
-  };
-
-  const InfoEscrow = () => {
-    const fee1Percent = calDisputeFee;
-    const totalBalanceFormat = totalValidAmount.toLocaleString('de-DE');
-
-    return (
-      <div>
-        <Typography component="p" variant="body1">
-          Your wallet: {totalBalanceFormat} {COIN.XEC}
-        </Typography>
-        <Typography component="p" variant="body1">
-          Security deposit (1%): {fee1Percent.toLocaleString('de-DE')} {COIN.XEC}
-        </Typography>
-      </div>
-    );
   };
 
   const InfoPaymentDetail = () => {
@@ -692,6 +673,19 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     );
   };
 
+  const handleCreateOrderBeforeConfirm = async () => {
+    const isValid = await trigger();
+    if (!isValid) return;
+
+    if (checkBuyerEnoughFund()) {
+      setOpenConfirmDeposit(true);
+    } else {
+      handleSubmit(data => {
+        handleCreateEscrowOrder(data, false);
+      })();
+    }
+  };
+
   // // Handle browser history to manage the modal
   useEffect(() => {
     // Function to handle the popstate event (when back button is clicked)
@@ -915,39 +909,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                 <Typography color="error">{errors?.paymentMethod?.message as string}</Typography>
               )}
             </RadioGroup>
-            {isBuyOffer ? (
-              InfoPaymentDetail()
-            ) : (
-              <div className="disclaim-wrap">
-                <Typography className="title" variant="body2">
-                  * Deposit a security deposit to have a higher chance of being accepted. The security deposit will be
-                  returned if there is no dispute.
-                </Typography>
-                <Controller
-                  name="isDepositFee"
-                  control={control}
-                  defaultValue={false}
-                  render={({ field: { onChange, onBlur, value, ref } }) => (
-                    <FormControlLabel
-                      control={<Checkbox onChange={onChange} onBlur={onBlur} checked={value} inputRef={ref} />}
-                      label={`I want to deposit security deposit (1%): ${calDisputeFee} XEC`}
-                    />
-                  )}
-                />
-                {isBuyerDeposit && (
-                  <div>
-                    {InfoEscrow()}
-                    {!checkBuyerEnoughFund() && (
-                      <QRCode
-                        address={parseCashAddressToPrefix(COIN.XEC, selectedWalletPath?.cashAddress)}
-                        amount={calDisputeFee}
-                        width="60%"
-                      />
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
+            {isBuyOffer && InfoPaymentDetail()}
           </PlaceAnOrderWrap>
         </DialogContent>
         <DialogActions>
@@ -957,13 +919,13 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
             variant="contained"
             onClick={() => {
               if (post?.account?.telegramUsername.startsWith('@')) {
-                handleSubmit(handleCreateEscrowOrder)(); //need parenthesis to call handleSubmit
+                handleCreateOrderBeforeConfirm();
               } else {
                 setConfirm(true);
               }
             }}
             autoFocus
-            disabled={(isBuyerDeposit && !checkBuyerEnoughFund()) || loading}
+            disabled={loading}
           >
             Create
           </Button>
@@ -1001,12 +963,31 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
             <Button variant="contained" fullWidth onClick={() => setConfirm(false)}>
               Cancel
             </Button>
-            <Button variant="contained" fullWidth color="warning" onClick={handleSubmit(handleCreateEscrowOrder)}>
+            <Button
+              variant="contained"
+              fullWidth
+              color="warning"
+              onClick={() => {
+                handleCreateOrderBeforeConfirm();
+              }}
+            >
               Continue
             </Button>
           </div>
         </StyledBox>
       </Modal>
+
+      <ConfirmDepositModal
+        isOpen={openConfirmDeposit}
+        depositSecurity={calDisputeFee}
+        isLoading={loading}
+        onDismissModal={value => setOpenConfirmDeposit(value)}
+        depositFee={isDeposit => {
+          handleSubmit(data => {
+            handleCreateEscrowOrder(data, isDeposit);
+          })();
+        }}
+      />
     </React.Fragment>
   );
 };

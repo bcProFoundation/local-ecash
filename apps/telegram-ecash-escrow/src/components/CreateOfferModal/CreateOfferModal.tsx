@@ -31,10 +31,12 @@ import {
   IconButton,
   InputAdornment,
   InputLabel,
+  MenuItem,
   NativeSelect,
   Portal,
   Radio,
   RadioGroup,
+  Select,
   Slide,
   TextField,
   Typography,
@@ -699,7 +701,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
               />
             </Grid>
 
-            {(coinValue?.includes(COIN_OTHERS) || coinValue?.includes(COIN_USD_STABLECOIN_TICKER)) && (
+            {coinValue?.includes(COIN_OTHERS) && (
               <Grid item xs={4}>
                 <Controller
                   name="coinOthers"
@@ -729,6 +731,35 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                           maxLength: 12
                         }}
                       />
+                    </FormControl>
+                  )}
+                />
+              </Grid>
+            )}
+
+            {coinValue?.includes(COIN_USD_STABLECOIN_TICKER) && (
+              <Grid item xs={4}>
+                <Controller
+                  name="coinOthers"
+                  control={control}
+                  render={({ field: { onChange, onBlur, value, name, ref } }) => (
+                    <FormControl fullWidth={true} variant="standard" error={errors.coinOthers && true}>
+                      <InputLabel id="coinOthers-label">Ticker</InputLabel>
+                      <Select
+                        className="form-input"
+                        onChange={onChange}
+                        onBlur={onBlur}
+                        value={value}
+                        name={name}
+                        inputRef={ref}
+                        id="coinOthers"
+                        labelId="coinOthers-label"
+                        label="Ticker"
+                      >
+                        <MenuItem value="USDT">USDT</MenuItem>
+                        <MenuItem value="USDC">USDC</MenuItem>
+                      </Select>
+                      {errors.coinOthers && <FormHelperText>{errors.coinOthers?.message as string}</FormHelperText>}
                     </FormControl>
                   )}
                 />
@@ -1256,7 +1287,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       </Portal>
       <FilterListModal
         isOpen={openCountryList}
-        onDissmissModal={value => setOpenCountryList(value)}
+        onDismissModal={value => setOpenCountryList(value)}
         setSelectedItem={async value => {
           setValue('country', value);
           clearErrors('country');
@@ -1270,7 +1301,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
         isOpen={openStateList}
         listItems={listStates}
         propertyToSearch="adminNameAscii"
-        onDissmissModal={value => setOpenStateList(value)}
+        onDismissModal={value => setOpenStateList(value)}
         setSelectedItem={async value => {
           setValue('state', value);
           clearErrors('state');
@@ -1283,7 +1314,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
         isOpen={openCityList}
         listItems={listCities}
         propertyToSearch="cityAscii"
-        onDissmissModal={value => setOpenCityList(value)}
+        onDismissModal={value => setOpenCityList(value)}
         setSelectedItem={value => {
           setValue('city', value);
           clearErrors('city');
@@ -1293,7 +1324,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       <ConfirmOfferTypeModal
         isOpen={openConfirmType}
         isLoading={loading}
-        onDissmissModal={value => setOpenConfirmType(value)}
+        onDismissModal={value => setOpenConfirmType(value)}
         createOffer={isHidden => {
           handleSubmit(data => {
             handleCreateOffer(data, isHidden);
