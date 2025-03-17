@@ -1287,7 +1287,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       </Portal>
       <FilterListModal
         isOpen={openCountryList}
-        onDissmissModal={value => setOpenCountryList(value)}
+        onDismissModal={value => setOpenCountryList(value)}
         setSelectedItem={async value => {
           setValue('country', value);
           clearErrors('country');
@@ -1301,7 +1301,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
         isOpen={openStateList}
         listItems={listStates}
         propertyToSearch="adminNameAscii"
-        onDissmissModal={value => setOpenStateList(value)}
+        onDismissModal={value => setOpenStateList(value)}
         setSelectedItem={async value => {
           setValue('state', value);
           clearErrors('state');
@@ -1314,7 +1314,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
         isOpen={openCityList}
         listItems={listCities}
         propertyToSearch="cityAscii"
-        onDissmissModal={value => setOpenCityList(value)}
+        onDismissModal={value => setOpenCityList(value)}
         setSelectedItem={value => {
           setValue('city', value);
           clearErrors('city');
@@ -1324,7 +1324,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       <ConfirmOfferTypeModal
         isOpen={openConfirmType}
         isLoading={loading}
-        onDissmissModal={value => setOpenConfirmType(value)}
+        onDismissModal={value => setOpenConfirmType(value)}
         createOffer={isHidden => {
           handleSubmit(data => {
             handleCreateOffer(data, isHidden);

@@ -981,7 +981,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
         isOpen={openConfirmDeposit}
         depositSecurity={calDisputeFee}
         isLoading={loading}
-        onDissmissModal={value => setOpenConfirmDeposit(value)}
+        onDismissModal={value => setOpenConfirmDeposit(value)}
         depositFee={isDeposit => {
           handleSubmit(data => {
             handleCreateEscrowOrder(data, isDeposit);

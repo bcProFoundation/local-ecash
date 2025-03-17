@@ -18,8 +18,8 @@ import React from 'react';
 
 interface ConfirmSignoutModalProps {
   isOpen: boolean;
-  onDissmissModal?: (value: boolean) => void;
-  signout?: (isDeposit: boolean) => void;
+  onDismissModal?: (value: boolean) => void;
+  signout?: (isSignout: boolean) => void;
 }
 
 const StyledDialog = styled(Dialog)(({ theme }) => ({
@@ -90,8 +90,8 @@ const Transition = React.forwardRef(function Transition(
 const ConfirmSignoutModal: React.FC<ConfirmSignoutModalProps> = props => {
   return (
     <React.Fragment>
-      <StyledDialog open={props.isOpen} onClose={() => props.onDissmissModal!(false)} TransitionComponent={Transition}>
-        <IconButton className="back-btn" onClick={() => props.onDissmissModal!(false)}>
+      <StyledDialog open={props.isOpen} onClose={() => props.onDismissModal!(false)} TransitionComponent={Transition}>
+        <IconButton className="back-btn" onClick={() => props.onDismissModal!(false)}>
           <ChevronLeft />
         </IconButton>
         <DialogTitle paddingTop="0px !important">Confirm signout</DialogTitle>

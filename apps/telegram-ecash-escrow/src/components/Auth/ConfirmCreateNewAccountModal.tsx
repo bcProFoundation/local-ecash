@@ -19,8 +19,8 @@ import React from 'react';
 interface ConfirmCreateNewAccountModalProps {
   isOpen: boolean;
   isLoading: boolean;
-  onDissmissModal?: (value: boolean) => void;
-  createAccount?: (isDeposit: boolean) => void;
+  onDismissModal?: (value: boolean) => void;
+  createAccount?: (isCreateAccount: boolean) => void;
 }
 
 const StyledDialog = styled(Dialog)(({ theme }) => ({
@@ -91,8 +91,8 @@ const Transition = React.forwardRef(function Transition(
 const ConfirmCreateNewAccountModal: React.FC<ConfirmCreateNewAccountModalProps> = props => {
   return (
     <React.Fragment>
-      <StyledDialog open={props.isOpen} onClose={() => props.onDissmissModal!(false)} TransitionComponent={Transition}>
-        <IconButton className="back-btn" onClick={() => props.onDissmissModal!(false)}>
+      <StyledDialog open={props.isOpen} onClose={() => props.onDismissModal!(false)} TransitionComponent={Transition}>
+        <IconButton className="back-btn" onClick={() => props.onDismissModal!(false)}>
           <ChevronLeft />
         </IconButton>
         <DialogTitle paddingTop="0px !important">Confirm create new account</DialogTitle>

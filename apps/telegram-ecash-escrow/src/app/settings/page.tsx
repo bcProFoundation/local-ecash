@@ -246,7 +246,7 @@ export default function Setting() {
       </ContainerSetting>
       <ConfirmSignoutModal
         isOpen={openSignoutModal}
-        onDissmissModal={value => setOpenSignoutModal(value)}
+        onDismissModal={value => setOpenSignoutModal(value)}
         signout={isSignout => {
           if (isSignout) {
             handleSignOut();

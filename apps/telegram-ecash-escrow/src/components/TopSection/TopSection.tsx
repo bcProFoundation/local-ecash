@@ -60,7 +60,7 @@ const TopSection: React.FC = () => {
         </div>
       </TopSectionWrap>
 
-      <FilterOfferModal isOpen={open} onDissmissModal={value => setOpen(value)} />
+      <FilterOfferModal isOpen={open} onDismissModal={value => setOpen(value)} />
     </>
   );
 };

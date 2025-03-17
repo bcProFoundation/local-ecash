@@ -21,7 +21,7 @@ interface ConfirmDepositModalProps {
   isOpen: boolean;
   depositSecurity: number;
   isLoading: boolean;
-  onDissmissModal?: (value: boolean) => void;
+  onDismissModal?: (value: boolean) => void;
   depositFee?: (isDeposit: boolean) => void;
 }
 
@@ -93,8 +93,8 @@ const Transition = React.forwardRef(function Transition(
 const ConfirmDepositModal: React.FC<ConfirmDepositModalProps> = props => {
   return (
     <React.Fragment>
-      <StyledDialog open={props.isOpen} onClose={() => props.onDissmissModal!(false)} TransitionComponent={Transition}>
-        <IconButton className="back-btn" onClick={() => props.onDissmissModal!(false)}>
+      <StyledDialog open={props.isOpen} onClose={() => props.onDismissModal!(false)} TransitionComponent={Transition}>
+        <IconButton className="back-btn" onClick={() => props.onDismissModal!(false)}>
           <ChevronLeft />
         </IconButton>
         <DialogTitle paddingTop="0px !important">Confirm Security Deposit</DialogTitle>

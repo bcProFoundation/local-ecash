@@ -272,7 +272,7 @@ export default function ImportWallet() {
       <ConfirmCreateNewAccountModal
         isOpen={openConfirmCreateAccount}
         isLoading={loading}
-        onDissmissModal={value => setOpenConfirmCreateAccount(value)}
+        onDismissModal={value => setOpenConfirmCreateAccount(value)}
         createAccount={isCreateAccount => {
           if (isCreateAccount) {
             handleCreateNewWallet();
