@@ -74,7 +74,7 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
 
 const StyledTabs = styled(Tabs)(({ theme }) => ({
   '.MuiTab-root': {
-    color: theme.custom.colorItem,
+    color: theme.custom.colorPrimary,
     textTransform: 'none',
     fontWeight: 600,
     fontSize: '16px',

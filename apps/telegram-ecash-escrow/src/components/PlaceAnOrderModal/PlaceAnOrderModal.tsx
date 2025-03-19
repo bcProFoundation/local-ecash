@@ -54,7 +54,6 @@ import { useRouter } from 'next/navigation';
 import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { FormControlWithNativeSelect } from '../FilterOffer/FilterOfferModal';
-import QRCode from '../QRcode/QRcode';
 import CustomToast from '../Toast/CustomToast';
 import ConfirmDepositModal from './ConfirmDepositModal';
 

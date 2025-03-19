@@ -121,7 +121,7 @@ const StyledFiatMethod = styled('div')(({ theme }) => ({
     textTransform: 'none',
     fontSize: '14px',
     padding: '8px',
-    borderColor: theme.custom.borderColor,
+    borderColor: theme.custom.borderPrimary,
 
     '&.active': {
       fontWeight: 'bold',
