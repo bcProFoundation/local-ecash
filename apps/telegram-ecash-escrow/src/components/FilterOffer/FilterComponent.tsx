@@ -20,7 +20,7 @@ const WrapFilter = styled('div')(({ theme }) => ({
 
   '.filter-buy-sell': {
     padding: '10px',
-    background: theme.custom.bgItem4,
+    background: theme.custom.bgQuaternary,
 
     '.group-btn': {
       display: 'flex',
@@ -52,7 +52,7 @@ const WrapFilter = styled('div')(({ theme }) => ({
     justifyContent: 'space-between',
     gap: '16px',
     padding: '10px',
-    background: theme.custom.bgItem3,
+    background: theme.custom.bgTertiary,
 
     '.filter-currency': {
       maxWidth: '130px'
