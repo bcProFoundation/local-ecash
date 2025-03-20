@@ -97,7 +97,7 @@ const ConfirmSignoutModal: React.FC<ConfirmSignoutModalProps> = props => {
         <DialogTitle paddingTop="0px !important">Confirm signout</DialogTitle>
         <DialogContent>
           <Typography variant="body1" sx={{ marginTop: '10px' }}>
-            This step will sign out of the current session. Are you sure want to continue?
+            You will need your seed phrase to sign in again. Back it up before signing out!
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -110,7 +110,7 @@ const ConfirmSignoutModal: React.FC<ConfirmSignoutModalProps> = props => {
             }}
             autoFocus
           >
-            Not signout
+            Stay
           </Button>
           <Button
             className="confirm-btn"
@@ -121,7 +121,7 @@ const ConfirmSignoutModal: React.FC<ConfirmSignoutModalProps> = props => {
             }}
             autoFocus
           >
-            Signout
+            Sign out
           </Button>
         </DialogActions>
       </StyledDialog>

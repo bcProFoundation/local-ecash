@@ -538,5 +538,9 @@ export const LIST_PAYMENT_APP = [
   {
     id: 135,
     name: 'Zinli'
+  },
+  {
+    id: 136,
+    name: 'ZaloPay'
   }
 ];

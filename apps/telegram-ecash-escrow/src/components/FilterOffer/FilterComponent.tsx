@@ -1,4 +1,9 @@
-import { AllPaymentMethodIds, AllPaymentMethodIdsFiat } from '@/src/store/constants';
+import {
+  ALL_CURRENCIES,
+  AllPaymentMethodIds,
+  AllPaymentMethodIdsFiat,
+  NAME_PAYMENT_METHOD
+} from '@/src/store/constants';
 import { FilterCurrencyType } from '@/src/store/type/types';
 import { COIN, PAYMENT_METHOD } from '@bcpros/lixi-models';
 import {
@@ -24,11 +29,14 @@ const WrapFilter = styled('div')(({ theme }) => ({
 
     '.group-btn': {
       display: 'flex',
-      gap: '10px'
+      gap: '10px',
+      button: {
+        width: '50%'
+      }
     },
 
     '.inactive': {
-      background: '#8a8080'
+      background: '#bfbfbf'
     }
   },
 
@@ -54,12 +62,8 @@ const WrapFilter = styled('div')(({ theme }) => ({
     padding: '10px',
     background: theme.custom.bgTertiary,
 
-    '.filter-currency': {
-      maxWidth: '130px'
-    },
-
-    '.filter-payment-method': {
-      maxWidth: '40%'
+    '.filter-currency, .filter-payment-method': {
+      width: '50%'
     },
 
     '.MuiInputBase-root': {
@@ -164,16 +168,28 @@ const FilterComponent = () => {
     dispatch(saveOfferFilterConfig(offerFilterInput));
   };
 
+  const placeholderCurrency = () => {
+    const paymentMethodSelected =
+      offerFilterConfig?.paymentMethodIds.length === 1 && offerFilterConfig?.paymentMethodIds[0];
+    if (paymentMethodSelected === PAYMENT_METHOD.GOODS_SERVICES) {
+      return NAME_PAYMENT_METHOD.GOODS_SERVICES;
+    }
+    if (offerFilterConfig?.paymentMethodIds !== AllPaymentMethodIds) {
+      return ALL_CURRENCIES;
+    }
+    return 'Everything';
+  };
+
   const placeholderPaymentMethod = () => {
     const paymentMethodSelected =
       offerFilterConfig?.paymentMethodIds.length === 1 && offerFilterConfig?.paymentMethodIds[0];
     if (paymentMethodSelected === PAYMENT_METHOD.GOODS_SERVICES) {
-      return 'Goods/services';
+      return NAME_PAYMENT_METHOD.GOODS_SERVICES;
     }
     if (paymentMethodSelected === PAYMENT_METHOD.CRYPTO) {
-      return 'Crypto';
+      return NAME_PAYMENT_METHOD.CRYPTO;
     }
-    return 'Payment-method';
+    return NAME_PAYMENT_METHOD.PAYMENT_METHOD;
   };
 
   const valuePaymentMethod = () => {
@@ -181,15 +197,21 @@ const FilterComponent = () => {
       offerFilterConfig?.paymentMethodIds.length === 1 && offerFilterConfig?.paymentMethodIds[0];
     switch (paymentMethodSelected) {
       case PAYMENT_METHOD.CASH_IN_PERSON:
-        return 'Cash in person';
+        return NAME_PAYMENT_METHOD.CASH_IN_PERSON;
       case PAYMENT_METHOD.BANK_TRANSFER:
-        return 'Bank transfer';
+        return NAME_PAYMENT_METHOD.BANK_TRANSFER;
       case PAYMENT_METHOD.PAYMENT_APP:
-        return 'Payment app';
+        return offerFilterConfig?.paymentApp;
       default:
         return '';
     }
   };
+
+  const isResetCurrency =
+    offerFilterConfig?.fiatCurrency ||
+    offerFilterConfig?.coin ||
+    disablePaymentMethod() ||
+    placeholderCurrency() === ALL_CURRENCIES;
 
   // if config not set buy or not have payment-methods, set default
   useEffect(() => {
@@ -223,71 +245,33 @@ const FilterComponent = () => {
         </div>
         <div className="filter-label">
           <Button variant="contained" color="warning">
-            {isBuyOffer ? 'With' : 'For'}
+            {isBuyOffer ? 'For' : 'With'}
           </Button>
         </div>
         <div className="filter-detail">
           <div className="filter-currency">
             <TextField
               variant="outlined"
-              placeholder="All Currency"
+              placeholder={placeholderCurrency()}
               value={offerFilterConfig?.fiatCurrency ?? offerFilterConfig?.coin ?? ''}
               onClick={() => setOpenCurrencyList(true)}
               InputProps={{
-                endAdornment:
-                  !offerFilterConfig?.fiatCurrency && !offerFilterConfig?.coin ? (
-                    <InputAdornment position="end">
-                      <IconButton style={{ padding: 0, width: '13px' }}>
-                        <ArrowDropDown />
-                      </IconButton>
-                    </InputAdornment>
-                  ) : (
-                    <InputAdornment position="end">
-                      <IconButton
-                        style={{ padding: 0, width: '13px' }}
-                        onClick={e => {
-                          e.stopPropagation();
-                          handleResetFilterCurrency();
-                        }}
-                      >
-                        <Close />
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                readOnly: true
-              }}
-            />
-          </div>
-          <div className="filter-payment-method">
-            <TextField
-              variant="outlined"
-              placeholder={placeholderPaymentMethod()}
-              value={valuePaymentMethod()}
-              disabled={disablePaymentMethod()}
-              onClick={() => setOpenPaymentMethodFilter(true)}
-              InputProps={{
-                endAdornment: disablePaymentMethod() ? (
+                endAdornment: isResetCurrency ? (
                   <InputAdornment position="end">
                     <IconButton
-                      onClick={e => {
-                        disablePaymentMethod() && e.stopPropagation();
-                      }}
                       style={{ padding: 0, width: '13px' }}
+                      onClick={e => {
+                        e.stopPropagation();
+                        handleResetFilterCurrency();
+                      }}
                     >
-                      <ArrowDropDown />
+                      <Close />
                     </IconButton>
                   </InputAdornment>
                 ) : (
                   <InputAdornment position="end">
-                    <IconButton
-                      disabled={disablePaymentMethod()}
-                      style={{ padding: 0, width: '13px' }}
-                      onClick={e => {
-                        e.stopPropagation();
-                        handleResetFilterCurrencyFiat();
-                      }}
-                    >
-                      <Close />
+                    <IconButton style={{ padding: 0, width: '13px' }}>
+                      <ArrowDropDown />
                     </IconButton>
                   </InputAdornment>
                 ),
@@ -295,6 +279,44 @@ const FilterComponent = () => {
               }}
             />
           </div>
+          {!disablePaymentMethod() && (
+            <div className="filter-payment-method">
+              <TextField
+                variant="outlined"
+                placeholder={placeholderPaymentMethod()}
+                value={valuePaymentMethod()}
+                onClick={() => setOpenPaymentMethodFilter(true)}
+                InputProps={{
+                  endAdornment: disablePaymentMethod() ? (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={e => {
+                          disablePaymentMethod() && e.stopPropagation();
+                        }}
+                        style={{ padding: 0, width: '13px' }}
+                      >
+                        <ArrowDropDown />
+                      </IconButton>
+                    </InputAdornment>
+                  ) : (
+                    <InputAdornment position="end">
+                      <IconButton
+                        disabled={disablePaymentMethod()}
+                        style={{ padding: 0, width: '13px' }}
+                        onClick={e => {
+                          e.stopPropagation();
+                          handleResetFilterCurrencyFiat();
+                        }}
+                      >
+                        <Close />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                  readOnly: true
+                }}
+              />
+            </div>
+          )}
         </div>
       </WrapFilter>
       <FilterCurrencyModal

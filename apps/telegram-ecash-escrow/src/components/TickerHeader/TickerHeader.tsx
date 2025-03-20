@@ -12,7 +12,7 @@ import React from 'react';
 const Header = styled('div')(({ theme }) => ({
   position: 'relative',
   padding: '16px 8px',
-  button: {
+  '.share-btn, .back-btn': {
     position: 'absolute',
     padding: 0,
     svg: {
@@ -49,8 +49,7 @@ const Header = styled('div')(({ theme }) => ({
   },
 
   '.btn-create-offer': {
-    padding: '3px 5px',
-    right: '10px'
+    padding: '3px 5px'
   }
 }));
 

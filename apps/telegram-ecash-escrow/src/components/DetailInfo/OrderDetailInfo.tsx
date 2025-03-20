@@ -21,7 +21,7 @@ const OrderDetailWrap = styled('div')(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   gap: '8px',
-  cursor: 'pointer',
+  cursor: 'default',
   background: theme.custom.bgPrimary,
   borderRadius: '10px',
   padding: '16px',
@@ -228,26 +228,21 @@ const OrderDetailInfo = ({
     if (order?.dispute && order?.dispute?.status === DisputeStatus.Active) return 'Dispute';
 
     if (order?.escrowOrderStatus === EscrowOrderStatus.Escrow) {
-      if (order?.releaseSignatory) {
-        return 'Released';
-      }
+      if (order.releaseSignatory) return 'Released';
+      if (order.returnSignatory) return 'Returned';
+      return 'Escrowed';
+    }
+    const statusTransformations = {
+      [EscrowOrderStatus.Cancel]: 'Canceled',
+      [EscrowOrderStatus.Complete]: 'Completed'
+    };
 
-      if (order?.returnSignatory) {
-        return 'Returned';
-      }
+    if (statusTransformations[order?.escrowOrderStatus]) {
+      return statusTransformations[order?.escrowOrderStatus];
     }
 
-    const capitalizeStatus = order?.escrowOrderStatus?.toLowerCase()?.replace(/^./, char => char.toUpperCase());
-    let status = capitalizeStatus;
-    if (
-      order?.escrowOrderStatus === EscrowOrderStatus.Escrow ||
-      order?.escrowOrderStatus === EscrowOrderStatus.Cancel ||
-      order?.escrowOrderStatus === EscrowOrderStatus.Complete
-    ) {
-      status = capitalizeStatus + 'ed';
-    }
-
-    return status;
+    const status = order?.escrowOrderStatus || '';
+    return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
   };
 
   //get rate data

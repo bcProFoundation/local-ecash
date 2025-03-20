@@ -486,7 +486,7 @@ const FilterOfferModal: React.FC<FilterOfferModalProps> = props => {
                           {LIST_COIN.map(item => {
                             return (
                               <option key={item.ticker} value={item.ticker}>
-                                {item.name} ({item.ticker})
+                                {item.name} {item.isDisplayTicker && `(${item.ticker})`}
                               </option>
                             );
                           })}

@@ -574,8 +574,10 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                         >
                           <option aria-label="None" value="" />
                           {LIST_PAYMENT_APP.sort((a, b) => {
-                            if (a.name < b.name) return -1;
-                            if (a.name > b.name) return 1;
+                            const nameA = a.name.toLowerCase();
+                            const nameB = b.name.toLowerCase();
+                            if (nameA < nameB) return -1;
+                            if (nameA > nameB) return 1;
 
                             return 0;
                           }).map(item => {
@@ -690,13 +692,10 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                         if (item.ticker === 'XEC') return;
                         return (
                           <option key={item.ticker} value={`${item.ticker}:${item.fixAmount}`}>
-                            {item.name} {item.ticker !== COIN_USD_STABLECOIN_TICKER && `(${item.ticker})`}
+                            {item.name} {item.isDisplayTicker && `(${item.ticker})`}
                           </option>
                         );
                       })}
-                      <option key="Others" value={`${COIN_OTHERS}:0`}>
-                        {COIN_OTHERS}
-                      </option>
                     </NativeSelect>
                     {errors && errors?.coin && (
                       <FormHelperText error={true}>{errors.coin.message as string}</FormHelperText>
@@ -761,6 +760,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                         labelId="coinOthers-label"
                         label="Ticker"
                       >
+                        <MenuItem value="">None</MenuItem>
                         <MenuItem value="USDT">USDT</MenuItem>
                         <MenuItem value="USDC">USDC</MenuItem>
                       </Select>
