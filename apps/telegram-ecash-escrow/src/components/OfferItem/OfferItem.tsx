@@ -281,35 +281,38 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
         </Typography>
         {expanded ? <ExpandLessIcon style={{ cursor: 'pointer' }} /> : <ExpandMoreIcon style={{ cursor: 'pointer' }} />}
       </div>
-      <div className="payment-group-btns">
-        {offerData?.paymentMethods &&
-          offerData.paymentMethods?.length > 0 &&
-          offerData.paymentMethods.map(item => {
-            return (
-              <Button size="small" color="success" variant="outlined" key={item.paymentMethod.name}>
-                {item.paymentMethod.name}
-              </Button>
-            );
-          })}
-
-        {(offerData?.coinPayment === COIN_USD_STABLECOIN_TICKER || offerData?.coinPayment === COIN_OTHERS) && (
-          <Button size="small" color="success" variant="outlined">
-            {offerData.coinPayment === COIN_USD_STABLECOIN_TICKER ? COIN_USD_STABLECOIN : COIN_OTHERS}
-          </Button>
-        )}
-
-        {offerData?.coinOthers && (
-          <Button size="small" color="success" variant="outlined">
-            {offerData.coinOthers}
-          </Button>
-        )}
-        {offerData?.paymentApp && (
-          <Button size="small" color="success" variant="outlined">
-            {offerData.paymentApp}
-          </Button>
-        )}
-      </div>
     </OfferShowWrapItem>
+  );
+
+  const OfferItemPaymentMethod = (
+    <div className="payment-group-btns">
+      {offerData?.paymentMethods &&
+        offerData.paymentMethods?.length > 0 &&
+        offerData.paymentMethods.map(item => {
+          return (
+            <Button size="small" color="success" variant="outlined" key={item.paymentMethod.name}>
+              {item.paymentMethod.name}
+            </Button>
+          );
+        })}
+
+      {(offerData?.coinPayment === COIN_USD_STABLECOIN_TICKER || offerData?.coinPayment === COIN_OTHERS) && (
+        <Button size="small" color="success" variant="outlined">
+          {offerData.coinPayment === COIN_USD_STABLECOIN_TICKER ? COIN_USD_STABLECOIN : COIN_OTHERS}
+        </Button>
+      )}
+
+      {offerData?.coinOthers && (
+        <Button size="small" color="success" variant="outlined">
+          {offerData.coinOthers}
+        </Button>
+      )}
+      {offerData?.paymentApp && (
+        <Button size="small" color="success" variant="outlined">
+          {offerData.paymentApp}
+        </Button>
+      )}
+    </div>
   );
 
   if (offerData?.status == OfferStatus.Archive) return <div></div>;
@@ -337,6 +340,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
             )}
           </CardContent>
         </Collapse>
+        <CardContent>{OfferItemPaymentMethod}</CardContent>
 
         <Typography component={'div'} className="action-section">
           {offerData?.paymentMethods[0]?.paymentMethod?.id !== PAYMENT_METHOD.GOODS_SERVICES &&
@@ -345,7 +349,10 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
               <span className="prefix">Price: </span>
               {coinCurrency !== 'XEC' && (
                 <span>
-                  ~ {amountPer1MXEC} {coinCurrency} / 1M XEC
+                  ~{' '}
+                  <span style={{ fontWeight: 'bold' }}>
+                    {amountPer1MXEC} {coinCurrency} / 1M XEC
+                  </span>
                 </span>
               )}{' '}
               ( Market price +{post?.postOffer?.marginPercentage ?? 0}% )

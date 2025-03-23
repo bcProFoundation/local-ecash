@@ -314,7 +314,9 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     control,
     trigger,
     watch
-  } = useForm();
+  } = useForm({
+    mode: 'onChange'
+  });
   const amountValue = watch('amount');
 
   const calEscrowScript = () => {
@@ -677,7 +679,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     const isValid = await trigger();
     if (!isValid) return;
 
-    if (checkBuyerEnoughFund()) {
+    if (checkBuyerEnoughFund() && !isBuyOffer) {
       setOpenConfirmDeposit(true);
     } else {
       handleSubmit(data => {

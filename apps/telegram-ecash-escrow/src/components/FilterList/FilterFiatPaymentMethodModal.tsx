@@ -38,15 +38,13 @@ import {
 import { TransitionProps } from '@mui/material/transitions';
 import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { FilterCurrencyType } from '../../store/type/types';
 import { FormControlWithNativeSelect } from '../FilterOffer/FilterOfferModal';
 import FilterListLocationModal from './FilterListLocationModal';
 import FilterListModal from './FilterListModal';
 
-interface FilterCurrencyModal {
+interface FilterFiatPaymentMethodModal {
   isOpen: boolean;
   onDismissModal?: (value: boolean) => void;
-  setSelectedItem?: (value: FilterCurrencyType) => void;
 }
 
 const StyledDialog = styled(Dialog)(({ theme }) => ({
@@ -139,8 +137,8 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const FilterFiatPaymentMethodModal: React.FC<FilterCurrencyModal> = props => {
-  const { isOpen, setSelectedItem } = props;
+const FilterFiatPaymentMethodModal: React.FC<FilterFiatPaymentMethodModal> = props => {
+  const { isOpen } = props;
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
   const dispatch = useLixiSliceDispatch();
@@ -239,10 +237,6 @@ const FilterFiatPaymentMethodModal: React.FC<FilterCurrencyModal> = props => {
       };
     }
 
-    setSelectedItem({
-      paymentMethod: selectedOptionPaymentFiatCurrency,
-      value: null
-    });
     dispatch(saveOfferFilterConfig(offerFilterInput));
     props.onDismissModal!(false);
   };
@@ -514,8 +508,10 @@ const FilterFiatPaymentMethodModal: React.FC<FilterCurrencyModal> = props => {
                     >
                       <option aria-label="None" value="" />
                       {LIST_PAYMENT_APP.sort((a, b) => {
-                        if (a.name < b.name) return -1;
-                        if (a.name > b.name) return 1;
+                        const nameA = a.name.toLowerCase();
+                        const nameB = b.name.toLowerCase();
+                        if (nameA < nameB) return -1;
+                        if (nameA > nameB) return 1;
 
                         return 0;
                       }).map(item => {

@@ -2,14 +2,13 @@
 
 import { styled } from '@mui/material/styles';
 
-import { LIST_COIN, TabType } from '@/src/store/constants';
+import { LIST_COIN, NAME_PAYMENT_METHOD, TabType } from '@/src/store/constants';
 import { COIN, LIST_CURRENCIES_USED, PAYMENT_METHOD } from '@bcpros/lixi-models';
 import { ChevronLeft } from '@mui/icons-material';
 import {
   Box,
   Button,
   Dialog,
-  DialogActions,
   DialogContent,
   DialogTitle,
   IconButton,
@@ -119,7 +118,7 @@ const FilterCurrencyModal: React.FC<FilterCurrencyModal> = props => {
   const handleSelect = currency => {
     const filterCurrency: FilterCurrencyType = {
       paymentMethod: value,
-      value: currency?.code ?? currency?.ticker
+      value: currency?.code ?? currency?.ticker ?? currency
     };
     setSelectedItem(filterCurrency);
     onDismissModal(false);
@@ -199,7 +198,7 @@ const FilterCurrencyModal: React.FC<FilterCurrencyModal> = props => {
               style={{ textTransform: 'capitalize', fontSize: '1.1rem' }}
               sx={{ justifyContent: 'flex-start', textAlign: 'left' }}
             >
-              {option?.name} ({option?.ticker})
+              {option?.name} {option?.isDisplayTicker && `(${option?.ticker})`}
             </Button>
           ))}
           {filteredCrypto.length === 0 && (
@@ -217,7 +216,23 @@ const FilterCurrencyModal: React.FC<FilterCurrencyModal> = props => {
   };
 
   const contentGoodsServices = () => {
-    return <div className="content-goods-services">Your trade will be paid with goods or services</div>;
+    return (
+      <div className="content-goods-services">
+        {searchTextField}
+        <Box sx={{ mt: 1 }}>
+          <Button
+            key={NAME_PAYMENT_METHOD.GOODS_SERVICES}
+            onClick={() => handleSelect(NAME_PAYMENT_METHOD.GOODS_SERVICES)}
+            fullWidth
+            variant="text"
+            style={{ textTransform: 'capitalize', fontSize: '1.1rem' }}
+            sx={{ justifyContent: 'flex-start', textAlign: 'left' }}
+          >
+            {NAME_PAYMENT_METHOD.GOODS_SERVICES}
+          </Button>
+        </Box>
+      </div>
+    );
   };
 
   const contentTab = () => {
@@ -276,13 +291,6 @@ const FilterCurrencyModal: React.FC<FilterCurrencyModal> = props => {
           </StyledTabs>
           <div style={{ padding: '16px' }}>{contentTab()}</div>
         </DialogContent>
-        {value === PAYMENT_METHOD.GOODS_SERVICES && (
-          <DialogActions>
-            <Button variant="contained" color="info" style={{ width: '100%' }} onClick={handleSelectGoodsServices}>
-              Ok
-            </Button>
-          </DialogActions>
-        )}
       </StyledDialog>
     </React.Fragment>
   );

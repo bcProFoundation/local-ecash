@@ -2,7 +2,6 @@
 
 import Header from '@/src/components/Header/Header';
 import OfferItem from '@/src/components/OfferItem/OfferItem';
-import TopSection from '@/src/components/TopSection/TopSection';
 import {
   PostQueryItem,
   TimelineQueryItem,
@@ -48,14 +47,10 @@ const HomePage = styled.div`
 `;
 
 const Section = styled.div`
-  .content-wrap {
+  .title-offer {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-
-    .title-offer {
-      font-weight: 600;
-    }
+    font-weight: 600;
   }
 `;
 
@@ -82,6 +77,7 @@ const StyledBadge = styled(Badge)`
 export default function Home() {
   const offerFilterConfig = useLixiSliceSelector(getOfferFilterConfig);
   const newPostAvailable = useLixiSliceSelector(getNewPostAvailable);
+  const { countryName, stateName, cityName } = offerFilterConfig;
   const [visible, setVisible] = useState(true);
   const dispatch = useLixiSliceDispatch();
 
@@ -161,16 +157,17 @@ export default function Home() {
         </Slide>
         <HomePage>
           <Header />
-          <TopSection />
 
           <FilterComponent />
 
           <Section>
-            <div className="content-wrap">
-              <Typography className="title-offer" variant="body1">
-                Offers
-              </Typography>
-            </div>
+            <Typography className="title-offer" variant="body1" component="div">
+              <span>Offers</span>
+              <span>
+                {(stateName || countryName || cityName) &&
+                  [cityName, stateName, countryName].filter(Boolean).join(', ')}
+              </span>
+            </Typography>
             <div className="offer-list">
               {offerFilterConfig.countryCode ||
               offerFilterConfig.stateName ||
