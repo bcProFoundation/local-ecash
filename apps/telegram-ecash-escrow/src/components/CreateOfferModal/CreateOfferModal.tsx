@@ -1236,7 +1236,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       TransitionComponent={Transition}
     >
       <DialogTitle textAlign={'center'}>
-        <b>{isEdit ? 'Edit offer' : 'Create a new sell offer'}</b>
+        <b>{isEdit ? 'Edit offer' : 'Create a new offer'}</b>
       </DialogTitle>
       <IconButton className="back-btn" onClick={() => handleCloseModal()}>
         <Close />
