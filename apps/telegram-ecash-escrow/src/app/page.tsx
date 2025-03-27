@@ -5,10 +5,8 @@ import OfferItem from '@/src/components/OfferItem/OfferItem';
 import {
   PostQueryItem,
   TimelineQueryItem,
-  getCountries,
   getNewPostAvailable,
   getOfferFilterConfig,
-  getPaymenMethods,
   offerApi,
   setNewPostAvailable,
   useInfiniteOfferFilterQuery,
@@ -119,12 +117,6 @@ export default function Home() {
   //reset flag for new-post when reload
   useEffect(() => {
     dispatch(setNewPostAvailable(false));
-  }, []);
-
-  //auto call paymentMethods and countries
-  useEffect(() => {
-    dispatch(getPaymenMethods());
-    dispatch(getCountries());
   }, []);
 
   useEffect(() => {

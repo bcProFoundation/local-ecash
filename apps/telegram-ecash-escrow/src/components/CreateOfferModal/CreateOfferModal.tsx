@@ -13,6 +13,8 @@ import {
   countryApi,
   getAllCountries,
   getAllPaymentMethods,
+  getCountries,
+  getPaymentMethods,
   offerApi,
   useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector
@@ -1224,6 +1226,11 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
 
     setCoinCurrency(currency ?? (coin?.includes(COIN_OTHERS) ? 'XEC' : coin) ?? 'XEC');
   }, [currencyValue, coinValue]);
+
+  useEffect(() => {
+    dispatch(getPaymentMethods());
+    dispatch(getCountries());
+  }, []);
 
   return (
     <StyledDialog
