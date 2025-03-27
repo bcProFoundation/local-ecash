@@ -5,7 +5,6 @@ import { SettingContext } from '@/src/store/context/settingProvider';
 import { formatNumber } from '@/src/store/util';
 import { PAYMENT_METHOD } from '@bcpros/lixi-models';
 import {
-  OfferStatus,
   OfferType,
   PostQueryItem,
   TimelineQueryItem,
@@ -135,7 +134,7 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
           <span className="prefix">Headline: </span>
           {offerData?.message}
         </Typography>
-        {offerData?.status === OfferStatus.Active && isItemTimeline && (
+        {isItemTimeline && (
           <IconButton onClick={e => handleClickAction(e)}>
             <MoreHorizIcon />
           </IconButton>
