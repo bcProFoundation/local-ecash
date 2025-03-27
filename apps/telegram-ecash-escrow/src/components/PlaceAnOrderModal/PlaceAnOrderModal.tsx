@@ -778,7 +778,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
         <Typography className="offer-info" variant="body2">
           <Typography component="span" variant="body1">{`Offer Id: ${post.id}`}</Typography>
           <br />
-          <Typography component="span">{`By: ${post.account.telegramUsername} • posted on: ${new Date(post.createdAt).toLocaleString('vi-VN')}`}</Typography>
+          <Typography component="span">{`By: ${post.account.anonymousUsernameLocalecash} • posted on: ${new Date(post.createdAt).toLocaleString('vi-VN')}`}</Typography>
         </Typography>
         <DialogContent>
           <PlaceAnOrderWrap>

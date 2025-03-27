@@ -874,6 +874,15 @@ const OrderDetail = () => {
     }
   };
 
+  // buyer can't chat with seller when order is pending
+  const disableTelegramButton = () => {
+    const isBuyer = selectedWalletPath?.hash160 === currentData?.escrowOrder.buyerAccount.hash160;
+    if (isBuyer && currentData?.escrowOrder?.escrowOrderStatus === EscrowOrderStatus.Pending) {
+      return true;
+    }
+    return false;
+  };
+
   const telegramButton = (alwaysShow = false, content?: string) => {
     const isSeller = selectedWalletPath?.hash160 === currentData?.escrowOrder.sellerAccount.hash160;
     const isArbiOrMod =
@@ -913,6 +922,7 @@ const OrderDetail = () => {
                 : currentData?.escrowOrder.sellerAccount.telegramUsername
             }
             content={content ? content : isSeller ? `Chat with buyer` : `Chat with seller`}
+            disabled={disableTelegramButton()}
           />
         </React.Fragment>
       )
