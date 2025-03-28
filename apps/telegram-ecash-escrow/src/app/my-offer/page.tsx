@@ -111,7 +111,8 @@ export default function MyOffer() {
 
   const handleOpenCreateOffer = () => {
     if (data?.user?.name.startsWith('@')) {
-      dispatch(openModal('CreateOfferModal', {}));
+      const isFirstOffer = totalCountOfferActive === 0 && totalCountOfferArchive === 0;
+      dispatch(openModal('CreateOfferModal', { isFirstOffer }));
     } else {
       dispatch(openModal('RequiredUsernameModal', {}));
     }

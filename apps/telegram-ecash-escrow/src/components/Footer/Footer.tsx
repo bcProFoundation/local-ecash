@@ -171,13 +171,13 @@ export default function Footer() {
             <IconButton onClick={() => handleIconClick('/')}>
               <SwapHorizIcon />
             </IconButton>
-            <Typography variant="body2">Home</Typography>
+            <Typography variant="body2">P2P Trading</Typography>
           </TabMenu>
           <TabMenu className={`${pathName === '/my-offer' && 'active'}`}>
             <IconButton onClick={() => handleIconClick('/my-offer')}>
               <LocalOfferOutlinedIcon />
             </IconButton>
-            <Typography variant="body2">Offers</Typography>
+            <Typography variant="body2">My offers</Typography>
           </TabMenu>
           <TabMenu className={`${pathName === '/my-order' && 'active'}`}>
             <IconButton onClick={() => handleIconClick('/my-order')}>
@@ -188,7 +188,7 @@ export default function Footer() {
                 />
               )}
             </IconButton>
-            <Typography variant="body2">Orders</Typography>
+            <Typography variant="body2">My orders</Typography>
           </TabMenu>
           {isArbiMod && (
             <TabMenu className={`${pathName === '/my-dispute' && 'active'}`}>

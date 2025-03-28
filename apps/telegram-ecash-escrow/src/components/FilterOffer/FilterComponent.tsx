@@ -283,7 +283,7 @@ const FilterComponent = () => {
           </div>
         </div>
         <div className="filter-label">
-          <Button variant="contained" color="warning">
+          <Button variant="contained" color="success">
             {isBuyOffer ? 'For' : 'With'}
           </Button>
         </div>
