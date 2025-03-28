@@ -98,12 +98,16 @@ const OfferShowWrapItem = styled('div')(({ theme }) => ({
   '.push-offer-wrap, .minmax-collapse-wrap': {
     display: 'flex',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'center'
+  },
+  '.username': {
+    cursor: 'pointer',
+    textDecoration: 'underline'
+  },
 
-    '.reputation-account': {
-      fontSize: '11px',
-      color: theme.custom.colorSecondary
-    }
+  '.reputation-account': {
+    fontSize: '11px',
+    color: theme.custom.colorSecondary
   }
 }));
 
@@ -269,9 +273,14 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
           </IconButton>
         )}
       </div>
-      <Typography variant="body2" onClick={handleUserNameClick}>
-        <span className="prefix">{isBuyOffer ? 'Buyer' : 'Seller'}: </span> {post?.account?.telegramUsername ?? ''}{' '}
-        <span className="reputation-account">- {post?.account?.accountStatsOrder?.completedOrder} trades</span>
+      <Typography variant="body2">
+        <span className="prefix">{isBuyOffer ? 'Buyer' : 'Seller'}: </span>{' '}
+        <span className="username" onClick={handleUserNameClick}>
+          {settingContext?.allSettings[`${post?.account?.id.toString()}`]?.usePublicLocalUserName
+            ? post?.account?.anonymousUsernameLocalecash
+            : post?.account?.telegramUsername}
+        </span>
+        <span className="reputation-account"> - {post?.account?.accountStatsOrder?.completedOrder} trades</span>
       </Typography>
       <div className="minmax-collapse-wrap" onClick={e => handleExpandClick(e)}>
         <Typography variant="body2">

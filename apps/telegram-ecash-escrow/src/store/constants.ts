@@ -96,6 +96,11 @@ export const THEMES_TYPE = {
   SYSTEM: 'system'
 };
 
+export const IDENTITY_TYPE = {
+  TELEGRAM: 'Telegram handle',
+  ANONYMOUS: 'Anonymous username'
+};
+
 export const BOOST_AMOUNT = 100;
 
 export const AllPaymentMethodIds = [1, 2, 3, 4, 5];
