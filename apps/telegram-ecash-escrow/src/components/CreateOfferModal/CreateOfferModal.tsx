@@ -2,7 +2,8 @@
 
 import { COIN_OTHERS, COIN_USD_STABLECOIN_TICKER, LIST_COIN } from '@/src/store/constants';
 import { LIST_PAYMENT_APP } from '@/src/store/constants/list-payment-app';
-import { LIST_CURRENCIES_USED, Location, PAYMENT_METHOD } from '@bcpros/lixi-models';
+import { SettingContext } from '@/src/store/context/settingProvider';
+import { LIST_CURRENCIES_USED, Location, PAYMENT_METHOD, UpdateSettingCommand } from '@bcpros/lixi-models';
 import {
   Coin,
   CreateOfferInput,
@@ -15,7 +16,9 @@ import {
   getAllPaymentMethods,
   getCountries,
   getPaymentMethods,
+  getSelectedAccountId,
   offerApi,
+  settingApi,
   useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
@@ -47,13 +50,13 @@ import {
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { TransitionProps } from '@mui/material/transitions';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import FilterListLocationModal from '../FilterList/FilterListLocationModal';
 import FilterListModal from '../FilterList/FilterListModal';
 import { FormControlWithNativeSelect } from '../FilterOffer/FilterOfferModal';
 import CustomToast from '../Toast/CustomToast';
-import ConfirmOfferTypeModal from './ConfirmOfferTypeModal';
+import ConfirmOfferAnonymousModal from './ConfirmOfferAnonymousModal';
 
 const StyledDialog = styled(Dialog)(({ theme }) => ({
   '.MuiPaper-root': {
@@ -226,6 +229,7 @@ const OrderLimitWrap = styled('div')(() => ({
 interface CreateOfferModalProps {
   offer?: OfferQueryItem;
   isEdit?: boolean;
+  isFirstOffer?: boolean;
 }
 
 const Transition = React.forwardRef(function Transition(
@@ -238,7 +242,7 @@ const Transition = React.forwardRef(function Transition(
 });
 
 const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
-  const { isEdit = false, offer } = props;
+  const { isEdit = false, offer, isFirstOffer = false } = props;
 
   const dispatch = useLixiSliceDispatch();
   const { useCreateOfferMutation, useUpdateOfferMutation } = offerApi;
@@ -246,6 +250,11 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   const [updateOfferTrigger] = useUpdateOfferMutation();
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
+
+  const settingContext = useContext(SettingContext);
+  const { setSetting } = settingContext;
+
+  const selectedAccountId = useLixiSliceSelector(getSelectedAccountId);
 
   const paymentMethods = useLixiSliceSelector(getAllPaymentMethods);
   const countries = useLixiSliceSelector(getAllCountries);
@@ -262,9 +271,10 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   const [openCountryList, setOpenCountryList] = useState(false);
   const [openStateList, setOpenStateList] = useState(false);
   const [openCityList, setOpenCityList] = useState(false);
-  const [openConfirmType, setOpenConfirmType] = useState(false);
+  const [openConfirmAnonymousOffer, setOpenConfirmAnonymousOffer] = useState(false);
 
   const [isBuyOffer, setIsBuyOffer] = useState(offer?.type ? offer?.type === OfferType.Buy : true);
+  const [isHiddenOffer, setIsHiddenOffer] = useState(true);
 
   const dialogContentRef = useRef<HTMLDivElement>(null);
 
@@ -365,13 +375,18 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   };
 
   const handleCreateUpdate = () => {
-    if (isEdit) {
-      handleSubmit(data => {
-        handleCreateOffer(data, false);
-      })();
-    } else {
-      setOpenConfirmType(true);
+    // first offer scenario
+    if (isFirstOffer && !isEdit) {
+      setOpenConfirmAnonymousOffer(true);
+      return;
     }
+
+    // Determine whether offer should be hidden based on context
+    const hiddenStatus = isEdit ? false : isHiddenOffer;
+
+    handleSubmit(data => {
+      handleCreateOffer(data, hiddenStatus);
+    })();
   };
 
   const handleIncrease = value => {
@@ -489,8 +504,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
         <Grid item xs={12}>
           <Typography fontStyle={'italic'} className="heading" variant="body2">
             {isBuyOffer
-              ? 'You are buying XEC. Your offer will be listed in Sell Crypto space'
-              : 'You are selling XEC. Your offer will be listed in Sell Crypto space'}
+              ? 'You are buying XEC. Your offer will be listed for users who want to sell XEC.'
+              : 'You are selling XEC. Your offer will be listed for users who want to buy XEC.'}
           </Typography>
         </Grid>
 
@@ -1118,6 +1133,32 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
             {isBuyOffer ? '*You are buying XEC' : '*You are selling XEC'}
           </Typography>
         </Grid>
+        <Grid item xs={12} className="offer-type-wrap" style={{ marginTop: '0' }}>
+          <RadioGroup
+            value={isHiddenOffer}
+            onChange={e => {
+              if (e.target.value === 'true') {
+                setIsHiddenOffer(true);
+              } else {
+                setIsHiddenOffer(false);
+              }
+            }}
+          >
+            <FormControlLabel
+              checked={isHiddenOffer === false}
+              value={false}
+              control={<Radio />}
+              label={`Listed: Your offer is listed on Marketplace and visible to everyone.`}
+            />
+            <FormControlLabel
+              checked={isHiddenOffer === true}
+              value={true}
+              control={<Radio />}
+              label={`Unlisted: Your offer is not listed on Marketplace. Only you can see it.`}
+            />
+          </RadioGroup>
+        </Grid>
+
         {option === PAYMENT_METHOD.CASH_IN_PERSON && (
           <Grid item xs={12}>
             <Typography variant="body1">
@@ -1333,13 +1374,26 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
         }}
       />
 
-      <ConfirmOfferTypeModal
-        isOpen={openConfirmType}
+      <ConfirmOfferAnonymousModal
+        isOpen={openConfirmAnonymousOffer}
         isLoading={loading}
-        onDismissModal={value => setOpenConfirmType(value)}
-        createOffer={isHidden => {
+        onDismissModal={value => setOpenConfirmAnonymousOffer(value)}
+        createOffer={async (usePublicLocalUserName: boolean) => {
+          // update setting and create offer
+
+          const updateSettingCommand: UpdateSettingCommand = {
+            accountId: selectedAccountId,
+            usePublicLocalUserName: usePublicLocalUserName
+          };
+
+          if (selectedAccountId) {
+            //setting on server
+            const updatedSetting = await settingApi.updateSetting(updateSettingCommand);
+            setSetting(updatedSetting);
+          }
+
           handleSubmit(data => {
-            handleCreateOffer(data, isHidden);
+            handleCreateOffer(data, isHiddenOffer);
           })();
         }}
       />
