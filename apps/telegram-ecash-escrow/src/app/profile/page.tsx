@@ -3,7 +3,7 @@
 import OfferDetailInfo from '@/src/components/DetailInfo/OfferDetailInfo';
 import Header from '@/src/components/Header/Header';
 import MobileLayout from '@/src/components/layout/MobileLayout';
-import { accountsApi, PostQueryItem, useInfiniteActiveOfferByAccountIdQuery } from '@bcpros/redux-store';
+import { accountsApi, PostQueryItem, useInfiniteActiveOfferByAccountIdDatabaseQuery } from '@bcpros/redux-store';
 import { ChevronLeft } from '@mui/icons-material';
 import AccountCircleRoundedIcon from '@mui/icons-material/AccountCircleRounded';
 import { IconButton, Skeleton, Typography } from '@mui/material';
@@ -91,7 +91,7 @@ const ProfileDetail = () => {
     hasNext: hasNextOfferActive,
     isFetching: isFetchingOfferActive,
     fetchNext: fetchNextOfferActive
-  } = useInfiniteActiveOfferByAccountIdQuery({
+  } = useInfiniteActiveOfferByAccountIdDatabaseQuery({
     first: 20,
     accountId: accountQueryData?.getAccountByAddress?.id
   });

@@ -3,14 +3,12 @@
 import Header from '@/src/components/Header/Header';
 import OfferItem from '@/src/components/OfferItem/OfferItem';
 import {
-  PostQueryItem,
   TimelineQueryItem,
   getNewPostAvailable,
   getOfferFilterConfig,
   offerApi,
   setNewPostAvailable,
-  useInfiniteOfferFilterQuery,
-  useInfiniteOffersByScoreQuery,
+  useInfiniteOfferFilterDatabaseQuery,
   useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
@@ -79,25 +77,14 @@ export default function Home() {
   const [visible, setVisible] = useState(true);
   const dispatch = useLixiSliceDispatch();
 
-  const { data, hasNext, isFetching, fetchNext, refetch, isLoading } = useInfiniteOffersByScoreQuery(
-    { first: 20 },
-    false
-  );
   const {
     data: dataFilter,
     hasNext: hasNextFilter,
     isFetching: isFetchingFilter,
     fetchNext: fetchNextFilter,
-    isLoading: isLoadingFilter
-  } = useInfiniteOfferFilterQuery({ first: 20, offerFilterInput: offerFilterConfig }, false);
-
-  const loadMoreItems = () => {
-    if (hasNext && !isFetching) {
-      fetchNext();
-    } else if (hasNext) {
-      fetchNext();
-    }
-  };
+    isLoading: isLoadingFilter,
+    refetch
+  } = useInfiniteOfferFilterDatabaseQuery({ first: 20, offerFilterInput: offerFilterConfig }, false);
 
   const loadMoreItemsFilter = () => {
     if (hasNextFilter && !isFetchingFilter) {
@@ -118,26 +105,6 @@ export default function Home() {
   useEffect(() => {
     dispatch(setNewPostAvailable(false));
   }, []);
-
-  useEffect(() => {
-    if (!isFetching) {
-      const offerUnlisted = data.filter(item => (item.data as PostQueryItem).postOffer?.hideFromHome);
-      const offerShowed = data.length - offerUnlisted.length;
-      if (offerShowed < 4) {
-        loadMoreItems();
-      }
-    }
-  }, [data.length]);
-
-  useEffect(() => {
-    if (!isFetchingFilter) {
-      const offerUnlistedFilter = dataFilter.filter(item => (item.data as PostQueryItem).postOffer?.hideFromHome);
-      const offerShowedFilter = dataFilter.length - offerUnlistedFilter.length;
-      if (offerShowedFilter < 4) {
-        loadMoreItemsFilter();
-      }
-    }
-  }, [dataFilter.length]);
 
   return (
     <MobileLayout>
@@ -161,42 +128,11 @@ export default function Home() {
               </span>
             </Typography>
             <div className="offer-list">
-              {offerFilterConfig.countryCode ||
-              offerFilterConfig.stateName ||
-              offerFilterConfig.cityName ||
-              offerFilterConfig.coin ||
-              offerFilterConfig.fiatCurrency ||
-              offerFilterConfig.paymentApp ||
-              offerFilterConfig.isBuyOffer !== undefined ||
-              (offerFilterConfig.paymentMethodIds?.length ?? 0) > 0 ? (
-                !isLoadingFilter ? (
-                  <InfiniteScroll
-                    dataLength={dataFilter.length}
-                    next={loadMoreItemsFilter}
-                    hasMore={hasNextFilter}
-                    loader={
-                      <>
-                        <Skeleton variant="text" />
-                        <Skeleton variant="text" />
-                      </>
-                    }
-                    scrollableTarget="scrollableDiv"
-                    scrollThreshold={'100px'}
-                  >
-                    {dataFilter.map(item => {
-                      return <OfferItem key={item.id} timelineItem={item as TimelineQueryItem} />;
-                    })}
-                  </InfiniteScroll>
-                ) : (
-                  <Box sx={{ height: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <CircularProgress color="primary" />
-                  </Box>
-                )
-              ) : !isLoading ? (
+              {!isLoadingFilter ? (
                 <InfiniteScroll
-                  dataLength={data.length}
-                  next={loadMoreItems}
-                  hasMore={hasNext}
+                  dataLength={dataFilter.length}
+                  next={loadMoreItemsFilter}
+                  hasMore={hasNextFilter}
                   loader={
                     <>
                       <Skeleton variant="text" />
@@ -206,7 +142,7 @@ export default function Home() {
                   scrollableTarget="scrollableDiv"
                   scrollThreshold={'100px'}
                 >
-                  {data.map(item => {
+                  {dataFilter.map(item => {
                     return <OfferItem key={item.id} timelineItem={item as TimelineQueryItem} />;
                   })}
                 </InfiniteScroll>
