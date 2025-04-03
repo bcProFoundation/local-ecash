@@ -23,7 +23,7 @@ import {
   SignOracleSignatory
 } from '@/src/store/escrow';
 import { ACTION } from '@/src/store/escrow/constant';
-import { deserializeTransaction, estimatedFee } from '@/src/store/util';
+import { deserializeTransaction, estimatedFee, formatNumber } from '@/src/store/util';
 import { COIN, coinInfo, PAYMENT_METHOD } from '@bcpros/lixi-models';
 import {
   DisputeStatus,
@@ -54,6 +54,7 @@ import _ from 'lodash';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useContext, useEffect, useMemo, useState } from 'react';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 const OrderDetailPage = styled('div')(({ theme }) => ({
   minHeight: '100vh',
@@ -137,6 +138,7 @@ const OrderDetail = () => {
   const [alreadyCancel, setAlreadyCancel] = useState(false);
   const [buyerDonateOption, setBuyerDonateOption] = useState<number>(null);
   const [sellerDonateOption, setSellerDonateOption] = useState<number>(null);
+  const [openToastCopySuccess, setOpenToastCopySuccess] = useState(false);
   const [donateOption, setDonateOption] = useState<{ label: string; value: number }[]>([
     CLAIM_BACK_WALLET,
     DONATE_LOCAL_ECASH
@@ -534,6 +536,10 @@ const OrderDetail = () => {
     setLoading(false);
   };
 
+  const handleCopyAmount = () => {
+    setOpenToastCopySuccess(true);
+  };
+
   const escrowStatus = () => {
     const isSeller = selectedWalletPath?.hash160 === currentData?.escrowOrder.sellerAccount.hash160;
     const isArbiOrMod =
@@ -668,7 +674,8 @@ const OrderDetail = () => {
 
       return isSeller ? (
         <Typography variant="body1" color="#FFBF00" align="center">
-          Only release the escrow when you have received the goods
+          Only release the escrowed funds once you have confirmed that the buyer has completed the payment or
+          goods/services.
         </Typography>
       ) : (
         <React.Fragment>
@@ -880,6 +887,7 @@ const OrderDetail = () => {
     if (isBuyer && currentData?.escrowOrder?.escrowOrderStatus === EscrowOrderStatus.Pending) {
       return true;
     }
+
     return false;
   };
 
@@ -944,7 +952,7 @@ const OrderDetail = () => {
         <QRCode
           address={parseCashAddressToPrefix(COIN.XEC, selectedWalletPath?.cashAddress)}
           amount={Number(totalAmountWithDepositAndEscrowFee().toFixed(2))}
-          width="60%"
+          width="55%"
         />
       )
     );
@@ -977,10 +985,10 @@ const OrderDetail = () => {
 
   const InfoEscrow = () => {
     const fee1Percent = calDisputeFee;
-    const totalBalanceFormat = totalValidAmount.toLocaleString('de-DE');
+    const totalBalanceFormat = formatNumber(totalValidAmount);
 
     return (
-      <div style={{ color: 'white' }}>
+      <div style={{ color: 'white', marginBottom: '10px' }}>
         {currentData?.escrowOrder.buyerDepositTx && (
           <Typography style={{ fontWeight: 'bold' }}>
             *Buyer deposited the fee ({calDisputeFee} {COIN.XEC})
@@ -990,15 +998,21 @@ const OrderDetail = () => {
           Your wallet: {totalBalanceFormat} {COIN.XEC}
         </Typography>
         <Typography>
-          Security deposit (1%): {fee1Percent.toLocaleString('de-DE')} {COIN.XEC}
+          Security deposit (1%): {formatNumber(fee1Percent)} {COIN.XEC}
         </Typography>
         <Typography>
-          Withdraw fee: {estimatedFee(currentData?.escrowOrder.escrowScript).toLocaleString('de-DE')} {COIN.XEC}
+          Withdraw fee: {formatNumber(estimatedFee(currentData?.escrowOrder.escrowScript))} {COIN.XEC} Withdraw
         </Typography>
-        <Typography style={{ fontWeight: 'bold' }}>
-          Total: {totalAmountWithDepositAndEscrowFee().toLocaleString('de-DE')} {COIN.XEC}
-          <span style={{ fontSize: '14px', color: 'gray' }}> (Excluding miner&apos;s fees)</span>
-        </Typography>
+        <CopyToClipboard text={totalAmountWithDepositAndEscrowFee()} onCopy={handleCopyAmount}>
+          <div>
+            <Typography
+              style={{ fontWeight: 'bold', fontStyle: 'italic', textDecoration: 'underline', cursor: 'pointer' }}
+            >
+              Total: {formatNumber(totalAmountWithDepositAndEscrowFee())} {COIN.XEC}
+            </Typography>
+            <span style={{ fontSize: '12px', color: 'gray' }}> (Excluding miner&apos;s fees)</span>
+          </div>
+        </CopyToClipboard>
       </div>
     );
   };
@@ -1127,6 +1141,13 @@ const OrderDetail = () => {
                 ? `${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${currentData?.escrowOrder.releaseTxid}`
                 : `${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${currentData?.escrowOrder.returnTxid}`
             }
+          />
+
+          <CustomToast
+            isOpen={openToastCopySuccess}
+            handleClose={() => setOpenToastCopySuccess(false)}
+            content="Copy amount to clipboard"
+            type="info"
           />
         </Stack>
       </OrderDetailPage>

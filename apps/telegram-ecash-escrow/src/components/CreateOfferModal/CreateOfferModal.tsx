@@ -49,6 +49,7 @@ import { styled } from '@mui/material/styles';
 import { TransitionProps } from '@mui/material/transitions';
 import React, { useEffect, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { NumericFormat } from 'react-number-format';
 import FilterListLocationModal from '../FilterList/FilterListLocationModal';
 import FilterListModal from '../FilterList/FilterListModal';
 import { FormControlWithNativeSelect } from '../FilterOffer/FilterOfferModal';
@@ -310,8 +311,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
 
   const handleCreateOffer = async (data, isHidden) => {
     setLoading(true);
-    const minNum = parseFloat(parseFloat(data.min).toFixed(2));
-    const maxNum = parseFloat(parseFloat(data.max).toFixed(2));
+    const minNum = parseFloat(data.min.replace(/,/g, ''));
+    const maxNum = parseFloat(data.max.replace(/,/g, ''));
 
     const input = {
       message: data.message,
@@ -334,7 +335,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
     }
 
     if (isEdit) {
-      let inputUpdateOffer: UpdateOfferInput = {
+      const inputUpdateOffer: UpdateOfferInput = {
         message: data.message,
         marginPercentage: Number(data.percentage),
         noteOffer: data.note,
@@ -402,6 +403,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
           rules={{
             validate: value => {
               if (value > 30) return 'Margin is between 0 - 30%';
+
               return true;
             }
           }}
@@ -487,11 +489,27 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
           </Button>
         </Grid>
         <Grid item xs={12}>
-          <Typography fontStyle={'italic'} className="heading" variant="body2">
-            {isBuyOffer
-              ? 'You are buying XEC. Your offer will be listed in Sell Crypto space'
-              : 'You are selling XEC. Your offer will be listed in Sell Crypto space'}
-          </Typography>
+          <div style={{ display: 'flex', flexDirection: 'column', fontStyle: 'italic' }}>
+            {isBuyOffer ? (
+              <React.Fragment>
+                <Typography variant="body2" className="heading">
+                  You are buying XEC
+                </Typography>
+                <Typography variant="body2" className="heading">
+                  Your offer will be listed in Sell Crypto tab
+                </Typography>
+              </React.Fragment>
+            ) : (
+              <React.Fragment>
+                <Typography variant="body2" className="heading">
+                  You are selling XEC
+                </Typography>
+                <Typography variant="body2" className="heading">
+                  Your offer will be listed in Buy Crypto tab
+                </Typography>
+              </React.Fragment>
+            )}
+          </div>
         </Grid>
 
         <Grid item xs={12}>
@@ -504,7 +522,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
             rules={{
               required: {
                 value: true,
-                message: 'Need to choose payment-method!'
+                message: 'Need to choose a payment method!'
               }
             }}
             render={({ field: { onChange, onBlur, value, ref } }) => (
@@ -692,6 +710,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                       <option aria-label="None" value="" />
                       {LIST_COIN.map(item => {
                         if (item.ticker === 'XEC') return;
+
                         return (
                           <option key={item.ticker} value={`${item.ticker}:${item.fixAmount}`}>
                             {item.name} {item.isDisplayTicker && `(${item.ticker})`}
@@ -1000,24 +1019,26 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                   value: true,
                   message: 'Minimum is required!'
                 },
-                pattern: {
-                  value: /^-?[0-9]\d*\.?\d*$/,
-                  message: 'Minimum amount is invalid!'
-                },
                 validate: value => {
-                  const max = parseFloat(watch('max'));
-                  if (parseFloat(value) >= max) return 'Minimum amount must be less than maximum amount!';
+                  const parseAmount = parseFloat(value.replace(/,/g, ''));
+                  const max = parseFloat(getValues('max').replace(/,/g, ''));
+
+                  if (parseAmount >= max) return 'Minimum amount must be less than maximum amount!';
 
                   return true;
                 }
               }}
               render={({ field: { onChange, onBlur, value, name, ref } }) => (
                 <FormControl fullWidth={true}>
-                  <TextField
+                  <NumericFormat
+                    allowLeadingZeros={false}
+                    allowNegative={false}
+                    thousandSeparator={true}
+                    decimalScale={2}
+                    customInput={TextField}
                     onChange={onChange}
                     onBlur={onBlur}
                     value={value}
-                    type="number"
                     name={name}
                     inputRef={ref}
                     className="form-input"
@@ -1039,27 +1060,28 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                   value: true,
                   message: 'Maximum is required!'
                 },
-                pattern: {
-                  value: /^-?[0-9]\d*\.?\d*$/,
-                  message: 'Maximum amount is invalid!'
-                },
                 validate: value => {
-                  const min = parseFloat(watch('min'));
+                  const parseAmount = parseFloat(value.replace(/,/g, ''));
+                  const min = parseFloat(getValues('min').replace(/,/g, ''));
 
-                  if (parseFloat(value) < 0) return 'Maximum amount must be greater than 0!';
-                  if (parseFloat(value) <= min) return 'Maximum amount must be greater than minimum amount!';
+                  if (parseAmount < 0) return 'Maximum amount must be greater than 0!';
+                  if (parseAmount <= min) return `Maximum amount must be greater than minimum amount!`;
 
                   return true;
                 }
               }}
               render={({ field: { onChange, onBlur, value, name, ref } }) => (
                 <FormControl fullWidth={true}>
-                  <TextField
+                  <NumericFormat
+                    allowLeadingZeros={false}
+                    allowNegative={false}
+                    thousandSeparator={true}
+                    decimalScale={2}
+                    customInput={TextField}
                     onChange={onChange}
                     onBlur={onBlur}
                     value={value}
                     name={name}
-                    type="number"
                     inputRef={ref}
                     className="form-input"
                     id="max"
