@@ -3,10 +3,15 @@
 import Header from '@/src/components/Header/Header';
 import OfferItem from '@/src/components/OfferItem/OfferItem';
 import {
+  OfferFilterInput,
+  OfferOrderField,
+  OrderDirection,
   TimelineQueryItem,
   getNewPostAvailable,
   getOfferFilterConfig,
   offerApi,
+  openModal,
+  saveOfferFilterConfig,
   setNewPostAvailable,
   useInfiniteOfferFilterDatabaseQuery,
   useSliceDispatch as useLixiSliceDispatch,
@@ -14,11 +19,13 @@ import {
 } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import CachedRoundedIcon from '@mui/icons-material/CachedRounded';
+import SortIcon from '@mui/icons-material/Sort';
 import { Badge, Box, CircularProgress, Skeleton, Slide, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import FilterComponent from '../components/FilterOffer/FilterComponent';
 import MobileLayout from '../components/layout/MobileLayout';
+import { isShowAmountOrSortFilter } from '../store/util';
 
 const WrapHome = styled.div``;
 
@@ -77,6 +84,8 @@ export default function Home() {
   const [visible, setVisible] = useState(true);
   const dispatch = useLixiSliceDispatch();
 
+  const isShowSortIcon = isShowAmountOrSortFilter(offerFilterConfig);
+
   const {
     data: dataFilter,
     hasNext: hasNextFilter,
@@ -106,6 +115,23 @@ export default function Home() {
     dispatch(setNewPostAvailable(false));
   }, []);
 
+  const openSortDialog = () => {
+    dispatch(openModal('SortOfferModal', {}));
+  };
+
+  // reset order offer when reload
+  useEffect(() => {
+    const offerFilterInput: OfferFilterInput = {
+      ...offerFilterConfig,
+      offerOrder: {
+        field: OfferOrderField.Relevance,
+        direction: OrderDirection.Desc
+      }
+    };
+
+    dispatch(saveOfferFilterConfig(offerFilterInput));
+  }, []);
+
   return (
     <MobileLayout>
       <WrapHome>
@@ -122,10 +148,10 @@ export default function Home() {
           <Section>
             <Typography className="title-offer" variant="body1" component="div">
               <span>Offers</span>
-              <span>
-                {(stateName || countryName || cityName) &&
-                  [cityName, stateName, countryName].filter(Boolean).join(', ')}
-              </span>
+              {isShowSortIcon && <SortIcon style={{ cursor: 'pointer' }} onClick={openSortDialog} />}
+              {(stateName || countryName || cityName) && (
+                <span>{[cityName, stateName, countryName].filter(Boolean).join(', ')}</span>
+              )}
             </Typography>
             <div className="offer-list">
               {!isLoadingFilter ? (

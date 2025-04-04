@@ -6,6 +6,7 @@ import {
   NAME_PAYMENT_METHOD
 } from '@/src/store/constants';
 import { FilterCurrencyType } from '@/src/store/type/types';
+import { isShowAmountOrSortFilter } from '@/src/store/util';
 import { COIN, PAYMENT_METHOD } from '@bcpros/lixi-models';
 import {
   OfferFilterInput,
@@ -249,8 +250,7 @@ const FilterComponent = () => {
     disablePaymentMethod() ||
     placeholderCurrency() === ALL_CURRENCIES;
 
-  const isShowAmountFilter =
-    offerFilterConfig?.fiatCurrency || (offerFilterConfig?.coin && offerFilterConfig.coin !== COIN_OTHERS);
+  const isShowAmountFilter = isShowAmountOrSortFilter(offerFilterConfig);
 
   // if config not set buy or not have payment-methods, set default
   useEffect(() => {
