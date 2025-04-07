@@ -1,6 +1,7 @@
 import { COIN, coinInfo } from '@bcpros/lixi-models';
-import { cashMethodsNode } from '@bcpros/redux-store';
+import { OfferFilterInput, cashMethodsNode } from '@bcpros/redux-store';
 import { Script, Tx } from 'ecash-lib';
+import { COIN_OTHERS } from './constants';
 
 export function serializeTransaction(tx: Tx): string {
   return JSON.stringify(tx, (key, value) => {
@@ -53,4 +54,8 @@ export const formatNumber = (number: number) => {
   if (!number) return '0';
 
   return number.toLocaleString('en-US');
+};
+
+export const isShowAmountOrSortFilter = (offerFilterConfig: OfferFilterInput) => {
+  return offerFilterConfig?.fiatCurrency || (offerFilterConfig?.coin && offerFilterConfig.coin !== COIN_OTHERS);
 };
