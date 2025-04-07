@@ -8,7 +8,7 @@ import { TabType } from '@/src/store/constants';
 import {
   OfferStatus,
   openModal,
-  useInfiniteMyOffersQuery,
+  useInfiniteMyOffersDatabaseQuery,
   useSliceDispatch as useLixiSliceDispatch
 } from '@bcpros/redux-store';
 import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined';
@@ -76,7 +76,7 @@ export default function MyOffer() {
     isFetching: isFetchingOfferActive,
     isLoading: isLoadingOfferActive,
     fetchNext: fetchNextOfferActive
-  } = useInfiniteMyOffersQuery({
+  } = useInfiniteMyOffersDatabaseQuery({
     first: 20,
     offerStatus: OfferStatus.Active
   });
@@ -96,7 +96,7 @@ export default function MyOffer() {
     isFetching: isFetchingOfferArchive,
     isLoading: isLoadingOfferArchive,
     fetchNext: fetchNextOfferArchive
-  } = useInfiniteMyOffersQuery({
+  } = useInfiniteMyOffersDatabaseQuery({
     first: 20,
     offerStatus: OfferStatus.Archive
   });
