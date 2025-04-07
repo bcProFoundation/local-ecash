@@ -4,7 +4,7 @@ import { COIN_OTHERS, COIN_USD_STABLECOIN_TICKER } from '@/src/store/constants';
 import { LIST_BANK } from '@/src/store/constants/list-bank';
 import { UtxoContext } from '@/src/store/context/utxoProvider';
 import { Escrow, buyerDepositFee, splitUtxos } from '@/src/store/escrow';
-import { convertXECToSatoshi, estimatedFee } from '@/src/store/util';
+import { convertXECToSatoshi, estimatedFee, formatNumber } from '@/src/store/util';
 import { BankInfoInput, COIN, CreateEscrowOrderInput, PAYMENT_METHOD, coinInfo } from '@bcpros/lixi-models';
 import {
   OfferType,
@@ -53,6 +53,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { NumericFormat } from 'react-number-format';
 import { FormControlWithNativeSelect } from '../FilterOffer/FilterOfferModal';
 import CustomToast from '../Toast/CustomToast';
 import ConfirmDepositModal from './ConfirmDepositModal';
@@ -356,6 +357,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     };
 
     const { amount, message }: { amount: string; message: string } = data;
+    const parseAmount = parseFloat(amount.replace(/,/g, ''));
     const offerAccountId = post.accountId;
     const moderatorId = moderatorCurrentData.getModeratorAccount.id;
     const arbitratorId = arbitratorCurrentData.getRandomArbitratorAccount.id;
@@ -406,7 +408,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
 
       const data: CreateEscrowOrderInput = {
         amount: amountXEC,
-        amountCoinOrCurrency: parseFloat(amount),
+        amountCoinOrCurrency: parseAmount,
         offerAccountId,
         arbitratorId,
         moderatorId,
@@ -631,13 +633,13 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
       const latestRateCoin = rateArrayCoin?.rate;
       const latestRateXec = rateArrayXec?.rate;
       const rateCoinPerXec = latestRateCoin / latestRateXec;
-      amountXEC = Number(amountValue ?? '0') * rateCoinPerXec;
+      amountXEC = parseFloat(amountValue.replace(/,/g, '')) * rateCoinPerXec;
       amountCoinOrCurrency = (latestRateXec * textAmountPer1MXEC) / latestRateCoin;
     } else {
       //convert from currency to XEC
       const rateArrayXec = rateData.find(item => item.coin === 'xec');
       const latestRateXec = rateArrayXec?.rate;
-      amountXEC = Number(amountValue ?? '0') / latestRateXec;
+      amountXEC = parseFloat(amountValue.replace(/,/g, '')) / latestRateXec;
       amountCoinOrCurrency = textAmountPer1MXEC * latestRateXec;
     }
 
@@ -743,7 +745,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     if (showMargin()) {
       convertToAmountXEC();
     } else {
-      setAmountXEC(Number(amountValue) ?? 0);
+      setAmountXEC(parseFloat(amountValue?.replace(/,/g, '')) ?? 0);
     }
   }, [amountValue]);
 
@@ -793,30 +795,33 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                       value: true,
                       message: 'Amount is required!'
                     },
-                    pattern: {
-                      value: /^-?[0-9]\d*\.?\d*$/,
-                      message: 'Amount is invalid!'
-                    },
                     validate: value => {
-                      const numberValue = parseFloat(value);
+                      const numberValue = parseFloat(value.replace(/,/g, ''));
                       const minValue = post.postOffer.orderLimitMin;
                       const maxValue = post.postOffer.orderLimitMax;
                       if (numberValue < 0) return 'XEC amount must be greater than 0!';
                       if (numberValue < minValue || numberValue > maxValue)
-                        return `Amount must between ${minValue}-${maxValue}`;
+                        return `Amount must between ${formatNumber(minValue)} - ${formatNumber(maxValue)}`;
                       if (amountXEC < 5.46) return `You need to buy amount greater than 5.46 XEC`;
 
                       return true;
                     }
                   }}
                   render={({ field: { onChange, onBlur, value, name, ref } }) => (
-                    <TextField
+                    <NumericFormat
+                      allowLeadingZeros={false}
+                      allowNegative={false}
+                      thousandSeparator={true}
+                      decimalScale={2}
+                      customInput={TextField}
                       onChange={onChange}
                       onBlur={onBlur}
                       value={value}
                       name={name}
                       inputRef={ref}
-                      placeholder={post.postOffer.orderLimitMin + ' - ' + post.postOffer.orderLimitMax}
+                      placeholder={
+                        formatNumber(post.postOffer.orderLimitMin) + ' - ' + formatNumber(post.postOffer.orderLimitMax)
+                      }
                       className="form-input"
                       id="amount"
                       label="Amount"
@@ -843,7 +848,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                     : showMargin() && (
                         <div>
                           You will {isBuyOffer ? 'send' : 'receive'}{' '}
-                          <span className="amount-receive">{amountXEC.toLocaleString('de-DE')}</span> XEC{' '}
+                          <span className="amount-receive">{formatNumber(amountXEC)}</span> XEC{' '}
                           {isBuyOffer && '(estimated)'}
                           <div>Price: {textAmountPer1MXEC}</div>
                         </div>
