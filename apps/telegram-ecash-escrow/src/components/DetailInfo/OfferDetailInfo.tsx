@@ -61,7 +61,8 @@ const OfferDetailWrap = styled('div')(({ theme }) => ({
     '.payment-group-btns': {
       display: 'flex',
       flexWrap: 'wrap',
-      gap: '5px'
+      gap: '5px',
+      pointerEvents: 'none'
     }
   }
 }));

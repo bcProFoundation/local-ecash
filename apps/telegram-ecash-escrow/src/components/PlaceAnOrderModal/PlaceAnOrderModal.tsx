@@ -5,7 +5,7 @@ import { LIST_BANK } from '@/src/store/constants/list-bank';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { UtxoContext } from '@/src/store/context/utxoProvider';
 import { Escrow, buyerDepositFee, splitUtxos } from '@/src/store/escrow';
-import { convertXECToSatoshi, estimatedFee, formatNumber } from '@/src/store/util';
+import { convertXECToSatoshi, estimatedFee, formatNumber, getNumberFromFormatNumber } from '@/src/store/util';
 import { BankInfoInput, COIN, CreateEscrowOrderInput, PAYMENT_METHOD, coinInfo } from '@bcpros/lixi-models';
 import {
   OfferType,
@@ -359,7 +359,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     };
 
     const { amount, message }: { amount: string; message: string } = data;
-    const parseAmount = parseFloat(amount.replace(/,/g, ''));
+    const parseAmount = getNumberFromFormatNumber(amount);
     const offerAccountId = post.accountId;
     const moderatorId = moderatorCurrentData.getModeratorAccount.id;
     const arbitratorId = arbitratorCurrentData.getRandomArbitratorAccount.id;
@@ -635,13 +635,13 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
       const latestRateCoin = rateArrayCoin?.rate;
       const latestRateXec = rateArrayXec?.rate;
       const rateCoinPerXec = latestRateCoin / latestRateXec;
-      amountXEC = parseFloat(amountValue.replace(/,/g, '')) * rateCoinPerXec;
+      amountXEC = getNumberFromFormatNumber(amountValue) * rateCoinPerXec;
       amountCoinOrCurrency = (latestRateXec * textAmountPer1MXEC) / latestRateCoin;
     } else {
       //convert from currency to XEC
       const rateArrayXec = rateData.find(item => item.coin === 'xec');
       const latestRateXec = rateArrayXec?.rate;
-      amountXEC = parseFloat(amountValue.replace(/,/g, '')) / latestRateXec;
+      amountXEC = getNumberFromFormatNumber(amountValue) / latestRateXec;
       amountCoinOrCurrency = textAmountPer1MXEC * latestRateXec;
     }
 
@@ -747,7 +747,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     if (showMargin()) {
       convertToAmountXEC();
     } else {
-      setAmountXEC(parseFloat(amountValue?.replace(/,/g, '')) ?? 0);
+      setAmountXEC(getNumberFromFormatNumber(amountValue) ?? 0);
     }
   }, [amountValue]);
 
@@ -798,7 +798,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                       message: 'Amount is required!'
                     },
                     validate: value => {
-                      const numberValue = parseFloat(value.replace(/,/g, ''));
+                      const numberValue = getNumberFromFormatNumber(value);
                       const minValue = post.postOffer.orderLimitMin;
                       const maxValue = post.postOffer.orderLimitMax;
                       if (numberValue < 0) return 'XEC amount must be greater than 0!';

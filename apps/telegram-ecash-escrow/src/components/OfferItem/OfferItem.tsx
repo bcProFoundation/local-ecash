@@ -49,7 +49,8 @@ const CardWrapper = styled(Card)(({ theme }) => ({
       gap: 5,
       '& button': {
         borderRadius: '10px'
-      }
+      },
+      pointerEvents: 'none'
     }
   },
 
@@ -100,7 +101,7 @@ const OfferShowWrapItem = styled('div')(({ theme }) => ({
     justifyContent: 'space-between',
     alignItems: 'center'
   },
-  '.username': {
+  '.username, .push-offer-wrap': {
     cursor: 'pointer',
     textDecoration: 'underline'
   },
@@ -263,7 +264,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
   const OfferItem = (
     <OfferShowWrapItem>
       <div className="push-offer-wrap">
-        <Typography variant="body2" style={{ fontWeight: 'bold' }}>
+        <Typography variant="body2" style={{ fontWeight: 'bold' }} onClick={handleItemClick}>
           {offerData?.message}
         </Typography>
         {(accountQueryData?.getAccountByAddress.role === Role.Moderator ||
@@ -331,7 +332,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
 
   return (
     <React.Fragment>
-      <CardWrapper onClick={handleItemClick}>
+      <CardWrapper>
         <CardContent>{OfferItem}</CardContent>
         <Collapse in={expanded} timeout="auto" unmountOnExit className="hidden-item-wrap">
           <CardContent>
