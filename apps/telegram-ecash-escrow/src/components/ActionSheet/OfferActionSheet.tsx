@@ -1,3 +1,4 @@
+import { capitalizeStr } from '@/src/store/util';
 import {
   OfferStatus,
   PostQueryItem,
@@ -48,12 +49,31 @@ export default function OfferActionSheet({ post }: OfferActionSheetProps) {
     dispatch(closeActionSheet());
   };
 
-  const handleClickArchiveOrReopen = (offerStatus: OfferStatus) => {
+  const handleClickArchiveOrReopen = async (offerStatus: OfferStatus) => {
     const input: UpdateOfferStatusInput = {
       id: offer.postId,
       status: offerStatus
     };
-    triggerUpdateOfferStatus({ input });
+    await triggerUpdateOfferStatus({ input })
+      .unwrap()
+      .then(() => {
+        dispatch(
+          showToast('success', {
+            message: 'Success',
+            description: `${capitalizeStr(offerStatus)} successful`
+          })
+        );
+      })
+      .catch(err => {
+        dispatch(
+          showToast('error', {
+            message: 'error',
+            description: `Something wrong when ${capitalizeStr(offerStatus)}`
+          })
+        );
+      });
+
+    handleClose();
   };
 
   const handleListUnlistOffer = async () => {

@@ -59,3 +59,12 @@ export const formatNumber = (number: number) => {
 export const isShowAmountOrSortFilter = (offerFilterConfig: OfferFilterInput) => {
   return offerFilterConfig?.fiatCurrency || (offerFilterConfig?.coin && offerFilterConfig.coin !== COIN_OTHERS);
 };
+
+export const capitalizeStr = (str: string) => {
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+};
+
+export const getNumberFromFormatNumber = (value: string) => {
+  if (!value) return 0;
+  return parseFloat(value.replace(/,/g, ''));
+};

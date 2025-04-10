@@ -581,8 +581,8 @@ const OrderDetail = () => {
                 <div>
                   {telegramButton(true)}
                   <p>
-                    Xec in escrow will only be released when you confirm the receipt of money. You can dispute to get it
-                    back if the buyer fail to deliver
+                    {COIN.XEC} in escrow will only be released when you confirm the receipt of money. You can dispute to
+                    get it back if the buyer fail to deliver
                   </p>
                 </div>
               ) : (
@@ -1008,7 +1008,7 @@ const OrderDetail = () => {
           Security deposit (1%): {formatNumber(fee1Percent)} {COIN.XEC}
         </Typography>
         <Typography>
-          Withdraw fee: {formatNumber(estimatedFee(currentData?.escrowOrder.escrowScript))} {COIN.XEC} Withdraw
+          Withdraw fee: {formatNumber(estimatedFee(currentData?.escrowOrder.escrowScript))} {COIN.XEC}
         </Typography>
         <CopyToClipboard text={totalAmountWithDepositAndEscrowFee()} onCopy={handleCopyAmount}>
           <div>

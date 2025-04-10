@@ -6,7 +6,7 @@ import {
   NAME_PAYMENT_METHOD
 } from '@/src/store/constants';
 import { FilterCurrencyType } from '@/src/store/type/types';
-import { isShowAmountOrSortFilter } from '@/src/store/util';
+import { getNumberFromFormatNumber, isShowAmountOrSortFilter } from '@/src/store/util';
 import { COIN, PAYMENT_METHOD } from '@bcpros/lixi-models';
 import {
   OfferFilterInput,
@@ -16,10 +16,11 @@ import {
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
 import { ArrowDropDown, Close } from '@mui/icons-material';
-import { Button, IconButton, InputAdornment, TextField, Typography } from '@mui/material';
+import { Button, IconButton, InputAdornment, MenuItem, Select, TextField, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { debounce } from 'lodash';
 import React, { useCallback, useEffect, useState } from 'react';
+import { NumericFormat } from 'react-number-format';
 import FilterCurrencyModal from '../FilterList/FilterCurrencyModal';
 import FilterFiatPaymentMethodModal from '../FilterList/FilterFiatPaymentMethodModal';
 
@@ -29,12 +30,33 @@ const WrapFilter = styled('div')(({ theme }) => ({
   '.filter-buy-sell': {
     padding: '10px',
     background: theme.custom.bgQuaternary,
+    display: 'flex',
+    gap: '10px',
+    justifyContent: 'space-between',
 
     '.group-btn': {
+      width: '80%',
       display: 'flex',
-      gap: '10px',
+
+      '.type-buy-btn': {
+        borderTopRightRadius: 0,
+        borderBottomRightRadius: 0
+      },
+
+      '.type-sell-btn': {
+        borderTopLeftRadius: 0,
+        borderBottomLeftRadius: 0
+      },
+
       button: {
         width: '50%'
+      }
+    },
+
+    '.select-coin': {
+      '.MuiSelect-select': {
+        paddingTop: 0,
+        paddingBottom: 0
       }
     },
 
@@ -202,7 +224,7 @@ const FilterComponent = () => {
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    debouncedHandler(value ? Number(value) : null);
+    debouncedHandler(value ? getNumberFromFormatNumber(value) : null);
   };
 
   const placeholderCurrency = () => {
@@ -270,7 +292,7 @@ const FilterComponent = () => {
               color="info"
               onClick={() => handleSetBuyOffer(false)} // want to buy => sellOffer
             >
-              Buy {COIN.XEC}
+              Buy
             </Button>
             <Button
               className={`type-sell-btn ${isBuyOffer ? '' : 'inactive'}`}
@@ -278,8 +300,20 @@ const FilterComponent = () => {
               color="info"
               onClick={() => handleSetBuyOffer(true)} // want to sell => buyOffer
             >
-              Sell {COIN.XEC}
+              Sell
             </Button>
+          </div>
+          <div className="select-coin">
+            <Select
+              variant="filled"
+              inputProps={null}
+              value={COIN.XEC}
+              style={{
+                height: '40px'
+              }}
+            >
+              <MenuItem value={COIN.XEC}>{COIN.XEC}</MenuItem>
+            </Select>
           </div>
         </div>
         <div className="filter-label">
@@ -290,15 +324,18 @@ const FilterComponent = () => {
         <div className="filter-detail">
           <div className="filter-currency">
             {isShowAmountFilter ? (
-              <TextField
-                variant="outlined"
-                placeholder="Amount"
-                value={offerFilterConfig?.amount ?? ''}
+              <NumericFormat
+                allowLeadingZeros={false}
+                allowNegative={false}
+                thousandSeparator={true}
+                decimalScale={2}
+                customInput={TextField}
                 onChange={handleAmountChange}
-                inputProps={{
-                  inputMode: 'numeric',
-                  pattern: '[0-9]*'
-                }}
+                value={offerFilterConfig?.amount ?? ''}
+                className="form-input"
+                id="amount"
+                placeholder="Amount"
+                variant="outlined"
                 InputProps={{
                   endAdornment: (
                     <Button

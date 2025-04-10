@@ -3,6 +3,7 @@
 import { COIN_OTHERS, COIN_USD_STABLECOIN_TICKER, LIST_COIN } from '@/src/store/constants';
 import { LIST_PAYMENT_APP } from '@/src/store/constants/list-payment-app';
 import { SettingContext } from '@/src/store/context/settingProvider';
+import { formatNumber, getNumberFromFormatNumber } from '@/src/store/util';
 import { LIST_CURRENCIES_USED, Location, PAYMENT_METHOD, UpdateSettingCommand } from '@bcpros/lixi-models';
 import {
   Coin,
@@ -321,8 +322,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
 
   const handleCreateOffer = async (data, isHidden) => {
     setLoading(true);
-    const minNum = parseFloat(data.min.replace(/,/g, ''));
-    const maxNum = parseFloat(data.max.replace(/,/g, ''));
+    const minNum = getNumberFromFormatNumber(data.min) || fixAmount;
+    const maxNum = getNumberFromFormatNumber(data.max) || fixAmount;
 
     const input = {
       message: data.message,
@@ -1014,15 +1015,12 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
               name="min"
               control={control}
               rules={{
-                required: {
-                  value: true,
-                  message: 'Minimum is required!'
-                },
                 validate: value => {
                   const parseAmount = parseFloat(value.replace(/,/g, ''));
                   const max = parseFloat(getValues('max').replace(/,/g, ''));
 
-                  if (parseAmount >= max) return 'Minimum amount must be less than maximum amount!';
+                  if (parseAmount < 0) return 'Minimum amount must be greater than 0!';
+                  if (parseAmount > max) return 'Minimum amount must be less than maximum amount!';
 
                   return true;
                 }
@@ -1042,7 +1040,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                     inputRef={ref}
                     className="form-input"
                     id="min"
-                    placeholder={`Min (${coinCurrency})`}
+                    placeholder={`Min: e.g. ${formatNumber(fixAmount)} ${coinCurrency}`}
                     error={errors.min && true}
                     helperText={errors.min && (errors.min?.message as string)}
                     variant="standard"
@@ -1055,16 +1053,12 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
               name="max"
               control={control}
               rules={{
-                required: {
-                  value: true,
-                  message: 'Maximum is required!'
-                },
                 validate: value => {
                   const parseAmount = parseFloat(value.replace(/,/g, ''));
                   const min = parseFloat(getValues('min').replace(/,/g, ''));
 
                   if (parseAmount < 0) return 'Maximum amount must be greater than 0!';
-                  if (parseAmount <= min) return `Maximum amount must be greater than minimum amount!`;
+                  if (parseAmount < min) return `Maximum amount must be greater than or equal to the minimum amount!`;
 
                   return true;
                 }
@@ -1085,7 +1079,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                     className="form-input"
                     id="max"
                     label=" "
-                    placeholder={`Max (${coinCurrency})`}
+                    placeholder={`Max: e.g. ${formatNumber(fixAmount)} ${coinCurrency}`}
                     error={errors.max && true}
                     helperText={errors.max && (errors.max?.message as string)}
                     variant="standard"
@@ -1209,8 +1203,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
         )}
         <Grid item xs={12}>
           <Typography variant="body1">
-            <span className="prefix">Order limit ({coinCurrency}): </span> {getValues('min')} {coinCurrency} -{' '}
-            {getValues('max')} {coinCurrency}
+            <span className="prefix">Order limit ({coinCurrency}): </span> {getValues('min') || formatNumber(fixAmount)}{' '}
+            {coinCurrency} - {getValues('max') || formatNumber(fixAmount)} {coinCurrency}
           </Typography>
         </Grid>
         <Grid item xs={12}>
