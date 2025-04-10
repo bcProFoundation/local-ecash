@@ -115,6 +115,7 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
       };
       if (!seedBackupTime || isGreaterThanOneMonth) {
         dispatch(openModal('BackupModal', backupModalProps));
+
         return;
       }
       dispatch(openModal('PlaceAnOrderModal', { post: post }));
@@ -168,7 +169,7 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
       )}
 
       <div className="action-section">
-        {post.postOffer.status === OfferStatus.Archive ? (
+        {postData?.postOffer.status === OfferStatus.Archive ? (
           <Button size="small" color="info" variant="contained" fullWidth disabled>
             <Typography variant="body1" style={{ fontWeight: 'bold' }}>
               <span style={{ fontSize: '14px' }}>Archived</span>
