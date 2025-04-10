@@ -5,6 +5,7 @@ import { SettingContext } from '@/src/store/context/settingProvider';
 import { formatNumber } from '@/src/store/util';
 import { PAYMENT_METHOD } from '@bcpros/lixi-models';
 import {
+  OfferStatus,
   OfferType,
   PostQueryItem,
   TimelineQueryItem,
@@ -166,42 +167,52 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
       )}
 
       <div className="action-section">
-        <div className="payment-group-btns">
-          <Button size="small" color="info" variant="outlined">
+        {post.postOffer.status === OfferStatus.Archive ? (
+          <Button size="small" color="info" variant="contained" fullWidth disabled>
             <Typography variant="body1" style={{ fontWeight: 'bold' }}>
-              <span style={{ fontSize: '14px' }}>{offerData?.hideFromHome ? 'Unlisted' : 'Listed'}</span>
+              <span style={{ fontSize: '14px' }}>Archived</span>
             </Typography>
           </Button>
-          <Button size="small" color="info" variant="outlined">
-            <Typography variant="body1" style={{ fontWeight: 'bold' }}>
-              <span style={{ fontSize: '14px' }}>{offerData?.type == OfferType.Buy ? 'Buy' : 'Sell'}</span>
-            </Typography>
-          </Button>
-          {offerData?.paymentMethods &&
-            offerData.paymentMethods?.length > 0 &&
-            offerData.paymentMethods.map(item => {
-              return (
-                <Button size="small" color="success" variant="outlined" key={item.paymentMethod.name}>
-                  {item.paymentMethod.name}
+        ) : (
+          <>
+            <div className="payment-group-btns">
+              <Button size="small" color="info" variant="outlined">
+                <Typography variant="body1" style={{ fontWeight: 'bold' }}>
+                  <span style={{ fontSize: '14px' }}>{offerData?.hideFromHome ? 'Unlisted' : 'Listed'}</span>
+                </Typography>
+              </Button>
+              <Button size="small" color="info" variant="outlined">
+                <Typography variant="body1" style={{ fontWeight: 'bold' }}>
+                  <span style={{ fontSize: '14px' }}>{offerData?.type == OfferType.Buy ? 'Buy' : 'Sell'}</span>
+                </Typography>
+              </Button>
+              {offerData?.paymentMethods &&
+                offerData.paymentMethods?.length > 0 &&
+                offerData.paymentMethods.map(item => {
+                  return (
+                    <Button size="small" color="success" variant="outlined" key={item.paymentMethod.name}>
+                      {item.paymentMethod.name}
+                    </Button>
+                  );
+                })}
+              {offerData?.coinOthers && (
+                <Button size="small" color="success" variant="outlined">
+                  {offerData.coinOthers}
                 </Button>
-              );
-            })}
-          {offerData?.coinOthers && (
-            <Button size="small" color="success" variant="outlined">
-              {offerData.coinOthers}
-            </Button>
-          )}
-          {offerData?.paymentApp && (
-            <Button size="small" color="success" variant="outlined">
-              {offerData.paymentApp}
-            </Button>
-          )}
-        </div>
-        {isShowBuyButton && (
-          <BuyButtonStyled style={{ height: 'fit-content' }} variant="contained" onClick={e => handleBuyClick(e)}>
-            {offerData?.type === OfferType.Buy ? 'Sell' : 'Buy'}
-            <Image width={25} height={25} src="/eCash.svg" alt="" />
-          </BuyButtonStyled>
+              )}
+              {offerData?.paymentApp && (
+                <Button size="small" color="success" variant="outlined">
+                  {offerData.paymentApp}
+                </Button>
+              )}
+            </div>
+            {isShowBuyButton && (
+              <BuyButtonStyled style={{ height: 'fit-content' }} variant="contained" onClick={e => handleBuyClick(e)}>
+                {offerData?.type === OfferType.Buy ? 'Sell' : 'Buy'}
+                <Image width={25} height={25} src="/eCash.svg" alt="" />
+              </BuyButtonStyled>
+            )}
+          </>
         )}
       </div>
     </OfferDetailWrap>
