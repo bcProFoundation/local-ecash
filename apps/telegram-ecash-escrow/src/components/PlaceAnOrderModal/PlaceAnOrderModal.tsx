@@ -2,6 +2,7 @@
 
 import { COIN_OTHERS, COIN_USD_STABLECOIN_TICKER } from '@/src/store/constants';
 import { LIST_BANK } from '@/src/store/constants/list-bank';
+import { SettingContext } from '@/src/store/context/settingProvider';
 import { UtxoContext } from '@/src/store/context/utxoProvider';
 import { Escrow, buyerDepositFee, splitUtxos } from '@/src/store/escrow';
 import { convertXECToSatoshi, estimatedFee, formatNumber } from '@/src/store/util';
@@ -270,6 +271,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const isBuyOffer = post.postOffer.type === OfferType.Buy;
   const { data } = useSession();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
+  const { setSetting, allSettings } = useContext(SettingContext);
   const Wallet = useContext(WalletContextNode);
   const { totalValidAmount, totalValidUtxos } = useContext(UtxoContext);
   const { chronik, XPI } = Wallet;
@@ -780,7 +782,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
         <Typography className="offer-info" variant="body2">
           <Typography component="span" variant="body1">{`Offer Id: ${post.id}`}</Typography>
           <br />
-          <Typography component="span">{`By: ${post.account.anonymousUsernameLocalecash} • posted on: ${new Date(post.createdAt).toLocaleString('vi-VN')}`}</Typography>
+          <Typography component="span">{`By: ${allSettings[`${post.account.id.toString()}`]?.usePublicLocalUserName ? post.account.anonymousUsernameLocalecash : post.account.telegramUsername} • posted on: ${new Date(post.createdAt).toLocaleString('vi-VN')}`}</Typography>
         </Typography>
         <DialogContent>
           <PlaceAnOrderWrap>

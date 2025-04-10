@@ -9,6 +9,7 @@ import TelegramButton from '@/src/components/TelegramButton/TelegramButton';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
 import CustomToast from '@/src/components/Toast/CustomToast';
 import { COIN_OTHERS } from '@/src/store/constants';
+import { SettingContext } from '@/src/store/context/settingProvider';
 import { UtxoContext } from '@/src/store/context/utxoProvider';
 import {
   ArbiReleaseSignatory,
@@ -103,6 +104,7 @@ const OrderDetail = () => {
   const { socket } = useContext(SocketContext) || {};
 
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
+  const { allSettings } = useContext(SettingContext);
   const Wallet = useContext(WalletContextNode);
   const { chronik } = Wallet;
   const { totalValidAmount, totalValidUtxos } = useContext(UtxoContext);
@@ -884,7 +886,12 @@ const OrderDetail = () => {
   // buyer can't chat with seller when order is pending
   const disableTelegramButton = () => {
     const isBuyer = selectedWalletPath?.hash160 === currentData?.escrowOrder.buyerAccount.hash160;
-    if (isBuyer && currentData?.escrowOrder?.escrowOrderStatus === EscrowOrderStatus.Pending) {
+    const sellerSettings = allSettings[`${currentData?.escrowOrder?.sellerAccount.id.toString()}`];
+    if (
+      isBuyer &&
+      currentData?.escrowOrder?.escrowOrderStatus === EscrowOrderStatus.Pending &&
+      sellerSettings?.usePublicLocalUserName
+    ) {
       return true;
     }
 
