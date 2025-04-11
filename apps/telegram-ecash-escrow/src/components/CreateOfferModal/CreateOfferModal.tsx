@@ -457,11 +457,11 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
               <br />
               <span className="bold">Example: </span> If you pay{' '}
               <span className="bold">
-                {Intl.NumberFormat('de-DE').format(fixAmount)} {coinCurrency}
+                {formatNumber(fixAmount)} {coinCurrency}
               </span>
               , you will receive{' '}
               <span className="bold">
-                {Intl.NumberFormat('de-DE').format(fixAmount * (1 + percentageValue / 100))} {coinCurrency}
+                {formatNumber(fixAmount * (1 + percentageValue / 100))} {coinCurrency}
               </span>{' '}
               worth of <span className="bold">XEC</span> in return
             </div>
@@ -469,11 +469,11 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
             <div>
               <span className="bold">Example: </span> If you sell <span className="bold">XEC</span> worth{' '}
               <span className="bold">
-                {Intl.NumberFormat('de-DE').format(fixAmount)} {coinCurrency}
+                {formatNumber(fixAmount)} {coinCurrency}
               </span>
               , you will receive{' '}
               <span className="bold">
-                {Intl.NumberFormat('de-DE').format(fixAmount * (1 + percentageValue / 100))} {coinCurrency}
+                {formatNumber(fixAmount * (1 + percentageValue / 100))} {coinCurrency}
               </span>{' '}
               in return
             </div>
