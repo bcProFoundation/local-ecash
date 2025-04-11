@@ -176,7 +176,7 @@ const ProfileDetail = () => {
             )}
             <div>
               <Typography>
-                {allSettings[`${accountQueryData?.getAccountByAddress?.id.toString()}`]?.usePublicLocalUserName
+                {allSettings?.[`${accountQueryData?.getAccountByAddress?.id.toString()}`]?.usePublicLocalUserName
                   ? accountQueryData?.getAccountByAddress?.anonymousUsernameLocalecash
                   : accountQueryData?.getAccountByAddress?.telegramUsername}
               </Typography>

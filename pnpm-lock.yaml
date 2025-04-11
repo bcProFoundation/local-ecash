@@ -10,7 +10,7 @@ overrides:
   micromatch: ^4.0.8
   ws: 8.17.1
   axios: 0.30.0
-  elliptic: 6.5.7
+  elliptic: 6.6.1
   cross-spawn: 7.0.5
   next: 14.2.25
 
@@ -2497,8 +2497,8 @@ packages:
   electron-to-chromium@1.5.73:
     resolution: {integrity: sha512-8wGNxG9tAG5KhGd3eeA0o6ixhiNdgr0DcHWm85XPCphwZgD1lIEoi6t3VERayWao7SF7AAZTw6oARGJeVjH8Kg==}
 
-  elliptic@6.5.7:
-    resolution: {integrity: sha512-ESVCtTwiA+XhY3wyh24QqRGBoP3rEdDUl3EDUUo9tft074fi19IrdpH7hLCMMP3CIj7jb3W96rn8lt/BqIlt5Q==}
+  elliptic@6.6.1:
+    resolution: {integrity: sha512-RaddvvMatK2LJHqFJ+YA4WysVN5Ita9E35botqIYspQ4TkRAlCicdzKOjlyv/1Za5RyTNn7di//eEV0uTAfe3g==}
 
   emoji-regex@10.3.0:
     resolution: {integrity: sha512-QpLs9D9v9kArv4lfDEgg1X/gN5XLnf/A6l9cs8SPZLRZR3ZkY9+kwIQTxm+fsSej5UMYGE8fdoaZVIBlqG0XTw==}
@@ -5207,7 +5207,7 @@ snapshots:
       bn.js: 4.11.8
       bs58: 4.0.1
       buffer-compare: 1.1.1
-      elliptic: 6.5.7
+      elliptic: 6.6.1
       inherits: 2.0.1
       lodash: 4.17.21
 
@@ -5217,7 +5217,7 @@ snapshots:
       bn.js: 4.11.8
       bs58: 4.0.1
       buffer-compare: 1.1.1
-      elliptic: 6.5.7
+      elliptic: 6.6.1
       inherits: 2.0.1
       lodash: 4.17.21
 
@@ -6064,7 +6064,7 @@ snapshots:
       create-hash: 1.2.0
       create-hmac: 1.1.7
       ecpair: '@bitgo/ecpair@2.1.0-rc.0'
-      elliptic: 6.5.7
+      elliptic: 6.6.1
       fastpriorityqueue: 0.7.5
       typeforce: 1.18.0
       varuint-bitcoin: 1.1.2
@@ -7975,7 +7975,7 @@ snapshots:
 
   electron-to-chromium@1.5.73: {}
 
-  elliptic@6.5.7:
+  elliptic@6.6.1:
     dependencies:
       bn.js: 4.12.1
       brorand: 1.1.0
@@ -10230,7 +10230,7 @@ snapshots:
       bn.js: 4.12.1
       create-hash: 1.2.0
       drbg.js: 1.0.1
-      elliptic: 6.5.7
+      elliptic: 6.6.1
       nan: 2.22.2
       safe-buffer: 5.2.1
 

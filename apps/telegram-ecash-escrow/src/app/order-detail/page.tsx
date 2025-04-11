@@ -592,7 +592,7 @@ const OrderDetail = () => {
             </div>
           ) : (
             <div>
-              Not enough fund!! Please deposit money to your wallet
+              Not enough funds available for this trade. Please deposit {COIN.XEC} to your wallet.
               {InfoEscrow()}
               {DepositQRCode()}
             </div>
