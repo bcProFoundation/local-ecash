@@ -215,7 +215,7 @@ const OfferDetail = () => {
       <OfferDetailPage>
         <TickerHeader
           title="Offer Detail"
-          showShareIcon={currentData.post.postOffer.status !== OfferStatus.Archive}
+          showShareIcon={currentData?.post.postOffer.status !== OfferStatus.Archive}
           postData={currentData?.post}
         />
         {currentData?.post?.postOffer ? (
