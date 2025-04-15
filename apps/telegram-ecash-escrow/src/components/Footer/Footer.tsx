@@ -82,7 +82,7 @@ export default function Footer() {
   const prevRef = useRef(0);
   const router = useRouter();
   const { socket } = useSocket();
-  const pathName = usePathname();
+  const currentPath = usePathname();
   const { status } = useSession();
   const dispatch = useLixiSliceDispatch();
   const askAuthorization = useAuthorization();
@@ -90,7 +90,6 @@ export default function Footer() {
   const [visible, setVisible] = useState(true);
   const [isArbiMod, setIsArbiMod] = useState(false);
   const [newOrder, setNewOrder] = useState(false);
-  const [prevRoute, setPrevRoute] = useState(pathName);
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
   const { useGetAccountByAddressQuery } = accountsApi;
 
@@ -123,14 +122,15 @@ export default function Footer() {
       return;
     }
 
-    if (path === '/' && prevRoute === '/') {
+    if (path === '/' && currentPath === '/') {
+
       console.log('reset home api query');
       dispatch(offerApi.api.util.resetApiState());
 
       return;
     }
 
-    if (path === '/my-order' && prevRoute === '/my-order') {
+    if (path === '/my-order' && currentPath === '/my-order') {
       console.log('reset escrow api query');
       dispatch(escrowOrderApi.api.util.resetApiState());
       setNewOrder(false);
@@ -139,7 +139,6 @@ export default function Footer() {
     }
 
     router.push(path);
-    setPrevRoute(path);
   };
 
   useEffect(() => {
@@ -163,23 +162,23 @@ export default function Footer() {
 
   //No footer at offer detail and order-detail
   return (
-    pathName !== '/order-detail' &&
-    pathName !== '/offer-detail' && (
+    currentPath !== '/order-detail' &&
+    currentPath !== '/offer-detail' && (
       <StyledSlide direction="up" in={visible} className="Footer-content">
         <Tabs style={{ gridTemplateColumns: isArbiMod ? 'repeat(5, 1fr)' : 'repeat(4, 1fr)' }}>
-          <TabMenu className={`${pathName === '/' && 'active'}`}>
+          <TabMenu className={`${currentPath === '/' && 'active'}`}>
             <IconButton onClick={() => handleIconClick('/')}>
               <SwapHorizIcon />
             </IconButton>
             <Typography variant="body2">P2P Trading</Typography>
           </TabMenu>
-          <TabMenu className={`${pathName === '/my-offer' && 'active'}`}>
+          <TabMenu className={`${currentPath === '/my-offer' && 'active'}`}>
             <IconButton onClick={() => handleIconClick('/my-offer')}>
               <LocalOfferOutlinedIcon />
             </IconButton>
             <Typography variant="body2">My offers</Typography>
           </TabMenu>
-          <TabMenu className={`${pathName === '/my-order' && 'active'}`}>
+          <TabMenu className={`${currentPath === '/my-order' && 'active'}`}>
             <IconButton onClick={() => handleIconClick('/my-order')}>
               <InventoryOutlinedIcon />
               {newOrder && (
@@ -191,14 +190,14 @@ export default function Footer() {
             <Typography variant="body2">My orders</Typography>
           </TabMenu>
           {isArbiMod && (
-            <TabMenu className={`${pathName === '/my-dispute' && 'active'}`}>
+            <TabMenu className={`${currentPath === '/my-dispute' && 'active'}`}>
               <IconButton onClick={() => handleIconClick('/my-dispute')}>
                 <GavelOutlinedIcon />
               </IconButton>
               <Typography variant="body2">Dispute</Typography>
             </TabMenu>
           )}
-          <TabMenu className={`${pathName === '/wallet' && 'active'}`}>
+          <TabMenu className={`${currentPath === '/wallet' && 'active'}`}>
             <IconButton onClick={() => handleIconClick('/wallet')}>
               <Wallet />
             </IconButton>
