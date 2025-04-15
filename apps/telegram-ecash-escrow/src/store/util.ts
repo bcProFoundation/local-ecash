@@ -2,6 +2,7 @@ import { COIN, coinInfo } from '@bcpros/lixi-models';
 import { OfferFilterInput, cashMethodsNode } from '@bcpros/redux-store';
 import { Script, Tx } from 'ecash-lib';
 import { COIN_OTHERS } from './constants';
+import * as _ from 'lodash';
 
 export function serializeTransaction(tx: Tx): string {
   return JSON.stringify(tx, (key, value) => {
@@ -67,4 +68,11 @@ export const capitalizeStr = (str: string) => {
 export const getNumberFromFormatNumber = (value: string) => {
   if (!value) return 0;
   return parseFloat(value.replace(/,/g, ''));
+};
+
+export const getOrderLimitText = (min: number | null, max: number | null, ticket: string) => {
+  if (!_.isNil(min) || !_.isNil(max)) {
+    return ` ${formatNumber(min)} ${ticket} - ${formatNumber(max)} ${ticket}`;
+  }
+  return 'No limit';
 };

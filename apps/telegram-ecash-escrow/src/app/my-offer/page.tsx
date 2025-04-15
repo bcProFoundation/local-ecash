@@ -184,7 +184,7 @@ export default function MyOffer() {
                             </Typography>
                           ) : (
                             <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>
-                              No active offer here
+                              No more active offers here
                             </Typography>
                           )
                         }
@@ -218,7 +218,7 @@ export default function MyOffer() {
                       hasMore={hasNextOfferArchive}
                       endMessage={
                         <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>
-                          No archived offer here
+                          No more archived offers here
                         </Typography>
                       }
                       loader={

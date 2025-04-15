@@ -2,7 +2,7 @@
 
 import { COIN_OTHERS, COIN_USD_STABLECOIN, COIN_USD_STABLECOIN_TICKER } from '@/src/store/constants';
 import { SettingContext } from '@/src/store/context/settingProvider';
-import { formatNumber } from '@/src/store/util';
+import { getOrderLimitText } from '@/src/store/util';
 import { PAYMENT_METHOD } from '@bcpros/lixi-models';
 import {
   OfferStatus,
@@ -286,8 +286,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
       <div className="minmax-collapse-wrap" onClick={e => handleExpandClick(e)}>
         <Typography variant="body2">
           <span className="prefix">Min / max: </span>
-          {formatNumber(offerData?.orderLimitMin)} {coinCurrency} - {formatNumber(offerData?.orderLimitMax)}{' '}
-          {coinCurrency}
+          {getOrderLimitText(offerData?.orderLimitMin, offerData?.orderLimitMax, coinCurrency)}
         </Typography>
         {expanded ? <ExpandLessIcon style={{ cursor: 'pointer' }} /> : <ExpandMoreIcon style={{ cursor: 'pointer' }} />}
       </div>

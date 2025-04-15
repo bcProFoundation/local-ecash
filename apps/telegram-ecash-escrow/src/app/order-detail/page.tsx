@@ -1060,7 +1060,9 @@ const OrderDetail = () => {
             {escrowStatus()}
             <br />
             {escrowActionButtons()}
-            {telegramButton()}
+            {disableTelegramButton()
+              ? telegramButton(true, 'You can only chat with seller when they accept your order')
+              : telegramButton()}
           </OrderDetailContent>
         ) : (
           <div style={{ display: 'flex', justifyContent: 'center', height: '100vh' }}>

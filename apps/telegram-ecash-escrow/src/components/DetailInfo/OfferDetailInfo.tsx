@@ -2,7 +2,7 @@
 
 import { COIN_OTHERS } from '@/src/store/constants';
 import { SettingContext } from '@/src/store/context/settingProvider';
-import { formatNumber } from '@/src/store/util';
+import { getOrderLimitText } from '@/src/store/util';
 import { PAYMENT_METHOD } from '@bcpros/lixi-models';
 import {
   OfferStatus,
@@ -152,8 +152,7 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
         )}
       <Typography variant="body1">
         <span className="prefix">Min-max: </span>
-        {formatNumber(offerData?.orderLimitMin)} {getCoinCurrency()} - {''}
-        {formatNumber(offerData?.orderLimitMax)} {getCoinCurrency()}
+        {getOrderLimitText(offerData?.orderLimitMin, offerData?.orderLimitMax, getCoinCurrency())}
       </Typography>
       {(stateName || countryName) && (
         <Typography variant="body2">
