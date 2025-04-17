@@ -550,7 +550,7 @@ const OrderDetail = () => {
 
     if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Cancel) {
       return (
-        <Typography variant="body1" color="#FFBF00" align="center">
+        <Typography variant="body1" color="error" align="center">
           Order has been cancelled
         </Typography>
       );
@@ -558,7 +558,7 @@ const OrderDetail = () => {
 
     if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Complete) {
       return (
-        <Typography variant="body1" color="#FFBF00" align="center">
+        <Typography variant="body1" color="error" align="center">
           Order has been completed
         </Typography>
       );
@@ -566,7 +566,7 @@ const OrderDetail = () => {
 
     if (!currentData?.escrowOrder.dispute && isArbiOrMod) {
       return (
-        <Typography variant="body1" color="#FFBF00" align="center">
+        <Typography variant="body1" color="error" align="center">
           The order is currently in progress.
         </Typography>
       );
@@ -574,7 +574,7 @@ const OrderDetail = () => {
 
     if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Pending) {
       return isSeller ? (
-        <Typography variant="body1" color="#FFBF00" align="center" component={'div'}>
+        <Typography variant="body1" color="error" align="center" component={'div'}>
           {checkSellerEnoughFund() && !notEnoughFund ? (
             <div>
               {isBuyOffer ? (
@@ -600,7 +600,7 @@ const OrderDetail = () => {
         </Typography>
       ) : (
         <React.Fragment>
-          <Typography variant="body1" color="#FFBF00" align="center">
+          <Typography variant="body1" color="error" align="center">
             Pending Escrow!
           </Typography>
           <Stack direction="row" spacing={2} justifyContent="center" margin="20px">
@@ -614,7 +614,7 @@ const OrderDetail = () => {
             </Stack>
             <Image width={50} height={50} src="/safebox-close.svg" alt="" />
           </Stack>
-          <Typography variant="body1" color="#FFBF00" align="center">
+          <Typography variant="body1" color="error" align="center">
             Once the order is escrowed, the status will turn green with a closed safe icon. Do not send money or goods
             until the order is escrowed, or you risk losing money.
           </Typography>
@@ -624,11 +624,11 @@ const OrderDetail = () => {
 
     if (currentData?.escrowOrder.dispute && currentData?.escrowOrder.dispute.status === DisputeStatus.Active) {
       return isArbiOrMod ? (
-        <Typography variant="body1" color="#FFBF00" align="center">
+        <Typography variant="body1" color="error" align="center">
           Please resolve the dispute
         </Typography>
       ) : (
-        <Typography variant="body1" color="#FFBF00" align="center">
+        <Typography variant="body1" color="error" align="center">
           Awating arbitrator/moderator to resolve the dispute
         </Typography>
       );
@@ -675,7 +675,7 @@ const OrderDetail = () => {
       }
 
       return isSeller ? (
-        <Typography variant="body1" color="#FFBF00" align="center">
+        <Typography variant="body1" color="error" align="center">
           Only release the escrowed funds once you have confirmed that the buyer has completed the payment or
           goods/services.
         </Typography>

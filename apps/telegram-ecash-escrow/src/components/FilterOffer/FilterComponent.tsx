@@ -47,7 +47,7 @@ const WrapFilter = styled('div')(({ theme }) => ({
     justifyContent: 'space-between',
 
     '.group-btn': {
-      width: '80%',
+      width: '100%',
       display: 'flex',
 
       '.type-buy-btn': {
@@ -319,7 +319,7 @@ const FilterComponent = () => {
               color="info"
               onClick={() => handleSetBuyOffer(false)} // want to buy => sellOffer
             >
-              Buy
+              Buy {COIN.XEC}
             </Button>
             <Button
               className={`type-sell-btn ${isBuyOffer ? '' : 'inactive'}`}
@@ -327,10 +327,10 @@ const FilterComponent = () => {
               color="info"
               onClick={() => handleSetBuyOffer(true)} // want to sell => buyOffer
             >
-              Sell
+              Sell {COIN.XEC}
             </Button>
           </div>
-          <div className="select-coin">
+          {/* <div className="select-coin">
             <Select
               variant="filled"
               inputProps={null}
@@ -341,7 +341,7 @@ const FilterComponent = () => {
             >
               <MenuItem value={COIN.XEC}>{COIN.XEC}</MenuItem>
             </Select>
-          </div>
+          </div> */}
         </div>
         <div className="filter-label">
           <Button variant="contained" color="success">

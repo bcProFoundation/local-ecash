@@ -1,8 +1,8 @@
 import { COIN, coinInfo } from '@bcpros/lixi-models';
 import { OfferFilterInput, cashMethodsNode } from '@bcpros/redux-store';
 import { Script, Tx } from 'ecash-lib';
-import { COIN_OTHERS } from './constants';
 import * as _ from 'lodash';
+import { COIN_OTHERS } from './constants';
 
 export function serializeTransaction(tx: Tx): string {
   return JSON.stringify(tx, (key, value) => {
