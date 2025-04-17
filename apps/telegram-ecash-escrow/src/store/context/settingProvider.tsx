@@ -59,7 +59,7 @@ export function SettingProvider({ children }) {
       const settings = await getAllSetting();
       setAllSettings(settings);
     })();
-  }, []);
+  }, [setting?.usePublicLocalUserName]);
 
   //get setting
   useEffect(() => {

@@ -60,7 +60,7 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
 
   '.MuiDialogActions-root': {
     padding: '0',
-    flexDirection: 'column',
+    flexDirection: 'row',
     alignItems: 'flex-start',
 
     '.group-btn': {
@@ -144,12 +144,12 @@ const SortOfferModal: React.FC<SortOfferModalProps> = () => {
     dispatch(closeModal());
   };
 
-  function handleSort(): void {
+  function handleSort(isReset = false): void {
     const offerFilterInput: OfferFilterInput = {
       ...offerFilterConfig,
       offerOrder: {
-        field: offerOrderField,
-        direction: offerOrderDirection
+        field: isReset ? OfferOrderField.Relevance : offerOrderField,
+        direction: isReset ? OrderDirection.Desc : offerOrderDirection
       }
     };
 
@@ -201,7 +201,10 @@ const SortOfferModal: React.FC<SortOfferModalProps> = () => {
         </div>
       </DialogContent>
       <DialogActions>
-        <Button className="create-sort-btn" color="info" variant="contained" onClick={() => handleSort()}>
+        <Button fullWidth color="info" variant="contained" onClick={() => handleSort(true)}>
+          Reset
+        </Button>
+        <Button fullWidth color="info" variant="contained" onClick={() => handleSort()}>
           Apply
         </Button>
       </DialogActions>

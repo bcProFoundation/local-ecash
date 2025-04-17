@@ -5,7 +5,13 @@ import { LIST_BANK } from '@/src/store/constants/list-bank';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { UtxoContext } from '@/src/store/context/utxoProvider';
 import { Escrow, buyerDepositFee, splitUtxos } from '@/src/store/escrow';
-import { convertXECToSatoshi, estimatedFee, formatNumber, getNumberFromFormatNumber } from '@/src/store/util';
+import {
+  convertXECToSatoshi,
+  estimatedFee,
+  formatNumber,
+  getNumberFromFormatNumber,
+  getOrderLimitText
+} from '@/src/store/util';
 import { BankInfoInput, COIN, CreateEscrowOrderInput, PAYMENT_METHOD, coinInfo } from '@bcpros/lixi-models';
 import {
   OfferType,
@@ -799,12 +805,15 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                     },
                     validate: value => {
                       const numberValue = getNumberFromFormatNumber(value);
-                      const minValue = post.postOffer.orderLimitMin;
-                      const maxValue = post.postOffer.orderLimitMax;
+                      const minValue = post?.postOffer?.orderLimitMin;
+                      const maxValue = post?.postOffer?.orderLimitMax;
                       if (numberValue < 0) return 'XEC amount must be greater than 0!';
-                      if (numberValue < minValue || numberValue > maxValue)
-                        return `Amount must between ${formatNumber(minValue)} - ${formatNumber(maxValue)}`;
                       if (amountXEC < 5.46) return `You need to buy amount greater than 5.46 XEC`;
+
+                      if (minValue || maxValue) {
+                        if (numberValue < minValue || numberValue > maxValue)
+                          return `Amount must between ${formatNumber(minValue)} - ${formatNumber(maxValue)}`;
+                      }
 
                       return true;
                     }
@@ -821,9 +830,11 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                       value={value}
                       name={name}
                       inputRef={ref}
-                      placeholder={
-                        formatNumber(post.postOffer.orderLimitMin) + ' - ' + formatNumber(post.postOffer.orderLimitMax)
-                      }
+                      placeholder={getOrderLimitText(
+                        post?.postOffer?.orderLimitMin,
+                        post?.postOffer?.orderLimitMax,
+                        ''
+                      )}
                       className="form-input"
                       id="amount"
                       label="Amount"

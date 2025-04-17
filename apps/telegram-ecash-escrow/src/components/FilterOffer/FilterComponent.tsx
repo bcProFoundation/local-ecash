@@ -1,8 +1,11 @@
 import {
+  ALL,
   ALL_CURRENCIES,
   AllPaymentMethodIds,
   AllPaymentMethodIdsFiat,
   COIN_OTHERS,
+  COIN_USD_STABLECOIN_TICKER,
+  LIST_USD_STABLECOIN,
   NAME_PAYMENT_METHOD
 } from '@/src/store/constants';
 import { FilterCurrencyType } from '@/src/store/type/types';
@@ -16,7 +19,16 @@ import {
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
 import { ArrowDropDown, Close } from '@mui/icons-material';
-import { Button, IconButton, InputAdornment, MenuItem, Select, TextField, Typography } from '@mui/material';
+import {
+  Button,
+  IconButton,
+  InputAdornment,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+  TextField,
+  Typography
+} from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { debounce } from 'lodash';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -35,7 +47,7 @@ const WrapFilter = styled('div')(({ theme }) => ({
     justifyContent: 'space-between',
 
     '.group-btn': {
-      width: '80%',
+      width: '100%',
       display: 'flex',
 
       '.type-buy-btn': {
@@ -142,11 +154,26 @@ const FilterComponent = () => {
     return false;
   };
 
+  const showTickerCryptoUSDStablecoin =
+    offerFilterConfig?.paymentMethodIds.length === 1 &&
+    offerFilterConfig?.paymentMethodIds[0] === PAYMENT_METHOD.CRYPTO &&
+    offerFilterConfig?.coin === COIN_USD_STABLECOIN_TICKER;
+
   const handleSetBuyOffer = (isBuyOffer: boolean) => {
     setIsBuyOffer(isBuyOffer);
     const offerFilterInput: OfferFilterInput = {
       ...offerFilterConfig,
       isBuyOffer: isBuyOffer
+    };
+
+    dispatch(saveOfferFilterConfig(offerFilterInput));
+  };
+
+  const handleFilterUSDStablecoin = (e: SelectChangeEvent<string>) => {
+    const ticker = e?.target?.value;
+    const offerFilterInput: OfferFilterInput = {
+      ...offerFilterConfig,
+      coinOthers: ticker === ALL ? null : ticker
     };
 
     dispatch(saveOfferFilterConfig(offerFilterInput));
@@ -292,7 +319,7 @@ const FilterComponent = () => {
               color="info"
               onClick={() => handleSetBuyOffer(false)} // want to buy => sellOffer
             >
-              Buy
+              Buy {COIN.XEC}
             </Button>
             <Button
               className={`type-sell-btn ${isBuyOffer ? '' : 'inactive'}`}
@@ -300,10 +327,10 @@ const FilterComponent = () => {
               color="info"
               onClick={() => handleSetBuyOffer(true)} // want to sell => buyOffer
             >
-              Sell
+              Sell {COIN.XEC}
             </Button>
           </div>
-          <div className="select-coin">
+          {/* <div className="select-coin">
             <Select
               variant="filled"
               inputProps={null}
@@ -314,7 +341,7 @@ const FilterComponent = () => {
             >
               <MenuItem value={COIN.XEC}>{COIN.XEC}</MenuItem>
             </Select>
-          </div>
+          </div> */}
         </div>
         <div className="filter-label">
           <Button variant="contained" color="success">
@@ -428,6 +455,30 @@ const FilterComponent = () => {
                 }}
               />
             </div>
+          )}
+
+          {showTickerCryptoUSDStablecoin && (
+            <Select
+              className="form-input"
+              variant="outlined"
+              onChange={e => handleFilterUSDStablecoin(e)}
+              value={offerFilterConfig?.coinOthers ?? ALL}
+              placeholder="All"
+              id="coinOthers"
+              labelId="coinOthers-label"
+              style={{ width: '50%' }}
+            >
+              <MenuItem key={ALL} value={ALL}>
+                ALL
+              </MenuItem>
+              {LIST_USD_STABLECOIN.map(item => {
+                return (
+                  <MenuItem key={item.id} value={item.name}>
+                    {item.name}
+                  </MenuItem>
+                );
+              })}
+            </Select>
           )}
         </div>
       </WrapFilter>

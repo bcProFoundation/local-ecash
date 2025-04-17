@@ -3,7 +3,6 @@
 import Header from '@/src/components/Header/Header';
 import OfferItem from '@/src/components/OfferItem/OfferItem';
 import {
-  OfferFilterInput,
   OfferOrderField,
   OrderDirection,
   TimelineQueryItem,
@@ -11,7 +10,6 @@ import {
   getOfferFilterConfig,
   offerApi,
   openModal,
-  saveOfferFilterConfig,
   setNewPostAvailable,
   useInfiniteOfferFilterDatabaseQuery,
   useSliceDispatch as useLixiSliceDispatch,
@@ -21,7 +19,7 @@ import styled from '@emotion/styled';
 import CachedRoundedIcon from '@mui/icons-material/CachedRounded';
 import SortIcon from '@mui/icons-material/Sort';
 import { Badge, Box, CircularProgress, Skeleton, Slide, Typography } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import FilterComponent from '../components/FilterOffer/FilterComponent';
 import MobileLayout from '../components/layout/MobileLayout';
@@ -119,18 +117,12 @@ export default function Home() {
     dispatch(openModal('SortOfferModal', {}));
   };
 
-  // reset order offer when reload
-  useEffect(() => {
-    const offerFilterInput: OfferFilterInput = {
-      ...offerFilterConfig,
-      offerOrder: {
-        field: OfferOrderField.Relevance,
-        direction: OrderDirection.Desc
-      }
-    };
-
-    dispatch(saveOfferFilterConfig(offerFilterInput));
-  }, []);
+  const isSorted = useMemo(
+    () =>
+      offerFilterConfig?.offerOrder?.direction !== OrderDirection.Desc ||
+      offerFilterConfig?.offerOrder?.field !== OfferOrderField.Relevance,
+    [offerFilterConfig?.offerOrder]
+  );
 
   return (
     <MobileLayout>
@@ -148,7 +140,12 @@ export default function Home() {
           <Section>
             <Typography className="title-offer" variant="body1" component="div">
               <span>Offers</span>
-              {isShowSortIcon && <SortIcon style={{ cursor: 'pointer' }} onClick={openSortDialog} />}
+              {isShowSortIcon && (
+                <SortIcon
+                  style={{ cursor: 'pointer', color: `${isSorted ? '#0076C4' : ''}` }}
+                  onClick={openSortDialog}
+                />
+              )}
               {(stateName || countryName || cityName) && (
                 <span>{[cityName, stateName, countryName].filter(Boolean).join(', ')}</span>
               )}

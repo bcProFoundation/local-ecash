@@ -90,6 +90,17 @@ export const LIST_COIN = [
   }
 ];
 
+export const LIST_USD_STABLECOIN = [
+  {
+    id: 1,
+    name: 'USDT'
+  },
+  {
+    id: 2,
+    name: 'USDC'
+  }
+];
+
 export const THEMES_TYPE = {
   LIGHT: 'light',
   DARK: 'dark',
@@ -117,3 +128,4 @@ export const NAME_PAYMENT_METHOD = {
 
 export const ALL_CURRENCIES = 'All currencies';
 export const ALL_CATEGORIES = 'All categories';
+export const ALL = 'All';

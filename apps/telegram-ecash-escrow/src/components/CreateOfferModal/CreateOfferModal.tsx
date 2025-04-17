@@ -322,8 +322,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
 
   const handleCreateOffer = async (data, isHidden) => {
     setLoading(true);
-    const minNum = getNumberFromFormatNumber(data.min) || fixAmount;
-    const maxNum = getNumberFromFormatNumber(data.max) || fixAmount;
+    const minNum = getNumberFromFormatNumber(data.min) || null;
+    const maxNum = getNumberFromFormatNumber(data.max) || null;
 
     const input = {
       message: data.message,
@@ -1201,17 +1201,22 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
             </Typography>
           </Grid>
         )}
-        <Grid item xs={12}>
-          <Typography variant="body1">
-            <span className="prefix">Order limit ({coinCurrency}): </span> {getValues('min') || formatNumber(fixAmount)}{' '}
-            {coinCurrency} - {getValues('max') || formatNumber(fixAmount)} {coinCurrency}
-          </Typography>
-        </Grid>
-        <Grid item xs={12}>
-          <Typography variant="body1">
-            <span className="prefix">Offer note: </span> {getValues('note')}
-          </Typography>
-        </Grid>
+        {(getValues('min') || getValues('max')) && (
+          <Grid item xs={12}>
+            <Typography variant="body1">
+              <span className="prefix">Order limit ({coinCurrency}): </span> {getValues('min')} {coinCurrency} -{' '}
+              {getValues('max')} {coinCurrency}
+            </Typography>
+          </Grid>
+        )}
+
+        {getValues('note') && (
+          <Grid item xs={12}>
+            <Typography variant="body1">
+              <span className="prefix">Offer note: </span> {getValues('note')}
+            </Typography>
+          </Grid>
+        )}
       </Grid>
     </div>
   );
