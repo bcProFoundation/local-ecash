@@ -507,8 +507,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
         <Grid item xs={12}>
           <Typography fontStyle={'italic'} className="heading" variant="body2">
             {isBuyOffer
-              ? 'You are buying XEC. Your offer will be listed for users who want to sell XEC.'
-              : 'You are selling XEC. Your offer will be listed for users who want to buy XEC.'}
+              ? 'You are buying XEC. Your offer will be listed for users who want to SELL XEC.'
+              : 'You are selling XEC. Your offer will be listed for users who want to BUY XEC.'}
           </Typography>
         </Grid>
 

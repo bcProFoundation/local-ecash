@@ -184,7 +184,7 @@ export default function MyOffer() {
                             </Typography>
                           ) : (
                             <Typography style={{ textAlign: 'center', marginTop: '2rem' }}>
-                              No active offer here
+                              No more active offers here
                             </Typography>
                           )
                         }
