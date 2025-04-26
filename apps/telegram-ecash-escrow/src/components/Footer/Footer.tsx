@@ -123,7 +123,6 @@ export default function Footer() {
     }
 
     if (path === '/' && currentPath === '/') {
-
       console.log('reset home api query');
       dispatch(offerApi.api.util.resetApiState());
 

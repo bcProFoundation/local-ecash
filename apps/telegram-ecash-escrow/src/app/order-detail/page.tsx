@@ -649,7 +649,7 @@ const OrderDetail = () => {
             <Typography variant="body1" color="#66bb6a" align="center">
               {`${currentData.escrowOrder.amount} XEC has been released.`}
               <br />
-              {`${isSeller ? 'The buyer' : 'You'} can claim the fund now.`}
+              {`${isSeller ? 'The buyer' : 'You'} can claim the funds now.`}
             </Typography>
           </React.Fragment>
         );
@@ -668,7 +668,7 @@ const OrderDetail = () => {
             <Typography variant="body1" color="#66bb6a" align="center">
               {`${currentData.escrowOrder.amount} XEC has been returned.`}
               <br />
-              {`${isSeller ? 'You' : 'The seller'} can now claim the fund.`}
+              {`${isSeller ? 'You' : 'The seller'} can now claim the funds.`}
             </Typography>
           </React.Fragment>
         );
