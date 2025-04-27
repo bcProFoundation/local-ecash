@@ -40,8 +40,7 @@ const WrapFilter = styled('div')(({ theme }) => ({
   marginBottom: '16px',
 
   '.filter-buy-sell': {
-    padding: '10px',
-    background: theme.custom.bgQuaternary,
+    padding: '10px 0 10px',
     display: 'flex',
     gap: '10px',
     justifyContent: 'space-between',
@@ -96,8 +95,7 @@ const WrapFilter = styled('div')(({ theme }) => ({
     display: 'flex',
     justifyContent: 'space-between',
     gap: '16px',
-    padding: '10px',
-    background: theme.custom.bgTertiary,
+    padding: '10px 0 10px',
 
     '.filter-currency, .filter-payment-method': {
       width: '50%'

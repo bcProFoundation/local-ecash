@@ -189,6 +189,46 @@ export default function Setting() {
 
           <div className="setting-item">
             <Typography variant="subtitle1" className="title">
+              Theme
+            </Typography>
+            <NativeSelect
+              fullWidth
+              id="select-theme"
+              defaultValue={isSystemTheme ? THEMES_TYPE.SYSTEM : currentTheme}
+              onChange={e => handleChangeTheme(e.target.value)}
+            >
+              {themeOptions.map(item => {
+                return (
+                  <option key={item.id} value={item.value}>
+                    {item.label}
+                  </option>
+                );
+              })}
+            </NativeSelect>
+          </div>
+
+          <div className="setting-item">
+            <Typography variant="subtitle1" className="title">
+              Listing Identity
+            </Typography>
+            <NativeSelect
+              fullWidth
+              id="select-identity"
+              defaultValue={setting?.usePublicLocalUserName ? IDENTITY_TYPE.ANONYMOUS : IDENTITY_TYPE.TELEGRAM}
+              onChange={e => handleChangeIdentity(e.target.value)}
+            >
+              {identityOptions.map(item => {
+                return (
+                  <option key={item.id} value={item.value}>
+                    {item.label}
+                  </option>
+                );
+              })}
+            </NativeSelect>
+          </div>
+
+          <div className="setting-item">
+            <Typography variant="subtitle1" className="title">
               Backup your account
             </Typography>
             <Alert icon={<CheckCircleOutline className="ico-alert" fontSize="inherit" />} severity="warning">
@@ -244,46 +284,6 @@ export default function Setting() {
                 </Button>
               </AccordionDetails>
             </Accordion>
-          </div>
-
-          <div className="setting-item">
-            <Typography variant="subtitle1" className="title">
-              Theme
-            </Typography>
-            <NativeSelect
-              fullWidth
-              id="select-theme"
-              defaultValue={isSystemTheme ? THEMES_TYPE.SYSTEM : currentTheme}
-              onChange={e => handleChangeTheme(e.target.value)}
-            >
-              {themeOptions.map(item => {
-                return (
-                  <option key={item.id} value={item.value}>
-                    {item.label}
-                  </option>
-                );
-              })}
-            </NativeSelect>
-          </div>
-
-          <div className="setting-item">
-            <Typography variant="subtitle1" className="title">
-              Listing Identity
-            </Typography>
-            <NativeSelect
-              fullWidth
-              id="select-identity"
-              defaultValue={setting?.usePublicLocalUserName ? IDENTITY_TYPE.ANONYMOUS : IDENTITY_TYPE.TELEGRAM}
-              onChange={e => handleChangeIdentity(e.target.value)}
-            >
-              {identityOptions.map(item => {
-                return (
-                  <option key={item.id} value={item.value}>
-                    {item.label}
-                  </option>
-                );
-              })}
-            </NativeSelect>
           </div>
 
           {/*TODO: delete account*/}
