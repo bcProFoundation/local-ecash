@@ -1,6 +1,6 @@
 'use client';
 
-import { COIN_OTHERS, COIN_USD_STABLECOIN_TICKER } from '@/src/store/constants';
+import { COIN_OTHERS, COIN_USD_STABLECOIN_TICKER, securityDepositPercentage } from '@/src/store/constants';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { COIN, PAYMENT_METHOD, coinInfo } from '@bcpros/lixi-models';
 import {
@@ -16,7 +16,7 @@ import {
 import { Button, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { usePathname, useRouter } from 'next/navigation';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 
 const OrderDetailWrap = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -63,6 +63,12 @@ const OrderDetailWrap = styled('div')(({ theme }) => ({
     cursor: 'pointer'
   },
 
+  '.wrap-order-amount': {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px'
+  },
+
   '.order-id': {
     display: 'inline-block',
     whiteSpace: 'nowrap',
@@ -99,7 +105,7 @@ const OrderDetailInfo = ({
 
   const router = useRouter();
   const pathname = usePathname();
-  const { setSetting, allSettings } = useContext(SettingContext);
+  const { allSettings } = useContext(SettingContext);
 
   const [rateData, setRateData] = useState(null);
   const [marginCurrentPrice, setMarginCurrentPrice] = useState(0);
@@ -214,6 +220,15 @@ const OrderDetailInfo = ({
     return isBuyOffer && order?.escrowOrderStatus === EscrowOrderStatus.Pending && showMargin();
   };
 
+  const calDisputeFee = useMemo(() => {
+    const amountOrder = isShowDynamicValue() ? amountXEC : order.amount;
+
+    const fee1Percent = parseFloat((amountOrder / 100).toFixed(2));
+    const dustXEC = coinInfo[COIN.XEC].dustSats / Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
+
+    return Math.max(fee1Percent, dustXEC);
+  }, [order.amount, isShowDynamicValue() ? amountXEC : null]);
+
   const paymentDetailInfo = () => {
     if (isBuyOffer) {
       if (item.paymentMethod?.id === PAYMENT_METHOD.BANK_TRANSFER) {
@@ -277,18 +292,9 @@ const OrderDetailInfo = ({
         <div className="wrap-order-id">
           <span className="prefix">No: </span>
           <span className="order-id">{order.id}</span>
-        </div>
-        <div className="order-type">
-          {order?.sellerAccount.id === selectedAccount?.id && (
-            <Button className="btn-order-type" size="small" color="error" variant="outlined">
-              Sell
-            </Button>
-          )}
-          {order?.buyerAccount.id === selectedAccount?.id && (
-            <Button className="btn-order-type" size="small" color="success" variant="outlined">
-              Buy
-            </Button>
-          )}
+          <span className="prefix">
+            {order?.markAsPaid && '(Mark as paid)'}
+          </span>
         </div>
       </Typography>
       <Typography variant="body1">
@@ -319,14 +325,38 @@ const OrderDetailInfo = ({
           {isShowDynamicValue() ? effectiveTextAmount : order?.price}
         </Typography>
       )}
-      <Typography variant="body1">
-        <span className="prefix">Order amount:</span> {isShowDynamicValue() ? effectiveAmountXEC : order?.amount}{' '}
-        {coinInfo[COIN.XEC].ticker}
+      <Typography className="wrap-order-amount" variant="body1">
+        <div className="order-amount">
+          <span className="prefix">Order amount:</span> {isShowDynamicValue() ? effectiveAmountXEC : order?.amount}{' '}
+          {coinInfo[COIN.XEC].ticker}
+        </div>
+        <div className="order-type">
+          {order?.sellerAccount.id === selectedAccount?.id && (
+            <Button className="btn-order-type" size="small" color="error" variant="outlined">
+              Sell
+            </Button>
+          )}
+          {order?.buyerAccount.id === selectedAccount?.id && (
+            <Button className="btn-order-type" size="small" color="success" variant="outlined">
+              Buy
+            </Button>
+          )}
+        </div>
       </Typography>
       {showMargin() && (
         <Typography variant="body1">
           <span className="prefix">Payment amount:</span> {order?.amountCoinOrCurrency}{' '}
           {order?.escrowOffer?.coinPayment ?? order?.escrowOffer?.localCurrency ?? 'XEC'}
+        </Typography>
+      )}
+      <Typography variant="body1">
+        <span className="prefix">Seller security deposit ({securityDepositPercentage}%):</span> {calDisputeFee}{' '}
+        {coinInfo[COIN.XEC].ticker}
+      </Typography>
+      {order?.buyerDepositTx && (
+        <Typography variant="body1">
+          <span className="prefix">Buyer security deposit ({securityDepositPercentage}%):</span> {calDisputeFee}{' '}
+          {coinInfo[COIN.XEC].ticker}
         </Typography>
       )}
       <Typography className="payment-method-wrap" variant="body1">

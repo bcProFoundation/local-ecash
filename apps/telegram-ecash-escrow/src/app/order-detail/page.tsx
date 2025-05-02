@@ -8,7 +8,7 @@ import QRCode from '@/src/components/QRcode/QRcode';
 import TelegramButton from '@/src/components/TelegramButton/TelegramButton';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
 import CustomToast from '@/src/components/Toast/CustomToast';
-import { COIN_OTHERS } from '@/src/store/constants';
+import { COIN_OTHERS, securityDepositPercentage } from '@/src/store/constants';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { UtxoContext } from '@/src/store/context/utxoProvider';
 import {
@@ -110,17 +110,17 @@ const OrderDetail = () => {
   const { totalValidAmount, totalValidUtxos } = useContext(UtxoContext);
 
   const CLAIM_BACK_WALLET = {
-    label: '💼 Claim my security deposit back to my wallet',
+    label: `💼 Claim my security deposit (${securityDepositPercentage}%) back to my wallet`,
     value: 1
   };
 
   const DONATE_ARBITRATOR = {
-    label: '⚖️ Donate my security deposit to Arbitrator',
+    label: `⚖️ Donate my security deposit (${securityDepositPercentage}%) to Arbitrator`,
     value: 2
   };
 
   const DONATE_LOCAL_ECASH = {
-    label: '💙 Donate my security deposit to Local eCash',
+    label: `💙 Donate my security deposit (${securityDepositPercentage}%) to Local eCash`,
     value: 3
   };
 
@@ -542,6 +542,27 @@ const OrderDetail = () => {
     setOpenToastCopySuccess(true);
   };
 
+  const safeComponent = (content: string) => {
+    return (
+      <React.Fragment>
+        <Stack direction="row" spacing={2} justifyContent="center" margin="20px">
+          <Image width={50} height={50} src="/safebox-open.svg" alt="" />
+          <Stack direction="row" spacing={0} justifyContent="center" color="white" alignItems="center">
+            <HorizontalRuleIcon className="icon-rule" />
+            <HorizontalRuleIcon className="icon-rule" />
+            <ClearIcon color="error" />
+            <HorizontalRuleIcon className="icon-rule" />
+            <TrendingFlatIcon className="icon-rule" />
+          </Stack>
+          <Image width={50} height={50} src="/safebox-close.svg" alt="" />
+        </Stack>
+        <Typography variant="body1" color="error" align="center">
+          {content}
+        </Typography>
+      </React.Fragment>
+    );
+  };
+
   const escrowStatus = () => {
     const isSeller = selectedWalletPath?.hash160 === currentData?.escrowOrder.sellerAccount.hash160;
     const isArbiOrMod =
@@ -586,7 +607,9 @@ const OrderDetail = () => {
                   </p>
                 </div>
               ) : (
-                'Please escrow the order'
+                safeComponent(
+                  'Payment will only be made once the order is escrowed. You may want to chat with the buyer for further agreement and details prior to escrow.'
+                )
               )}
               {InfoEscrow()}
             </div>
@@ -603,21 +626,9 @@ const OrderDetail = () => {
           <Typography variant="body1" color="error" align="center">
             Pending Escrow!
           </Typography>
-          <Stack direction="row" spacing={2} justifyContent="center" margin="20px">
-            <Image width={50} height={50} src="/safebox-open.svg" alt="" />
-            <Stack direction="row" spacing={0} justifyContent="center" color="white" alignItems="center">
-              <HorizontalRuleIcon className="icon-rule" />
-              <HorizontalRuleIcon className="icon-rule" />
-              <ClearIcon color="error" />
-              <HorizontalRuleIcon className="icon-rule" />
-              <TrendingFlatIcon className="icon-rule" />
-            </Stack>
-            <Image width={50} height={50} src="/safebox-close.svg" alt="" />
-          </Stack>
-          <Typography variant="body1" color="error" align="center">
-            Once the order is escrowed, the status will turn green with a closed safe icon. Do not send money or goods
-            until the order is escrowed, or you risk losing money.
-          </Typography>
+          {safeComponent(
+            ' Once the order is escrowed, the status will turn green with a closed safe icon. Do not send money or goods until the order is escrowed, or you risk losing money.'
+          )}
         </React.Fragment>
       );
     }
@@ -854,19 +865,13 @@ const OrderDetail = () => {
         <div>
           {telegramButton(true, 'Chat with seller for payment details')}
           <div className="group-button-wrap">
-            {isBuyOffer ? (
-              currentData.escrowOrder?.markAsPaid ? (
-                <Button color="warning" variant="contained" disabled={loading} onClick={() => handleCreateDispute()}>
-                  Dispute
-                </Button>
-              ) : (
-                <Button color="warning" variant="contained" disabled={loading} onClick={() => handleMarkAsPaid()}>
-                  Mark as paid
-                </Button>
-              )
-            ) : (
+            {currentData.escrowOrder?.markAsPaid ? (
               <Button color="warning" variant="contained" disabled={loading} onClick={() => handleCreateDispute()}>
                 Dispute
+              </Button>
+            ) : (
+              <Button color="warning" variant="contained" disabled={loading} onClick={() => handleMarkAsPaid()}>
+                Mark as paid
               </Button>
             )}
             <Button
@@ -1005,7 +1010,7 @@ const OrderDetail = () => {
           Your wallet: {totalBalanceFormat} {COIN.XEC}
         </Typography>
         <Typography>
-          Security deposit (1%): {formatNumber(fee1Percent)} {COIN.XEC}
+          Security deposit ({securityDepositPercentage}%): {formatNumber(fee1Percent)} {COIN.XEC}
         </Typography>
         <Typography>
           Withdraw fee: {formatNumber(estimatedFee(currentData?.escrowOrder.escrowScript))} {COIN.XEC}
