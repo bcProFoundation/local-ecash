@@ -2,7 +2,6 @@
 
 import { styled } from '@mui/material/styles';
 
-import { securityDepositPercentage } from '@/src/store/constants';
 import { ChevronLeft } from '@mui/icons-material';
 import {
   Button,
@@ -10,22 +9,18 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  FormControlLabel,
   IconButton,
-  Radio,
-  RadioGroup,
   Slide,
-  Typography,
-  useTheme
+  Typography
 } from '@mui/material';
 import { TransitionProps } from '@mui/material/transitions';
-import React, { useState } from 'react';
+import React from 'react';
 
 interface ConfirmCancelModalProps {
   isOpen: boolean;
   onDismissModal?: (value: boolean) => void;
   onConfirmClick?: () => void;
-  returnAction: (value: boolean) => void;
+  returnAction: () => void;
   isBuyerDeposit: boolean;
   disputeFee: number;
 }
@@ -96,20 +91,6 @@ const Transition = React.forwardRef(function Transition(
 });
 
 const ConfirmCancelModal: React.FC<ConfirmCancelModalProps> = props => {
-  const theme = useTheme();
-  const [optionDonate, setOptionDonate] = useState(null);
-
-  const OptionDonate = [
-    {
-      label: `💼 Claim my security deposit (${securityDepositPercentage}%) back to my wallet`,
-      value: false
-    },
-    {
-      label: `💙 Donate my security deposit (${securityDepositPercentage}%) to Local eCash`,
-      value: true
-    }
-  ];
-
   return (
     <React.Fragment>
       <StyledDialog
@@ -129,26 +110,6 @@ const ConfirmCancelModal: React.FC<ConfirmCancelModalProps> = props => {
                 Your order will be cancelled without a dispute. You will now be able to claim back your security deposit
                 ({props.disputeFee} XEC).
               </Typography>
-              <RadioGroup style={{ marginTop: '10px' }} sx={{ gap: '8px' }}>
-                {OptionDonate.map(item => {
-                  return (
-                    <FormControlLabel
-                      onClick={() => {
-                        setOptionDonate(item.value);
-                      }}
-                      key={item.label}
-                      value={item.value}
-                      control={<Radio />}
-                      label={item.label}
-                      checked={item.value === optionDonate}
-                    />
-                  );
-                })}
-              </RadioGroup>
-              <Typography sx={{ fontSize: '12px', marginTop: '10px' }} fontStyle="italic">
-                Optional: This service has been brought to you free of charge. We would appreciate a donation to
-                continue maintaining it.
-              </Typography>
             </React.Fragment>
           ) : (
             <Typography sx={{ fontSize: '16px', marginTop: '10px' }}>
@@ -162,7 +123,7 @@ const ConfirmCancelModal: React.FC<ConfirmCancelModalProps> = props => {
             style={{ backgroundColor: '#a41208' }}
             variant="contained"
             onClick={() => {
-              props.returnAction(optionDonate);
+              props.returnAction();
               props.onDismissModal!(false);
             }}
             autoFocus

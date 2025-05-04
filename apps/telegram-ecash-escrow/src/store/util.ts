@@ -167,3 +167,11 @@ export function formatAmountFor1MXEC(amount, marginPercentage = 0, coinCurrency 
   // Return the full formatted text
   return `${formattedAmount} ${coinCurrency} / 1M XEC`;
 }
+
+export function hexToUint8Array(hexString) {
+  if (!hexString) throw Error('Must have string');
+  return Buffer.from(hexString ?? '', 'hex') as unknown as Uint8Array;
+}
+
+export const hexDecode = hexStr => Buffer.from(hexStr, 'hex').toString();
+export const hexEncode = data => Buffer.from(data).toString('hex');

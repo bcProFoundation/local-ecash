@@ -22,6 +22,10 @@ import React from 'react';
 interface ConfirmDepositModalProps {
   isOpen: boolean;
   depositSecurity: number;
+  escrowCalculations: {
+    feeBuyerDepositFee: number;
+    totalAmount: number;
+  };
   isLoading: boolean;
   onDismissModal?: (value: boolean) => void;
   depositFee?: (isDeposit: boolean) => void;
@@ -108,6 +112,12 @@ const ConfirmDepositModal: React.FC<ConfirmDepositModalProps> = props => {
           <Typography variant="body1" sx={{ marginTop: '10px', fontWeight: 'bold' }}>
             Security deposit ({securityDepositPercentage}%): {formatNumber(props.depositSecurity)} {COIN.XEC}
           </Typography>
+          <Typography variant="body1" sx={{ marginTop: '5px', fontWeight: 'bold' }}>
+            Withdraw fee: {formatNumber(props.escrowCalculations.feeBuyerDepositFee)} {COIN.XEC}
+          </Typography>
+          <Typography variant="body1" sx={{ marginTop: '5px', fontWeight: 'bold' }}>
+            Total: {formatNumber(props.escrowCalculations.totalAmount)} {COIN.XEC}
+          </Typography>
         </DialogContent>
         <DialogActions>
           <Button
@@ -132,7 +142,7 @@ const ConfirmDepositModal: React.FC<ConfirmDepositModalProps> = props => {
             disabled={props.isLoading}
             autoFocus
           >
-            Deposit {formatNumber(props.depositSecurity)} {COIN.XEC}
+            Deposit {formatNumber(props.escrowCalculations.totalAmount)} {COIN.XEC}
           </Button>
         </DialogActions>
       </StyledDialog>

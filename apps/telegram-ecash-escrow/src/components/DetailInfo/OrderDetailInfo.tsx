@@ -86,6 +86,24 @@ const OrderDetailWrap = styled('div')(({ theme }) => ({
   }
 }));
 
+export const EscrowAddressLink = (name, escrowAddress) => (
+  <Typography>
+    <span className="prefix">{name}: </span>
+    <a
+      style={{
+        color: 'cornflowerblue',
+        wordWrap: 'break-word',
+        maxWidth: '100%',
+        display: 'inline-block'
+      }}
+      href={`${coinInfo[COIN.XEC].blockExplorerUrl}/address/${escrowAddress}`}
+      target="_blank"
+    >
+      <span>{escrowAddress}</span>
+    </a>
+  </Typography>
+);
+
 type OrderItemProps = {
   item?: EscrowOrderQueryItem;
   amountXEC?: number;
@@ -247,7 +265,7 @@ const OrderDetailInfo = ({
       return 'Escrowed';
     }
     const statusTransformations = {
-      [EscrowOrderStatus.Cancel]: 'Canceled',
+      [EscrowOrderStatus.Cancel]: 'Cancelled',
       [EscrowOrderStatus.Complete]: 'Completed'
     };
 
@@ -375,21 +393,14 @@ const OrderDetailInfo = ({
         <span className="prefix">Status: </span>
         {orderStatus()}
       </Typography>
-      <Typography>
-        <span className="prefix">Escrow Address: </span>
-        <a
-          style={{
-            color: 'cornflowerblue',
-            wordWrap: 'break-word',
-            maxWidth: '100%',
-            display: 'inline-block'
-          }}
-          href={`${coinInfo[COIN.XEC].blockExplorerUrl}/address/${order?.escrowAddress}`}
-          target="_blank"
-        >
-          <span>{order?.escrowAddress}</span>
-        </a>
-      </Typography>
+      {order?.escrowOrderStatus !== EscrowOrderStatus.Pending && (
+        <React.Fragment>
+          {EscrowAddressLink('Escrow address', order?.escrowAddress)}
+          {EscrowAddressLink('Seller security deposit address', order?.escrowFeeAddress)}
+          {order?.buyerDepositTx &&
+            EscrowAddressLink('Buyer security deposit address', order?.escrowBuyerDepositFeeAddress)}
+        </React.Fragment>
+      )}
       {paymentDetailInfo() !== null && (
         <Typography>
           <span className="prefix">Payment-detail: </span>
