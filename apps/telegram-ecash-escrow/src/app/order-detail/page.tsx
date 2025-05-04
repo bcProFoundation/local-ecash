@@ -17,6 +17,7 @@ import {
   buildReleaseTx,
   buildReturnTx,
   BuyerReturnSignatory,
+  EscrowFee,
   ModReleaseSignatory,
   ModReturnSignatory,
   sellerBuildDepositTx,
@@ -27,6 +28,7 @@ import { ACTION } from '@/src/store/escrow/constant';
 import { deserializeTransaction, estimatedFee, formatNumber } from '@/src/store/util';
 import { COIN, coinInfo, PAYMENT_METHOD } from '@bcpros/lixi-models';
 import {
+  convertEscrowScriptHashToEcashAddress,
   DisputeStatus,
   EscrowOrderAction,
   escrowOrderApi,
@@ -86,14 +88,14 @@ const OrderDetailContent = styled('div')(({ theme }) => ({
   }
 }));
 
-const ActionStatusRelease = styled('div')(() => ({
-  '.MuiFormGroup-root': {
-    marginBottom: '5px'
-  },
-  '.MuiFormControl-root': {
-    marginBottom: '5px'
-  }
-}));
+// const ActionStatusRelease = styled('div')(() => ({
+//   '.MuiFormGroup-root': {
+//     marginBottom: '5px'
+//   },
+//   '.MuiFormControl-root': {
+//     marginBottom: '5px'
+//   }
+// }));
 
 const OrderDetail = () => {
   const dispatch = useLixiSliceDispatch();
@@ -150,11 +152,13 @@ const OrderDetail = () => {
     useEscrowOrderQuery,
     useUpdateEscrowOrderStatusMutation,
     useUpdateEscrowOrderSignatoryMutation,
+    useUpdateEscrowOrderFeeSignatoryMutation,
     useMarkAsPaidOrderMutation
   } = escrowOrderApi;
   const { currentData, isError, isSuccess } = useEscrowOrderQuery({ id: id! }, { skip: !id || !token });
   const [updateOrderTrigger] = useUpdateEscrowOrderStatusMutation();
   const [updateEscrowOrderSignatoryTrigger] = useUpdateEscrowOrderSignatoryMutation();
+  const [updateEscrowOrderFeeSignatoryTrigger] = useUpdateEscrowOrderFeeSignatoryMutation();
   const [markAsPaidOrderTrigger] = useMarkAsPaidOrderMutation();
 
   const isBuyOffer = currentData?.escrowOrder?.escrowOffer?.type === OfferType.Buy;
@@ -213,20 +217,35 @@ const OrderDetail = () => {
     setLoading(true);
 
     try {
-      const amount = totalAmountWithDepositAndEscrowFee();
+      const amount = totalAmountWithDeposit();
+      const actualFee1Percent = calDisputeFee;
 
       const sellerSk = fromHex(selectedWalletPath?.privateKey);
       const sellerPk = fromHex(selectedWalletPath?.publicKey);
+      const buyerPk = fromHex(currentData?.escrowOrder.buyerAccount.publicKey);
+      const arbiPk = fromHex(currentData?.escrowOrder.arbitratorAccount.publicKey);
+      const nonce = currentData?.escrowOrder.nonce;
       const script = Buffer.from(currentData?.escrowOrder.escrowScript as string, 'hex') as unknown as Uint8Array;
 
       const escrowScript = new Script(script);
+      const escrowFeeScript = new EscrowFee({
+        sellerPk,
+        buyerPk,
+        arbiPk,
+        nonce
+      }).script();
+
+      const escrowFeeAmount = actualFee1Percent + estimatedFee(escrowFeeScript.bytecode);
+      const escrowFeeAddress = convertEscrowScriptHashToEcashAddress(shaRmd160(escrowFeeScript.bytecode));
 
       const { txBuild, utxoRemoved } = sellerBuildDepositTx(
         totalValidUtxos,
         sellerSk,
         sellerPk,
         amount,
+        escrowFeeAmount,
         escrowScript,
+        escrowFeeScript,
         currentData?.escrowOrder.buyerDepositTx
       );
 
@@ -238,6 +257,12 @@ const OrderDetail = () => {
       }
 
       if (txid) {
+        let orderUpdateInput: UpdateEscrowOrderInput = {
+          orderId: id!,
+          status: EscrowOrderStatus.Escrow,
+          socketId: socket?.id,
+          utxoInNodeOfBuyer: utxoRemoved
+        };
         //update status
         const tx = await chronik.tx(txid);
 
@@ -251,33 +276,31 @@ const OrderDetail = () => {
 
           if (address === currentData?.escrowOrder.escrowAddress) {
             const value = outputs[i].value;
-            let sampleInput: UpdateEscrowOrderInput = {
-              orderId: id!,
-              status: EscrowOrderStatus.Escrow,
+            orderUpdateInput = {
+              ...orderUpdateInput,
               txid,
               value,
               outIdx: i,
-              utxoInNodeOfBuyer: utxoRemoved,
               socketId: socket?.id
             };
             //buy offer will change amount only when escrow, so we need to update right here (not for goods/service)
             if (isBuyOffer && showMargin()) {
-              sampleInput = {
-                ...sampleInput,
-                amount: amountXEC,
-                price: textAmountPer1MXEC
-              };
+              orderUpdateInput.amount = amountXEC;
+              orderUpdateInput.price = textAmountPer1MXEC;
             }
-            await updateOrderTrigger({
-              input: {
-                ...sampleInput
-              }
-            })
-              .unwrap()
-              .then(() => setEscrow(true))
-              .catch(() => setError(true));
+          } else if (address === escrowFeeAddress) {
+            orderUpdateInput.feeValue = outputs[i].value;
+            orderUpdateInput.feeOutIdx = i;
           }
         }
+        console.log('🚀 ~ handleSellerDepositEscrow ~ orderUpdateInput:', orderUpdateInput);
+
+        await updateOrderTrigger({
+          input: orderUpdateInput
+        })
+          .unwrap()
+          .then(() => setEscrow(true))
+          .catch(() => setError(true));
       }
     } catch (e) {
       console.log(e);
@@ -944,11 +967,10 @@ const OrderDetail = () => {
     );
   };
 
-  const totalAmountWithDepositAndEscrowFee = () => {
-    const actualFee1Percent = calDisputeFee;
+  const totalAmountWithDeposit = () => {
     const amountOrder = isShowDynamicValue() ? amountXEC : currentData?.escrowOrder.amount;
 
-    return amountOrder + actualFee1Percent + estimatedFee(currentData?.escrowOrder.escrowScript);
+    return amountOrder + estimatedFee(currentData?.escrowOrder.escrowScript);
   };
 
   const DepositQRCode = () => {
@@ -958,7 +980,7 @@ const OrderDetail = () => {
       isSeller && (
         <QRCode
           address={parseCashAddressToPrefix(COIN.XEC, selectedWalletPath?.cashAddress)}
-          amount={Number(totalAmountWithDepositAndEscrowFee().toFixed(2))}
+          amount={Number(totalAmountWithDeposit().toFixed(2))}
           width="55%"
         />
       )
@@ -966,7 +988,7 @@ const OrderDetail = () => {
   };
 
   const checkSellerEnoughFund = () => {
-    return totalValidAmount > totalAmountWithDepositAndEscrowFee();
+    return totalValidAmount > totalAmountWithDeposit();
   };
 
   const showMargin = () => {
@@ -1010,12 +1032,12 @@ const OrderDetail = () => {
         <Typography>
           Withdraw fee: {formatNumber(estimatedFee(currentData?.escrowOrder.escrowScript))} {COIN.XEC}
         </Typography>
-        <CopyToClipboard text={totalAmountWithDepositAndEscrowFee()} onCopy={handleCopyAmount}>
+        <CopyToClipboard text={totalAmountWithDeposit()} onCopy={handleCopyAmount}>
           <div>
             <Typography
               style={{ fontWeight: 'bold', fontStyle: 'italic', textDecoration: 'underline', cursor: 'pointer' }}
             >
-              Total: {formatNumber(totalAmountWithDepositAndEscrowFee())} {COIN.XEC}
+              Total: {formatNumber(totalAmountWithDeposit())} {COIN.XEC}
             </Typography>
             <span style={{ fontSize: '12px', color: 'gray' }}> (Excluding miner&apos;s fees)</span>
           </div>

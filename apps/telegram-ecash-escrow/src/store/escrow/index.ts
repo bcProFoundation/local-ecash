@@ -1,6 +1,5 @@
 import { COIN, coinInfo } from '@bcpros/lixi-models';
 import { UtxoInNode, UtxoInNodeInput } from '@bcpros/redux-store';
-import { Utxo_InNode } from 'chronik-client';
 import {
   ALL_BIP143,
   Ecc,
@@ -13,6 +12,7 @@ import {
   OP_CAT,
   OP_CHECKDATASIGVERIFY,
   OP_CHECKSIG,
+  OP_DEPTH,
   OP_DUP,
   OP_ELSE,
   OP_ENDIF,
@@ -146,6 +146,81 @@ export class Escrow {
       OP_FROMALTSTACK,
       OP_EQUALVERIFY,
       OP_CHECKSIG
+    ]);
+  }
+}
+
+export class EscrowFee {
+  public sellerPk: Uint8Array;
+  public buyerPk: Uint8Array;
+  public arbiPk: Uint8Array;
+  public nonce: string;
+
+  constructor({
+    sellerPk,
+    buyerPk,
+    arbiPk,
+    nonce
+  }: {
+    sellerPk: Uint8Array;
+    buyerPk: Uint8Array;
+    arbiPk: Uint8Array;
+    nonce: string;
+  }) {
+    this.sellerPk = sellerPk;
+    this.buyerPk = buyerPk;
+    this.arbiPk = arbiPk;
+    this.nonce = nonce;
+  }
+
+  /** Build the Script enforcing the Agora offer covenant. */
+  public script(): Script {
+    const sellerPkh = shaRmd160(this.sellerPk);
+    const buyerPkh = shaRmd160(this.buyerPk);
+    const arbiPkh = shaRmd160(this.arbiPk);
+    const nonce = strToBytes(this.nonce);
+
+    return Script.fromOps([
+      OP_DEPTH, //Count stack size
+      OP_2,
+      OP_EQUAL, // Does the input stack only have two items?
+      OP_IF, //If yes, this is the platform collecting fee; simple PKH
+      OP_DUP,
+      OP_HASH160,
+      pushBytesOp(arbiPkh), //<hash160(ArbPubKey)> # Oracle pub key
+      OP_EQUALVERIFY,
+      OP_CHECKSIG,
+      OP_ELSE, // Seller is spending a "returned" (i.e. canceled) escrow
+      OP_DUP,
+      OP_3, // = return from buyer
+      OP_EQUAL,
+      OP_IF,
+      pushBytesOp(buyerPkh), //<hash160(BuyerPubKey)> # Oracle pub key
+      OP_ELSE,
+      OP_DUP,
+      OP_4, // = return from arbitrator
+      OP_EQUALVERIFY, // must be true, else the message is unknown
+      pushBytesOp(arbiPkh), //<hash160(ArbPubKey)> # Oracle pub key
+      OP_ENDIF,
+      pushBytesOp(sellerPkh), //<hash160(SellerPubKey)> # Spender pub key
+      //Put the hashed public keys on the alt stack
+      OP_TOALTSTACK,
+      OP_TOALTSTACK, // Stack is effectively reset to the input
+      //On the alt stack we have: [ hash160(SpenderPubKey), hash160(OraclePubKey) ]
+      pushBytesOp(nonce), //<EscrowKey> # Append the nonce to the escrow key to make the message
+      OP_CAT, // Stack is [ ..., <OraclePubKey>, <0x01 || EscrowKey> ]
+      OP_SWAP, // Use this later; verify the oracle public key hash first
+      OP_DUP,
+      OP_HASH160,
+      OP_FROMALTSTACK, // Grab hashed pub key from alt stack
+      OP_EQUALVERIFY, // Public key checks out; now verify the oracle signature
+      OP_CHECKDATASIGVERIFY, // Verify the sender
+      OP_DUP,
+      OP_HASH160,
+      OP_FROMALTSTACK,
+      OP_EQUALVERIFY,
+      OP_CHECKSIG,
+      OP_ENDIF
     ]);
   }
 }
@@ -450,7 +525,6 @@ export const ArbiReleaseSignatory = (
       OP_2,
       pushBytesOp(preimage.redeemScript.bytecode)
     ]);
-    buildReturnTx;
   };
 };
 
@@ -547,13 +621,15 @@ export const sellerBuildDepositTx = (
   sellerSk: Uint8Array,
   sellerPk: Uint8Array,
   amountToSend: number,
+  amountEscrowFee: number,
   escrowScript: Script,
+  escrowFeeScript: Script,
   buyerDepositTx: string
 ): { txBuild: Uint8Array; utxoRemoved: UtxoInNodeInput } => {
   const ecc = new Ecc();
   const sellerP2pkh = Script.p2pkh(shaRmd160(sellerPk));
   const escrowP2sh = Script.p2sh(shaRmd160(escrowScript.bytecode));
-
+  const escrowFeeP2sh = Script.p2sh(shaRmd160(escrowFeeScript.bytecode));
   const feeInSatsPerKByte = coinInfo[COIN.XEC].defaultFee * 1000;
   const roundedFeeInSatsPerKByte = parseInt(feeInSatsPerKByte.toFixed(0));
 
@@ -632,6 +708,7 @@ export const sellerBuildDepositTx = (
     });
 
     const amountSats = convertXECToSatoshi(amountToSend);
+    const amountEscrowFeeSats = convertXECToSatoshi(amountEscrowFee);
 
     const txBuild = new TxBuilder({
       inputs: utxos,
@@ -639,6 +716,10 @@ export const sellerBuildDepositTx = (
         {
           value: amountSats,
           script: escrowP2sh
+        },
+        {
+          value: amountEscrowFeeSats,
+          script: escrowFeeP2sh
         },
         sellerP2pkh
       ]
@@ -743,46 +824,4 @@ export const buyerDepositFee = (
   const hexJsonStr = Buffer.from(JsonTxAfterSign).toString('hex');
 
   return hexJsonStr;
-};
-
-export const sellerDepositAndBuildTx = (
-  sellerUtxos: Array<Utxo_InNode & { address: string }>,
-  sellerSk: Uint8Array,
-  sellerPk: Uint8Array,
-  depositAmount: number,
-  txBuild: TxBuilder,
-  escrowScript: Script
-): Uint8Array => {
-  const ecc = new Ecc();
-  const sellerP2pkh = Script.p2pkh(shaRmd160(sellerPk));
-  const escrowP2sh = Script.p2sh(shaRmd160(escrowScript.bytecode));
-
-  const utxos = sellerUtxos.map(utxo => {
-    return {
-      input: {
-        prevOut: {
-          outIdx: utxo.outpoint.outIdx,
-          txid: utxo.outpoint.txid
-        },
-        signData: {
-          value: Number(utxo.value),
-          outputScript: sellerP2pkh
-        }
-      },
-      signatory: P2PKHSignatory(sellerSk, sellerPk, ALL_BIP143)
-    };
-  });
-
-  txBuild.inputs = [...txBuild.inputs, ...utxos];
-
-  txBuild.outputs = [
-    ...txBuild.outputs,
-    {
-      value: depositAmount,
-      script: escrowP2sh
-    },
-    sellerP2pkh
-  ];
-
-  return txBuild.sign(ecc, 1000, 546).ser();
 };

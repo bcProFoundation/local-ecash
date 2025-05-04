@@ -277,7 +277,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const isBuyOffer = post.postOffer.type === OfferType.Buy;
   const { data } = useSession();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
-  const { setSetting, allSettings } = useContext(SettingContext);
+  const { allSettings } = useContext(SettingContext);
   const Wallet = useContext(WalletContextNode);
   const { totalValidAmount, totalValidUtxos } = useContext(UtxoContext);
   const { chronik, XPI } = Wallet;
