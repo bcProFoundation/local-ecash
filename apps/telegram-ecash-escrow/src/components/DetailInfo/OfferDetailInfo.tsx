@@ -1,9 +1,8 @@
 'use client';
 
-import { COIN_OTHERS } from '@/src/store/constants';
 import { SettingContext } from '@/src/store/context/settingProvider';
-import { getOrderLimitText } from '@/src/store/util';
-import { PAYMENT_METHOD } from '@bcpros/lixi-models';
+import { getOrderLimitText, showPriceInfo } from '@/src/store/util';
+import { getTickerText } from '@bcpros/lixi-models';
 import {
   OfferStatus,
   OfferType,
@@ -22,7 +21,7 @@ import { styled } from '@mui/material/styles';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import React, { useContext } from 'react';
+import React, { useContext, useMemo } from 'react';
 import useAuthorization from '../Auth/use-authorization.hooks';
 import { BackupModalProps } from '../Common/BackupModal';
 import { BuyButtonStyled } from '../OfferItem/OfferItem';
@@ -126,13 +125,22 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
     }
   };
 
-  const getCoinCurrency = () => {
-    return (
-      offerData?.localCurrency ??
-      (offerData?.coinPayment?.includes(COIN_OTHERS) ? 'XEC' : offerData?.coinPayment) ??
-      'XEC'
+  const showPrice = useMemo(() => {
+    return showPriceInfo(
+      offerData?.paymentMethods[0]?.paymentMethod?.id,
+      post?.postOffer?.coinPayment,
+      post?.postOffer?.priceCoinOthers
     );
-  };
+  }, [post?.postOffer]);
+
+  const coinCurrency = useMemo(() => {
+    return getTickerText(
+      post?.postOffer?.localCurrency,
+      post?.postOffer?.coinPayment,
+      post?.postOffer?.coinOthers,
+      post?.postOffer?.priceCoinOthers
+    );
+  }, [post?.postOffer]);
 
   return (
     <OfferDetailWrap onClick={() => router.push(`/offer-detail?id=${offerData.postId}`)}>
@@ -147,16 +155,15 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
           </IconButton>
         )}
       </div>
-      {offerData?.paymentMethods[0]?.paymentMethod?.id !== PAYMENT_METHOD.GOODS_SERVICES &&
-        offerData?.coinPayment !== COIN_OTHERS && (
-          <Typography variant="body1">
-            <span className="prefix">Price: </span>
-            Market price +{offerData?.marginPercentage}%
-          </Typography>
-        )}
+      {showPrice && (
+        <Typography variant="body1">
+          <span className="prefix">Price: </span>
+          Market price +{offerData?.marginPercentage}%
+        </Typography>
+      )}
       <Typography variant="body1">
         <span className="prefix">Min-max: </span>
-        {getOrderLimitText(offerData?.orderLimitMin, offerData?.orderLimitMax, getCoinCurrency())}
+        {getOrderLimitText(offerData?.orderLimitMin, offerData?.orderLimitMax, coinCurrency)}
       </Typography>
       {(stateName || countryName) && (
         <Typography variant="body2">

@@ -85,7 +85,7 @@ export const LIST_COIN = [
     id: 10,
     name: COIN_OTHERS,
     ticker: COIN_OTHERS,
-    fixAmount: 0,
+    fixAmount: 100,
     isDisplayTicker: false
   }
 ];
