@@ -4,6 +4,7 @@ import OfferDetailInfo from '@/src/components/DetailInfo/OfferDetailInfo';
 import Header from '@/src/components/Header/Header';
 import MobileLayout from '@/src/components/layout/MobileLayout';
 import { SettingContext } from '@/src/store/context/settingProvider';
+import { formatNumber } from '@/src/store/util';
 import { accountsApi, PostQueryItem, useInfiniteActiveOfferByAccountIdDatabaseQuery } from '@bcpros/redux-store';
 import { ChevronLeft } from '@mui/icons-material';
 import AccountCircleRoundedIcon from '@mui/icons-material/AccountCircleRounded';
@@ -188,7 +189,9 @@ const ProfileDetail = () => {
           <div className="info-detail">
             <div>
               <Typography className="info-item">
-                Donation: {loadingInfo(accountQueryData?.getAccountByAddress?.accountStatsOrder?.donationAmount)} XEC
+                Donation:{' '}
+                {loadingInfo(formatNumber(accountQueryData?.getAccountByAddress?.accountStatsOrder?.donationAmount))}{' '}
+                XEC
               </Typography>
             </div>
             <div>

@@ -10,6 +10,7 @@ import {
   PostQueryItem,
   TimelineQueryItem,
   getSeedBackupTime,
+  getSelectedAccountId,
   openActionSheet,
   openModal,
   useSliceDispatch as useLixiSliceDispatch,
@@ -21,7 +22,7 @@ import { styled } from '@mui/material/styles';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useContext } from 'react';
+import React, { useContext } from 'react';
 import useAuthorization from '../Auth/use-authorization.hooks';
 import { BackupModalProps } from '../Common/BackupModal';
 import { BuyButtonStyled } from '../OfferItem/OfferItem';
@@ -80,6 +81,7 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
   const { status } = useSession();
   const askAuthorization = useAuthorization();
 
+  const selectedAccountId = useLixiSliceSelector(getSelectedAccountId);
   const lastSeedBackupTimeOnDevice = useLixiSliceSelector(getSeedBackupTime);
   const settingContext = useContext(SettingContext);
   const seedBackupTime = settingContext?.setting?.lastSeedBackupTime ?? lastSeedBackupTimeOnDevice ?? '';
@@ -89,6 +91,8 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
   const countryName = offerData?.location?.country;
   const stateName = offerData?.location?.adminNameAscii;
   const cityName = offerData?.location?.cityAscii;
+
+  const isOwner = (postData ?? post)?.accountId === selectedAccountId;
 
   const handleClickAction = e => {
     e.stopPropagation();
@@ -177,16 +181,20 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
         ) : (
           <>
             <div className="payment-group-btns">
-              <Button size="small" color="info" variant="outlined">
-                <Typography variant="body1" style={{ fontWeight: 'bold' }}>
-                  <span style={{ fontSize: '14px' }}>{offerData?.hideFromHome ? 'Unlisted' : 'Listed'}</span>
-                </Typography>
-              </Button>
-              <Button size="small" color="info" variant="outlined">
-                <Typography variant="body1" style={{ fontWeight: 'bold' }}>
-                  <span style={{ fontSize: '14px' }}>{offerData?.type == OfferType.Buy ? 'Buy' : 'Sell'}</span>
-                </Typography>
-              </Button>
+              {isOwner && (
+                <React.Fragment>
+                  <Button size="small" color="info" variant="outlined">
+                    <Typography variant="body1" style={{ fontWeight: 'bold' }}>
+                      <span style={{ fontSize: '14px' }}>{offerData?.hideFromHome ? 'Unlisted' : 'Listed'}</span>
+                    </Typography>
+                  </Button>
+                  <Button size="small" color="info" variant="outlined">
+                    <Typography variant="body1" style={{ fontWeight: 'bold' }}>
+                      <span style={{ fontSize: '14px' }}>{offerData?.type == OfferType.Buy ? 'Buy' : 'Sell'}</span>
+                    </Typography>
+                  </Button>
+                </React.Fragment>
+              )}
               {offerData?.paymentMethods &&
                 offerData.paymentMethods?.length > 0 &&
                 offerData.paymentMethods.map(item => {

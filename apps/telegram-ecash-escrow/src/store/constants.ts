@@ -129,3 +129,5 @@ export const NAME_PAYMENT_METHOD = {
 export const ALL_CURRENCIES = 'All currencies';
 export const ALL_CATEGORIES = 'All categories';
 export const ALL = 'All';
+
+export const securityDepositPercentage = 1;

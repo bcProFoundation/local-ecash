@@ -1189,6 +1189,13 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
             </div>
           </div>
         </Grid>
+        {getValues('paymentApp') && (
+          <Grid item xs={12}>
+            <Typography variant="body1">
+              <span className="prefix">Payment-App: </span> {getValues('paymentApp')}
+            </Typography>
+          </Grid>
+        )}
         <Grid item xs={12}>
           <Typography variant="body1">
             <span className="prefix">Headline: </span> {getValues('message')}
