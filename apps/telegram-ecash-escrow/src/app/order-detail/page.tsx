@@ -8,7 +8,7 @@ import QRCode from '@/src/components/QRcode/QRcode';
 import TelegramButton from '@/src/components/TelegramButton/TelegramButton';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
 import CustomToast from '@/src/components/Toast/CustomToast';
-import { COIN_OTHERS, securityDepositPercentage } from '@/src/store/constants';
+import { securityDepositPercentage } from '@/src/store/constants';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { UtxoContext } from '@/src/store/context/utxoProvider';
 import {
@@ -24,8 +24,8 @@ import {
   SignOracleSignatory
 } from '@/src/store/escrow';
 import { ACTION } from '@/src/store/escrow/constant';
-import { deserializeTransaction, estimatedFee, formatNumber } from '@/src/store/util';
-import { COIN, coinInfo, PAYMENT_METHOD } from '@bcpros/lixi-models';
+import { deserializeTransaction, estimatedFee, formatNumber, showPriceInfo } from '@/src/store/util';
+import { COIN, coinInfo } from '@bcpros/lixi-models';
 import {
   DisputeStatus,
   EscrowOrderAction,
@@ -261,7 +261,7 @@ const OrderDetail = () => {
               socketId: socket?.id
             };
             //buy offer will change amount only when escrow, so we need to update right here (not for goods/service)
-            if (isBuyOffer && showMargin()) {
+            if (isBuyOffer && showPrice) {
               sampleInput = {
                 ...sampleInput,
                 amount: amountXEC,
@@ -951,7 +951,7 @@ const OrderDetail = () => {
 
   const totalAmountWithDepositAndEscrowFee = () => {
     const actualFee1Percent = calDisputeFee;
-    const amountOrder = isShowDynamicValue() ? amountXEC : currentData?.escrowOrder.amount;
+    const amountOrder = isShowDynamicValue ? amountXEC : currentData?.escrowOrder.amount;
 
     return amountOrder + actualFee1Percent + estimatedFee(currentData?.escrowOrder.escrowScript);
   };
@@ -974,26 +974,27 @@ const OrderDetail = () => {
     return totalValidAmount > totalAmountWithDepositAndEscrowFee();
   };
 
-  const showMargin = () => {
-    return (
-      currentData?.escrowOrder?.paymentMethod?.id !== PAYMENT_METHOD.GOODS_SERVICES &&
-      currentData?.escrowOrder?.escrowOffer?.coinPayment !== COIN_OTHERS
+  const showPrice = useMemo(() => {
+    return showPriceInfo(
+      currentData?.escrowOrder?.paymentMethod?.id,
+      currentData?.escrowOrder?.escrowOffer?.coinPayment,
+      currentData?.escrowOrder?.escrowOffer?.priceCoinOthers
     );
-  };
+  }, [currentData?.escrowOrder]);
 
-  const isShowDynamicValue = () => {
+  const isShowDynamicValue = useMemo(() => {
     //dynamic value only pending and not for goods/service
-    return isBuyOffer && currentData?.escrowOrder?.escrowOrderStatus === EscrowOrderStatus.Pending && showMargin();
-  };
+    return isBuyOffer && currentData?.escrowOrder?.escrowOrderStatus === EscrowOrderStatus.Pending && showPrice;
+  }, [showPrice]);
 
   const calDisputeFee = useMemo(() => {
-    const amountOrder = isShowDynamicValue() ? amountXEC : currentData?.escrowOrder.amount;
+    const amountOrder = isShowDynamicValue ? amountXEC : currentData?.escrowOrder.amount;
 
     const fee1Percent = parseFloat((amountOrder / 100).toFixed(2));
     const dustXEC = coinInfo[COIN.XEC].dustSats / Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
 
     return Math.max(fee1Percent, dustXEC);
-  }, [currentData?.escrowOrder.amount, isShowDynamicValue() ? amountXEC : null]);
+  }, [currentData?.escrowOrder.amount, isShowDynamicValue ? amountXEC : null]);
 
   const InfoEscrow = () => {
     const fee1Percent = calDisputeFee;
