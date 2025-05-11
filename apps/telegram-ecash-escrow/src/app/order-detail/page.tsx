@@ -15,6 +15,7 @@ import {
   ArbiReleaseSignatory,
   ArbiReturnSignatory,
   buildReleaseTx,
+  buildReturnFeeTx,
   buildReturnTx,
   BuyerReturnSignatory,
   EscrowFee,
@@ -293,10 +294,13 @@ const OrderDetail = () => {
             orderUpdateInput.feeOutIdx = i;
           }
         }
-        console.log('🚀 ~ handleSellerDepositEscrow ~ orderUpdateInput:', orderUpdateInput);
 
         await updateOrderTrigger({
-          input: orderUpdateInput
+          input: {
+            ...orderUpdateInput,
+            escrowFeeScript: Buffer.from(escrowFeeScript.bytecode).toString('hex'),
+            escrowFeeAddress
+          }
         })
           .unwrap()
           .then(() => setEscrow(true))
@@ -401,7 +405,7 @@ const OrderDetail = () => {
   const handleBuyerClaimEscrow = async () => {
     setLoading(true);
     try {
-      const { amount, sellerDonateAmount, dispute } = currentData?.escrowOrder || {};
+      const { amount, sellerDonateAmount, dispute, nonce } = currentData?.escrowOrder || {};
       const disputeFee = calDisputeFee;
       const isBuyerDeposit = currentData?.escrowOrder.buyerDepositTx ? true : false;
       const isDispute = !_.isNil(dispute);
@@ -425,10 +429,12 @@ const OrderDetail = () => {
       ) as unknown as Uint8Array;
 
       let signatory = null;
+      let returnFeeSignatory = null;
       let arbModP2pkh: Script | null = null;
 
       if (!isDispute) {
         signatory = SellerReleaseSignatory(sellerPk, buyerPk, buyerSk, releaseSignatory);
+        returnFeeSignatory = SignOracleSignatory(buyerSk, ACTION.BUYER_RETURN, nonce);
       } else {
         const { signatoryOwnerHash160 } = currentData.escrowOrder;
         const { hash160: arbHash160, publicKey: arbPk } = currentData.escrowOrder.arbitratorAccount;
@@ -471,6 +477,73 @@ const OrderDetail = () => {
       })
         .unwrap()
         .then(() => setClaim(true));
+
+      //update escrow fee signatory
+      await updateEscrowOrderFeeSignatoryTrigger({
+        input: {
+          orderId: id!,
+          signatory: Buffer.from(returnFeeSignatory).toString('hex'),
+          signatoryOwnerFeeHash160: Buffer.from(buyerPkh).toString('hex'),
+          socketId: socket?.id,
+        }
+      })
+        .unwrap();
+    } catch (e) {
+      console.log(e);
+      setError(true);
+    }
+
+    setLoading(false);
+  };
+
+  const handleSellerClaimEscrowFee = async () => {
+    setLoading(true);
+    try {
+      const disputeFee = calDisputeFee;
+      const escrowTxids = currentData?.escrowOrder.escrowTxids;
+      
+      const isDispute = !_.isNil(currentData?.escrowOrder.dispute);
+
+      const buyerPk = fromHex(currentData?.escrowOrder.buyerAccount.publicKey);
+
+      const sellerPk = fromHex(selectedWalletPath.publicKey as string);
+      const sellerPkh = shaRmd160(sellerPk);
+      const sellerP2pkh = Script.p2pkh(sellerPkh);
+      const sellerSk = fromHex(selectedWalletPath?.privateKey);
+
+      const feeScript = Buffer.from(currentData?.escrowOrder.escrowFeeScript as string, 'hex') as unknown as Uint8Array;
+      const escrowFeeScript = new Script(feeScript);
+
+      const returnFeeSignatory = Buffer.from(
+        currentData?.escrowOrder.returnFeeSignatory as string,
+        'hex'
+      ) as unknown as Uint8Array;
+
+      let signatory;
+      let arbP2pkh: Script | null = null;
+
+      if (!isDispute) {
+        signatory = BuyerReturnSignatory(buyerPk, sellerPk, sellerSk, returnFeeSignatory);
+      } else {
+        const { hash160: arbHash160, publicKey: arbPk } = currentData.escrowOrder.arbitratorAccount;
+
+        signatory = ArbiReturnSignatory(fromHex(arbPk), sellerPk, sellerSk, returnFeeSignatory)
+        arbP2pkh = Script.p2pkh(fromHex(arbHash160)) 
+      }
+
+      const txBuild = buildReturnFeeTx(
+        escrowTxids,
+        disputeFee,
+        escrowFeeScript,
+        signatory,
+        sellerP2pkh,
+        sellerDonateOption,
+        arbP2pkh
+      );
+
+      const txid = (await chronik.broadcastTx(txBuild)).txid;
+      console.log("🚀 ~ handleSellerClaimEscrowFee ~ txid:", txid)
+      
     } catch (e) {
       console.log(e);
       setError(true);
@@ -580,6 +653,14 @@ const OrderDetail = () => {
     }
 
     if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Complete) {
+      if (isSeller && currentData?.escrowOrder.returnFeeSignatory) {
+        return (
+          <Typography variant="body1" color="error" align="center">
+            You&apos;re able to reclaim the fee
+          </Typography>
+        );
+      }
+
       return (
         <Typography variant="body1" color="error" align="center">
           Order has been completed
@@ -855,7 +936,10 @@ const OrderDetail = () => {
               color="success"
               variant="contained"
               disabled={loading || sellerDonateOption === null}
-              onClick={async () => await handleSellerClaimEscrow()}
+              onClick={async () => {
+                await handleSellerClaimEscrow();
+                await handleSellerClaimEscrowFee();
+              }}
               fullWidth
             >
               Claim
@@ -903,6 +987,46 @@ const OrderDetail = () => {
           </div>
         </div>
       );
+    }
+
+    if(currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Complete) {
+      if (currentData.escrowOrder.returnFeeSignatory) {
+        return isSeller ? (
+          <React.Fragment>
+            <Stack>
+              <RadioGroup>
+                {donateOption.map(item => {
+                  return (
+                    <FormControlLabel
+                      onClick={() => {
+                        setSellerDonateOption(item.value);
+                      }}
+                      key={item.label}
+                      value={item.value}
+                      control={<Radio />}
+                      label={item.label}
+                      checked={item.value === sellerDonateOption}
+                    />
+                  );
+                })}
+              </RadioGroup>
+              <Typography sx={{ fontSize: '12px', marginTop: '10px' }} fontStyle="italic">
+                Optional: This service has been brought to you free of charge. We would appreciate a donation to
+                continue maintaining it.
+              </Typography>
+            </Stack>
+            <Button
+              color="success"
+              variant="contained"
+              disabled={loading || sellerDonateOption === null}
+              onClick={async () => await handleSellerClaimEscrowFee()}
+              fullWidth
+            >
+              Claim back fee
+            </Button>
+          </React.Fragment>
+        ) : null;
+      }
     }
   };
 

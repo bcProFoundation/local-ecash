@@ -393,6 +393,64 @@ export const buildReturnTx = (
   return txBuild.sign(ecc, roundedFeeInSatsPerKByte, 546).ser();
 };
 
+export const buildReturnFeeTx = (
+  txids: { txid: string; feeValue: number; feeOutIdx: number }[],
+  disputeFee: number,
+  escrowFeeScript: Script,
+  scriptSignatory: Signatory,
+  sellerP2pkh: Script,
+  sellerDonateOption: number,
+  arbModP2pkh?: Script
+) => {
+  const ecc = new Ecc();
+  const GNCAddressScript = getGNCAddressScript();
+  const disputeSatoshi = convertXECToSatoshi(disputeFee);
+
+  const utxos = txids.map(({ txid, feeValue, feeOutIdx }) => {
+    return {
+      input: {
+        prevOut: {
+          txid,
+          outIdx: feeOutIdx
+        },
+        signData: {
+          value: feeValue,
+          redeemScript: escrowFeeScript
+        }
+      },
+      signatory: scriptSignatory
+    };
+  });
+
+  const outputs: { value: number; script: Script }[] = [];
+
+  switch (sellerDonateOption) {
+    case 1:
+      outputs.push({ value: disputeSatoshi, script: sellerP2pkh });
+      break;
+    case 2:
+      outputs.push({ value: disputeSatoshi, script: arbModP2pkh });
+      break;
+    case 3:
+      outputs.push({ value: disputeSatoshi, script: GNCAddressScript });
+      break;
+    default:
+      outputs.push({ value: disputeSatoshi, script: sellerP2pkh });
+      break;
+  }
+
+  const txBuild = new TxBuilder({
+    inputs: utxos,
+    outputs: outputs
+  });
+
+  const feeInSatsPerKByte = coinInfo[COIN.XEC].defaultFee * 1000;
+  const roundedFeeInSatsPerKByte = parseInt(feeInSatsPerKByte.toFixed(0));
+
+
+  return (txBuild.sign(ecc, roundedFeeInSatsPerKByte, 546).ser());
+};
+
 export const buildReleaseTx = (
   txids: { txid: string; value: number; outIdx: number }[],
   amountToSend: number,
@@ -409,7 +467,7 @@ export const buildReleaseTx = (
 ) => {
   const ecc = new Ecc();
   const GNCAddressScript = getGNCAddressScript();
-  const amountSatoshi = convertXECToSatoshi(amountToSend);
+  const amountSatoshi = convertXECToSatoshi(amountToSend); //Wont be enough. Need to recalculate
   const disputeSatoshi = convertXECToSatoshi(disputeFee);
 
   const utxos = txids.map(({ txid, value, outIdx }) => {
