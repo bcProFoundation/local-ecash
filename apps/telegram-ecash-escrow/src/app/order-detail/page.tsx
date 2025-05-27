@@ -7,7 +7,6 @@ import MobileLayout from '@/src/components/layout/MobileLayout';
 import QRCode from '@/src/components/QRcode/QRcode';
 import TelegramButton from '@/src/components/TelegramButton/TelegramButton';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
-import CustomToast from '@/src/components/Toast/CustomToast';
 import { securityDepositPercentage } from '@/src/store/constants';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { UtxoContext } from '@/src/store/context/utxoProvider';
@@ -35,6 +34,7 @@ import {
   OfferType,
   openModal,
   parseCashAddressToPrefix,
+  showToast,
   SocketContext,
   UpdateEscrowOrderInput,
   useSliceDispatch as useLixiSliceDispatch,
@@ -74,7 +74,7 @@ const OrderDetailContent = styled('div')(({ theme }) => ({
   '.group-button-wrap': {
     width: '100%',
     display: 'grid',
-    gridTemplateColumns: 'repeat(2, 1fr)',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))',
     gap: '16px',
     borderBottom: `1px solid rgba(255, 255, 255, 0.2)`,
     paddingBottom: '16px',
@@ -127,20 +127,13 @@ const OrderDetail = () => {
   const [amountXEC, setAmountXEC] = useState(0);
   const [textAmountPer1MXEC, setTextAmountPer1MXEC] = useState('');
 
-  const [error, setError] = useState(false);
-  const [escrow, setEscrow] = useState(false);
-  const [release, setRelease] = useState(false);
-  const [cancel, setCancel] = useState(false);
+  const [isDisabled, setIsDisabled] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [claim, setClaim] = useState(false);
   const [notEnoughFund, setNotEnoughFund] = useState(false);
   const [openCancelModal, setOpenCancelModal] = useState(false);
   const [openReleaseModal, setOpenReleaseModal] = useState(false);
-  const [alreadyRelease, setAlreadyRelease] = useState(false);
-  const [alreadyCancel, setAlreadyCancel] = useState(false);
   const [buyerDonateOption, setBuyerDonateOption] = useState<number>(null);
   const [sellerDonateOption, setSellerDonateOption] = useState<number>(null);
-  const [openToastCopySuccess, setOpenToastCopySuccess] = useState(false);
   const [donateOption, setDonateOption] = useState<{ label: string; value: number }[]>([
     CLAIM_BACK_WALLET,
     DONATE_LOCAL_ECASH
@@ -150,12 +143,14 @@ const OrderDetail = () => {
     useEscrowOrderQuery,
     useUpdateEscrowOrderStatusMutation,
     useUpdateEscrowOrderSignatoryMutation,
-    useMarkAsPaidOrderMutation
+    useMarkAsPaidOrderMutation,
+    useAllowOfferTakerChatMutation
   } = escrowOrderApi;
   const { currentData, isError, isSuccess } = useEscrowOrderQuery({ id: id! }, { skip: !id || !token });
   const [updateOrderTrigger] = useUpdateEscrowOrderStatusMutation();
   const [updateEscrowOrderSignatoryTrigger] = useUpdateEscrowOrderSignatoryMutation();
   const [markAsPaidOrderTrigger] = useMarkAsPaidOrderMutation();
+  const [allowOfferTakerChatTrigger] = useAllowOfferTakerChatMutation();
 
   const isBuyOffer = currentData?.escrowOrder?.escrowOffer?.type === OfferType.Buy;
 
@@ -204,7 +199,7 @@ const OrderDetail = () => {
 
     await updateOrderTrigger({ input: { orderId: id!, status, utxoInNodeOfBuyer: utxoRemoved, socketId: socket?.id } })
       .unwrap()
-      .catch(() => setError(true));
+      .catch(() => showError());
 
     setLoading(false);
   };
@@ -274,8 +269,20 @@ const OrderDetail = () => {
               }
             })
               .unwrap()
-              .then(() => setEscrow(true))
-              .catch(() => setError(true));
+              .then(() => {
+                dispatch(
+                  showToast(
+                    'success',
+                    {
+                      message: 'success',
+                      description: 'Order escrowed successfully. Click here to see transaction!'
+                    },
+                    true,
+                    `${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${currentData?.escrowOrder.escrowTxids[currentData?.escrowOrder.escrowTxids.length - 1]?.txid}`
+                  )
+                );
+              })
+              .catch(() => showError());
           }
         }
       }
@@ -291,7 +298,12 @@ const OrderDetail = () => {
     setLoading(true);
 
     if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Complete) {
-      setAlreadyRelease(true);
+      dispatch(
+        showToast('success', {
+          message: 'success',
+          description: 'Order released successfully!'
+        })
+      );
       setOpenReleaseModal(false);
 
       return;
@@ -314,10 +326,17 @@ const OrderDetail = () => {
         }
       })
         .unwrap()
-        .then(() => setRelease(true));
+        .then(() => {
+          dispatch(
+            showToast('success', {
+              message: 'success',
+              description: 'Order released successfully!'
+            })
+          );
+        });
     } catch (e) {
       console.log(e);
-      setError(true);
+      showError();
     }
 
     setLoading(false);
@@ -327,7 +346,12 @@ const OrderDetail = () => {
     setLoading(true);
 
     if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Cancel) {
-      setAlreadyCancel(true);
+      dispatch(
+        showToast('warning', {
+          message: 'warning',
+          description: 'Order has already been canceled!'
+        })
+      );
       setOpenCancelModal(false);
 
       return;
@@ -351,10 +375,17 @@ const OrderDetail = () => {
         }
       })
         .unwrap()
-        .then(() => setCancel(true));
+        .then(() => {
+          dispatch(
+            showToast('success', {
+              message: 'success',
+              description: 'Order cancelled successfully!'
+            })
+          );
+        });
     } catch (e) {
       console.log(e);
-      setError(true);
+      showError();
     }
 
     setLoading(false);
@@ -368,6 +399,27 @@ const OrderDetail = () => {
     setLoading(true);
     try {
       await markAsPaidOrderTrigger({ input: { orderId: id!, markAsPaid: true } });
+      setLoading(false);
+      setIsDisabled(true);
+      setTimeout(() => {
+        setIsDisabled(false);
+      }, 15000);
+    } catch (e) {
+      console.log(e);
+      setLoading(false);
+    }
+  };
+
+  const handleAllowOfferTakerChat = async () => {
+    setLoading(true);
+    try {
+      await allowOfferTakerChatTrigger({ input: { orderId: id!, allowOfferTakerChat: true } });
+      dispatch(
+        showToast('success', {
+          message: 'Success',
+          description: "You've accepted the order! Chat is now available for the offer taker."
+        })
+      );
       setLoading(false);
     } catch (e) {
       console.log(e);
@@ -447,10 +499,24 @@ const OrderDetail = () => {
         }
       })
         .unwrap()
-        .then(() => setClaim(true));
+        .then(() => {
+          dispatch(
+            showToast(
+              'success',
+              {
+                message: 'success',
+                description: 'Escrow fund claim successful. Click here to see transaction!'
+              },
+              true,
+              currentData?.escrowOrder.releaseTxid
+                ? `${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${currentData?.escrowOrder.releaseTxid}`
+                : `${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${currentData?.escrowOrder.returnTxid}`
+            )
+          );
+        });
     } catch (e) {
       console.log(e);
-      setError(true);
+      showError();
     }
 
     setLoading(false);
@@ -529,17 +595,45 @@ const OrderDetail = () => {
         }
       })
         .unwrap()
-        .then(() => setClaim(true));
+        .then(() => {
+          dispatch(
+            showToast(
+              'success',
+              {
+                message: 'success',
+                description: 'Escrow fund claim successful. Click here to see transaction!'
+              },
+              true,
+              currentData?.escrowOrder.releaseTxid
+                ? `${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${currentData?.escrowOrder.releaseTxid}`
+                : `${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${currentData?.escrowOrder.returnTxid}`
+            )
+          );
+        });
     } catch (e) {
       console.log(e);
-      setError(true);
+      showError();
     }
 
     setLoading(false);
   };
 
   const handleCopyAmount = () => {
-    setOpenToastCopySuccess(true);
+    dispatch(
+      showToast('success', {
+        message: 'success',
+        description: 'Copy amount to clipboard'
+      })
+    );
+  };
+
+  const showError = () => {
+    dispatch(
+      showToast('error', {
+        message: 'error',
+        description: "Order's status update failed!"
+      })
+    );
   };
 
   const safeComponent = (content: string) => {
@@ -600,7 +694,7 @@ const OrderDetail = () => {
             <div>
               {isBuyOffer ? (
                 <div>
-                  {telegramButton(true)}
+                  {telegramButton()}
                   <p>
                     {COIN.XEC} in escrow will only be released when you confirm the receipt of money. You can dispute to
                     get it back if the buyer fail to deliver
@@ -755,15 +849,22 @@ const OrderDetail = () => {
           </Button>
         </div>
       ) : (
-        <Button
-          style={{ backgroundColor: '#a41208' }}
-          variant="contained"
-          fullWidth
-          onClick={async () => await updateOrderStatus(EscrowOrderStatus.Cancel)}
-          disabled={loading}
-        >
-          Cancel
-        </Button>
+        <div className="group-button-wrap">
+          <Button
+            style={{ backgroundColor: '#a41208' }}
+            variant="contained"
+            fullWidth
+            onClick={async () => await updateOrderStatus(EscrowOrderStatus.Cancel)}
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          {chatButtonState?.showAcceptButtonFromOfferMaker && (
+            <Button fullWidth variant="contained" color="success" onClick={handleAllowOfferTakerChat}>
+              Accept
+            </Button>
+          )}
+        </div>
       );
     }
 
@@ -863,14 +964,19 @@ const OrderDetail = () => {
         </div>
       ) : (
         <div>
-          {telegramButton(true, 'Chat with seller for payment details')}
+          {telegramButton('Chat with seller for payment details')}
           <div className="group-button-wrap">
             {currentData.escrowOrder?.markAsPaid ? (
-              <Button color="warning" variant="contained" disabled={loading} onClick={() => handleCreateDispute()}>
+              <Button
+                color="warning"
+                variant="contained"
+                disabled={loading || isDisabled}
+                onClick={() => handleCreateDispute()}
+              >
                 Dispute
               </Button>
             ) : (
-              <Button color="warning" variant="contained" disabled={loading} onClick={() => handleMarkAsPaid()}>
+              <Button color="success" variant="contained" disabled={loading} onClick={() => handleMarkAsPaid()}>
                 Mark as paid
               </Button>
             )}
@@ -888,35 +994,32 @@ const OrderDetail = () => {
     }
   };
 
-  // buyer can't chat with seller when order is pending
-  const disableTelegramButton = () => {
-    const isBuyer = selectedWalletPath?.hash160 === currentData?.escrowOrder.buyerAccount.hash160;
-    const sellerSettings = allSettings[`${currentData?.escrowOrder?.sellerAccount.id.toString()}`];
-    if (
-      isBuyer &&
+  const chatButtonState = useMemo(() => {
+    const isOfferMaker = isBuyOffer
+      ? selectedWalletPath?.hash160 === currentData?.escrowOrder?.buyerAccount.hash160
+      : selectedWalletPath?.hash160 === currentData?.escrowOrder?.sellerAccount.hash160;
+
+    const offerMakerSettings = isBuyOffer
+      ? allSettings?.[`${currentData?.escrowOrder?.buyerAccount.id.toString()}`]
+      : allSettings?.[`${currentData?.escrowOrder?.sellerAccount.id.toString()}`];
+
+    const hasRestrictedChat =
+      !currentData?.escrowOrder?.allowOfferTakerChat &&
       currentData?.escrowOrder?.escrowOrderStatus === EscrowOrderStatus.Pending &&
-      sellerSettings?.usePublicLocalUserName
-    ) {
-      return true;
-    }
+      offerMakerSettings?.usePublicLocalUserName;
 
-    return false;
-  };
+    return {
+      disableTelegramButton: !isOfferMaker && hasRestrictedChat,
+      showAcceptButtonFromOfferMaker: isOfferMaker && hasRestrictedChat
+    };
+  }, [isBuyOffer, selectedWalletPath?.hash160, currentData?.escrowOrder, allSettings]);
 
-  const telegramButton = (alwaysShow = false, content?: string) => {
+  const hiddenTelegramButton = (): boolean => {
     const isSeller = selectedWalletPath?.hash160 === currentData?.escrowOrder.sellerAccount.hash160;
-    const isArbiOrMod =
-      selectedWalletPath?.hash160 === currentData?.escrowOrder.arbitratorAccount.hash160 ||
-      selectedWalletPath?.hash160 === currentData?.escrowOrder.moderatorAccount.hash160;
 
     //remove bottom button when seller in buyOffer is pending
-    if (
-      isSeller &&
-      isBuyOffer &&
-      !alwaysShow &&
-      currentData?.escrowOrder?.escrowOrderStatus === EscrowOrderStatus.Pending
-    ) {
-      return;
+    if (isSeller && isBuyOffer && currentData?.escrowOrder?.escrowOrderStatus === EscrowOrderStatus.Pending) {
+      return true;
     }
 
     //remove bottom button when buyer in status escrow
@@ -925,11 +1028,18 @@ const OrderDetail = () => {
       currentData?.escrowOrder?.escrowOrderStatus === EscrowOrderStatus.Escrow &&
       !currentData.escrowOrder.releaseSignatory &&
       !currentData.escrowOrder.returnSignatory &&
-      !alwaysShow &&
       !currentData?.escrowOrder?.dispute
     ) {
-      return;
+      return true;
     }
+    return false;
+  };
+
+  const telegramButton = (content?: string) => {
+    const isSeller = selectedWalletPath?.hash160 === currentData?.escrowOrder.sellerAccount.hash160;
+    const isArbiOrMod =
+      selectedWalletPath?.hash160 === currentData?.escrowOrder.arbitratorAccount.hash160 ||
+      selectedWalletPath?.hash160 === currentData?.escrowOrder.moderatorAccount.hash160;
 
     return (
       !isArbiOrMod && (
@@ -942,7 +1052,7 @@ const OrderDetail = () => {
                 : currentData?.escrowOrder.sellerAccount.telegramUsername
             }
             content={content ? content : isSeller ? `Chat with buyer` : `Chat with seller`}
-            disabled={disableTelegramButton()}
+            disabled={chatButtonState?.disableTelegramButton}
           />
         </React.Fragment>
       )
@@ -1016,7 +1126,7 @@ const OrderDetail = () => {
         <Typography>
           Withdraw fee: {formatNumber(estimatedFee(currentData?.escrowOrder.escrowScript))} {COIN.XEC}
         </Typography>
-        <CopyToClipboard text={totalAmountWithDepositAndEscrowFee()} onCopy={handleCopyAmount}>
+        <CopyToClipboard text={totalAmountWithDepositAndEscrowFee()?.toFixed(2)} onCopy={handleCopyAmount}>
           <div>
             <Typography
               style={{ fontWeight: 'bold', fontStyle: 'italic', textDecoration: 'underline', cursor: 'pointer' }}
@@ -1066,9 +1176,7 @@ const OrderDetail = () => {
             {escrowStatus()}
             <br />
             {escrowActionButtons()}
-            {disableTelegramButton()
-              ? telegramButton(true, 'You can only chat with seller when they accept your order')
-              : telegramButton()}
+            {!hiddenTelegramButton() && telegramButton()}
           </OrderDetailContent>
         ) : (
           <div style={{ display: 'flex', justifyContent: 'center', height: '100vh' }}>
@@ -1090,81 +1198,6 @@ const OrderDetail = () => {
           returnAction={value => handleSellerReleaseEscrow(value)}
           onDismissModal={value => setOpenReleaseModal(value)}
         />
-
-        <Stack zIndex={999}>
-          <CustomToast
-            isOpen={error}
-            content="  Order's status update failed"
-            handleClose={() => setError(false)}
-            type="error"
-            autoHideDuration={3500}
-          />
-
-          <CustomToast
-            isOpen={escrow}
-            content="Order escrowed successfully. Click here to see transaction!"
-            handleClose={() => setEscrow(false)}
-            type="success"
-            autoHideDuration={3500}
-            isLink={true}
-            linkDescription={`${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${currentData?.escrowOrder.escrowTxids[currentData?.escrowOrder.escrowTxids.length - 1]?.txid}`}
-          />
-
-          <CustomToast
-            isOpen={release}
-            content="Order released successfully!"
-            handleClose={() => setRelease(false)}
-            type="success"
-            autoHideDuration={3500}
-          />
-
-          <CustomToast
-            isOpen={cancel}
-            content="Order cancelled successfully!"
-            handleClose={() => setCancel(false)}
-            type="success"
-            autoHideDuration={3500}
-          />
-
-          <CustomToast
-            isOpen={alreadyRelease}
-            content="Order has already been released. Click here to see transaction!"
-            handleClose={() => setAlreadyRelease(false)}
-            type="warning"
-            autoHideDuration={3500}
-            isLink={true}
-            linkDescription={`${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${currentData?.escrowOrder.releaseTxid}`}
-          />
-
-          <CustomToast
-            isOpen={alreadyCancel}
-            content="Order has already been canceled!"
-            handleClose={() => setAlreadyCancel(false)}
-            type="warning"
-            autoHideDuration={3500}
-          />
-
-          <CustomToast
-            isOpen={claim}
-            content="Escrow fund claim successful. Click here to see transaction!"
-            handleClose={() => setClaim(false)}
-            type="success"
-            autoHideDuration={3500}
-            isLink={true}
-            linkDescription={
-              currentData?.escrowOrder.releaseTxid
-                ? `${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${currentData?.escrowOrder.releaseTxid}`
-                : `${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${currentData?.escrowOrder.returnTxid}`
-            }
-          />
-
-          <CustomToast
-            isOpen={openToastCopySuccess}
-            handleClose={() => setOpenToastCopySuccess(false)}
-            content="Copy amount to clipboard"
-            type="info"
-          />
-        </Stack>
       </OrderDetailPage>
     </MobileLayout>
   );
