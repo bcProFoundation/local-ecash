@@ -118,6 +118,13 @@ export default function Header() {
 
   const contentMoreAction = (
     <PopoverStyled>
+      <Typography
+        onClick={() => router.push(`/profile?address=${selectedAccount?.address}`)}
+        className="heading-profile"
+      >
+        <span>Profile</span>
+        <Button className="no-border-btn" endIcon={<Person2Icon />} />
+      </Typography>
       <Typography onClick={() => router.push('/wallet')} className="heading-profile">
         <span>Wallet</span>
         <Button className="no-border-btn" endIcon={<Wallet />} />
@@ -136,13 +143,6 @@ export default function Header() {
       <Typography onClick={() => router.push('/settings')} className="heading-profile">
         <span>Settings</span>
         <Button className="no-border-btn" endIcon={<SettingsOutlined />} />
-      </Typography>
-      <Typography
-        onClick={() => router.push(`/profile?address=${selectedAccount?.address}`)}
-        className="heading-profile"
-      >
-        <span>Profile</span>
-        <Button className="no-border-btn" endIcon={<Person2Icon />} />
       </Typography>
     </PopoverStyled>
   );
