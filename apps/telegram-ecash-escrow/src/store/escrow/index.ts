@@ -495,15 +495,15 @@ export const buildReleaseTx = (
 
   //If there is no dispute then check if seller donate or not else transfer dispute fee to ArbMod
   //Can write shorter but this version easier to read
-  !isDispute
-    ? outputs.push({
-        value: disputeSatoshi,
-        script: _.isNil(sellerDonateAmount) ? sellerP2pkh : GNCAddressScript
-      })
-    : outputs.push({
-        value: disputeSatoshi,
-        script: arbModP2pkh
-      });
+  // !isDispute
+  //   ? outputs.push({
+  //       value: disputeSatoshi,
+  //       script: GNCAddressScript
+  //     })
+  //   : outputs.push({
+  //       value: disputeSatoshi,
+  //       script: arbModP2pkh
+  //     });
 
   if (isBuyerDeposit) {
     switch (buyerDonateOption) {

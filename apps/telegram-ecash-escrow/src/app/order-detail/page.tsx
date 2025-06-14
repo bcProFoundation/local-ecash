@@ -314,7 +314,7 @@ const OrderDetail = () => {
     setLoading(false);
   };
 
-  const handleSellerReleaseEscrow = async (sellerDonate: boolean) => {
+  const handleSellerReleaseEscrow = async () => {
     setLoading(true);
 
     if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Complete) {
@@ -337,7 +337,6 @@ const OrderDetail = () => {
           action: EscrowOrderAction.Release,
           signatory: Buffer.from(sellerSignatory).toString('hex'),
           signatoryOwnerHash160: Buffer.from(sellerPkh).toString('hex'),
-          sellerDonateAmount: sellerDonate ? calDisputeFee : null
         }
       })
         .unwrap()
@@ -476,18 +475,19 @@ const OrderDetail = () => {
         }
       })
         .unwrap()
-        .then(() => setClaim(true));
-
-      //update escrow fee signatory
-      await updateEscrowOrderFeeSignatoryTrigger({
-        input: {
-          orderId: id!,
-          signatory: Buffer.from(returnFeeSignatory).toString('hex'),
-          signatoryOwnerFeeHash160: Buffer.from(buyerPkh).toString('hex'),
-          socketId: socket?.id,
-        }
-      })
-        .unwrap();
+        .then(async () => {
+          //update escrow fee signatory for seller to claim back fee
+          await updateEscrowOrderSignatoryTrigger({
+            input: {
+              orderId: id!,
+              action: EscrowOrderAction.ReturnFee,
+              signatory: Buffer.from(returnFeeSignatory).toString('hex'),
+              signatoryOwnerFeeHash160: Buffer.from(buyerPkh).toString('hex'),
+              socketId: socket?.id,
+            } 
+          }).unwrap();
+        }).finally(() => setClaim(true));
+      
     } catch (e) {
       console.log(e);
       setError(true);
@@ -542,7 +542,16 @@ const OrderDetail = () => {
       );
 
       const txid = (await chronik.broadcastTx(txBuild)).txid;
-      console.log("🚀 ~ handleSellerClaimEscrowFee ~ txid:", txid)
+
+      await updateOrderTrigger({
+        input: {
+          orderId: id!,
+          returnFeeTxid: txid,
+          socketId: socket?.id,
+        }
+      })
+        .unwrap()
+        .then(() => setClaim(true));
       
     } catch (e) {
       console.log(e);
@@ -653,7 +662,7 @@ const OrderDetail = () => {
     }
 
     if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Complete) {
-      if (isSeller && currentData?.escrowOrder.returnFeeSignatory) {
+      if (isSeller && currentData?.escrowOrder.returnFeeSignatory && !currentData?.escrowOrder.returnFeeTxid) {
         return (
           <Typography variant="body1" color="error" align="center">
             You&apos;re able to reclaim the fee
@@ -953,7 +962,7 @@ const OrderDetail = () => {
           <Button color="warning" variant="contained" disabled={loading} onClick={() => handleCreateDispute()}>
             Dispute
           </Button>
-          <Button color="success" variant="contained" onClick={() => setOpenReleaseModal(true)} disabled={loading}>
+          <Button color="success" variant="contained" onClick={() => handleSellerReleaseEscrow()} disabled={loading}>
             Release
           </Button>
         </div>
@@ -990,7 +999,7 @@ const OrderDetail = () => {
     }
 
     if(currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Complete) {
-      if (currentData.escrowOrder.returnFeeSignatory) {
+      if (currentData.escrowOrder.returnFeeSignatory && !currentData?.escrowOrder.returnFeeTxid) {
         return isSeller ? (
           <React.Fragment>
             <Stack>
@@ -1224,12 +1233,12 @@ const OrderDetail = () => {
           disputeFee={calDisputeFee}
         />
 
-        <ConfirmReleaseModal
+        {/* <ConfirmReleaseModal
           isOpen={openReleaseModal}
           disputeFee={calDisputeFee}
           returnAction={value => handleSellerReleaseEscrow(value)}
           onDismissModal={value => setOpenReleaseModal(value)}
-        />
+        /> */}
 
         <Stack zIndex={999}>
           <CustomToast
