@@ -290,7 +290,7 @@ const OrderDetailInfo = ({
         {order?.sellerAccount.id === selectedAccount?.id && (
           <React.Fragment>
             <span className="prefix">{order.escrowOffer.type === OfferType.Buy ? 'Offered' : 'Ordered'} by: </span>
-            {allSettings[`${order?.buyerAccount.id.toString()}`]?.usePublicLocalUserName
+            {allSettings?.[`${order?.buyerAccount.id.toString()}`]?.usePublicLocalUserName
               ? order?.buyerAccount.anonymousUsernameLocalecash
               : order?.buyerAccount.telegramUsername}
           </React.Fragment>
@@ -298,7 +298,7 @@ const OrderDetailInfo = ({
         {order?.buyerAccount.id === selectedAccount?.id && (
           <React.Fragment>
             <span className="prefix">{order.escrowOffer.type === OfferType.Buy ? 'Ordered' : 'Offered'} by: </span>
-            {allSettings[`${order?.sellerAccount.id.toString()}`]?.usePublicLocalUserName
+            {allSettings?.[`${order?.sellerAccount.id.toString()}`]?.usePublicLocalUserName
               ? order?.sellerAccount.anonymousUsernameLocalecash
               : order?.sellerAccount.telegramUsername}
           </React.Fragment>
