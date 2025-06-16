@@ -2,6 +2,7 @@
 
 import { styled } from '@mui/material/styles';
 
+import { securityDepositPercentage } from '@/src/store/constants';
 import { formatNumber } from '@/src/store/util';
 import { COIN } from '@bcpros/lixi-models';
 import { ChevronLeft } from '@mui/icons-material';
@@ -105,7 +106,7 @@ const ConfirmDepositModal: React.FC<ConfirmDepositModalProps> = props => {
             returned if there is no dispute.
           </Typography>
           <Typography variant="body1" sx={{ marginTop: '10px', fontWeight: 'bold' }}>
-            Security deposit (1%): {formatNumber(props.depositSecurity)} {COIN.XEC}
+            Security deposit ({securityDepositPercentage}%): {formatNumber(props.depositSecurity)} {COIN.XEC}
           </Typography>
         </DialogContent>
         <DialogActions>

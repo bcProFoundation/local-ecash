@@ -8,7 +8,7 @@ import QRCode from '@/src/components/QRcode/QRcode';
 import TelegramButton from '@/src/components/TelegramButton/TelegramButton';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
 import CustomToast from '@/src/components/Toast/CustomToast';
-import { COIN_OTHERS } from '@/src/store/constants';
+import { securityDepositPercentage } from '@/src/store/constants';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { UtxoContext } from '@/src/store/context/utxoProvider';
 import {
@@ -26,8 +26,8 @@ import {
   SignOracleSignatory
 } from '@/src/store/escrow';
 import { ACTION } from '@/src/store/escrow/constant';
-import { deserializeTransaction, estimatedFee, formatNumber } from '@/src/store/util';
-import { COIN, coinInfo, PAYMENT_METHOD } from '@bcpros/lixi-models';
+import { deserializeTransaction, estimatedFee, formatNumber, showPriceInfo } from '@/src/store/util';
+import { COIN, coinInfo } from '@bcpros/lixi-models';
 import {
   convertEscrowScriptHashToEcashAddress,
   DisputeStatus,
@@ -113,17 +113,17 @@ const OrderDetail = () => {
   const { totalValidAmount, totalValidUtxos } = useContext(UtxoContext);
 
   const CLAIM_BACK_WALLET = {
-    label: '💼 Claim my security deposit back to my wallet',
+    label: `💼 Claim my security deposit (${securityDepositPercentage}%) back to my wallet`,
     value: 1
   };
 
   const DONATE_ARBITRATOR = {
-    label: '⚖️ Donate my security deposit to Arbitrator',
+    label: `⚖️ Donate my security deposit (${securityDepositPercentage}%) to Arbitrator`,
     value: 2
   };
 
   const DONATE_LOCAL_ECASH = {
-    label: '💙 Donate my security deposit to Local eCash',
+    label: `💙 Donate my security deposit (${securityDepositPercentage}%) to Local eCash`,
     value: 3
   };
 
@@ -285,7 +285,8 @@ const OrderDetail = () => {
               socketId: socket?.id
             };
             //buy offer will change amount only when escrow, so we need to update right here (not for goods/service)
-            if (isBuyOffer && showMargin()) {
+
+            if (isBuyOffer && showPrice) {
               orderUpdateInput.amount = amountXEC;
               orderUpdateInput.price = textAmountPer1MXEC;
             }
@@ -647,6 +648,27 @@ const OrderDetail = () => {
     setOpenToastCopySuccess(true);
   };
 
+  const safeComponent = (content: string) => {
+    return (
+      <React.Fragment>
+        <Stack direction="row" spacing={2} justifyContent="center" margin="20px">
+          <Image width={50} height={50} src="/safebox-open.svg" alt="" />
+          <Stack direction="row" spacing={0} justifyContent="center" color="white" alignItems="center">
+            <HorizontalRuleIcon className="icon-rule" />
+            <HorizontalRuleIcon className="icon-rule" />
+            <ClearIcon color="error" />
+            <HorizontalRuleIcon className="icon-rule" />
+            <TrendingFlatIcon className="icon-rule" />
+          </Stack>
+          <Image width={50} height={50} src="/safebox-close.svg" alt="" />
+        </Stack>
+        <Typography variant="body1" color="error" align="center">
+          {content}
+        </Typography>
+      </React.Fragment>
+    );
+  };
+
   const escrowStatus = () => {
     const isSeller = selectedWalletPath?.hash160 === currentData?.escrowOrder.sellerAccount.hash160;
     const isArbiOrMod =
@@ -699,7 +721,9 @@ const OrderDetail = () => {
                   </p>
                 </div>
               ) : (
-                'Please escrow the order'
+                safeComponent(
+                  'Payment will only be made once the order is escrowed. You may want to chat with the buyer for further agreement and details prior to escrow.'
+                )
               )}
               {InfoEscrow()}
             </div>
@@ -716,21 +740,9 @@ const OrderDetail = () => {
           <Typography variant="body1" color="error" align="center">
             Pending Escrow!
           </Typography>
-          <Stack direction="row" spacing={2} justifyContent="center" margin="20px">
-            <Image width={50} height={50} src="/safebox-open.svg" alt="" />
-            <Stack direction="row" spacing={0} justifyContent="center" color="white" alignItems="center">
-              <HorizontalRuleIcon className="icon-rule" />
-              <HorizontalRuleIcon className="icon-rule" />
-              <ClearIcon color="error" />
-              <HorizontalRuleIcon className="icon-rule" />
-              <TrendingFlatIcon className="icon-rule" />
-            </Stack>
-            <Image width={50} height={50} src="/safebox-close.svg" alt="" />
-          </Stack>
-          <Typography variant="body1" color="error" align="center">
-            Once the order is escrowed, the status will turn green with a closed safe icon. Do not send money or goods
-            until the order is escrowed, or you risk losing money.
-          </Typography>
+          {safeComponent(
+            ' Once the order is escrowed, the status will turn green with a closed safe icon. Do not send money or goods until the order is escrowed, or you risk losing money.'
+          )}
         </React.Fragment>
       );
     }
@@ -970,19 +982,13 @@ const OrderDetail = () => {
         <div>
           {telegramButton(true, 'Chat with seller for payment details')}
           <div className="group-button-wrap">
-            {isBuyOffer ? (
-              currentData.escrowOrder?.markAsPaid ? (
-                <Button color="warning" variant="contained" disabled={loading} onClick={() => handleCreateDispute()}>
-                  Dispute
-                </Button>
-              ) : (
-                <Button color="warning" variant="contained" disabled={loading} onClick={() => handleMarkAsPaid()}>
-                  Mark as paid
-                </Button>
-              )
-            ) : (
+            {currentData.escrowOrder?.markAsPaid ? (
               <Button color="warning" variant="contained" disabled={loading} onClick={() => handleCreateDispute()}>
                 Dispute
+              </Button>
+            ) : (
+              <Button color="warning" variant="contained" disabled={loading} onClick={() => handleMarkAsPaid()}>
+                Mark as paid
               </Button>
             )}
             <Button
@@ -1100,8 +1106,9 @@ const OrderDetail = () => {
     );
   };
 
-  const totalAmountWithDeposit = () => {
-    const amountOrder = isShowDynamicValue() ? amountXEC : currentData?.escrowOrder.amount;
+  const totalAmountWithDepositAndEscrowFee = () => {
+    const actualFee1Percent = calDisputeFee;
+    const amountOrder = isShowDynamicValue ? amountXEC : currentData?.escrowOrder.amount;
 
     return amountOrder + estimatedFee(currentData?.escrowOrder.escrowScript);
   };
@@ -1113,7 +1120,7 @@ const OrderDetail = () => {
       isSeller && (
         <QRCode
           address={parseCashAddressToPrefix(COIN.XEC, selectedWalletPath?.cashAddress)}
-          amount={Number(totalAmountWithDeposit().toFixed(2))}
+          amount={Number(totalAmountWithDepositAndEscrowFee().toFixed(2))}
           width="55%"
         />
       )
@@ -1121,29 +1128,30 @@ const OrderDetail = () => {
   };
 
   const checkSellerEnoughFund = () => {
-    return totalValidAmount > totalAmountWithDeposit();
+    return totalValidAmount > totalAmountWithDepositAndEscrowFee();
   };
 
-  const showMargin = () => {
-    return (
-      currentData?.escrowOrder?.paymentMethod?.id !== PAYMENT_METHOD.GOODS_SERVICES &&
-      currentData?.escrowOrder?.escrowOffer?.coinPayment !== COIN_OTHERS
+  const showPrice = useMemo(() => {
+    return showPriceInfo(
+      currentData?.escrowOrder?.paymentMethod?.id,
+      currentData?.escrowOrder?.escrowOffer?.coinPayment,
+      currentData?.escrowOrder?.escrowOffer?.priceCoinOthers
     );
-  };
+  }, [currentData?.escrowOrder]);
 
-  const isShowDynamicValue = () => {
+  const isShowDynamicValue = useMemo(() => {
     //dynamic value only pending and not for goods/service
-    return isBuyOffer && currentData?.escrowOrder?.escrowOrderStatus === EscrowOrderStatus.Pending && showMargin();
-  };
+    return isBuyOffer && currentData?.escrowOrder?.escrowOrderStatus === EscrowOrderStatus.Pending && showPrice;
+  }, [showPrice]);
 
   const calDisputeFee = useMemo(() => {
-    const amountOrder = isShowDynamicValue() ? amountXEC : currentData?.escrowOrder.amount;
+    const amountOrder = isShowDynamicValue ? amountXEC : currentData?.escrowOrder.amount;
 
     const fee1Percent = parseFloat((amountOrder / 100).toFixed(2));
     const dustXEC = coinInfo[COIN.XEC].dustSats / Math.pow(10, coinInfo[COIN.XEC].cashDecimals);
 
     return Math.max(fee1Percent, dustXEC);
-  }, [currentData?.escrowOrder.amount, isShowDynamicValue() ? amountXEC : null]);
+  }, [currentData?.escrowOrder.amount, isShowDynamicValue ? amountXEC : null]);
 
   const InfoEscrow = () => {
     const fee1Percent = calDisputeFee;
@@ -1160,17 +1168,17 @@ const OrderDetail = () => {
           Your wallet: {totalBalanceFormat} {COIN.XEC}
         </Typography>
         <Typography>
-          Security deposit (1%): {formatNumber(fee1Percent)} {COIN.XEC}
+          Security deposit ({securityDepositPercentage}%): {formatNumber(fee1Percent)} {COIN.XEC}
         </Typography>
         <Typography>
           Withdraw fee: {formatNumber(estimatedFee(currentData?.escrowOrder.escrowScript))} {COIN.XEC}
         </Typography>
-        <CopyToClipboard text={totalAmountWithDeposit()} onCopy={handleCopyAmount}>
+        <CopyToClipboard text={totalAmountWithDepositAndEscrowFee()} onCopy={handleCopyAmount}>
           <div>
             <Typography
               style={{ fontWeight: 'bold', fontStyle: 'italic', textDecoration: 'underline', cursor: 'pointer' }}
             >
-              Total: {formatNumber(totalAmountWithDeposit())} {COIN.XEC}
+              Total: {formatNumber(totalAmountWithDepositAndEscrowFee())} {COIN.XEC}
             </Typography>
             <span style={{ fontSize: '12px', color: 'gray' }}> (Excluding miner&apos;s fees)</span>
           </div>

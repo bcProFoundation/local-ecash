@@ -1,5 +1,6 @@
 'use client';
 
+import { securityDepositPercentage } from '@/src/store/constants';
 import { ChevronLeft } from '@mui/icons-material';
 import {
   Button,
@@ -103,11 +104,11 @@ const ConfirmReleaseModal: React.FC<ConfirmReleaseModalProps> = (props: ConfirmR
   const [verified, setVerified] = useState(false);
   const OptionDonate = [
     {
-      label: '💼 Claim my security deposit back to my wallet',
+      label: `💼 Claim my security deposit (${securityDepositPercentage}%) back to my wallet`,
       value: false
     },
     {
-      label: `💙 Donate my security deposit to Local eCash`,
+      label: `💙 Donate my security deposit (${securityDepositPercentage}%) to Local eCash`,
       value: true
     }
   ];
