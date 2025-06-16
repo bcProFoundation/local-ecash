@@ -153,13 +153,11 @@ const OrderDetail = () => {
     useEscrowOrderQuery,
     useUpdateEscrowOrderStatusMutation,
     useUpdateEscrowOrderSignatoryMutation,
-    useUpdateEscrowOrderFeeSignatoryMutation,
     useMarkAsPaidOrderMutation
   } = escrowOrderApi;
   const { currentData, isError, isSuccess } = useEscrowOrderQuery({ id: id! }, { skip: !id || !token });
   const [updateOrderTrigger] = useUpdateEscrowOrderStatusMutation();
   const [updateEscrowOrderSignatoryTrigger] = useUpdateEscrowOrderSignatoryMutation();
-  const [updateEscrowOrderFeeSignatoryTrigger] = useUpdateEscrowOrderFeeSignatoryMutation();
   const [markAsPaidOrderTrigger] = useMarkAsPaidOrderMutation();
 
   const isBuyOffer = currentData?.escrowOrder?.escrowOffer?.type === OfferType.Buy;
@@ -1106,8 +1104,7 @@ const OrderDetail = () => {
     );
   };
 
-  const totalAmountWithDepositAndEscrowFee = () => {
-    const actualFee1Percent = calDisputeFee;
+  const totalAmountWithDeposit = () => {
     const amountOrder = isShowDynamicValue ? amountXEC : currentData?.escrowOrder.amount;
 
     return amountOrder + estimatedFee(currentData?.escrowOrder.escrowScript);
@@ -1120,7 +1117,7 @@ const OrderDetail = () => {
       isSeller && (
         <QRCode
           address={parseCashAddressToPrefix(COIN.XEC, selectedWalletPath?.cashAddress)}
-          amount={Number(totalAmountWithDepositAndEscrowFee().toFixed(2))}
+          amount={Number(totalAmountWithDeposit().toFixed(2))}
           width="55%"
         />
       )
@@ -1128,7 +1125,7 @@ const OrderDetail = () => {
   };
 
   const checkSellerEnoughFund = () => {
-    return totalValidAmount > totalAmountWithDepositAndEscrowFee();
+    return totalValidAmount > totalAmountWithDeposit();
   };
 
   const showPrice = useMemo(() => {
@@ -1173,12 +1170,12 @@ const OrderDetail = () => {
         <Typography>
           Withdraw fee: {formatNumber(estimatedFee(currentData?.escrowOrder.escrowScript))} {COIN.XEC}
         </Typography>
-        <CopyToClipboard text={totalAmountWithDepositAndEscrowFee()} onCopy={handleCopyAmount}>
+        <CopyToClipboard text={totalAmountWithDeposit()} onCopy={handleCopyAmount}>
           <div>
             <Typography
               style={{ fontWeight: 'bold', fontStyle: 'italic', textDecoration: 'underline', cursor: 'pointer' }}
             >
-              Total: {formatNumber(totalAmountWithDepositAndEscrowFee())} {COIN.XEC}
+              Total: {formatNumber(totalAmountWithDeposit())} {COIN.XEC}
             </Typography>
             <span style={{ fontSize: '12px', color: 'gray' }}> (Excluding miner&apos;s fees)</span>
           </div>
