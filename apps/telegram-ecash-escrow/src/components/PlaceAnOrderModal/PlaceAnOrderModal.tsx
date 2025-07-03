@@ -3,7 +3,8 @@
 import { LIST_BANK } from '@/src/store/constants/list-bank';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { UtxoContext } from '@/src/store/context/utxoProvider';
-import { Escrow, buyerDepositFee, splitUtxos } from '@/src/store/escrow';
+import { buyerDepositFee, splitUtxos } from '@/src/store/escrow';
+import { Escrow, EscrowBuyerDepositFee, EscrowFee } from '@/src/store/escrow/script';
 import {
   convertXECAndCurrency,
   convertXECToSatoshi,
@@ -12,6 +13,7 @@ import {
   formatNumber,
   getNumberFromFormatNumber,
   getOrderLimitText,
+  hexEncode,
   showPriceInfo
 } from '@/src/store/util';
 import {
@@ -286,7 +288,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const isBuyOffer = post.postOffer.type === OfferType.Buy;
   const { data } = useSession();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
-  const { setSetting, allSettings } = useContext(SettingContext);
+  const { allSettings } = useContext(SettingContext);
   const Wallet = useContext(WalletContextNode);
   const { totalValidAmount, totalValidUtxos } = useContext(UtxoContext);
   const { chronik, XPI } = Wallet;
@@ -298,6 +300,8 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const [amountXEC, setAmountXEC] = useState(0);
   const [textAmountPer1MXEC, setTextAmountPer1MXEC] = useState('');
   const [escrowScript, setEscrowScript] = useState<Escrow>(null);
+  const [escrowFeeScript, setEscrowFeeScript] = useState<EscrowFee>(null);
+  const [escrowBuyerDepositFeeScript, setEscrowBuyerDepositFeeScript] = useState<EscrowBuyerDepositFee>(null);
   const [nonce, setNonce] = useState<string>(null);
   const [confirm, setConfirm] = useState(false);
   const [openConfirmDeposit, setOpenConfirmDeposit] = useState(false);
@@ -352,7 +356,24 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
       modPk: moderatorPk,
       nonce
     });
+    const escrowFeeScript = new EscrowFee({
+      sellerPk: sellerPk,
+      buyerPk: buyerPk,
+      arbiPk: arbitratorPk,
+      modPk: moderatorPk,
+      nonce
+    });
+    const escrowBuyerDepositFeeScript = new EscrowBuyerDepositFee({
+      sellerPk: sellerPk,
+      buyerPk: buyerPk,
+      arbiPk: arbitratorPk,
+      modPk: moderatorPk,
+      nonce
+    });
+
     setEscrowScript(escrowScript);
+    setEscrowFeeScript(escrowFeeScript);
+    setEscrowBuyerDepositFeeScript(escrowBuyerDepositFeeScript);
     setNonce(nonce);
   };
 
@@ -384,23 +405,25 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
 
     try {
       const scriptSmartContract = escrowScript.script();
+      const scriptFeeSmartContract = escrowFeeScript.script();
+      const scriptBuyerDepositFeeSmartContract = escrowBuyerDepositFeeScript.script();
 
       //split utxos is here and broadcast. Then build tx
       let hexTxBuyerDeposit = null;
+      let escrowBuyerDepositFeeAddress = null;
       let foundUtxo: UtxoInNodeInput;
       const depositFeeSats = convertXECToSatoshi(calDisputeFee);
 
-      const utxosToSplit = [];
-      let totalAmount = 0;
-      for (let i = 0; i < totalValidUtxos.length; i++) {
-        totalAmount += totalValidUtxos[i].value;
-        utxosToSplit.push(totalValidUtxos[i]);
-        const feeSats =
-          XPI.BitcoinCash.getByteCount({ P2PKH: utxosToSplit.length }, { P2PKH: 2 }) * coinInfo[COIN.XEC].defaultFee;
-        if (totalAmount >= depositFeeSats + feeSats) break;
-      }
-
       if (isDepositFee) {
+        const utxosToSplit = [];
+        let totalAmount = 0;
+        for (let i = 0; i < totalValidUtxos.length; i++) {
+          totalAmount += totalValidUtxos[i].value;
+          utxosToSplit.push(totalValidUtxos[i]);
+          const feeSats =
+            XPI.BitcoinCash.getByteCount({ P2PKH: utxosToSplit.length }, { P2PKH: 2 }) * coinInfo[COIN.XEC].defaultFee;
+          if (totalAmount >= depositFeeSats + feeSats) break;
+        }
         const txBuildSplitUtxo = splitUtxos(utxosToSplit, buyerSk, buyerPk, depositFeeSats);
         const txidSplit = (await chronik.broadcastTx(txBuildSplitUtxo)).txid;
 
@@ -413,15 +436,16 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
         }
         if (!foundUtxo) throw new Error('No suitable UTXO found!');
 
-        const totalAmountEscrow =
-          Number(amountXEC) +
-          calDisputeFee * 2 +
-          estimatedFee(Buffer.from(scriptSmartContract.bytecode).toString('hex'));
-        const scriptEscrow = new Script(scriptSmartContract.bytecode);
-        hexTxBuyerDeposit = buyerDepositFee(foundUtxo, buyerSk, buyerPk, totalAmountEscrow, scriptEscrow);
+        const totalAmountBuyerDepositFee = escrowCalculations.totalAmount;
+        const scriptEscrow = new Script(scriptBuyerDepositFeeSmartContract.bytecode);
+        hexTxBuyerDeposit = buyerDepositFee(foundUtxo, buyerSk, buyerPk, totalAmountBuyerDepositFee, scriptEscrow);
       }
 
-      const escrowAddress = convertEscrowScriptHashToEcashAddress(shaRmd160(escrowScript.script().bytecode));
+      const escrowAddress = convertEscrowScriptHashToEcashAddress(shaRmd160(scriptSmartContract.bytecode));
+      const escrowFeeAddress = convertEscrowScriptHashToEcashAddress(shaRmd160(scriptFeeSmartContract.bytecode));
+      escrowBuyerDepositFeeAddress = convertEscrowScriptHashToEcashAddress(
+        shaRmd160(scriptBuyerDepositFeeSmartContract.bytecode)
+      );
 
       const data: CreateEscrowOrderInput = {
         amount: amountXEC,
@@ -430,8 +454,12 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
         arbitratorId,
         moderatorId,
         escrowAddress,
+        escrowFeeAddress,
+        escrowBuyerDepositFeeAddress,
         nonce,
-        escrowScript: Buffer.from(escrowScript.script().bytecode).toString('hex'),
+        escrowScript: hexEncode(scriptSmartContract.bytecode),
+        escrowFeeScript: hexEncode(scriptFeeSmartContract.bytecode),
+        escrowBuyerDepositFeeScript: hexEncode(scriptBuyerDepositFeeSmartContract.bytecode),
         price: textAmountPer1MXEC,
         paymentMethodId: post.postOffer.paymentMethods[0].paymentMethod.id,
         postId: post.id,
@@ -465,8 +493,32 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     return Math.max(fee1Percent, dustXEC);
   }, [amountXEC]);
 
+  const escrowCalculations = useMemo(() => {
+    // Default values for calculations
+    const defaultValues = {
+      feeBuyerDepositFee: 0,
+      totalAmount: 0
+    };
+
+    // Check if escrowBuyerDepositFeeScript is available
+    if (!escrowBuyerDepositFeeScript) {
+      return defaultValues;
+    }
+
+    const buyerDepositFeeScript = escrowBuyerDepositFeeScript.script();
+    const feeBuyerDepositFee = estimatedFee(hexEncode(buyerDepositFeeScript?.bytecode || ''));
+
+    // Calculate total amount
+    const totalAmount = parseFloat((calDisputeFee + feeBuyerDepositFee).toFixed(2));
+
+    return {
+      feeBuyerDepositFee,
+      totalAmount
+    };
+  }, [calDisputeFee, escrowBuyerDepositFeeScript]);
+
   const checkBuyerEnoughFund = () => {
-    return totalValidAmount > calDisputeFee;
+    return totalValidAmount > escrowCalculations.totalAmount;
   };
 
   const InfoPaymentDetail = () => {
@@ -989,6 +1041,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
       <ConfirmDepositModal
         isOpen={openConfirmDeposit}
         depositSecurity={calDisputeFee}
+        escrowCalculations={escrowCalculations}
         isLoading={loading}
         onDismissModal={value => setOpenConfirmDeposit(value)}
         depositFee={isDeposit => {
