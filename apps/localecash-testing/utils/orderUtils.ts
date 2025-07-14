@@ -69,7 +69,7 @@ async function createOrderBase(browser: any, depositOption: 'decline' | 'accept'
   // Step 1: Navigate to the offer page
   console.log(`Navigating to offer: ${localLink}/?offerId=${offerId}`);
   await page.goto(`${localLink}/?offerId=${offerId}`);
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
 
   // Step 2: Fill in the order form
   console.log('Filling order form...');

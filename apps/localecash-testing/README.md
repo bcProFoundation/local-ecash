@@ -85,6 +85,7 @@ pnpm run test:main-flows
 ---
 
 ### Option B: Dev Environment Testing
+
 - Node: v18.17.0, pnpm: 9.15.9
 
 ```bash

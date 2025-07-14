@@ -76,6 +76,51 @@ const waitForWalletDataInIndexedDB = async (page: any): Promise<Record<string, a
               }
             }
 
+            // Remove utxos from nested JSON strings before returning
+            try {
+              // Handle persist:wallet
+              if (data['persist:wallet'] && typeof data['persist:wallet'] === 'string') {
+                const walletData = JSON.parse(data['persist:wallet']);
+                if (walletData.walletStatus && typeof walletData.walletStatus === 'string') {
+                  const walletStatus = JSON.parse(walletData.walletStatus);
+                  if (walletStatus.utxos) {
+                    walletStatus.utxos = [];
+                    walletData.walletStatus = JSON.stringify(walletStatus);
+                    console.log('🗑️ Removed utxos from persist:wallet walletStatus');
+                  }
+                }
+                if (walletData.walletStatusNode && typeof walletData.walletStatusNode === 'string') {
+                  const walletStatusNode = JSON.parse(walletData.walletStatusNode);
+                  if (walletStatusNode.utxos) {
+                    walletStatusNode.utxos = [];
+                    walletData.walletStatusNode = JSON.stringify(walletStatusNode);
+                    console.log('🗑️ Removed utxos from persist:wallet walletStatusNode');
+                  }
+                }
+                data['persist:wallet'] = JSON.stringify(walletData);
+              }
+
+              // Handle persist:root
+              if (data['persist:root'] && typeof data['persist:root'] === 'string') {
+                const rootData = JSON.parse(data['persist:root']);
+                if (rootData.wallet && typeof rootData.wallet === 'string') {
+                  const walletData = JSON.parse(rootData.wallet);
+                  if (walletData.walletStatus && walletData.walletStatus.utxos) {
+                    walletData.walletStatus.utxos = [];
+                    console.log('🗑️ Removed utxos from persist:root wallet walletStatus');
+                  }
+                  if (walletData.walletStatusNode && walletData.walletStatusNode.utxos) {
+                    walletData.walletStatusNode.utxos = [];
+                    console.log('🗑️ Removed utxos from persist:root wallet walletStatusNode');
+                  }
+                  rootData.wallet = JSON.stringify(walletData);
+                  data['persist:root'] = JSON.stringify(rootData);
+                }
+              }
+            } catch (error) {
+              console.warn('⚠️ Error while removing utxos keys:', error);
+            }
+
             db.close();
             resolve(data);
           };
@@ -157,12 +202,12 @@ test.describe('@auth', () => {
     const config = getEnvironmentConfig(testEnv);
 
     console.log(`🌐 Navigating to: ${config.url}`);
-    await page.goto(config.url, { waitUntil: 'networkidle' });
+    await page.goto(config.url, { waitUntil: 'domcontentloaded' });
 
     // Start login process
     await page.locator('.MuiButtonBase-root').first().click();
     await page.getByRole('button', { name: 'Log In' }).click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Wait for the iframe to load
     const iframeSelector = `#telegram-login-${config.botName}`;
@@ -216,7 +261,7 @@ test.describe('@auth', () => {
       }
     }
 
-    await popup?.waitForLoadState('networkidle');
+    await popup?.waitForLoadState('domcontentloaded');
 
     // Enter phone details
     await popup?.locator('#login-phone-code').fill(phoneCode);
@@ -228,7 +273,7 @@ test.describe('@auth', () => {
     await page.getByRole('button', { name: 'Import' }).click();
 
     console.log('Waiting for successful login and wallet import...');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     console.log('🔍 Starting to poll for wallet data in IndexedDB...');
     // Wait for wallet data to be persisted in IndexedDB

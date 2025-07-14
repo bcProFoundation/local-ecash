@@ -52,7 +52,7 @@ test.describe.serial('Return flow', () => {
     const sellerContext = await setupContext(browser, 'Seller');
     console.log(`Seller navigating to order: ${localLink}/order-detail?id=${orderId}`);
     await sellerContext.page.goto(`${localLink}/order-detail?id=${orderId}`);
-    await sellerContext.page.waitForLoadState('networkidle');
+    await sellerContext.page.waitForLoadState('domcontentloaded');
 
     // Wait for seller's order detail view to load
     await sellerContext.page.waitForSelector(`text=/${orderDetailText}/i`);
@@ -95,7 +95,7 @@ test.describe.serial('Return flow', () => {
     const sellerContext = await setupContext(browser, 'Seller');
     console.log(`Seller navigating to order: ${localLink}/order-detail?id=${orderId}`);
     await sellerContext.page.goto(`${localLink}/order-detail?id=${orderId}`);
-    await sellerContext.page.waitForLoadState('networkidle');
+    await sellerContext.page.waitForLoadState('domcontentloaded');
 
     // Wait for seller's order detail view to load
     await sellerContext.page.waitForSelector(`text=/${orderDetailText}/i`);

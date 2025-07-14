@@ -25,7 +25,7 @@ test.describe('Release flow with buyer deposit', () => {
     // Navigate to the same order detail page as seller
     console.log(`Seller navigating to order: ${localLink}/order-detail?id=${orderId}`);
     await sellerContext.page.goto(`${localLink}/order-detail?id=${orderId}`);
-    await sellerContext.page.waitForLoadState('networkidle');
+    await sellerContext.page.waitForLoadState('domcontentloaded');
 
     // Wait for seller's order detail view to load
     await sellerContext.page.waitForSelector(`text=/${orderDetailText}/i`);
