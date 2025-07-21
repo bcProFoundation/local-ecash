@@ -83,7 +83,7 @@ export async function setupContext(
     // Now restore our data
     await page.evaluate(async (data: any) => {
       return new Promise((resolve, reject) => {
-        const request = indexedDB.open('escrow-indexeddb', 1);
+        const request = indexedDB.open('escrow-indexeddb', undefined);
 
         request.onupgradeneeded = event => {
           console.log('Creating object store');
@@ -131,7 +131,7 @@ export async function setupContext(
     // Quick verification that data was stored
     const dbState = await page.evaluate(async () => {
       return new Promise(resolve => {
-        const request = indexedDB.open('escrow-indexeddb');
+        const request = indexedDB.open('escrow-indexeddb', undefined);
         request.onsuccess = () => {
           const db = request.result;
           const transaction = db.transaction('keyvaluepairs', 'readonly');
