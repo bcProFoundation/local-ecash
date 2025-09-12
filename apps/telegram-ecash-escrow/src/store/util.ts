@@ -67,7 +67,14 @@ export const capitalizeStr = (str: string) => {
 
 export const getNumberFromFormatNumber = (value: string) => {
   if (!value) return 0;
-  return parseFloat(value.replace(/,/g, ''));
+  if (typeof value === 'number') {
+    return value;
+  }
+  if (value?.includes(',')) {
+    return parseFloat(value.replace(/,/g, ''));
+  } else {
+    return parseFloat(value);
+  }
 };
 
 export const getOrderLimitText = (min: number | null, max: number | null, ticket: string) => {
