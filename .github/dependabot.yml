@@ -15,6 +15,3 @@ updates:
     labels: ["dependencies", "github-actions"]
     open-pull-requests-limit: 5
     rebase-strategy: "auto"
-    directory: "/" # Location of package manifests
-    schedule:
-      interval: "weekly"
