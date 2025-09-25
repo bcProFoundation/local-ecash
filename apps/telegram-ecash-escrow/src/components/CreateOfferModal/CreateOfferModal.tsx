@@ -534,11 +534,17 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
 
   // Effect to update coinCurrency when related form values change
   useEffect(() => {
+    // If the user selected Goods & Services payment method, show the unit label
+    if (option === PAYMENT_METHOD.GOODS_SERVICES) {
+      setCoinCurrency(GOODS_SERVICES_UNIT);
+      return;
+    }
+
     const currency = currencyValue?.split(':')[0];
     const coin = coinValue?.split(':')[0];
 
     setCoinCurrency(currency ?? (coin?.includes(COIN_OTHERS) ? getValues('coinOthers') : coin) ?? GOODS_SERVICES_UNIT);
-  }, [currencyValue, coinValue, getValues('coinOthers')]);
+  }, [currencyValue, coinValue, getValues('coinOthers'), option]);
 
   // Effect to load payment methods and countries on component mount
   useEffect(() => {
