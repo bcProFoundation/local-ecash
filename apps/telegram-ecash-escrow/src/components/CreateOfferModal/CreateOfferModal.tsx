@@ -517,7 +517,12 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
           // Set currency based on detected country
           const currencyDetected = LIST_CURRENCIES_USED.find(item => item.country === countryDetected?.iso2);
           if (currencyDetected) {
-            setValue('currency', `${currencyDetected?.code}:${currencyDetected?.fixAmount}`);
+            // Only set detected currency when the user hasn't selected Goods & Services
+            // to avoid overriding the 'Unit' display for goods/services offers.
+            const currentOption = Number(getValues('option'));
+            if (currentOption !== PAYMENT_METHOD.GOODS_SERVICES) {
+              setValue('currency', `${currencyDetected?.code}:${currencyDetected?.fixAmount}`);
+            }
           }
         }
       }
