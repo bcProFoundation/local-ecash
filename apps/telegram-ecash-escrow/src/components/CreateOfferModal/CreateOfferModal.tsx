@@ -362,38 +362,54 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   const IMAGE_EXT_REGEX = /\.(png|jpe?g|gif|webp)(\?|$)/i;
 
   // Additional image safety check
-  function isSafeImageUrl(url: string): boolean {
-    // Require http(s)
-    if (!/^https?:\/\//i.test(url)) return false;
-    // Disallow SVG entirely
-    if (/\.svg(\?|$)/i.test(url)) return false;
-    if (/^data:image\/svg\+xml/i.test(url)) return false;
-    // Only allow certain image extensions
-    if (!IMAGE_EXT_REGEX.test(url)) return false;
-    return true;
+  // Accept only whitelisted image types and http(s) URLs from valid origins.
+  function isSafeImageUrl(urlStr: string): boolean {
+    try {
+      // Parse using browser's URL API
+      const url = new URL(urlStr);
+      // Require http(s)
+      if (url.protocol !== 'http:' && url.protocol !== 'https:') return false;
+      // Only allow certain image extensions - block SVG regardless of extension
+      if (/\.svg(\?|$)/i.test(url.pathname)) return false;
+      // Only allow common raster image extensions (no SVG)
+      if (!/\.(png|jpe?g|gif|bmp|webp)$/i.test(url.pathname)) return false;
+      // Disallow data URLs explicitly
+      if (urlStr.startsWith('data:')) return false;
+      // Optionally restrict to known, trusted domains (add here if needed)
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   const renderTextWithLinks = (text?: string) => {
     if (!text) return null;
     const parts = text.split(URL_REGEX).filter(Boolean);
     /**
-     * Only allow http and https URLs.
+     * Only allow http and https URLs using robust URL parsing.
      */
-    function isSafeHttpUrl(url: string): boolean {
-      return /^https?:\/\//i.test(url);
+    function isSafeHttpUrl(urlStr: string): boolean {
+      try {
+        const url = new URL(urlStr);
+        return url.protocol === 'http:' || url.protocol === 'https:';
+      } catch {
+        return false;
+      }
     }
 
     return (
       <>
         {parts.map((part, idx) => {
           if (URL_REGEX.test(part)) {
-            const url = part.trim();
-            if (isSafeHttpUrl(url)) {
-              if (isSafeImageUrl(url)) {
+            const urlStr = part.trim();
+            if (isSafeHttpUrl(urlStr)) {
+              // Ensure any potentially unsafe char in url is encoded
+              const safeUrl = encodeURI(urlStr);
+              if (isSafeImageUrl(urlStr)) {
                 return (
-                  <a key={idx} href={url} target="_blank" rel="noreferrer noopener" onClick={e => e.stopPropagation()}>
+                  <a key={idx} href={safeUrl} target="_blank" rel="noreferrer noopener" onClick={e => e.stopPropagation()}>
                     <img 
-                      src={url}
+                      src={safeUrl}
                       alt="attachment"
                       style={{ maxWidth: '100%', maxHeight: 300, borderRadius: 8, display: 'block', marginTop: 8 }}
                       loading="lazy"
@@ -403,13 +419,13 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
               // Allowed plain links
               }
               return (
-                <a key={idx} href={url} target="_blank" rel="noreferrer noopener" onClick={e => e.stopPropagation()} style={{ color: '#1976d2' }}>
-                  {url}
+                <a key={idx} href={safeUrl} target="_blank" rel="noreferrer noopener" onClick={e => e.stopPropagation()} style={{ color: '#1976d2' }}>
+                  {safeUrl}
                 </a>
               );
             }
             // Unsafe URL, render as plain text instead
-            return <span key={idx}>{url}</span>;
+            return <span key={idx}>{urlStr}</span>;
           }
           return <span key={idx}>{part}</span>;
         })}
