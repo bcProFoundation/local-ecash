@@ -218,22 +218,23 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
   };
 
   // Helper: find URLs in text and render image preview if URL points to an image
-  const URL_REGEX = /(https?:\/\/[^\s]+)/g;
-  const IMAGE_EXT_REGEX = /\.(png|jpe?g|gif|webp|svg)(\?|$)/i;
+  // Use split with a non-global capturing regex and rely on index parity (odd = URL)
+  const URL_SPLIT_REGEX = /(https?:\/\/[^\s]+)/i;
+  const IMAGE_EXT_REGEX = /\.(png|jpe?g|gif|webp|svg)(?:[?#].*|$)/i;
 
   const renderTextWithLinks = (text?: string) => {
     if (!text) return null;
 
-    // Split by URLs and render
-    const parts = text.split(URL_REGEX).filter(Boolean);
+    // Split keeps captured URLs as separate array elements. Do NOT filter out empty strings — parity matters.
+    const parts = text.split(URL_SPLIT_REGEX);
 
     return (
       <>
         {parts.map((part, idx) => {
-          if (URL_REGEX.test(part)) {
+          // odd indices are URLs because the regex has one capturing group
+          if (idx % 2 === 1) {
             const url = part.trim();
             if (IMAGE_EXT_REGEX.test(url)) {
-              // image preview - use plain <img> to avoid Next.js external domain config issues
               return (
                 <a
                   key={idx}
@@ -266,7 +267,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
             );
           }
 
-          // plain text
+          // plain text (even indices)
           return <span key={idx}>{part}</span>;
         })}
       </>

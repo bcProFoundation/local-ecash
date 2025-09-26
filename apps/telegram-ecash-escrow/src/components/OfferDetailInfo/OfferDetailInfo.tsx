@@ -29,16 +29,17 @@ const OrderDetailWrap = styled.div`
 `;
 
 const OrderDetailInfo = ({ key, post }: { key: string; post: Post }) => {
-  const URL_REGEX = /(https?:\/\/[^\s]+)/g;
-  const IMAGE_EXT_REGEX = /\.(png|jpe?g|gif|webp|svg)(\?|$)/i;
+  // Use split-based parity to avoid issues with stateful global RegExp.test
+  const URL_SPLIT_REGEX = /(https?:\/\/[^\s]+)/i;
+  const IMAGE_EXT_REGEX = /\.(png|jpe?g|gif|webp|svg)(?:[?#].*|$)/i;
 
   const renderTextWithLinks = (text?: string) => {
     if (!text) return null;
-    const parts = text.split(URL_REGEX).filter(Boolean);
+    const parts = text.split(URL_SPLIT_REGEX);
     return (
       <>
         {parts.map((part, idx) => {
-          if (URL_REGEX.test(part)) {
+          if (idx % 2 === 1) {
             const url = part.trim();
             if (IMAGE_EXT_REGEX.test(url)) {
               return (

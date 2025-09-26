@@ -356,11 +356,6 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
 
   const isGoodService = option === PAYMENT_METHOD.GOODS_SERVICES;
 
-  // Helper: detect URLs and render image preview or link
-  const URL_REGEX = /(https?:\/\/[^\s]+)/g;
-  // Only allow safe image extensions, no SVG
-  const IMAGE_EXT_REGEX = /\.(png|jpe?g|gif|webp)(\?|$)/i;
-
   // Additional image safety check
   // Accept only whitelisted image types and http(s) URLs from valid origins.
   function isSafeImageUrl(urlStr: string): boolean {
@@ -382,50 +377,37 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
     }
   }
 
+  // Use split with a non-global capturing regex to avoid stateful RegExp.test
+  const URL_SPLIT_REGEX = /(https?:\/\/[^\s]+)/i;
+  const IMAGE_EXT_REGEX = /\.(png|jpe?g|gif|webp|svg)(?:[?#].*|$)/i;
+
   const renderTextWithLinks = (text?: string) => {
     if (!text) return null;
-    const parts = text.split(URL_REGEX).filter(Boolean);
-    /**
-     * Only allow http and https URLs using robust URL parsing.
-     */
-    function isSafeHttpUrl(urlStr: string): boolean {
-      try {
-        const url = new URL(urlStr);
-        return url.protocol === 'http:' || url.protocol === 'https:';
-      } catch {
-        return false;
-      }
-    }
-
+    const parts = text.split(URL_SPLIT_REGEX);
     return (
       <>
         {parts.map((part, idx) => {
-          if (URL_REGEX.test(part)) {
-            const urlStr = part.trim();
-            if (isSafeHttpUrl(urlStr)) {
-              // Ensure any potentially unsafe char in url is encoded
-              const safeUrl = encodeURI(urlStr);
-              if (isSafeImageUrl(urlStr)) {
-                return (
-                  <a key={idx} href={safeUrl} target="_blank" rel="noreferrer noopener" onClick={e => e.stopPropagation()}>
-                    <img 
-                      src={safeUrl}
-                      alt="attachment"
-                      style={{ maxWidth: '100%', maxHeight: 300, borderRadius: 8, display: 'block', marginTop: 8 }}
-                      loading="lazy"
-                    />
-                  </a>
-                );
-              // Allowed plain links
-              }
+          if (idx % 2 === 1) {
+            const url = part.trim();
+            // Only render images/links when URL passes safety checks
+            if (isSafeImageUrl(url) && IMAGE_EXT_REGEX.test(url)) {
               return (
-                <a key={idx} href={safeUrl} target="_blank" rel="noreferrer noopener" onClick={e => e.stopPropagation()} style={{ color: '#1976d2' }}>
-                  {safeUrl}
+                <a key={idx} href={url} target="_blank" rel="noreferrer noopener" onClick={e => e.stopPropagation()}>
+                  <img src={url} alt="attachment" style={{ maxWidth: '100%', maxHeight: 300, borderRadius: 8, display: 'block', marginTop: 8 }} loading="lazy" />
                 </a>
               );
             }
-            // Unsafe URL, render as plain text instead
-            return <span key={idx}>{urlStr}</span>;
+
+            if (isSafeImageUrl(url)) {
+              return (
+                <a key={idx} href={url} target="_blank" rel="noreferrer noopener" onClick={e => e.stopPropagation()} style={{ color: '#1976d2' }}>
+                  {url}
+                </a>
+              );
+            }
+
+            // Unsafe URL: render as plain text
+            return <span key={idx}>{url}</span>;
           }
           return <span key={idx}>{part}</span>;
         })}
