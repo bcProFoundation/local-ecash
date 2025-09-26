@@ -41,9 +41,8 @@ const OrderDetailInfo = ({ key, post }: { key: string; post: Post }) => {
     try {
       const url = new URL(trimmed);
       if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
-      const port = url.port ? `:${url.port}` : '';
       const path = encodeURI(url.pathname + url.search + url.hash);
-      return `${url.protocol}//${url.hostname}${port}${path}`;
+      return `${url.protocol}//${url.host}${path}`;
     } catch (e) {
       return null;
     }
