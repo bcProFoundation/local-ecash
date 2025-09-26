@@ -358,7 +358,20 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
 
   // Helper: detect URLs and render image preview or link
   const URL_REGEX = /(https?:\/\/[^\s]+)/g;
-  const IMAGE_EXT_REGEX = /\.(png|jpe?g|gif|webp|svg)(\?|$)/i;
+  // Only allow safe image extensions, no SVG
+  const IMAGE_EXT_REGEX = /\.(png|jpe?g|gif|webp)(\?|$)/i;
+
+  // Additional image safety check
+  function isSafeImageUrl(url: string): boolean {
+    // Require http(s)
+    if (!/^https?:\/\//i.test(url)) return false;
+    // Disallow SVG entirely
+    if (/\.svg(\?|$)/i.test(url)) return false;
+    if (/^data:image\/svg\+xml/i.test(url)) return false;
+    // Only allow certain image extensions
+    if (!IMAGE_EXT_REGEX.test(url)) return false;
+    return true;
+  }
 
   const renderTextWithLinks = (text?: string) => {
     if (!text) return null;
@@ -376,12 +389,18 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
           if (URL_REGEX.test(part)) {
             const url = part.trim();
             if (isSafeHttpUrl(url)) {
-              if (IMAGE_EXT_REGEX.test(url)) {
+              if (isSafeImageUrl(url)) {
                 return (
                   <a key={idx} href={url} target="_blank" rel="noreferrer noopener" onClick={e => e.stopPropagation()}>
-                    <img src={url} alt="attachment" style={{ maxWidth: '100%', maxHeight: 300, borderRadius: 8, display: 'block', marginTop: 8 }} />
+                    <img 
+                      src={url}
+                      alt="attachment"
+                      style={{ maxWidth: '100%', maxHeight: 300, borderRadius: 8, display: 'block', marginTop: 8 }}
+                      loading="lazy"
+                    />
                   </a>
                 );
+              // Allowed plain links
               }
               return (
                 <a key={idx} href={url} target="_blank" rel="noreferrer noopener" onClick={e => e.stopPropagation()} style={{ color: '#1976d2' }}>
