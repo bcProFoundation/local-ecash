@@ -217,6 +217,62 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
     router.push(`/profile?address=${post?.account?.address}`);
   };
 
+  // Helper: find URLs in text and render image preview if URL points to an image
+  const URL_REGEX = /(https?:\/\/[^\s]+)/g;
+  const IMAGE_EXT_REGEX = /\.(png|jpe?g|gif|webp|svg)(\?|$)/i;
+
+  const renderTextWithLinks = (text?: string) => {
+    if (!text) return null;
+
+    // Split by URLs and render
+    const parts = text.split(URL_REGEX).filter(Boolean);
+
+    return (
+      <>
+        {parts.map((part, idx) => {
+          if (URL_REGEX.test(part)) {
+            const url = part.trim();
+            if (IMAGE_EXT_REGEX.test(url)) {
+              // image preview - use plain <img> to avoid Next.js external domain config issues
+              return (
+                <a
+                  key={idx}
+                  href={url}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  onClick={e => e.stopPropagation()}
+                >
+                  <img
+                    src={url}
+                    alt="attachment"
+                    style={{ maxWidth: '100%', maxHeight: 220, borderRadius: 8, display: 'block', marginTop: 6 }}
+                  />
+                </a>
+              );
+            }
+
+            // regular link
+            return (
+              <a
+                key={idx}
+                href={url}
+                target="_blank"
+                rel="noreferrer noopener"
+                onClick={e => e.stopPropagation()}
+                style={{ color: '#1976d2' }}
+              >
+                {url}
+              </a>
+            );
+          }
+
+          // plain text
+          return <span key={idx}>{part}</span>;
+        })}
+      </>
+    );
+  };
+
   const convertXECToAmount = async () => {
     if (!rateData) return 0;
 
@@ -273,8 +329,8 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
   const OfferItem = (
     <OfferShowWrapItem>
       <div className="push-offer-wrap">
-        <Typography variant="body2" style={{ fontWeight: 'bold' }} onClick={handleItemClick}>
-          {offerData?.message}
+          <Typography variant="body2" style={{ fontWeight: 'bold' }} onClick={handleItemClick}>
+          {renderTextWithLinks(offerData?.message) ?? ''}
         </Typography>
         {(accountQueryData?.getAccountByAddress.role === Role.Moderator ||
           post?.account.hash160 === selectedWalletPath?.hash160) && (
@@ -353,7 +409,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
             {offerData?.noteOffer && (
               <Typography variant="body2">
                 <span className="prefix">Note: </span>
-                {offerData.noteOffer}
+                {renderTextWithLinks(offerData.noteOffer)}
               </Typography>
             )}
           </CardContent>

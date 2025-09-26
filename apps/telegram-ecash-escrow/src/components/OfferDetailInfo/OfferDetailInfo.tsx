@@ -29,6 +29,35 @@ const OrderDetailWrap = styled.div`
 `;
 
 const OrderDetailInfo = ({ key, post }: { key: string; post: Post }) => {
+  const URL_REGEX = /(https?:\/\/[^\s]+)/g;
+  const IMAGE_EXT_REGEX = /\.(png|jpe?g|gif|webp|svg)(\?|$)/i;
+
+  const renderTextWithLinks = (text?: string) => {
+    if (!text) return null;
+    const parts = text.split(URL_REGEX).filter(Boolean);
+    return (
+      <>
+        {parts.map((part, idx) => {
+          if (URL_REGEX.test(part)) {
+            const url = part.trim();
+            if (IMAGE_EXT_REGEX.test(url)) {
+              return (
+                <a key={idx} href={url} target="_blank" rel="noreferrer noopener" onClick={e => e.stopPropagation()}>
+                  <img src={url} alt="attachment" style={{ maxWidth: '100%', maxHeight: 220, borderRadius: 8, display: 'block', marginTop: 6 }} />
+                </a>
+              );
+            }
+            return (
+              <a key={idx} href={url} target="_blank" rel="noreferrer noopener" onClick={e => e.stopPropagation()}>
+                {url}
+              </a>
+            );
+          }
+          return <span key={idx}>{part}</span>;
+        })}
+      </>
+    );
+  };
   return (
     <OrderDetailWrap>
       <Typography variant="body1">
@@ -46,7 +75,7 @@ const OrderDetailInfo = ({ key, post }: { key: string; post: Post }) => {
       </Typography>
       <Typography variant="body1">
         <span className="prefix">Message: </span>
-        {post.offer?.message}
+        {renderTextWithLinks(post.offer?.message)}
       </Typography>
       <div className="payment-group-btns">
         {post.offer?.paymentMethods.map(method => {

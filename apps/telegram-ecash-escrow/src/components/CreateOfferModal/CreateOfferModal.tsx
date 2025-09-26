@@ -356,6 +356,37 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
 
   const isGoodService = option === PAYMENT_METHOD.GOODS_SERVICES;
 
+  // Helper: detect URLs and render image preview or link
+  const URL_REGEX = /(https?:\/\/[^\s]+)/g;
+  const IMAGE_EXT_REGEX = /\.(png|jpe?g|gif|webp|svg)(\?|$)/i;
+
+  const renderTextWithLinks = (text?: string) => {
+    if (!text) return null;
+    const parts = text.split(URL_REGEX).filter(Boolean);
+    return (
+      <>
+        {parts.map((part, idx) => {
+          if (URL_REGEX.test(part)) {
+            const url = part.trim();
+            if (IMAGE_EXT_REGEX.test(url)) {
+              return (
+                <a key={idx} href={url} target="_blank" rel="noreferrer noopener" onClick={e => e.stopPropagation()}>
+                  <img src={url} alt="attachment" style={{ maxWidth: '100%', maxHeight: 300, borderRadius: 8, display: 'block', marginTop: 8 }} />
+                </a>
+              );
+            }
+            return (
+              <a key={idx} href={url} target="_blank" rel="noreferrer noopener" onClick={e => e.stopPropagation()} style={{ color: '#1976d2' }}>
+                {url}
+              </a>
+            );
+          }
+          return <span key={idx}>{part}</span>;
+        })}
+      </>
+    );
+  };
+
   // Navigation handlers
   const handleNext = () => setActiveStep(prevStep => prevStep + 1);
   const handleBack = () => setActiveStep(prevStep => prevStep - 1);
@@ -1475,7 +1506,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
           {/* Headline */}
           <Grid item xs={12}>
             <Typography variant="body1">
-              <span className="prefix">Headline: </span> {getValues('message')}
+              <span className="prefix">Headline: </span> {renderTextWithLinks(getValues('message'))}
             </Typography>
           </Grid>
 
@@ -1505,7 +1536,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
           {getValues('note') && (
             <Grid item xs={12}>
               <Typography variant="body1">
-                <span className="prefix">Offer note: </span> {getValues('note')}
+                <span className="prefix">Offer note: </span> {renderTextWithLinks(getValues('note'))}
               </Typography>
             </Grid>
           )}
