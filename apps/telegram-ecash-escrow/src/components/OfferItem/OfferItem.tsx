@@ -222,6 +222,41 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
   const URL_SPLIT_REGEX = /(https?:\/\/[^\s]+)/i;
   const IMAGE_EXT_REGEX = /\.(png|jpe?g|gif|webp|svg)(?:[?#].*|$)/i;
 
+  // Strict URL sanitizer to avoid XSS in href/src attributes
+  const sanitizeUrl = (raw?: string): string | null => {
+    if (!raw || typeof raw !== 'string') return null;
+    const trimmed = raw.trim();
+    const lower = trimmed.toLowerCase();
+    if (lower.startsWith('javascript:') || lower.startsWith('data:') || lower.startsWith('vbscript:') || lower.startsWith('file:') || lower.startsWith('blob:')) return null;
+    try {
+      const url = new URL(trimmed);
+      if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+      const port = url.port ? `:${url.port}` : '';
+      const path = encodeURI(url.pathname + url.search + url.hash);
+      return `${url.protocol}//${url.hostname}${port}${path}`;
+    } catch (e) {
+      return null;
+    }
+  };
+
+  // Parse and validate http(s) URL; returns URL object or null
+  const parseSafeHttpUrl = (urlStr: string): URL | null => {
+    try {
+      const url = new URL(urlStr);
+      if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+      if (urlStr.startsWith('data:')) return null;
+      return url;
+    } catch (e) {
+      return null;
+    }
+  };
+
+  // Given a parsed URL, determine if it's a raster image we allow
+  const isSafeImageUrl = (url: URL): boolean => {
+    if (/\.svg(\?|$)/i.test(url.pathname)) return false;
+    return /\.(png|jpe?g|gif|bmp|webp)$/i.test(url.pathname);
+  };
+
   const renderTextWithLinks = (text?: string) => {
     if (!text) return null;
 
@@ -232,39 +267,29 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
       <>
         {parts.map((part, idx) => {
           // odd indices are URLs because the regex has one capturing group
+
           if (idx % 2 === 1) {
             const url = part.trim();
-            if (IMAGE_EXT_REGEX.test(url)) {
+            const parsed = parseSafeHttpUrl(url);
+            const safe = sanitizeUrl(url);
+
+            if (parsed && isSafeImageUrl(parsed) && safe && IMAGE_EXT_REGEX.test(safe)) {
               return (
-                <a
-                  key={idx}
-                  href={url}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  onClick={e => e.stopPropagation()}
-                >
-                  <img
-                    src={url}
-                    alt="attachment"
-                    style={{ maxWidth: '100%', maxHeight: 220, borderRadius: 8, display: 'block', marginTop: 6 }}
-                  />
+                <a key={idx} href={safe} target="_blank" rel="noreferrer noopener" onClick={e => e.stopPropagation()}>
+                  <img src={safe} alt="attachment" style={{ maxWidth: '100%', maxHeight: 220, borderRadius: 8, display: 'block', marginTop: 6 }} />
                 </a>
               );
             }
 
-            // regular link
-            return (
-              <a
-                key={idx}
-                href={url}
-                target="_blank"
-                rel="noreferrer noopener"
-                onClick={e => e.stopPropagation()}
-                style={{ color: '#1976d2' }}
-              >
-                {url}
-              </a>
-            );
+            if (parsed && safe) {
+              return (
+                <a key={idx} href={safe} target="_blank" rel="noreferrer noopener" onClick={e => e.stopPropagation()} style={{ color: '#1976d2' }}>
+                  {safe}
+                </a>
+              );
+            }
+
+            return <span key={idx}>{url}</span>;
           }
 
           // plain text (even indices)

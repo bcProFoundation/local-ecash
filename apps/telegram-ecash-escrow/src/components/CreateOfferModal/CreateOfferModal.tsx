@@ -358,22 +358,43 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
 
   // Additional image safety check
   // Accept only whitelisted image types and http(s) URLs from valid origins.
-  function isSafeImageUrl(urlStr: string): boolean {
+  // Parse and validate http(s) URL; returns URL object or null
+  const parseSafeHttpUrl = (urlStr: string): URL | null => {
     try {
-      // Parse using browser's URL API
       const url = new URL(urlStr);
-      // Require http(s)
-      if (url.protocol !== 'http:' && url.protocol !== 'https:') return false;
-      // Only allow certain image extensions - block SVG regardless of extension
-      if (/\.svg(\?|$)/i.test(url.pathname)) return false;
-      // Only allow common raster image extensions (no SVG)
-      if (!/\.(png|jpe?g|gif|bmp|webp)$/i.test(url.pathname)) return false;
-      // Disallow data URLs explicitly
-      if (urlStr.startsWith('data:')) return false;
-      // Optionally restrict to known, trusted domains (add here if needed)
-      return true;
+      if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+      if (urlStr.startsWith('data:')) return null;
+      return url;
     } catch (e) {
-      return false;
+      return null;
+    }
+  };
+
+  // Given a parsed URL, determine if it's a raster image we allow
+  const isSafeImageUrl = (url: URL): boolean => {
+    if (/\.svg(\?|$)/i.test(url.pathname)) return false;
+    return /\.(png|jpe?g|gif|bmp|webp)$/i.test(url.pathname);
+  };
+
+  // Strict URL sanitizer: returns a safe, normalized URL string or null when unsafe.
+  function sanitizeUrl(raw: string): string | null {
+    if (!raw || typeof raw !== 'string') return null;
+    const trimmed = raw.trim();
+    // quick reject dangerous schemes
+    const lower = trimmed.toLowerCase();
+    if (lower.startsWith('javascript:') || lower.startsWith('data:') || lower.startsWith('vbscript:') || lower.startsWith('file:') || lower.startsWith('blob:')) {
+      return null;
+    }
+    try {
+      const url = new URL(trimmed);
+      if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+      if (!url.hostname) return null;
+      // Reconstruct a normalized, encoded URL string
+      const port = url.port ? `:${url.port}` : '';
+      const path = encodeURI(url.pathname + url.search + url.hash);
+      return `${url.protocol}//${url.hostname}${port}${path}`;
+    } catch (e) {
+      return null;
     }
   }
 
@@ -386,31 +407,35 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
     const parts = text.split(URL_SPLIT_REGEX);
     return (
       <>
-        {parts.map((part, idx) => {
-          if (idx % 2 === 1) {
-            const url = part.trim();
-            // Only render images/links when URL passes safety checks
-            if (isSafeImageUrl(url) && IMAGE_EXT_REGEX.test(url)) {
-              return (
-                <a key={idx} href={url} target="_blank" rel="noreferrer noopener" onClick={e => e.stopPropagation()}>
-                  <img src={url} alt="attachment" style={{ maxWidth: '100%', maxHeight: 300, borderRadius: 8, display: 'block', marginTop: 8 }} loading="lazy" />
-                </a>
-              );
-            }
+            {parts.map((part, idx) => {
+              if (idx % 2 === 1) {
+                const url = part.trim();
+                const parsed = parseSafeHttpUrl(url);
+                const safe = sanitizeUrl(url);
 
-            if (isSafeImageUrl(url)) {
-              return (
-                <a key={idx} href={url} target="_blank" rel="noreferrer noopener" onClick={e => e.stopPropagation()} style={{ color: '#1976d2' }}>
-                  {url}
-                </a>
-              );
-            }
+                // Image preview when parsed URL is a safe raster image and extension matches
+                if (parsed && isSafeImageUrl(parsed) && safe && IMAGE_EXT_REGEX.test(safe)) {
+                  return (
+                    <a key={idx} href={safe} target="_blank" rel="noreferrer noopener" onClick={e => e.stopPropagation()}>
+                      <img src={safe} alt="attachment" style={{ maxWidth: '100%', maxHeight: 300, borderRadius: 8, display: 'block', marginTop: 8 }} loading="lazy" />
+                    </a>
+                  );
+                }
 
-            // Unsafe URL: render as plain text
-            return <span key={idx}>{url}</span>;
-          }
-          return <span key={idx}>{part}</span>;
-        })}
+                // Regular clickable link for safe http(s) URLs
+                if (parsed && safe) {
+                  return (
+                    <a key={idx} href={safe} target="_blank" rel="noreferrer noopener" onClick={e => e.stopPropagation()} style={{ color: '#1976d2' }}>
+                      {safe}
+                    </a>
+                  );
+                }
+
+                // Unsafe or unsanitizable URL: render plain text safely
+                return <span key={idx}>{url}</span>;
+              }
+              return <span key={idx}>{part}</span>;
+            })}
       </>
     );
   };
