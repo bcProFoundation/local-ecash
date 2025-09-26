@@ -257,7 +257,8 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
     return /\.(png|jpe?g|gif|bmp|webp)$/i.test(url.pathname);
   };
 
-  const renderTextWithLinks = (text?: string) => {
+  // renderTextWithLinks: if loadImages is false, render image URLs as a lightweight 'View image' link
+  const renderTextWithLinks = (text?: string, loadImages = false) => {
     if (!text) return null;
 
     // Split keeps captured URLs as separate array elements. Do NOT filter out empty strings — parity matters.
@@ -273,14 +274,25 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
             const parsed = parseSafeHttpUrl(url);
             const safe = sanitizeUrl(url);
 
+            // If it's an image and we are allowed to load images, render the <img>
             if (parsed && isSafeImageUrl(parsed) && safe && IMAGE_EXT_REGEX.test(safe)) {
+              if (loadImages) {
+                return (
+                  <a key={idx} href={safe} target="_blank" rel="noreferrer noopener" onClick={e => e.stopPropagation()}>
+                    <img src={safe} alt="attachment" style={{ maxWidth: '100%', maxHeight: 220, borderRadius: 8, display: 'block', marginTop: 6 }} />
+                  </a>
+                );
+              }
+
+              // Images not loaded yet: render a lightweight link placeholder to the image
               return (
-                <a key={idx} href={safe} target="_blank" rel="noreferrer noopener" onClick={e => e.stopPropagation()}>
-                  <img src={safe} alt="attachment" style={{ maxWidth: '100%', maxHeight: 220, borderRadius: 8, display: 'block', marginTop: 6 }} />
+                <a key={idx} href={safe ?? url} target="_blank" rel="noreferrer noopener" onClick={e => e.stopPropagation()} style={{ color: '#1976d2' }}>
+                  View image
                 </a>
               );
             }
 
+            // Regular link for safe http(s) URLs
             if (parsed && safe) {
               return (
                 <a key={idx} href={safe} target="_blank" rel="noreferrer noopener" onClick={e => e.stopPropagation()} style={{ color: '#1976d2' }}>
@@ -356,7 +368,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
     <OfferShowWrapItem>
       <div className="push-offer-wrap">
           <Typography variant="body2" style={{ fontWeight: 'bold' }} onClick={handleItemClick}>
-          {renderTextWithLinks(offerData?.message) ?? ''}
+          {renderTextWithLinks(offerData?.message, expanded) ?? ''}
         </Typography>
         {(accountQueryData?.getAccountByAddress.role === Role.Moderator ||
           post?.account.hash160 === selectedWalletPath?.hash160) && (
@@ -435,7 +447,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
             {offerData?.noteOffer && (
               <Typography variant="body2">
                 <span className="prefix">Note: </span>
-                {renderTextWithLinks(offerData.noteOffer)}
+                {renderTextWithLinks(offerData.noteOffer, true)}
               </Typography>
             )}
           </CardContent>
