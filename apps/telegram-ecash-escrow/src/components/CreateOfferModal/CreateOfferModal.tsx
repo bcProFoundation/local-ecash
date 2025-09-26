@@ -363,23 +363,34 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   const renderTextWithLinks = (text?: string) => {
     if (!text) return null;
     const parts = text.split(URL_REGEX).filter(Boolean);
+    /**
+     * Only allow http and https URLs.
+     */
+    function isSafeHttpUrl(url: string): boolean {
+      return /^https?:\/\//i.test(url);
+    }
+
     return (
       <>
         {parts.map((part, idx) => {
           if (URL_REGEX.test(part)) {
             const url = part.trim();
-            if (IMAGE_EXT_REGEX.test(url)) {
+            if (isSafeHttpUrl(url)) {
+              if (IMAGE_EXT_REGEX.test(url)) {
+                return (
+                  <a key={idx} href={url} target="_blank" rel="noreferrer noopener" onClick={e => e.stopPropagation()}>
+                    <img src={url} alt="attachment" style={{ maxWidth: '100%', maxHeight: 300, borderRadius: 8, display: 'block', marginTop: 8 }} />
+                  </a>
+                );
+              }
               return (
-                <a key={idx} href={url} target="_blank" rel="noreferrer noopener" onClick={e => e.stopPropagation()}>
-                  <img src={url} alt="attachment" style={{ maxWidth: '100%', maxHeight: 300, borderRadius: 8, display: 'block', marginTop: 8 }} />
+                <a key={idx} href={url} target="_blank" rel="noreferrer noopener" onClick={e => e.stopPropagation()} style={{ color: '#1976d2' }}>
+                  {url}
                 </a>
               );
             }
-            return (
-              <a key={idx} href={url} target="_blank" rel="noreferrer noopener" onClick={e => e.stopPropagation()} style={{ color: '#1976d2' }}>
-                {url}
-              </a>
-            );
+            // Unsafe URL, render as plain text instead
+            return <span key={idx}>{url}</span>;
           }
           return <span key={idx}>{part}</span>;
         })}
