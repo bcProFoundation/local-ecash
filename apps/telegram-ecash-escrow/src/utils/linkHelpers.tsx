@@ -4,7 +4,10 @@ import { parseSafeHttpUrl, isSafeImageUrl, sanitizeUrl } from '@/src/store/util'
 // Split regex (capturing) — non-global to avoid RegExp.state issues.
 const URL_SPLIT_REGEX = /(https?:\/\/[^\s]+)/i;
 
-export function renderTextWithLinks(text?: string | null, options: { loadImages?: boolean } = {}) {
+export function renderTextWithLinks(
+  text?: string | null,
+  options: { loadImages?: boolean } = {}
+) {
   if (!text) return null;
   const parts = text.split(URL_SPLIT_REGEX);
   return (
@@ -14,9 +17,7 @@ export function renderTextWithLinks(text?: string | null, options: { loadImages?
           const rawUrl = part.trim();
           const parsed = parseSafeHttpUrl(rawUrl);
           if (!parsed) return <span key={idx}>{rawUrl}</span>;
-          const safe = sanitizeUrl(parsed.toString());
-          if (!safe) return <span key={idx}>{rawUrl}</span>;
-
+          const safe = parsed.href; // URL.href is already normalized
           if (isSafeImageUrl(parsed)) {
             if (options.loadImages) {
               return (
