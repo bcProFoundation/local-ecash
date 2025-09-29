@@ -34,6 +34,7 @@ import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useContext, useEffect, useMemo, useState } from 'react';
+import renderTextWithLinks from '@/src/utils/linkHelpers';
 import useAuthorization from '../Auth/use-authorization.hooks';
 import { BackupModalProps } from '../Common/BackupModal';
 
@@ -217,6 +218,8 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
     router.push(`/profile?address=${post?.account?.address}`);
   };
 
+  // Use shared helpers from utils/linkHelpers
+
   const convertXECToAmount = async () => {
     if (!rateData) return 0;
 
@@ -273,8 +276,8 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
   const OfferItem = (
     <OfferShowWrapItem>
       <div className="push-offer-wrap">
-        <Typography variant="body2" style={{ fontWeight: 'bold' }} onClick={handleItemClick}>
-          {offerData?.message}
+          <Typography variant="body2" style={{ fontWeight: 'bold' }} onClick={handleItemClick}>
+          {renderTextWithLinks(offerData?.message, { loadImages: expanded }) ?? ''}
         </Typography>
         {(accountQueryData?.getAccountByAddress.role === Role.Moderator ||
           post?.account.hash160 === selectedWalletPath?.hash160) && (
@@ -353,7 +356,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
             {offerData?.noteOffer && (
               <Typography variant="body2">
                 <span className="prefix">Note: </span>
-                {offerData.noteOffer}
+                {renderTextWithLinks(offerData.noteOffer, { loadImages: true })}
               </Typography>
             )}
           </CardContent>

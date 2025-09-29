@@ -3,6 +3,7 @@
 import { Post } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import { Button, Typography } from '@mui/material';
+import renderTextWithLinks from '@/src/utils/linkHelpers';
 
 const OrderDetailWrap = styled.div`
   display: flex;
@@ -29,6 +30,7 @@ const OrderDetailWrap = styled.div`
 `;
 
 const OrderDetailInfo = ({ key, post }: { key: string; post: Post }) => {
+  // Use shared renderTextWithLinks utility
   return (
     <OrderDetailWrap>
       <Typography variant="body1">
@@ -46,7 +48,7 @@ const OrderDetailInfo = ({ key, post }: { key: string; post: Post }) => {
       </Typography>
       <Typography variant="body1">
         <span className="prefix">Message: </span>
-        {post.offer?.message}
+        {renderTextWithLinks(post.offer?.message)}
       </Typography>
       <div className="payment-group-btns">
         {post.offer?.paymentMethods.map(method => {
