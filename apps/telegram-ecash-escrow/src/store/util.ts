@@ -242,6 +242,6 @@ export const parseSafeHttpUrl = (urlStr: string): URL | null => {
 export const isSafeImageUrl = (url: URL): boolean => {
   if (!url) return false;
   if (/\.svg(?:[?#].*)?$/i.test(url.pathname)) return false;
-  return IMAGE_EXT_REGEX.test(url.pathname + (url.search || '') + (url.hash || ''));
+  return IMAGE_EXT_REGEX.test(url.pathname);
 };
 
