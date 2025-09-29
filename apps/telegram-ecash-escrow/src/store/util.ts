@@ -218,9 +218,8 @@ export function sanitizeUrl(raw?: string): string | null {
   try {
     const u = new URL(trimmed);
     if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
-    const port = u.port ? `:${u.port}` : '';
-    const path = encodeURI(u.pathname + u.search + u.hash);
-    return `${u.protocol}//${u.hostname}${port}${path}`;
+    // Reconstruct URL from URL object parts to avoid double-encoding. Use hostname + port + pathname + search + hash.
+    return `${u.protocol}//${u.hostname}${u.port ? ':' + u.port : ''}${u.pathname}${u.search}${u.hash}`;
   } catch (e) {
     return null;
   }
@@ -242,6 +241,7 @@ export const parseSafeHttpUrl = (urlStr: string): URL | null => {
 export const isSafeImageUrl = (url: URL): boolean => {
   if (!url) return false;
   if (/\.svg(?:[?#].*)?$/i.test(url.pathname)) return false;
+  // Only check the pathname for image file extensions. Query string or hash should not be considered.
   return IMAGE_EXT_REGEX.test(url.pathname);
 };
 
