@@ -218,9 +218,9 @@ export function sanitizeUrl(raw?: string): string | null {
   try {
     const u = new URL(trimmed);
     if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
--    const port = u.port ? `:${u.port}` : '';
--    const path = encodeURI(u.pathname + u.search + u.hash);
-    return `${u.protocol}//${u.hostname}${u.port ? `:${u.port}` : ''}${u.pathname}${u.search}${u.hash}`;
+    const port = u.port ? `:${u.port}` : '';
+    const path = encodeURI(u.pathname + u.search + u.hash);
+    return `${u.protocol}//${u.hostname}${port}${path}`;
   } catch (e) {
     return null;
   }
