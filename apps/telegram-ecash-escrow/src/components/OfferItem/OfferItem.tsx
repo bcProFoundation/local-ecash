@@ -34,6 +34,7 @@ import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useContext, useEffect, useMemo, useState } from 'react';
+import renderTextWithLinks from '@/src/utils/linkHelpers';
 import useAuthorization from '../Auth/use-authorization.hooks';
 import { BackupModalProps } from '../Common/BackupModal';
 
@@ -217,99 +218,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
     router.push(`/profile?address=${post?.account?.address}`);
   };
 
-  // Helper: find URLs in text and render image preview if URL points to an image
-  // Use split with a non-global capturing regex and rely on index parity (odd = URL)
-  const URL_SPLIT_REGEX = /(https?:\/\/[^\s]+)/i;
-  const IMAGE_EXT_REGEX = /\.(png|jpe?g|gif|webp|svg)(?:[?#].*|$)/i;
-
-  // Strict URL sanitizer to avoid XSS in href/src attributes
-  const sanitizeUrl = (raw?: string): string | null => {
-    if (!raw || typeof raw !== 'string') return null;
-    const trimmed = raw.trim();
-    const lower = trimmed.toLowerCase();
-    if (lower.startsWith('javascript:') || lower.startsWith('data:') || lower.startsWith('vbscript:') || lower.startsWith('file:') || lower.startsWith('blob:')) return null;
-    try {
-      const url = new URL(trimmed);
-      if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
-      const port = url.port ? `:${url.port}` : '';
-      const path = encodeURI(url.pathname + url.search + url.hash);
-      return `${url.protocol}//${url.hostname}${port}${path}`;
-    } catch (e) {
-      return null;
-    }
-  };
-
-  // Parse and validate http(s) URL; returns URL object or null
-  const parseSafeHttpUrl = (urlStr: string): URL | null => {
-    try {
-      const url = new URL(urlStr);
-      if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
-      if (urlStr.startsWith('data:')) return null;
-      return url;
-    } catch (e) {
-      return null;
-    }
-  };
-
-  // Given a parsed URL, determine if it's a raster image we allow
-  const isSafeImageUrl = (url: URL): boolean => {
-    if (/\.svg(\?|$)/i.test(url.pathname)) return false;
-    return /\.(png|jpe?g|gif|bmp|webp)$/i.test(url.pathname);
-  };
-
-  // renderTextWithLinks: if loadImages is false, render image URLs as a lightweight 'View image' link
-  const renderTextWithLinks = (text?: string, loadImages = false) => {
-    if (!text) return null;
-
-    // Split keeps captured URLs as separate array elements. Do NOT filter out empty strings — parity matters.
-    const parts = text.split(URL_SPLIT_REGEX);
-
-    return (
-      <>
-        {parts.map((part, idx) => {
-          // odd indices are URLs because the regex has one capturing group
-
-          if (idx % 2 === 1) {
-            const url = part.trim();
-            const parsed = parseSafeHttpUrl(url);
-            const safe = sanitizeUrl(url);
-
-            // If it's an image and we are allowed to load images, render the <img>
-            if (parsed && isSafeImageUrl(parsed) && safe && IMAGE_EXT_REGEX.test(safe)) {
-              if (loadImages) {
-                return (
-                  <a key={idx} href={safe} target="_blank" rel="noreferrer noopener" onClick={e => e.stopPropagation()}>
-                    <img src={safe} alt="attachment" style={{ maxWidth: '100%', maxHeight: 220, borderRadius: 8, display: 'block', marginTop: 6 }} />
-                  </a>
-                );
-              }
-
-              // Images not loaded yet: render a lightweight link placeholder to the image
-              return (
-                <a key={idx} href={safe ?? url} target="_blank" rel="noreferrer noopener" onClick={e => e.stopPropagation()} style={{ color: '#1976d2' }}>
-                  View image
-                </a>
-              );
-            }
-
-            // Regular link for safe http(s) URLs
-            if (parsed && safe) {
-              return (
-                <a key={idx} href={safe} target="_blank" rel="noreferrer noopener" onClick={e => e.stopPropagation()} style={{ color: '#1976d2' }}>
-                  {safe}
-                </a>
-              );
-            }
-
-            return <span key={idx}>{url}</span>;
-          }
-
-          // plain text (even indices)
-          return <span key={idx}>{part}</span>;
-        })}
-      </>
-    );
-  };
+  // Use shared helpers from utils/linkHelpers
 
   const convertXECToAmount = async () => {
     if (!rateData) return 0;
@@ -368,7 +277,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
     <OfferShowWrapItem>
       <div className="push-offer-wrap">
           <Typography variant="body2" style={{ fontWeight: 'bold' }} onClick={handleItemClick}>
-          {renderTextWithLinks(offerData?.message, expanded) ?? ''}
+          {renderTextWithLinks(offerData?.message, { loadImages: expanded }) ?? ''}
         </Typography>
         {(accountQueryData?.getAccountByAddress.role === Role.Moderator ||
           post?.account.hash160 === selectedWalletPath?.hash160) && (
@@ -447,7 +356,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
             {offerData?.noteOffer && (
               <Typography variant="body2">
                 <span className="prefix">Note: </span>
-                {renderTextWithLinks(offerData.noteOffer, true)}
+                {renderTextWithLinks(offerData.noteOffer, { loadImages: true })}
               </Typography>
             )}
           </CardContent>
