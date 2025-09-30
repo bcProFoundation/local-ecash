@@ -219,10 +219,10 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
     }
   }, []);
 
-  // Determine the button label and whether to show the XEC logo for Goods & Services
-  // Rule: Use the offer type directly (Buy/Sell); flip only for Goods & Services offers.
+  // Determine the taker-facing button label and whether to show the XEC logo
+  // Rule: Always display the opposite action from the offer type; hide the XEC logo for Goods & Services.
   const baseLabel = offerData?.type === OfferType.Buy ? 'Buy' : 'Sell';
-  const buyButtonLabel = isGoodsServices ? (baseLabel === 'Buy' ? 'Sell' : 'Buy') : baseLabel;
+  const takerButtonLabel = baseLabel === 'Buy' ? 'Sell' : 'Buy';
 
   const OfferItem = (
     <OfferShowWrapItem>
@@ -339,7 +339,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
             )}
           </Typography>
           <BuyButtonStyled variant="contained" onClick={e => handleBuyClick(e)}>
-              {buyButtonLabel}
+              {takerButtonLabel}
               {!isGoodsServices && <Image width={25} height={25} src="/eCash.svg" alt="" />}
             </BuyButtonStyled>
         </Typography>

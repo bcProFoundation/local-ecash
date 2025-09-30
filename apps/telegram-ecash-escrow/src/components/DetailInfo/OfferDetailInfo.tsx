@@ -255,15 +255,11 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
               )}
             </div>
             {isShowBuyButton && (
-              // For Goods & Services offers we flip the label and hide the XEC logo
+              // Always display the opposite action for takers; hide the XEC logo for Goods & Services
               <BuyButtonStyled style={{ height: 'fit-content' }} variant="contained" onClick={e => handleBuyClick(e)}>
                   {(() => {
                     const baseLabel = offerData?.type === OfferType.Buy ? 'Buy' : 'Sell';
-                    return offerData?.paymentMethods?.[0]?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES
-                      ? baseLabel === 'Buy'
-                        ? 'Sell'
-                        : 'Buy'
-                      : baseLabel;
+                    return baseLabel === 'Buy' ? 'Sell' : 'Buy';
                   })()}
                   {offerData?.paymentMethods?.[0]?.paymentMethod?.id !== PAYMENT_METHOD.GOODS_SERVICES && (
                     <Image width={25} height={25} src="/eCash.svg" alt="" />
