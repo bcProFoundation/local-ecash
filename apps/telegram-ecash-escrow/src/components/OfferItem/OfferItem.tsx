@@ -220,10 +220,10 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
   }, []);
 
   // Determine the taker-facing button label and whether to show the XEC logo
-  // Rule: Always display the opposite action from the offer type; hide the XEC logo for non-Goods & Services offers.
-  // Rule: Always display the opposite action from the offer type; hide the XEC logo for Goods & Services.
+  // Goods & Services takers see the opposite action (Buy -> Sell, Sell -> Buy);
+  // all other offers keep the maker-facing label. The XEC logo stays hidden for Goods & Services.
   const baseLabel = offerData?.type === OfferType.Buy ? 'Buy' : 'Sell';
-  const takerButtonLabel = baseLabel === 'Buy' ? 'Sell' : 'Buy';
+  const takerButtonLabel = isGoodsServices ? (baseLabel === 'Buy' ? 'Sell' : 'Buy') : baseLabel;
 
   const OfferItem = (
     <OfferShowWrapItem>
@@ -340,9 +340,9 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
             )}
           </Typography>
           <BuyButtonStyled variant="contained" onClick={e => handleBuyClick(e)}>
-              {takerButtonLabel}
-              {!isGoodsServices && <Image width={25} height={25} src="/eCash.svg" alt="" />}
-            </BuyButtonStyled>
+            {takerButtonLabel}
+            {!isGoodsServices && <Image width={25} height={25} src="/eCash.svg" alt="" />}
+          </BuyButtonStyled>
         </Typography>
       </CardWrapper>
     </React.Fragment>
