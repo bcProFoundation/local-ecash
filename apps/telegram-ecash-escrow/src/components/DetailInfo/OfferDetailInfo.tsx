@@ -261,7 +261,7 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
                     const baseLabel = offerData?.type === OfferType.Buy ? 'Buy' : 'Sell';
                     return baseLabel === 'Buy' ? 'Sell' : 'Buy';
                   })()}
-                  {offerData?.paymentMethods?.[0]?.paymentMethod?.id !== PAYMENT_METHOD.GOODS_SERVICES && (
+                  {offerData?.paymentMethods?.[0]?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES ? null : (
                     <Image width={25} height={25} src="/eCash.svg" alt="" />
                   )}
               </BuyButtonStyled>
