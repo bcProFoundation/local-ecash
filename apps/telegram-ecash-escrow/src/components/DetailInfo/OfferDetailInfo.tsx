@@ -2,7 +2,7 @@
 
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { getOrderLimitText, showPriceInfo } from '@/src/store/util';
-import { getTickerText } from '@bcpros/lixi-models';
+import { getTickerText, PAYMENT_METHOD } from '@bcpros/lixi-models';
 import {
   OfferStatus,
   OfferType,
@@ -25,6 +25,7 @@ import React, { useContext, useMemo } from 'react';
 import useAuthorization from '../Auth/use-authorization.hooks';
 import { BackupModalProps } from '../Common/BackupModal';
 import { BuyButtonStyled } from '../OfferItem/OfferItem';
+import renderTextWithLinks from '@/src/utils/linkHelpers';
 
 const OfferDetailWrap = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -149,7 +150,7 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
       <div className="first-line-offer">
         <Typography variant="body1">
           <span className="prefix">Headline: </span>
-          {offerData?.message}
+          {renderTextWithLinks(offerData?.message, { loadImages: true })}
         </Typography>
         {isItemTimeline && (
           <IconButton onClick={e => handleClickAction(e)}>
@@ -176,7 +177,7 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
       {offerData?.noteOffer && (
         <Typography variant="body1">
           <span className="prefix">Note: </span>
-          {offerData.noteOffer}
+          {renderTextWithLinks(offerData.noteOffer, { loadImages: true })}
         </Typography>
       )}
 
@@ -225,9 +226,18 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
               )}
             </div>
             {isShowBuyButton && (
+              // For Goods & Services offers we flip the label and hide the XEC logo
               <BuyButtonStyled style={{ height: 'fit-content' }} variant="contained" onClick={e => handleBuyClick(e)}>
-                {offerData?.type === OfferType.Buy ? 'Sell' : 'Buy'}
-                <Image width={25} height={25} src="/eCash.svg" alt="" />
+                {offerData?.paymentMethods?.[0]?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES
+                  ? offerData?.type === OfferType.Buy
+                    ? 'Buy'
+                    : 'Sell'
+                  : offerData?.type === OfferType.Buy
+                  ? 'Sell'
+                  : 'Buy'}
+                {offerData?.paymentMethods?.[0]?.paymentMethod?.id !== PAYMENT_METHOD.GOODS_SERVICES && (
+                  <Image width={25} height={25} src="/eCash.svg" alt="" />
+                )}
               </BuyButtonStyled>
             )}
           </>

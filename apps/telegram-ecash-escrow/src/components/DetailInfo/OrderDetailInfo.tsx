@@ -359,12 +359,13 @@ const OrderDetailInfo = ({
         <div className="order-type">
           {order?.sellerAccount.id === selectedAccount?.id && (
             <Button className="btn-order-type" size="small" color="error" variant="outlined">
-              Sell
+              {/* For Goods & Services offers, flip the label */}
+              {order?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES ? (order?.escrowOffer?.type === OfferType.Buy ? 'Buy' : 'Sell') : 'Sell'}
             </Button>
           )}
           {order?.buyerAccount.id === selectedAccount?.id && (
             <Button className="btn-order-type" size="small" color="success" variant="outlined">
-              Buy
+              {order?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES ? (order?.escrowOffer?.type === OfferType.Buy ? 'Sell' : 'Buy') : 'Buy'}
             </Button>
           )}
         </div>

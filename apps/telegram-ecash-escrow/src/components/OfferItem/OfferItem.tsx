@@ -273,6 +273,15 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
     }
   }, []);
 
+  // Determine the button label and whether to show the XEC logo for Goods & Services
+  const buyButtonLabel = isGoodsServices
+    ? offerData?.type === OfferType.Buy
+      ? 'Buy'
+      : 'Sell'
+    : offerData?.type === OfferType.Buy
+    ? 'Sell'
+    : 'Buy';
+
   const OfferItem = (
     <OfferShowWrapItem>
       <div className="push-offer-wrap">
@@ -385,9 +394,9 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
             )}
           </Typography>
           <BuyButtonStyled variant="contained" onClick={e => handleBuyClick(e)}>
-            {offerData?.type === OfferType.Buy ? 'Sell' : 'Buy'}
-            <Image width={25} height={25} src="/eCash.svg" alt="" />
-          </BuyButtonStyled>
+              {buyButtonLabel}
+              {!isGoodsServices && <Image width={25} height={25} src="/eCash.svg" alt="" />}
+            </BuyButtonStyled>
         </Typography>
       </CardWrapper>
     </React.Fragment>
