@@ -160,8 +160,8 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
 
   const takerActionLabel = useMemo(() => {
     const baseLabel = offerData?.type === OfferType.Buy ? 'Buy' : 'Sell';
-    return _isGoodsServices ? (baseLabel === 'Buy' ? 'Sell' : 'Buy') : baseLabel;
-  }, [offerData?.type, _isGoodsServices]);
+    return baseLabel === 'Buy' ? 'Sell' : 'Buy';
+  }, [offerData?.type]);
 
   return (
     <OfferDetailWrap onClick={() => router.push(`/offer-detail?id=${offerData.postId}`)}>
@@ -260,7 +260,7 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
               )}
             </div>
             {isShowBuyButton && (
-              // Goods & Services takers see the opposite action; others keep the maker-facing label
+              // Takers always see the opposite action; Goods & Services still hide the XEC logo
               <BuyButtonStyled style={{ height: 'fit-content' }} variant="contained" onClick={e => handleBuyClick(e)}>
                 {takerActionLabel}
                 {offerData?.paymentMethods?.[0]?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES ? null : (
