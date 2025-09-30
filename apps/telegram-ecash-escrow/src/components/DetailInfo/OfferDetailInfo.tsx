@@ -158,6 +158,11 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
   const { showPrice: hookShowPrice, amountPer1MXEC, amountXECGoodsServices, isGoodsServices: _isGoodsServices } =
     useOfferPrice({ paymentInfo: offerData, inputAmount: 1 });
 
+  const takerActionLabel = useMemo(() => {
+    const baseLabel = offerData?.type === OfferType.Buy ? 'Buy' : 'Sell';
+    return _isGoodsServices ? (baseLabel === 'Buy' ? 'Sell' : 'Buy') : baseLabel;
+  }, [offerData?.type, _isGoodsServices]);
+
   return (
     <OfferDetailWrap onClick={() => router.push(`/offer-detail?id=${offerData.postId}`)}>
       <div className="first-line-offer">
@@ -255,9 +260,9 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
               )}
             </div>
             {isShowBuyButton && (
-              // Always display the opposite action for takers; hide the XEC logo for Goods & Services
+              // Goods & Services takers see the opposite action; others keep the maker-facing label
               <BuyButtonStyled style={{ height: 'fit-content' }} variant="contained" onClick={e => handleBuyClick(e)}>
-                {offerData?.type === OfferType.Buy ? 'Sell' : 'Buy'}
+                {takerActionLabel}
                 {offerData?.paymentMethods?.[0]?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES ? null : (
                   <Image width={25} height={25} src="/eCash.svg" alt="" />
                 )}
