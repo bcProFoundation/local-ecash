@@ -158,6 +158,8 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
   const { showPrice: hookShowPrice, amountPer1MXEC, amountXECGoodsServices, isGoodsServices: _isGoodsServices } =
     useOfferPrice({ paymentInfo: offerData, inputAmount: 1 });
 
+  // Determine the taker-facing button label and whether to show the XEC logo. For currency to currency offers, the Buy offers are showing as Sell for the taker, and Sell offers are showing as Buy.
+  // For Goods & Services offers, taker label is reversed (Buy <-> Sell).
   const takerActionLabel = useMemo(() => {
     const baseLabel = offerData?.type === OfferType.Buy ? 'Sell' : 'Buy';
     return _isGoodsServices ? (baseLabel === 'Buy' ? 'Sell' : 'Buy') : baseLabel;
