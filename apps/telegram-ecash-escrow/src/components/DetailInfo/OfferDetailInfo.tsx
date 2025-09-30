@@ -160,8 +160,8 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
 
   const takerActionLabel = useMemo(() => {
     const baseLabel = offerData?.type === OfferType.Buy ? 'Buy' : 'Sell';
-    return baseLabel === 'Buy' ? 'Sell' : 'Buy';
-  }, [offerData?.type]);
+    return _isGoodsServices ? (baseLabel === 'Buy' ? 'Sell' : 'Buy') : baseLabel;
+  }, [offerData?.type, _isGoodsServices]);
 
   return (
     <OfferDetailWrap onClick={() => router.push(`/offer-detail?id=${offerData.postId}`)}>
