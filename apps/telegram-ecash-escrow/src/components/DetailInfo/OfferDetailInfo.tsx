@@ -2,7 +2,14 @@
 
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { getOrderLimitText, showPriceInfo } from '@/src/store/util';
-import { getTickerText, PAYMENT_METHOD } from '@bcpros/lixi-models';
+import {
+  convertXECAndCurrency,
+  formatAmountFor1MXEC,
+  formatAmountForGoodsServices,
+  formatNumber,
+  isConvertGoodsServices
+} from '@/src/store/util';
+import { getTickerText, PAYMENT_METHOD, GOODS_SERVICES_UNIT, COIN } from '@bcpros/lixi-models';
 import {
   OfferStatus,
   OfferType,
@@ -10,6 +17,7 @@ import {
   TimelineQueryItem,
   getSeedBackupTime,
   getSelectedAccountId,
+  fiatCurrencyApi,
   openActionSheet,
   openModal,
   useSliceDispatch as useLixiSliceDispatch,
@@ -21,11 +29,12 @@ import { styled } from '@mui/material/styles';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import React, { useContext, useMemo } from 'react';
+import React, { useContext, useMemo, useEffect, useState } from 'react';
 import useAuthorization from '../Auth/use-authorization.hooks';
 import { BackupModalProps } from '../Common/BackupModal';
 import { BuyButtonStyled } from '../OfferItem/OfferItem';
 import renderTextWithLinks from '@/src/utils/linkHelpers';
+import useOfferPrice from '@/src/hooks/useOfferPrice';
 
 const OfferDetailWrap = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -145,6 +154,9 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
     );
   }, [offerData]);
 
+  const { showPrice: _showPrice, coinCurrency: _coinCurrency, amountPer1MXEC, amountXECGoodsServices, isGoodsServices: _isGoodsServices } =
+    useOfferPrice({ paymentInfo: offerData, inputAmount: 1 });
+
   return (
     <OfferDetailWrap onClick={() => router.push(`/offer-detail?id=${offerData.postId}`)}>
       <div className="first-line-offer">
@@ -161,7 +173,18 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
       {showPrice && (
         <Typography variant="body1">
           <span className="prefix">Price: </span>
-          Market price +{offerData?.marginPercentage}%
+          {(_isGoodsServices) ? (
+            <>{formatNumber(amountXECGoodsServices)} XEC / {GOODS_SERVICES_UNIT}</>
+          ) : _showPrice ? (
+            <>
+              <span>
+                ~ <span style={{ fontWeight: 'bold' }}>{amountPer1MXEC}</span>
+              </span>{' '}
+              ( Market price +{offerData?.marginPercentage}% )
+            </>
+          ) : (
+            <>Market price</>
+          )}
         </Typography>
       )}
       <Typography variant="body1">

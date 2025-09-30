@@ -37,6 +37,7 @@ import React, { useContext, useEffect, useMemo, useState } from 'react';
 import renderTextWithLinks from '@/src/utils/linkHelpers';
 import useAuthorization from '../Auth/use-authorization.hooks';
 import { BackupModalProps } from '../Common/BackupModal';
+import useOfferPrice from '@/src/hooks/useOfferPrice';
 
 const CardWrapper = styled(Card)(({ theme }) => ({
   marginTop: 16,
@@ -150,19 +151,9 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
     { skip: !selectedWalletPath }
   );
 
-  const [coinCurrency, setCoinCurrency] = useState<string>(COIN.XEC);
-  const [rateData, setRateData] = useState(null);
-  const [amountPer1MXEC, setAmountPer1MXEC] = useState('');
-  const [amountXECGoodsServices, setAmountXECGoodsServices] = useState(0);
-  const [isGoodsServices, setIsGoodsServices] = useState(
-    offerData?.paymentMethods[0]?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES
-  );
-  const [isGoodsServicesConversion, setIsGoodsServicesConversion] = useState(() =>
-    isConvertGoodsServices(post?.postOffer?.priceGoodsServices, post?.postOffer?.tickerPriceGoodsServices)
-  );
-
-  const { useGetAllFiatRateQuery } = fiatCurrencyApi;
-  const { data: fiatData } = useGetAllFiatRateQuery();
+  // Offer price values from centralized hook
+  const { showPrice, coinCurrency, amountPer1MXEC, amountXECGoodsServices, isGoodsServices } =
+    useOfferPrice({ paymentInfo: post?.postOffer, inputAmount: 1 });
 
   const handleBuyClick = e => {
     e.stopPropagation();
@@ -219,52 +210,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
   };
 
   // Use shared helpers from utils/linkHelpers
-
-  const convertXECToAmount = async () => {
-    if (!rateData) return 0;
-
-    const { amountXEC, amountCoinOrCurrency } = convertXECAndCurrency({
-      rateData: rateData,
-      paymentInfo: post?.postOffer,
-      inputAmount: 1
-    });
-    setAmountXECGoodsServices(isGoodsServicesConversion ? amountXEC : post?.postOffer?.priceGoodsServices);
-    setAmountPer1MXEC(formatAmountFor1MXEC(amountCoinOrCurrency, post?.postOffer?.marginPercentage, coinCurrency));
-  };
-
-  const showPrice = useMemo(() => {
-    return showPriceInfo(
-      offerData?.paymentMethods[0]?.paymentMethod?.id,
-      post?.postOffer?.coinPayment,
-      post?.postOffer?.priceCoinOthers,
-      post?.postOffer?.priceGoodsServices,
-      post?.postOffer?.tickerPriceGoodsServices
-    );
-  }, [post?.postOffer]);
-
-  useEffect(() => {
-    setCoinCurrency(
-      getTickerText(
-        post?.postOffer?.localCurrency,
-        post?.postOffer?.coinPayment,
-        post?.postOffer?.coinOthers,
-        post?.postOffer?.priceCoinOthers
-      )
-    );
-  }, [post?.postOffer]);
-
-  //convert to XEC
-  useEffect(() => {
-    convertXECToAmount();
-  }, [rateData]);
-
-  //get rate data
-  useEffect(() => {
-    const rateData = fiatData?.getAllFiatRate?.find(
-      item => item.currency === (post?.postOffer?.localCurrency ?? 'USD')
-    );
-    setRateData(rateData?.fiatRates);
-  }, [post?.postOffer?.localCurrency, fiatData?.getAllFiatRate]);
+  
 
   //open placeAnOrderModal if offerId is in url
   useEffect(() => {

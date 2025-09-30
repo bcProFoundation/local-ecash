@@ -1,5 +1,5 @@
 import React from 'react';
-import { parseSafeHttpUrl, isSafeImageUrl, sanitizeUrl } from '@/src/store/util';
+import { parseSafeHttpUrl, isSafeImageUrl, sanitizeUrl } from '@/src/utils';
 
 // Split regex (capturing) — non-global to avoid RegExp.state issues.
 const URL_SPLIT_REGEX = /(https?:\/\/[^\s]+)/i;
