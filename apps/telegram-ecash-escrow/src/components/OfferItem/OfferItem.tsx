@@ -221,7 +221,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
 
   // Determine the taker-facing button label and whether to show the XEC logo
   // For Goods & Services offers, taker label is reversed (Buy <-> Sell). For other categories, keep original label.
-  const baseLabel = offerData?.type === OfferType.Buy ? 'Buy' : 'Sell';
+  const baseLabel = offerData?.type === OfferType.Buy ? 'Sell' : 'Buy';
   const takerButtonLabel = isGoodsServices ? (baseLabel === 'Buy' ? 'Sell' : 'Buy') : baseLabel;
 
   const OfferItem = (

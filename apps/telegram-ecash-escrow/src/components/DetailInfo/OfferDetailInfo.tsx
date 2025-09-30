@@ -159,7 +159,7 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
     useOfferPrice({ paymentInfo: offerData, inputAmount: 1 });
 
   const takerActionLabel = useMemo(() => {
-    const baseLabel = offerData?.type === OfferType.Buy ? 'Buy' : 'Sell';
+    const baseLabel = offerData?.type === OfferType.Buy ? 'Sell' : 'Buy';
     return _isGoodsServices ? (baseLabel === 'Buy' ? 'Sell' : 'Buy') : baseLabel;
   }, [offerData?.type, _isGoodsServices]);
 
