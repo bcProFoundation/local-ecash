@@ -1,6 +1,6 @@
 'use client';
 
-import { COIN_OTHERS, COIN_USD_STABLECOIN, COIN_USD_STABLECOIN_TICKER } from '@/src/store/constants';
+import { COIN_OTHERS, COIN_USD_STABLECOIN, COIN_USD_STABLECOIN_TICKER, DEFAULT_TICKER_GOODS_SERVICES } from '@/src/store/constants';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import {
   convertXECAndCurrency,
@@ -37,6 +37,7 @@ import React, { useContext, useEffect, useMemo, useState } from 'react';
 import renderTextWithLinks from '@/src/utils/linkHelpers';
 import useAuthorization from '../Auth/use-authorization.hooks';
 import { BackupModalProps } from '../Common/BackupModal';
+import useOfferPrice from '@/src/hooks/useOfferPrice';
 
 const CardWrapper = styled(Card)(({ theme }) => ({
   marginTop: 16,
@@ -150,19 +151,9 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
     { skip: !selectedWalletPath }
   );
 
-  const [coinCurrency, setCoinCurrency] = useState<string>(COIN.XEC);
-  const [rateData, setRateData] = useState(null);
-  const [amountPer1MXEC, setAmountPer1MXEC] = useState('');
-  const [amountXECGoodsServices, setAmountXECGoodsServices] = useState(0);
-  const [isGoodsServices, setIsGoodsServices] = useState(
-    offerData?.paymentMethods[0]?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES
-  );
-  const [isGoodsServicesConversion, setIsGoodsServicesConversion] = useState(() =>
-    isConvertGoodsServices(post?.postOffer?.priceGoodsServices, post?.postOffer?.tickerPriceGoodsServices)
-  );
-
-  const { useGetAllFiatRateQuery } = fiatCurrencyApi;
-  const { data: fiatData } = useGetAllFiatRateQuery();
+  // Offer price values from centralized hook
+  const { showPrice, coinCurrency, amountPer1MXEC, amountXECGoodsServices, isGoodsServices } =
+    useOfferPrice({ paymentInfo: post?.postOffer, inputAmount: 1 });
 
   const handleBuyClick = e => {
     e.stopPropagation();
@@ -219,52 +210,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
   };
 
   // Use shared helpers from utils/linkHelpers
-
-  const convertXECToAmount = async () => {
-    if (!rateData) return 0;
-
-    const { amountXEC, amountCoinOrCurrency } = convertXECAndCurrency({
-      rateData: rateData,
-      paymentInfo: post?.postOffer,
-      inputAmount: 1
-    });
-    setAmountXECGoodsServices(isGoodsServicesConversion ? amountXEC : post?.postOffer?.priceGoodsServices);
-    setAmountPer1MXEC(formatAmountFor1MXEC(amountCoinOrCurrency, post?.postOffer?.marginPercentage, coinCurrency));
-  };
-
-  const showPrice = useMemo(() => {
-    return showPriceInfo(
-      offerData?.paymentMethods[0]?.paymentMethod?.id,
-      post?.postOffer?.coinPayment,
-      post?.postOffer?.priceCoinOthers,
-      post?.postOffer?.priceGoodsServices,
-      post?.postOffer?.tickerPriceGoodsServices
-    );
-  }, [post?.postOffer]);
-
-  useEffect(() => {
-    setCoinCurrency(
-      getTickerText(
-        post?.postOffer?.localCurrency,
-        post?.postOffer?.coinPayment,
-        post?.postOffer?.coinOthers,
-        post?.postOffer?.priceCoinOthers
-      )
-    );
-  }, [post?.postOffer]);
-
-  //convert to XEC
-  useEffect(() => {
-    convertXECToAmount();
-  }, [rateData]);
-
-  //get rate data
-  useEffect(() => {
-    const rateData = fiatData?.getAllFiatRate?.find(
-      item => item.currency === (post?.postOffer?.localCurrency ?? 'USD')
-    );
-    setRateData(rateData?.fiatRates);
-  }, [post?.postOffer?.localCurrency, fiatData?.getAllFiatRate]);
+  
 
   //open placeAnOrderModal if offerId is in url
   useEffect(() => {
@@ -272,6 +218,11 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
       dispatch(openModal('PlaceAnOrderModal', { post }));
     }
   }, []);
+
+  // Determine the button label and whether to show the XEC logo for Goods & Services
+  // Rule: Use the offer type directly (Buy/Sell); flip only for Goods & Services offers.
+  const baseLabel = offerData?.type === OfferType.Buy ? 'Buy' : 'Sell';
+  const buyButtonLabel = isGoodsServices ? (baseLabel === 'Buy' ? 'Sell' : 'Buy') : baseLabel;
 
   const OfferItem = (
     <OfferShowWrapItem>
@@ -366,10 +317,13 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
         <Typography component={'div'} className="action-section">
           <Typography variant="body2">
             <span className="prefix">Price: </span>
-            {isGoodsServices ? (
+                {isGoodsServices ? (
               // Goods/Services display
               <>
-                {formatNumber(amountXECGoodsServices)} XEC / {GOODS_SERVICES_UNIT}
+                {formatNumber(amountXECGoodsServices)} XEC / {GOODS_SERVICES_UNIT}{' '}
+                {offerData?.priceGoodsServices && (offerData?.tickerPriceGoodsServices ?? DEFAULT_TICKER_GOODS_SERVICES) !== DEFAULT_TICKER_GOODS_SERVICES ? (
+                  <span>({offerData.priceGoodsServices} {offerData.tickerPriceGoodsServices ?? 'USD'})</span>
+                ) : null}
               </>
             ) : showPrice ? (
               // Show detailed price
@@ -385,9 +339,9 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
             )}
           </Typography>
           <BuyButtonStyled variant="contained" onClick={e => handleBuyClick(e)}>
-            {offerData?.type === OfferType.Buy ? 'Sell' : 'Buy'}
-            <Image width={25} height={25} src="/eCash.svg" alt="" />
-          </BuyButtonStyled>
+              {buyButtonLabel}
+              {!isGoodsServices && <Image width={25} height={25} src="/eCash.svg" alt="" />}
+            </BuyButtonStyled>
         </Typography>
       </CardWrapper>
     </React.Fragment>
