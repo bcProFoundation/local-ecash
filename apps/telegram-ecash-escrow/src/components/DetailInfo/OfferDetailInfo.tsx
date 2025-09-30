@@ -257,13 +257,10 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
             {isShowBuyButton && (
               // Always display the opposite action for takers; hide the XEC logo for Goods & Services
               <BuyButtonStyled style={{ height: 'fit-content' }} variant="contained" onClick={e => handleBuyClick(e)}>
-                  {(() => {
-                    const baseLabel = offerData?.type === OfferType.Buy ? 'Buy' : 'Sell';
-                    return baseLabel === 'Buy' ? 'Sell' : 'Buy';
-                  })()}
-                  {offerData?.paymentMethods?.[0]?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES ? null : (
-                    <Image width={25} height={25} src="/eCash.svg" alt="" />
-                  )}
+                {offerData?.type === OfferType.Buy ? 'Sell' : 'Buy'}
+                {offerData?.paymentMethods?.[0]?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES ? null : (
+                  <Image width={25} height={25} src="/eCash.svg" alt="" />
+                )}
               </BuyButtonStyled>
             )}
           </>

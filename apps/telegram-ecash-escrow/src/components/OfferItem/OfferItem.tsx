@@ -220,10 +220,9 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
   }, []);
 
   // Determine the taker-facing button label and whether to show the XEC logo
-  // Rule: Always display the opposite action from the offer type; hide the XEC logo for non-Goods & Services offers.
-  // Rule: Always display the opposite action from the offer type; hide the XEC logo for Goods & Services.
-  const baseLabel = offerData?.type === OfferType.Buy ? 'Buy' : 'Sell';
-  const takerButtonLabel = baseLabel === 'Buy' ? 'Sell' : 'Buy';
+  // Rule: Always display the opposite action from the offer type (Buy -> Sell, Sell -> Buy)
+  // For Goods & Services offers the label should also be reversed; the XEC logo is hidden when isGoodsServices is true.
+  const takerButtonLabel = offerData?.type === OfferType.Buy ? 'Sell' : 'Buy';
 
   const OfferItem = (
     <OfferShowWrapItem>
