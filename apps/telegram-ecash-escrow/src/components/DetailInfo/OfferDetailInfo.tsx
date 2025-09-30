@@ -136,7 +136,7 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
     }
   };
 
-  const showPrice = useMemo(() => {
+  const shouldShowPrice = useMemo(() => {
     return showPriceInfo(
       offerData?.paymentMethods[0]?.paymentMethod?.id,
       offerData?.coinPayment,
@@ -155,7 +155,7 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
     );
   }, [offerData]);
 
-  const { showPrice: _showPrice, coinCurrency: _coinCurrency, amountPer1MXEC, amountXECGoodsServices, isGoodsServices: _isGoodsServices } =
+  const { showPrice: hookShowPrice, amountPer1MXEC, amountXECGoodsServices, isGoodsServices: _isGoodsServices } =
     useOfferPrice({ paymentInfo: offerData, inputAmount: 1 });
 
   return (
@@ -171,7 +171,7 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
           </IconButton>
         )}
       </div>
-      {showPrice && (
+  {shouldShowPrice && (
         <Typography variant="body1">
           <span className="prefix">Price: </span>
           {_isGoodsServices ? (
@@ -181,7 +181,7 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
                 <span>({offerData.priceGoodsServices} {offerData.tickerPriceGoodsServices ?? 'USD'})</span>
               ) : null}
             </>
-          ) : _showPrice ? (
+          ) : hookShowPrice ? (
             <>
               <span>
                 ~ <span style={{ fontWeight: 'bold' }}>{amountPer1MXEC}</span>
