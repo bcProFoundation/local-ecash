@@ -5,7 +5,7 @@ import styled from '@emotion/styled';
 import { Button, Typography } from '@mui/material';
 import renderTextWithLinks from '@/src/utils/linkHelpers';
 import React from 'react';
-import { formatNumber } from '@/src/store/util';
+import { formatNumber, getOrderLimitText } from '@/src/store/util';
 import { GOODS_SERVICES_UNIT } from '@bcpros/lixi-models';
 import { DEFAULT_TICKER_GOODS_SERVICES } from '@/src/store/constants';
 import useOfferPrice from '@/src/hooks/useOfferPrice';
@@ -70,7 +70,7 @@ const OrderDetailInfo = ({ key, post }: { key: string; post: Post }) => {
       </Typography>
       <Typography variant="body1">
         <span className="prefix">Amount: </span>
-        {post.offer?.amount}
+        {getOrderLimitText(post.offer?.orderLimitMin, post.offer?.orderLimitMax, '')}
       </Typography>
       <Typography variant="body1">
         <span className="prefix">Message: </span>
