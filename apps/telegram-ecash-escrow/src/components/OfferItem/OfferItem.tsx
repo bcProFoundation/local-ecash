@@ -220,13 +220,9 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
   }, []);
 
   // Determine the button label and whether to show the XEC logo for Goods & Services
-  const buyButtonLabel = isGoodsServices
-    ? offerData?.type === OfferType.Buy
-      ? 'Buy'
-      : 'Sell'
-    : offerData?.type === OfferType.Buy
-    ? 'Sell'
-    : 'Buy';
+  // Rule: Use the offer type directly (Buy/Sell); flip only for Goods & Services offers.
+  const baseLabel = offerData?.type === OfferType.Buy ? 'Buy' : 'Sell';
+  const buyButtonLabel = isGoodsServices ? (baseLabel === 'Buy' ? 'Sell' : 'Buy') : baseLabel;
 
   const OfferItem = (
     <OfferShowWrapItem>

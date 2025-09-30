@@ -332,18 +332,25 @@ const OrderDetailInfo = ({
               : order?.buyerAccount.telegramUsername}
           </React.Fragment>
         )}
-        {order?.buyerAccount.id === selectedAccount?.id && (
-          <React.Fragment>
-            <span className="prefix">{order.escrowOffer.type === OfferType.Buy ? 'Ordered' : 'Offered'} by: </span>
-            {allSettings?.[`${order?.sellerAccount.id.toString()}`]?.usePublicLocalUserName
-              ? order?.sellerAccount.anonymousUsernameLocalecash
-              : order?.sellerAccount.telegramUsername}
-          </React.Fragment>
-        )}
-      </Typography>
-      <Typography variant="body1">
-        <span className="prefix">Ordered at: </span>
-        {new Date(order?.createdAt).toLocaleString('vi-VN')}
+          {(() => {
+            const baseLabel = order?.escrowOffer?.type === OfferType.Buy ? 'Buy' : 'Sell';
+            const flipped = baseLabel === 'Buy' ? 'Sell' : 'Buy';
+
+            return (
+              <>
+                {order?.sellerAccount.id === selectedAccount?.id && (
+                  <Button className="btn-order-type" size="small" color="error" variant="outlined">
+                    {order?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES ? flipped : baseLabel}
+                  </Button>
+                )}
+                {order?.buyerAccount.id === selectedAccount?.id && (
+                  <Button className="btn-order-type" size="small" color="success" variant="outlined">
+                    {order?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES ? baseLabel : flipped}
+                  </Button>
+                )}
+              </>
+            );
+          })()}
       </Typography>
       {showPrice && (
         <Typography variant="body1">
@@ -357,17 +364,25 @@ const OrderDetailInfo = ({
           {formatNumber(isShowDynamicValue ? effectiveAmountXEC : order?.amount)} {coinInfo[COIN.XEC].ticker}
         </div>
         <div className="order-type">
-          {order?.sellerAccount.id === selectedAccount?.id && (
-            <Button className="btn-order-type" size="small" color="error" variant="outlined">
-              {/* For Goods & Services offers, flip the label */}
-              {order?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES ? (order?.escrowOffer?.type === OfferType.Buy ? 'Buy' : 'Sell') : 'Sell'}
-            </Button>
-          )}
-          {order?.buyerAccount.id === selectedAccount?.id && (
-            <Button className="btn-order-type" size="small" color="success" variant="outlined">
-              {order?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES ? (order?.escrowOffer?.type === OfferType.Buy ? 'Sell' : 'Buy') : 'Buy'}
-            </Button>
-          )}
+          {(() => {
+            const baseLabel = order?.escrowOffer?.type === OfferType.Buy ? 'Buy' : 'Sell';
+            const flipped = baseLabel === 'Buy' ? 'Sell' : 'Buy';
+
+            return (
+              <>
+                {order?.sellerAccount.id === selectedAccount?.id && (
+                  <Button className="btn-order-type" size="small" color="error" variant="outlined">
+                    {order?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES ? flipped : baseLabel}
+                  </Button>
+                )}
+                {order?.buyerAccount.id === selectedAccount?.id && (
+                  <Button className="btn-order-type" size="small" color="success" variant="outlined">
+                    {order?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES ? baseLabel : flipped}
+                  </Button>
+                )}
+              </>
+            );
+          })()}
         </div>
       </Typography>
       {showPrice && (
