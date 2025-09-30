@@ -11,6 +11,7 @@ import {
   showPriceInfo
 } from '@/src/store/util';
 import { COIN, PAYMENT_METHOD, coinInfo, getTickerText } from '@bcpros/lixi-models';
+import { DEFAULT_TICKER_GOODS_SERVICES } from '@/src/store/constants';
 import {
   DisputeStatus,
   EscrowOrderQueryItem,
@@ -208,7 +209,7 @@ const OrderDetailInfo = ({
 
       effectiveSetTextAmount(
         isGoodsServices
-          ? formatAmountForGoodsServices(xecPerUnit)
+          ? `${formatAmountForGoodsServices(xecPerUnit)}${order?.escrowOffer?.priceGoodsServices && (order.escrowOffer?.tickerPriceGoodsServices ?? DEFAULT_TICKER_GOODS_SERVICES) !== DEFAULT_TICKER_GOODS_SERVICES ? ` (${order.escrowOffer.priceGoodsServices} ${order.escrowOffer.tickerPriceGoodsServices ?? 'USD'})` : ''}`
           : formatAmountFor1MXEC(amountCoinOrCurrency, order?.escrowOffer?.marginPercentage, coinCurrency)
       );
     }

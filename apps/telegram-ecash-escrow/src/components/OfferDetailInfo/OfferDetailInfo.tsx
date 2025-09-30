@@ -7,6 +7,7 @@ import renderTextWithLinks from '@/src/utils/linkHelpers';
 import React from 'react';
 import { formatNumber } from '@/src/store/util';
 import { GOODS_SERVICES_UNIT } from '@bcpros/lixi-models';
+import { DEFAULT_TICKER_GOODS_SERVICES } from '@/src/store/constants';
 import useOfferPrice from '@/src/hooks/useOfferPrice';
 
 const OrderDetailWrap = styled.div`
@@ -50,7 +51,12 @@ const OrderDetailInfo = ({ key, post }: { key: string; post: Post }) => {
       <Typography variant="body1">
         <span className="prefix">Price: </span>
         {_isGoodsServices ? (
-          <>{formatNumber(amountXECGoodsServices)} XEC / {GOODS_SERVICES_UNIT}</>
+          <>
+            {formatNumber(amountXECGoodsServices)} XEC / {GOODS_SERVICES_UNIT}{' '}
+            {post?.offer?.priceGoodsServices && (post.offer?.tickerPriceGoodsServices ?? DEFAULT_TICKER_GOODS_SERVICES) !== DEFAULT_TICKER_GOODS_SERVICES ? (
+              <span>({post.offer.priceGoodsServices} {post.offer.tickerPriceGoodsServices ?? 'USD'})</span>
+            ) : null}
+          </>
         ) : _showPrice ? (
           <>
             <span>

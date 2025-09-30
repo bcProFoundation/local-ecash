@@ -1,6 +1,6 @@
 'use client';
 
-import { COIN_OTHERS, COIN_USD_STABLECOIN, COIN_USD_STABLECOIN_TICKER } from '@/src/store/constants';
+import { COIN_OTHERS, COIN_USD_STABLECOIN, COIN_USD_STABLECOIN_TICKER, DEFAULT_TICKER_GOODS_SERVICES } from '@/src/store/constants';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import {
   convertXECAndCurrency,
@@ -317,10 +317,13 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
         <Typography component={'div'} className="action-section">
           <Typography variant="body2">
             <span className="prefix">Price: </span>
-            {isGoodsServices ? (
+                {isGoodsServices ? (
               // Goods/Services display
               <>
-                {formatNumber(amountXECGoodsServices)} XEC / {GOODS_SERVICES_UNIT}
+                {formatNumber(amountXECGoodsServices)} XEC / {GOODS_SERVICES_UNIT}{' '}
+                {offerData?.priceGoodsServices && (offerData?.tickerPriceGoodsServices ?? DEFAULT_TICKER_GOODS_SERVICES) !== DEFAULT_TICKER_GOODS_SERVICES ? (
+                  <span>({offerData.priceGoodsServices} {offerData.tickerPriceGoodsServices ?? 'USD'})</span>
+                ) : null}
               </>
             ) : showPrice ? (
               // Show detailed price

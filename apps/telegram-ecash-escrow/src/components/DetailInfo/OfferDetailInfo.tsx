@@ -10,6 +10,7 @@ import {
   isConvertGoodsServices
 } from '@/src/store/util';
 import { getTickerText, PAYMENT_METHOD, GOODS_SERVICES_UNIT, COIN } from '@bcpros/lixi-models';
+import { DEFAULT_TICKER_GOODS_SERVICES } from '@/src/store/constants';
 import {
   OfferStatus,
   OfferType,
@@ -173,8 +174,13 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
       {showPrice && (
         <Typography variant="body1">
           <span className="prefix">Price: </span>
-          {(_isGoodsServices) ? (
-            <>{formatNumber(amountXECGoodsServices)} XEC / {GOODS_SERVICES_UNIT}</>
+          {_isGoodsServices ? (
+            <>
+              {formatNumber(amountXECGoodsServices)} XEC / {GOODS_SERVICES_UNIT}{' '}
+              {offerData?.priceGoodsServices && (offerData?.tickerPriceGoodsServices ?? DEFAULT_TICKER_GOODS_SERVICES) !== DEFAULT_TICKER_GOODS_SERVICES ? (
+                <span>({offerData.priceGoodsServices} {offerData.tickerPriceGoodsServices ?? 'USD'})</span>
+              ) : null}
+            </>
           ) : _showPrice ? (
             <>
               <span>
