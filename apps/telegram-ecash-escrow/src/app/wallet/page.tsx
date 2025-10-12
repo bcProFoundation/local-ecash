@@ -27,6 +27,8 @@ import {
   useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
+
+const { useGetAllFiatRateQuery } = fiatCurrencyApi;
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import SendIcon from '@mui/icons-material/Send';
@@ -125,8 +127,12 @@ export default function Wallet() {
   const [rateData, setRateData] = useState(null);
   const [amountConverted, setAmountConverted] = useState(0);
 
-  const { useGetAllFiatRateQuery } = fiatCurrencyApi;
-  const { data: fiatData } = useGetAllFiatRateQuery();
+  // Get fiat rates from GraphQL API with cache reuse
+  // Always needed in wallet to show balance conversion
+  const { data: fiatData } = useGetAllFiatRateQuery(undefined, {
+    refetchOnMountOrArgChange: false,
+    refetchOnFocus: false
+  });
 
   const { XPI, chronik } = Wallet;
   const seedBackupTime = settingContext?.setting?.lastSeedBackupTime ?? lastSeedBackupTimeOnDevice ?? '';
@@ -209,9 +215,27 @@ export default function Wallet() {
   }, [walletState.walletStatusNode]);
 
   useEffect(() => {
-    const rateData = fiatData?.getAllFiatRate?.find(item => item.currency === fiatCurrencyFilter);
-    setRateData(rateData?.fiatRates);
-  }, [fiatData?.getAllFiatRate]);
+    // Wallet: Transform the user's selected fiat currency filter
+    const currencyData = fiatData?.getAllFiatRate?.find(item => item.currency === fiatCurrencyFilter);
+    
+    if (currencyData?.fiatRates) {
+      // Transform: invert rates
+      const transformedRates = currencyData.fiatRates
+        .filter(item => item.rate && item.rate > 0)
+        .map(item => ({
+          coin: item.coin,
+          rate: 1 / item.rate,
+          ts: item.ts
+        }));
+      
+      transformedRates.push({ coin: 'xec', rate: 1, ts: Date.now() });
+      transformedRates.push({ coin: 'XEC', rate: 1, ts: Date.now() });
+      
+      setRateData(transformedRates);
+    } else {
+      setRateData(null);
+    }
+  }, [fiatData?.getAllFiatRate, fiatCurrencyFilter]);
 
   //convert to fiat
   useEffect(() => {

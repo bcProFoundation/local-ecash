@@ -16,12 +16,14 @@ import {
   DisputeStatus,
   EscrowOrderQueryItem,
   EscrowOrderStatus,
-  OfferType,
   fiatCurrencyApi,
+  OfferType,
   getSelectedAccount,
   getSelectedWalletPath,
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
+
+const { useGetAllFiatRateQuery } = fiatCurrencyApi;
 import { Button, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { usePathname, useRouter } from 'next/navigation';
@@ -158,8 +160,24 @@ const OrderDetailInfo = ({
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
   const selectedAccount = useLixiSliceSelector(getSelectedAccount);
 
-  const { useGetAllFiatRateQuery } = fiatCurrencyApi;
-  const { data: fiatData } = useGetAllFiatRateQuery();
+  // Get fiat rates from GraphQL API with cache reuse
+  // Skip if not seller or buyer (don't need to show price calculations)
+  const needsFiatRates = React.useMemo(() => {
+    const isRelevantParty = selectedWalletPath?.hash160 === order?.sellerAccount?.hash160 || isBuyOffer;
+    if (!isRelevantParty) return false;
+    
+    // Check if order needs fiat conversion
+    const isGoodsServices = order?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES;
+    if (isGoodsServices) return true;
+    
+    return order?.escrowOffer?.coinPayment && order?.escrowOffer?.coinPayment !== 'XEC';
+  }, [selectedWalletPath?.hash160, order?.sellerAccount?.hash160, isBuyOffer, order?.paymentMethod?.id, order?.escrowOffer?.coinPayment]);
+
+  const { data: fiatData } = useGetAllFiatRateQuery(undefined, {
+    skip: !needsFiatRates,
+    refetchOnMountOrArgChange: false,
+    refetchOnFocus: false
+  });
 
   const revertCompactNumber = compact => {
     const regex = /([\d.]+)([MKB]?)?/; // Match number and optional suffix
@@ -301,12 +319,53 @@ const OrderDetailInfo = ({
   useEffect(() => {
     //just set if seller or buyOffer
     if (selectedWalletPath?.hash160 === order?.sellerAccount?.hash160 || isBuyOffer) {
-      const rateData = fiatData?.getAllFiatRate?.find(
-        item => item.currency === (order?.escrowOffer?.localCurrency ?? 'USD')
-      );
-      setRateData(rateData?.fiatRates);
+      // For Goods & Services: Always use XEC fiat rates (price is in fiat, need to convert to XEC)
+      // For Crypto Orders: Use the selected fiat currency from localCurrency (user's choice)
+      if (isGoodsServices) {
+        // Goods & Services: Transform XEC currency fiat rates
+        const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
+        
+        if (xecCurrency?.fiatRates) {
+          const transformedRates = xecCurrency.fiatRates
+            .filter(item => item.rate && item.rate > 0)
+            .map(item => ({
+              coin: item.coin,
+              rate: 1 / item.rate,
+              ts: item.ts
+            }));
+          
+          transformedRates.push({ coin: 'xec', rate: 1, ts: Date.now() });
+          transformedRates.push({ coin: 'XEC', rate: 1, ts: Date.now() });
+          
+          setRateData(transformedRates);
+        } else {
+          setRateData(null);
+        }
+      } else {
+        // Crypto Orders: Transform the user's selected local currency
+        const currencyData = fiatData?.getAllFiatRate?.find(
+          item => item.currency === (order?.escrowOffer?.localCurrency ?? 'USD')
+        );
+        
+        if (currencyData?.fiatRates) {
+          const transformedRates = currencyData.fiatRates
+            .filter(item => item.rate && item.rate > 0)
+            .map(item => ({
+              coin: item.coin,
+              rate: 1 / item.rate,
+              ts: item.ts
+            }));
+          
+          transformedRates.push({ coin: 'xec', rate: 1, ts: Date.now() });
+          transformedRates.push({ coin: 'XEC', rate: 1, ts: Date.now() });
+          
+          setRateData(transformedRates);
+        } else {
+          setRateData(null);
+        }
+      }
     }
-  }, [order?.escrowOffer?.localCurrency, fiatData?.getAllFiatRate]);
+  }, [order?.escrowOffer?.localCurrency, fiatData?.getAllFiatRate, isGoodsServices, selectedWalletPath?.hash160, order?.sellerAccount?.hash160, isBuyOffer]);
 
   //convert to XEC
   useEffect(() => {

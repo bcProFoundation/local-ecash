@@ -43,7 +43,7 @@
     "prettier-plugin-packagejson": "2.5.0",
     "prettier-plugin-stylex-key-sort": "^1.0.1"
   },
-  "packageManager": "pnpm@7.0.0",
+  "packageManager": "pnpm@10.17.0",
   "resolutions": {
     "@abcpros/bitcore-lib": "8.25.43"
   },

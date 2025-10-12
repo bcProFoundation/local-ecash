@@ -114,16 +114,25 @@ export function isConvertGoodsServices(priceGoodsServices: number | null, ticker
   );
 }
 
-const getCoinRate = (isGoodsServicesConversion, coinPayment, priceGoodsServices, priceCoinOthers, rateData) => {
-  if (isGoodsServicesConversion && priceGoodsServices && priceGoodsServices > 0) {
-    return priceGoodsServices;
+const getCoinRate = (isGoodsServicesConversion, coinPayment, priceGoodsServices, priceCoinOthers, tickerPriceGoodsServices, rateData) => {
+  // For Goods & Services: priceGoodsServices is the PRICE (e.g., 1 USD)
+  // We need to find the USD (or tickerPriceGoodsServices) rate from rateData
+  if (isGoodsServicesConversion && tickerPriceGoodsServices) {
+    // Find the rate for the ticker currency (e.g., USD rate)
+    const tickerRate = rateData.find(item => item.coin?.toUpperCase() === tickerPriceGoodsServices.toUpperCase())?.rate;
+    if (tickerRate && priceGoodsServices && priceGoodsServices > 0) {
+      // Return the fiat currency rate multiplied by the price
+      // E.g., if 1 USD = 0.00002 XEC and item costs 1 USD, return 0.00002
+      return tickerRate * priceGoodsServices;
+    }
   }
 
   if (coinPayment === COIN_OTHERS && priceCoinOthers && priceCoinOthers > 0) {
     return priceCoinOthers;
   }
 
-  return rateData.find(item => item.coin === coinPayment.toLowerCase())?.rate;
+  // Case-insensitive comparison to handle both uppercase and lowercase coin codes
+  return rateData.find(item => item.coin?.toLowerCase() === coinPayment.toLowerCase())?.rate;
 };
 
 /**
@@ -144,15 +153,15 @@ export const convertXECAndCurrency = ({ rateData, paymentInfo, inputAmount }) =>
   let amountCoinOrCurrency = 0;
   const isGoodsServicesConversion = isConvertGoodsServices(priceGoodsServices, tickerPriceGoodsServices);
 
-  // Find XEC rate data
-  const rateArrayXec = rateData.find(item => item.coin === 'xec');
+  // Find XEC rate data (case-insensitive to handle both 'XEC' and 'xec')
+  const rateArrayXec = rateData.find(item => item.coin?.toLowerCase() === 'xec');
   const latestRateXec = rateArrayXec?.rate;
 
   if (!latestRateXec) return { amountXEC: 0, amountCoinOrCurrency: 0 };
 
   // If payment is cryptocurrency (not USD stablecoin)
   if (isGoodsServicesConversion || (coinPayment && coinPayment !== COIN_USD_STABLECOIN_TICKER)) {
-    const coinRate = getCoinRate(isGoodsServicesConversion, coinPayment, priceGoodsServices, priceCoinOthers, rateData);
+    const coinRate = getCoinRate(isGoodsServicesConversion, coinPayment, priceGoodsServices, priceCoinOthers, tickerPriceGoodsServices, rateData);
     if (!coinRate) return { amountXEC: 0, amountCoinOrCurrency: 0 };
 
     // Calculate XEC amount
