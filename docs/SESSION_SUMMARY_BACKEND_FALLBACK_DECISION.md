@@ -14,23 +14,28 @@ We initially implemented a frontend fallback system where the React app would di
 ## Timeline
 
 ### 1. Initial Approach: Frontend Fallback
+
 - Created `useGetFiatRateWithFallback` hook
 - Added `NEXT_PUBLIC_FALLBACK_GRAPHQL_API` environment variable
 - Hook would fallback to Production GraphQL on primary failure
 - Updated 4 components to use new hook
 
 ### 2. CORS Issue Discovered
+
 - Production GraphQL endpoint (`https://lixi.social/graphql`) has CORS restrictions
 - Would not accept requests from `localhost:3000`
 - Only allows requests from production domains
 
 ### 3. Architecture Question
+
 **User's insight**: "I think let's do at the server instead. the backend graphql could simply refer to 2 rate APIs as fallback and the server would not need to do anything else. Because if the graphql failed, most other services will fail too."
 
 **Key realization**: If the entire GraphQL backend is down, fiat rates are the least of your problems - offers, orders, disputes, authentication, everything would fail.
 
 ### 4. Decision: Backend Implementation
+
 **Benefits**:
+
 - ✅ No CORS issues (backend-to-backend calls)
 - ✅ Centralized logic (benefits all clients)
 - ✅ Simpler frontend (just calls GraphQL normally)
@@ -44,26 +49,26 @@ We initially implemented a frontend fallback system where the React app would di
 ### Frontend Cleanup (Reverted)
 
 **Files Deleted:**
+
 - `/src/hooks/useGetFiatRateWithFallback.tsx` (175 lines)
 
 **Files Restored:**
+
 - `/src/components/PlaceAnOrderModal/PlaceAnOrderModal.tsx`
   - Removed: `import { useGetFiatRateWithFallback }`
   - Restored: Direct use of `useGetAllFiatRateQuery()`
-  
 - `/src/hooks/useOfferPrice.tsx`
   - Removed fallback hook usage
   - Restored original fiat query
-  
 - `/src/app/wallet/page.tsx`
   - Removed fallback hook usage
   - Restored original fiat query
-  
 - `/src/components/DetailInfo/OrderDetailInfo.tsx`
   - Removed fallback hook usage
   - Restored original fiat query
 
 **Environment Variable Removed:**
+
 ```properties
 # Removed from .env
 NEXT_PUBLIC_FALLBACK_GRAPHQL_API=https://lixi.social/graphql
@@ -76,6 +81,7 @@ NEXT_PUBLIC_FALLBACK_GRAPHQL_API=https://lixi.social/graphql
 **New Document**: `/docs/BACKEND_FIAT_FALLBACK_RECOMMENDATION.md`
 
 **Contents**:
+
 1. **Executive Summary**: Why backend fallback is better
 2. **Architecture Diagram**: Flow from frontend → backend → primary/fallback APIs
 3. **Implementation Pseudocode**: Complete resolver with fallback logic
@@ -85,6 +91,7 @@ NEXT_PUBLIC_FALLBACK_GRAPHQL_API=https://lixi.social/graphql
 7. **Rollout Plan**: 5-phase implementation guide
 
 **Key Implementation Points**:
+
 ```typescript
 // Backend resolver logic
 async function getAllFiatRate() {
@@ -120,6 +127,7 @@ async function getAllFiatRate() {
 ## What Backend Team Needs to Do
 
 ### 1. Add Environment Variables
+
 ```bash
 FIAT_RATE_PRIMARY_URL=https://aws-dev.abcpay.cash/bws/api/v3/fiatrates/
 FIAT_RATE_FALLBACK_URL=https://aws.abcpay.cash/bws/api/v3/fiatrates/
@@ -128,6 +136,7 @@ FIAT_RATE_FALLBACK_ENABLED=true
 ```
 
 ### 2. Update GraphQL Resolver
+
 - Modify `getAllFiatRate` resolver
 - Add try/catch for primary API
 - Add fallback logic on primary failure
@@ -135,17 +144,20 @@ FIAT_RATE_FALLBACK_ENABLED=true
 - Return same structure regardless of source
 
 ### 3. Add Telegram Alerts
+
 - Alert when fallback is used
 - Critical alert when both APIs fail
 - Include details: URLs, errors, timestamp
 
 ### 4. Add Monitoring
+
 - Log which API source is used
 - Track success/failure rates
 - Monitor response times
 - Alert if fallback used > 10% of time
 
 ### 5. Testing
+
 - Unit tests for all scenarios
 - Integration tests with real APIs
 - Verify Telegram alerts sent correctly
@@ -155,6 +167,7 @@ FIAT_RATE_FALLBACK_ENABLED=true
 ## Frontend State
 
 **Current Behavior**:
+
 - Frontend calls `useGetAllFiatRateQuery()` as normal
 - No awareness of fallback logic
 - Expects backend to return valid data
@@ -162,6 +175,7 @@ FIAT_RATE_FALLBACK_ENABLED=true
 - Telegram alerts sent from backend (not frontend)
 
 **Zero Changes Needed**:
+
 - Once backend implements fallback, frontend will automatically benefit
 - No code changes required in frontend
 - No redeployment needed for frontend
@@ -171,6 +185,7 @@ FIAT_RATE_FALLBACK_ENABLED=true
 ## Why This Is Better
 
 ### Problem with Frontend Fallback
+
 ```
 Frontend → Primary GraphQL ❌ Failed
          ↓
@@ -180,6 +195,7 @@ Frontend → Direct API ❌ Different structure, need transformation
 ```
 
 **Issues**:
+
 - CORS restrictions
 - Complex data transformation
 - Duplicated code across clients
@@ -187,6 +203,7 @@ Frontend → Direct API ❌ Different structure, need transformation
 - Inconsistent data between users
 
 ### Solution with Backend Fallback
+
 ```
 Frontend → Backend GraphQL → Primary API ❌ Failed
                            → Fallback API ✅ Success
@@ -194,6 +211,7 @@ Frontend → Backend GraphQL → Primary API ❌ Failed
 ```
 
 **Benefits**:
+
 - No CORS (backend-to-backend)
 - Same data structure
 - Centralized logic
@@ -205,6 +223,7 @@ Frontend → Backend GraphQL → Primary API ❌ Failed
 ## Testing Checklist
 
 ### Backend Team (After Implementation)
+
 - [ ] Primary API returns valid data → should use primary
 - [ ] Primary API returns empty → should use fallback
 - [ ] Primary API returns all zeros → should use fallback
@@ -215,6 +234,7 @@ Frontend → Backend GraphQL → Primary API ❌ Failed
 - [ ] Logs show which API source used
 
 ### Frontend Team (After Backend Deployment)
+
 - [ ] Shopping page shows prices correctly
 - [ ] Wallet shows balance conversion correctly
 - [ ] Place order modal calculates prices correctly
@@ -236,6 +256,7 @@ Frontend → Backend GraphQL → Primary API ❌ Failed
 ## Next Steps
 
 ### Immediate (Backend Team)
+
 1. Review `BACKEND_FIAT_FALLBACK_RECOMMENDATION.md`
 2. Estimate implementation time
 3. Schedule implementation
@@ -245,6 +266,7 @@ Frontend → Backend GraphQL → Primary API ❌ Failed
 7. Deploy to production
 
 ### Future (Both Teams)
+
 1. Monitor fallback usage rates
 2. Investigate why dev API returns zeros
 3. Fix dev API if possible

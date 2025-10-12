@@ -35,6 +35,7 @@ This ensures the team gets **immediate notifications** of critical issues withou
 See **[TELEGRAM_GROUP_SETUP.md](./TELEGRAM_GROUP_SETUP.md)** for complete group setup with team discussion features.
 
 **Quick steps:**
+
 1. Create a Telegram group
 2. Add bot `@p2p_dex_bot` to the group
 3. Make bot an admin with "Send Messages" permission
@@ -54,11 +55,13 @@ See **[TELEGRAM_GROUP_SETUP.md](./TELEGRAM_GROUP_SETUP.md)** for complete group 
 There are two ways to get your channel ID:
 
 #### Method A: Using @userinfobot
+
 1. Forward a message from your channel to **@userinfobot**
 2. It will reply with the channel ID (format: `-100xxxxxxxxxx`)
 3. Copy this ID
 
 #### Method B: Using API
+
 1. Send a message to your channel
 2. Visit: `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates`
 3. Look for your channel in the response, find the `chat` object
@@ -74,6 +77,7 @@ TELEGRAM_ALERT_CHANNEL_ID="-1001234567890"  # Replace with your actual channel/g
 ```
 
 **Important Notes**:
+
 - Channel IDs usually start with `-100` (like `-1001234567890`)
 - Group IDs are negative but shorter (like `-123456789`)
 - Keep the quotes if the ID has special characters
@@ -88,11 +92,9 @@ Test the alert system:
 import { sendCriticalAlert } from '@/src/utils/telegram-alerts';
 
 // Send a test alert
-await sendCriticalAlert(
-  'Test Service',
-  'This is a test alert - system is working correctly!',
-  { timestamp: new Date().toISOString() }
-);
+await sendCriticalAlert('Test Service', 'This is a test alert - system is working correctly!', {
+  timestamp: new Date().toISOString()
+});
 ```
 
 You should receive a message in your Telegram channel that looks like:
@@ -116,9 +118,11 @@ Environment: production
 ## 📁 Files Created
 
 ### 1. API Route: `src/app/api/alerts/telegram/route.ts`
+
 **Purpose**: Server-side endpoint to send Telegram messages securely
 
 **Features**:
+
 - Validates bot token and channel ID from environment
 - Formats messages with severity levels
 - Uses Telegram Bot API
@@ -128,6 +132,7 @@ Environment: production
 **Endpoint**: `POST /api/alerts/telegram`
 
 **Request Body**:
+
 ```json
 {
   "message": "Service failure description",
@@ -141,6 +146,7 @@ Environment: production
 ```
 
 **Response** (success):
+
 ```json
 {
   "success": true,
@@ -150,6 +156,7 @@ Environment: production
 ```
 
 **Response** (error):
+
 ```json
 {
   "error": "Failed to send Telegram alert",
@@ -158,11 +165,13 @@ Environment: production
 ```
 
 ### 2. Utility: `src/utils/telegram-alerts.ts`
+
 **Purpose**: Helper functions to send alerts from anywhere in the app
 
 **Functions**:
 
 #### `sendTelegramAlert(payload)`
+
 Generic function to send any alert
 
 ```typescript
@@ -175,59 +184,53 @@ await sendTelegramAlert({
 ```
 
 #### `sendCriticalAlert(service, message, details?)`
+
 Shorthand for critical alerts (🚨 emoji)
 
 ```typescript
-await sendCriticalAlert(
-  'Fiat Currency Service',
-  'API is returning null',
-  { endpoint: '/graphql', error: 'getAllFiatRate' }
-);
+await sendCriticalAlert('Fiat Currency Service', 'API is returning null', {
+  endpoint: '/graphql',
+  error: 'getAllFiatRate'
+});
 ```
 
 #### `sendErrorAlert(service, message, details?)`
+
 For error-level alerts (❌ emoji)
 
 ```typescript
-await sendErrorAlert(
-  'Database',
-  'Connection pool exhausted',
-  { activeConnections: 100 }
-);
+await sendErrorAlert('Database', 'Connection pool exhausted', { activeConnections: 100 });
 ```
 
 #### `sendWarningAlert(service, message, details?)`
+
 For warning-level alerts (⚠️ emoji)
 
 ```typescript
-await sendWarningAlert(
-  'Cache Service',
-  'Cache hit rate below 50%',
-  { hitRate: 0.45 }
-);
+await sendWarningAlert('Cache Service', 'Cache hit rate below 50%', { hitRate: 0.45 });
 ```
 
 #### `sendInfoAlert(service, message, details?)`
+
 For informational alerts (ℹ️ emoji)
 
 ```typescript
-await sendInfoAlert(
-  'Deployment',
-  'New version deployed successfully',
-  { version: '1.2.3' }
-);
+await sendInfoAlert('Deployment', 'New version deployed successfully', { version: '1.2.3' });
 ```
 
 ### 3. Integration: `PlaceAnOrderModal.tsx`
+
 **Purpose**: Automatically alert when fiat service fails
 
 **Added**:
+
 - Import of `sendCriticalAlert` utility
 - useEffect hook that triggers when `fiatRateError` is detected
 - Sends alert with offer context and error details
 - Non-blocking (doesn't break UI if alert fails)
 
 **Code**:
+
 ```typescript
 useEffect(() => {
   if (fiatRateError && isGoodsServicesConversion) {
@@ -273,35 +276,40 @@ Environment: production
 
 ### Severity Levels
 
-| Severity | Emoji | Use Case | Example |
-|----------|-------|----------|---------|
-| `critical` | 🚨 | Service down, blocking users | Fiat API down, database offline |
-| `error` | ❌ | Errors affecting functionality | Failed transactions, API errors |
-| `warning` | ⚠️ | Degraded performance | High latency, cache misses |
-| `info` | ℹ️ | Informational updates | Deployments, config changes |
+| Severity   | Emoji | Use Case                       | Example                         |
+| ---------- | ----- | ------------------------------ | ------------------------------- |
+| `critical` | 🚨    | Service down, blocking users   | Fiat API down, database offline |
+| `error`    | ❌    | Errors affecting functionality | Failed transactions, API errors |
+| `warning`  | ⚠️    | Degraded performance           | High latency, cache misses      |
+| `info`     | ℹ️    | Informational updates          | Deployments, config changes     |
 
 ---
 
 ## 🔒 Security Considerations
 
 ### 1. Bot Token Protection
+
 - ✅ Stored in `.env` (server-side only)
 - ✅ Never exposed to client
 - ✅ Used only in API route
 - ❌ Never commit to Git
 
 ### 2. Channel ID Protection
+
 - ✅ Stored in environment variable
 - ⚠️ Less sensitive than bot token
 - ✅ Can be different per environment
 
 ### 3. Rate Limiting
+
 Consider adding rate limiting to prevent:
+
 - Alert spam (e.g., max 1 alert per minute for same error)
 - Excessive API calls to Telegram
 - Channel flooding
 
 **Example implementation**:
+
 ```typescript
 const alertCache = new Map<string, number>();
 const ALERT_COOLDOWN = 60000; // 1 minute
@@ -326,6 +334,7 @@ if (shouldSendAlert('fiat-service-down')) {
 ## 🧪 Testing
 
 ### Test 1: Manual API Call
+
 ```bash
 curl -X POST https://localecash.test/api/alerts/telegram \
   -H "Content-Type: application/json" \
@@ -338,6 +347,7 @@ curl -X POST https://localecash.test/api/alerts/telegram \
 ```
 
 ### Test 2: From Browser Console
+
 ```javascript
 fetch('/api/alerts/telegram', {
   method: 'POST',
@@ -348,11 +358,12 @@ fetch('/api/alerts/telegram', {
     service: 'Browser Test'
   })
 })
-.then(r => r.json())
-.then(console.log);
+  .then(r => r.json())
+  .then(console.log);
 ```
 
 ### Test 3: Trigger Real Error
+
 1. Stop the fiat service or backend
 2. Try to place an order on a USD-priced offer
 3. Check your Telegram channel for the alert
@@ -364,16 +375,19 @@ fetch('/api/alerts/telegram', {
 ### Best Practices
 
 1. **Use Appropriate Severity Levels**
+
    - Don't overuse `critical` - save for truly blocking issues
    - Use `warning` for degraded but functional services
    - Use `info` for successful deployments or non-urgent updates
 
 2. **Include Relevant Context**
+
    - Always include timestamps
    - Add user IDs, offer IDs, or other identifiers
    - Include error messages and stack traces when relevant
 
 3. **Avoid Alert Fatigue**
+
    - Implement cooldown periods for repeated errors
    - Aggregate similar errors
    - Send summary reports for non-critical issues
@@ -409,6 +423,7 @@ await sendErrorAlert('CoinGecko API', 'Rate limit exceeded', {...});
 ### Problem: Alerts not being sent
 
 **Check**:
+
 1. ✅ `TELEGRAM_ALERT_CHANNEL_ID` is set in `.env`
 2. ✅ Channel ID is correct (starts with `-100`)
 3. ✅ Bot is added as admin to the channel
@@ -416,6 +431,7 @@ await sendErrorAlert('CoinGecko API', 'Rate limit exceeded', {...});
 5. ✅ Server has internet access to reach Telegram API
 
 **Debug**:
+
 ```bash
 # Check environment variables
 echo $BOT_TOKEN
@@ -432,13 +448,15 @@ curl https://api.telegram.org/bot<BOT_TOKEN>/sendMessage \
 ### Problem: Getting "Chat not found"
 
 **Solution**: Make sure:
+
 - Bot is added as administrator to the channel
 - Channel ID is correct (including the `-` sign)
 - If private channel, bot must be added before sending
 
 ### Problem: Alerts working but not formatted
 
-**Solution**: 
+**Solution**:
+
 - Telegram requires `parse_mode: 'Markdown'` for formatting
 - Check that special characters are escaped properly
 - Try `parse_mode: 'HTML'` as alternative
@@ -448,6 +466,7 @@ curl https://api.telegram.org/bot<BOT_TOKEN>/sendMessage \
 ## ✅ Summary
 
 **Implemented**:
+
 - ✅ API route for sending Telegram alerts
 - ✅ Utility functions for easy usage
 - ✅ Automatic fiat service error detection
@@ -456,6 +475,7 @@ curl https://api.telegram.org/bot<BOT_TOKEN>/sendMessage \
 - ✅ Markdown-formatted messages with severity levels
 
 **Configuration Needed**:
+
 1. Create Telegram channel
 2. Add bot as admin
 3. Get channel ID
@@ -463,6 +483,7 @@ curl https://api.telegram.org/bot<BOT_TOKEN>/sendMessage \
 5. Test with a manual alert
 
 **Benefits**:
+
 - 📱 Immediate notification of critical issues
 - 🚨 No need to monitor logs constantly
 - 📊 Centralized alert channel for team

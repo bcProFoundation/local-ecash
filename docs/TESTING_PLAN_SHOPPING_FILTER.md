@@ -7,11 +7,13 @@
 ## 🎯 What Was Changed
 
 ### Backend Changes (Completed by Backend Team)
+
 - ✅ Added `tickerPriceGoodsServices` field to `OfferFilterInput` GraphQL type
 - ✅ Implemented server-side filtering in offer resolver
 - ✅ Database query now filters by `tickerPriceGoodsServices`
 
 ### Frontend Changes (Just Completed)
+
 - ✅ Removed client-side filtering logic from `shopping/page.tsx`
 - ✅ Updated `ShoppingFilterComponent` to use `tickerPriceGoodsServices` field
 - ✅ Filter config now passes `tickerPriceGoodsServices` to backend API
@@ -20,12 +22,15 @@
 ## 🧪 Manual Testing Checklist
 
 ### Test 1: No Currency Filter (Show All)
+
 **Steps:**
+
 1. Navigate to Shopping tab
 2. Ensure no currency is selected
 3. Scroll through the list
 
 **Expected Results:**
+
 - ✅ All Goods & Services offers are displayed
 - ✅ Offers with different currencies (USD, XEC, EUR, etc.) are visible
 - ✅ Infinite scroll loads more items
@@ -34,13 +39,16 @@
 ---
 
 ### Test 2: Filter by USD
+
 **Steps:**
+
 1. Navigate to Shopping tab
 2. Click on the currency filter field
 3. Select "USD" from the currency list
 4. Observe the results
 
 **Expected Results:**
+
 - ✅ Only offers priced in USD are shown
 - ✅ All displayed offers show USD in their price
 - ✅ No XEC or EUR priced offers are visible
@@ -48,31 +56,38 @@
 - ✅ Result count is accurate
 
 **Verification:**
+
 - Check that each offer displays: `X XEC / unit (Y USD)`
 - The USD amount should be visible in parentheses
 
 ---
 
 ### Test 3: Filter by XEC
+
 **Steps:**
+
 1. Navigate to Shopping tab
 2. Click on the currency filter field
 3. Select "XEC" from the currency list
 4. Observe the results
 
 **Expected Results:**
+
 - ✅ Only offers priced in XEC are shown
 - ✅ All displayed offers show only XEC price (no currency in parentheses)
 - ✅ No USD or EUR priced offers are visible
 - ✅ Infinite scroll works
 
 **Verification:**
+
 - Check that each offer displays: `X XEC / unit` (without additional currency)
 
 ---
 
 ### Test 4: Switch Between Currencies
+
 **Steps:**
+
 1. Navigate to Shopping tab
 2. Select "USD" filter
 3. Wait for results to load
@@ -81,6 +96,7 @@
 6. Switch back to "USD"
 
 **Expected Results:**
+
 - ✅ Results update immediately on filter change
 - ✅ No duplicate items appear
 - ✅ Previous filter is cleared when switching
@@ -90,13 +106,16 @@
 ---
 
 ### Test 5: Clear Currency Filter
+
 **Steps:**
+
 1. Navigate to Shopping tab
 2. Select "USD" filter
 3. Click the X button to clear the filter
 4. Observe the results
 
 **Expected Results:**
+
 - ✅ All Goods & Services offers are displayed again
 - ✅ Offers with all currencies are visible
 - ✅ Filter field shows placeholder text
@@ -105,7 +124,9 @@
 ---
 
 ### Test 6: Pagination with Filter
+
 **Steps:**
+
 1. Navigate to Shopping tab
 2. Select a popular currency (e.g., "USD")
 3. Scroll to the bottom of the list
@@ -113,6 +134,7 @@
 5. Verify more items load
 
 **Expected Results:**
+
 - ✅ Additional USD-priced offers load
 - ✅ `hasMore` flag is accurate
 - ✅ No items repeat
@@ -122,12 +144,15 @@
 ---
 
 ### Test 7: Filter with No Results
+
 **Steps:**
+
 1. Navigate to Shopping tab
 2. If possible, select a currency with no offers (e.g., "JPY")
 3. Observe the results
 
 **Expected Results:**
+
 - ✅ Empty state is displayed
 - ✅ No error messages
 - ✅ "No offers found" or similar message
@@ -136,19 +161,23 @@
 ---
 
 ### Test 8: Performance Check
+
 **Steps:**
+
 1. Open browser DevTools > Network tab
 2. Navigate to Shopping tab
 3. Select "USD" filter
 4. Check the GraphQL query
 
 **Expected Results:**
+
 - ✅ GraphQL query includes `tickerPriceGoodsServices: "USD"`
 - ✅ Response time < 500ms
 - ✅ Response contains only USD offers
 - ✅ Page size is reasonable (e.g., 20 items)
 
 **Check Network Request:**
+
 ```json
 {
   "query": "...",
@@ -165,7 +194,9 @@
 ---
 
 ### Test 9: Cache Behavior
+
 **Steps:**
+
 1. Navigate to Shopping tab
 2. Select "USD" filter
 3. Navigate to another tab (e.g., "My Offers")
@@ -173,6 +204,7 @@
 5. Verify filter state
 
 **Expected Results:**
+
 - ✅ USD filter is still active
 - ✅ Results are cached and display instantly
 - ✅ No unnecessary refetch
@@ -181,13 +213,16 @@
 ---
 
 ### Test 10: Amount + Currency Filter
+
 **Steps:**
+
 1. Navigate to Shopping tab
 2. Select "USD" filter
 3. Enter an amount (e.g., "50")
 4. Observe results
 
 **Expected Results:**
+
 - ✅ Only USD offers are shown
 - ✅ Only offers >= $50 USD are shown
 - ✅ Both filters work together
@@ -198,17 +233,10 @@
 ## 🔍 GraphQL Query Verification
 
 ### Expected Query Structure
+
 ```graphql
-query InfiniteOfferFilterDatabase(
-  $first: Int!
-  $after: String
-  $offerFilterInput: OfferFilterInput
-) {
-  offers(
-    first: $first
-    after: $after
-    filter: $offerFilterInput
-  ) {
+query InfiniteOfferFilterDatabase($first: Int!, $after: String, $offerFilterInput: OfferFilterInput) {
+  offers(first: $first, after: $after, filter: $offerFilterInput) {
     edges {
       node {
         id
@@ -227,6 +255,7 @@ query InfiniteOfferFilterDatabase(
 ```
 
 ### Expected Variables (USD Filter)
+
 ```json
 {
   "first": 20,
@@ -239,6 +268,7 @@ query InfiniteOfferFilterDatabase(
 ```
 
 ### Expected Response
+
 ```json
 {
   "data": {
@@ -266,29 +296,37 @@ query InfiniteOfferFilterDatabase(
 ## 🚨 Common Issues to Watch For
 
 ### Issue 1: Filter Not Working
+
 **Symptoms**: All offers shown regardless of currency selection  
 **Check**:
+
 - ✅ Verify `tickerPriceGoodsServices` is in GraphQL variables
 - ✅ Check backend logs for query execution
 - ✅ Verify database has the field populated
 
 ### Issue 2: Pagination Broken
+
 **Symptoms**: Duplicate items or incorrect `hasMore` flag  
 **Check**:
+
 - ✅ Ensure client-side filtering is completely removed
 - ✅ Verify `dataFilter.length` matches backend response
 - ✅ Check cursor-based pagination logic
 
 ### Issue 3: Cache Stale Data
+
 **Symptoms**: Old results show when switching filters  
 **Check**:
+
 - ✅ Verify different filters create different cache keys
 - ✅ Check RTK Query cache invalidation
 - ✅ Clear cache and test again
 
 ### Issue 4: Filter Not Cleared
+
 **Symptoms**: Filter persists when it shouldn't  
 **Check**:
+
 - ✅ Verify `handleResetFilterCurrency` sets `tickerPriceGoodsServices: null`
 - ✅ Check state updates correctly
 - ✅ Verify UI reflects the reset
@@ -336,6 +374,7 @@ If you find issues, report using this format:
 ## 🚀 Next Steps After Testing
 
 1. **If All Tests Pass**:
+
    - ✅ Mark feature as complete
    - ✅ Update documentation
    - ✅ Deploy to production

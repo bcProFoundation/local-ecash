@@ -9,11 +9,11 @@ export {
   convertXECAndCurrency,
   formatAmountFor1MXEC,
   formatAmountForGoodsServices,
-  showPriceInfo,
   isConvertGoodsServices,
-  parseSafeHttpUrl,
   isSafeImageUrl,
-  sanitizeUrl
+  parseSafeHttpUrl,
+  sanitizeUrl,
+  showPriceInfo
 } from '@/src/store/util';
 
 // Consumers can import from '@/src/utils' going forward. Example:

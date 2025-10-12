@@ -7,6 +7,7 @@ This document provides recommendations for implementing fiat rate API fallback l
 ## Context
 
 ### Current Issue
+
 - Development fiat rate API (`https://aws-dev.abcpay.cash/bws/api/v3/fiatrates/`) returns all rates as `0`
 - Frontend applications cannot calculate prices for Goods & Services offers
 - Users see "Currency rate unavailable" errors
@@ -88,7 +89,7 @@ async function getAllFiatRate() {
   const fallbackUrl = process.env.FIAT_RATE_FALLBACK_URL;
   const timeout = parseInt(process.env.FIAT_RATE_TIMEOUT || '5000');
   const fallbackEnabled = process.env.FIAT_RATE_FALLBACK_ENABLED === 'true';
-  
+
   let source = 'primary';
   let data = null;
   let error = null;
@@ -96,57 +97,56 @@ async function getAllFiatRate() {
   try {
     // Step 1: Try primary API
     console.log('[FIAT_RATE] Fetching from primary API:', primaryUrl);
-    
-    const primaryResponse = await fetch(primaryUrl, { 
+
+    const primaryResponse = await fetch(primaryUrl, {
       timeout,
       headers: { 'Content-Type': 'application/json' }
     });
-    
+
     if (!primaryResponse.ok) {
       throw new Error(`Primary API HTTP ${primaryResponse.status}`);
     }
-    
+
     data = await primaryResponse.json();
-    
+
     // Step 2: Validate response
     const isValid = validateFiatRateResponse(data);
-    
+
     if (!isValid) {
       console.warn('[FIAT_RATE] Primary API returned invalid data (null/empty/zero rates)');
       throw new Error('Invalid data from primary API');
     }
-    
+
     console.log('[FIAT_RATE] ✅ Primary API successful');
-    
   } catch (primaryError) {
     console.error('[FIAT_RATE] ❌ Primary API failed:', primaryError.message);
     error = primaryError;
-    
+
     // Step 3: Try fallback if enabled
     if (fallbackEnabled && fallbackUrl) {
       try {
         console.log('[FIAT_RATE] Attempting fallback API:', fallbackUrl);
-        
-        const fallbackResponse = await fetch(fallbackUrl, { 
+
+        const fallbackResponse = await fetch(fallbackUrl, {
           timeout,
           headers: { 'Content-Type': 'application/json' }
         });
-        
+
         if (!fallbackResponse.ok) {
           throw new Error(`Fallback API HTTP ${fallbackResponse.status}`);
         }
-        
+
         data = await fallbackResponse.json();
-        
+
         const isValid = validateFiatRateResponse(data);
-        
+
         if (!isValid) {
           throw new Error('Invalid data from fallback API');
         }
-        
+
         source = 'fallback';
         console.log('[FIAT_RATE] ✅ Fallback API successful');
-        
+
         // Send alert to Telegram
         await sendTelegramAlert({
           type: 'FIAT_FALLBACK',
@@ -158,10 +158,9 @@ async function getAllFiatRate() {
             timestamp: new Date().toISOString()
           }
         });
-        
       } catch (fallbackError) {
         console.error('[FIAT_RATE] ❌ Fallback API also failed:', fallbackError.message);
-        
+
         // Send critical alert
         await sendTelegramAlert({
           type: 'FIAT_CRITICAL',
@@ -172,14 +171,14 @@ async function getAllFiatRate() {
             timestamp: new Date().toISOString()
           }
         });
-        
+
         throw new Error('Both primary and fallback fiat rate APIs failed');
       }
     } else {
       throw error; // No fallback configured
     }
   }
-  
+
   // Step 4: Transform and return
   return transformToGraphQLFormat(data, source);
 }
@@ -189,23 +188,23 @@ function validateFiatRateResponse(data: any): boolean {
   if (!data || !Array.isArray(data)) {
     return false;
   }
-  
+
   // Check for empty array
   if (data.length === 0) {
     return false;
   }
-  
+
   // Check for all zero rates (sample first 5 currencies)
   const samplesToCheck = Math.min(5, data.length);
   let nonZeroCount = 0;
-  
+
   for (let i = 0; i < samplesToCheck; i++) {
     const currency = data[i];
     if (currency.rate && parseFloat(currency.rate) > 0) {
       nonZeroCount++;
     }
   }
-  
+
   // At least 80% of samples should have non-zero rates
   const validPercentage = (nonZeroCount / samplesToCheck) * 100;
   return validPercentage >= 80;
@@ -214,9 +213,9 @@ function validateFiatRateResponse(data: any): boolean {
 function transformToGraphQLFormat(apiData: any[], source: string) {
   // Transform API response to GraphQL getAllFiatRate format
   // Group by currency and structure fiatRates
-  
+
   const currencyMap = new Map();
-  
+
   apiData.forEach(item => {
     if (!currencyMap.has(item.currency)) {
       currencyMap.set(item.currency, {
@@ -224,19 +223,19 @@ function transformToGraphQLFormat(apiData: any[], source: string) {
         fiatRates: []
       });
     }
-    
+
     currencyMap.get(item.currency).fiatRates.push({
       coin: item.coin || 'xec',
       rate: parseFloat(item.rate),
       ts: item.ts || Date.now()
     });
   });
-  
+
   const result = Array.from(currencyMap.values());
-  
+
   // Log source for monitoring
   console.log(`[FIAT_RATE] Returning ${result.length} currencies from ${source} API`);
-  
+
   return result;
 }
 ```
@@ -250,35 +249,35 @@ function validateFiatRateResponse(data: any): boolean {
     console.warn('[FIAT_RATE] Invalid structure: not an array');
     return false;
   }
-  
+
   // 2. Check for empty
   if (data.length === 0) {
     console.warn('[FIAT_RATE] Invalid: empty array');
     return false;
   }
-  
+
   // 3. Check for zero rates
   // Sample first 5 currencies to avoid processing large arrays
   const samplesToCheck = Math.min(5, data.length);
   let zeroRateCount = 0;
-  
+
   for (let i = 0; i < samplesToCheck; i++) {
     const currency = data[i];
     const rate = parseFloat(currency.rate || '0');
-    
+
     if (rate === 0) {
       zeroRateCount++;
     }
   }
-  
+
   // If more than 80% have zero rates, consider it invalid
   const zeroPercentage = (zeroRateCount / samplesToCheck) * 100;
-  
+
   if (zeroPercentage > 80) {
     console.warn(`[FIAT_RATE] Invalid: ${zeroPercentage}% of rates are zero`);
     return false;
   }
-  
+
   return true;
 }
 ```
@@ -288,14 +287,17 @@ function validateFiatRateResponse(data: any): boolean {
 ### Metrics to Track
 
 1. **Primary API Success Rate**
+
    - Track successful calls vs failures
    - Alert if below 95% over 5 minutes
 
 2. **Fallback Activation Rate**
+
    - How often fallback is used
    - Alert if > 10% of requests use fallback
 
 3. **Response Time**
+
    - Track both primary and fallback response times
    - Alert if > 3 seconds
 
@@ -340,24 +342,24 @@ describe('getAllFiatRate resolver', () => {
     // Mock primary API success
     // Assert data returned with source='primary'
   });
-  
+
   it('should fallback when primary returns empty data', async () => {
     // Mock primary API returning []
     // Mock fallback API success
     // Assert data returned with source='fallback'
   });
-  
+
   it('should fallback when primary returns all zero rates', async () => {
     // Mock primary API returning all zeros
     // Mock fallback API success
     // Assert data returned with source='fallback'
   });
-  
+
   it('should throw error when both APIs fail', async () => {
     // Mock both APIs failing
     // Assert error thrown
   });
-  
+
   it('should send Telegram alert when fallback is used', async () => {
     // Mock primary failure, fallback success
     // Assert Telegram alert sent
@@ -368,10 +370,12 @@ describe('getAllFiatRate resolver', () => {
 ### Integration Tests
 
 1. **Test with real dev API** (currently returning zeros)
+
    - Should automatically use fallback
    - Should send Telegram alert
 
 2. **Test with simulated primary failure**
+
    - Temporarily point primary to invalid URL
    - Should use fallback seamlessly
 
@@ -382,6 +386,7 @@ describe('getAllFiatRate resolver', () => {
 ## Rollout Plan
 
 ### Phase 1: Implementation (Backend Team)
+
 - [ ] Add environment variables
 - [ ] Implement fallback logic in resolver
 - [ ] Add validation function
@@ -389,23 +394,27 @@ describe('getAllFiatRate resolver', () => {
 - [ ] Write unit tests
 
 ### Phase 2: Testing (Backend Team)
+
 - [ ] Test in development environment
 - [ ] Verify fallback activates when dev API returns zeros
 - [ ] Verify Telegram alerts sent
 - [ ] Test error handling
 
 ### Phase 3: Frontend Cleanup (Frontend Team)
+
 - [x] Remove `useGetFiatRateWithFallback` hook
 - [x] Restore original `useGetAllFiatRateQuery` usage in 4 files
 - [x] Remove environment variable `NEXT_PUBLIC_FALLBACK_GRAPHQL_API`
 - [x] Update documentation
 
 ### Phase 4: Monitoring (DevOps)
+
 - [ ] Set up metrics dashboard
 - [ ] Configure alerting rules
 - [ ] Monitor fallback usage rates
 
 ### Phase 5: Production Rollout
+
 - [ ] Deploy backend changes to staging
 - [ ] Verify fallback works in staging
 - [ ] Deploy to production
@@ -432,6 +441,7 @@ describe('getAllFiatRate resolver', () => {
 **Recommendation: Implement fallback logic at the backend GraphQL resolver level.**
 
 The frontend fallback approach was a good temporary solution, but backend implementation provides:
+
 - Better architecture (single responsibility)
 - Simpler frontend code
 - No CORS complications

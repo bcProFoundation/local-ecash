@@ -1,7 +1,9 @@
 'use client';
 
+import ShoppingFilterComponent from '@/src/components/FilterOffer/ShoppingFilterComponent';
 import Header from '@/src/components/Header/Header';
 import OfferItem from '@/src/components/OfferItem/OfferItem';
+import { PAYMENT_METHOD } from '@bcpros/lixi-models';
 import {
   OfferOrderField,
   OrderDirection,
@@ -23,8 +25,6 @@ import { useEffect, useMemo, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import MobileLayout from '../../components/layout/MobileLayout';
 import { isShowAmountOrSortFilter } from '../../store/util';
-import ShoppingFilterComponent from '@/src/components/FilterOffer/ShoppingFilterComponent';
-import { PAYMENT_METHOD } from '@bcpros/lixi-models';
 
 const { useGetAllFiatRateQuery } = fiatCurrencyApi;
 
@@ -166,10 +166,7 @@ export default function Shopping() {
         <ShoppingPage>
           <Header />
 
-          <ShoppingFilterComponent
-            filterConfig={shoppingFilterConfig}
-            setFilterConfig={setShoppingFilterConfig}
-          />
+          <ShoppingFilterComponent filterConfig={shoppingFilterConfig} setFilterConfig={setShoppingFilterConfig} />
 
           <Section>
             <Typography className="title-offer" variant="body1" component="div">
@@ -180,7 +177,9 @@ export default function Shopping() {
                   onClick={openSortDialog}
                 />
               )}
-              {(shoppingFilterConfig.stateName || shoppingFilterConfig.countryName || shoppingFilterConfig.cityName) && (
+              {(shoppingFilterConfig.stateName ||
+                shoppingFilterConfig.countryName ||
+                shoppingFilterConfig.cityName) && (
                 <span>
                   {[shoppingFilterConfig.cityName, shoppingFilterConfig.stateName, shoppingFilterConfig.countryName]
                     .filter(Boolean)

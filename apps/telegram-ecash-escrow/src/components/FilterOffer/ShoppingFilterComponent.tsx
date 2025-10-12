@@ -1,14 +1,6 @@
-import {
-  ALL,
-  ALL_CURRENCIES,
-  COIN_OTHERS,
-  COIN_USD_STABLECOIN_TICKER,
-  LIST_USD_STABLECOIN,
-  NAME_PAYMENT_METHOD
-} from '@/src/store/constants';
+import { ALL, ALL_CURRENCIES, COIN_USD_STABLECOIN_TICKER, LIST_USD_STABLECOIN } from '@/src/store/constants';
 import { FilterCurrencyType } from '@/src/store/type/types';
 import { getNumberFromFormatNumber, isShowAmountOrSortFilter } from '@/src/store/util';
-import { COIN, PAYMENT_METHOD } from '@bcpros/lixi-models';
 import { ArrowDropDown, Close } from '@mui/icons-material';
 import {
   Button,
@@ -71,8 +63,7 @@ interface ShoppingFilterComponentProps {
 const ShoppingFilterComponent: React.FC<ShoppingFilterComponentProps> = ({ filterConfig, setFilterConfig }) => {
   const [openCurrencyList, setOpenCurrencyList] = useState(false);
 
-  const showTickerCryptoUSDStablecoin =
-    filterConfig?.coin === COIN_USD_STABLECOIN_TICKER;
+  const showTickerCryptoUSDStablecoin = filterConfig?.coin === COIN_USD_STABLECOIN_TICKER;
 
   const handleFilterUSDStablecoin = (e: SelectChangeEvent<string>) => {
     const ticker = e?.target?.value;
@@ -87,7 +78,7 @@ const ShoppingFilterComponent: React.FC<ShoppingFilterComponentProps> = ({ filte
 
     // For Goods & Services, we use tickerPriceGoodsServices field (backend filter)
     const selectedCurrency = filterValue?.value ?? '';
-    
+
     updatedConfig = {
       ...updatedConfig,
       tickerPriceGoodsServices: selectedCurrency, // NEW: Backend filter field

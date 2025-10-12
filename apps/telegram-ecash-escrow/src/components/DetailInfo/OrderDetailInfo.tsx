@@ -1,6 +1,6 @@
 'use client';
 
-import { securityDepositPercentage } from '@/src/store/constants';
+import { DEFAULT_TICKER_GOODS_SERVICES, securityDepositPercentage } from '@/src/store/constants';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import {
   convertXECAndCurrency,
@@ -11,23 +11,22 @@ import {
   showPriceInfo
 } from '@/src/store/util';
 import { COIN, PAYMENT_METHOD, coinInfo, getTickerText } from '@bcpros/lixi-models';
-import { DEFAULT_TICKER_GOODS_SERVICES } from '@/src/store/constants';
 import {
   DisputeStatus,
   EscrowOrderQueryItem,
   EscrowOrderStatus,
-  fiatCurrencyApi,
   OfferType,
+  fiatCurrencyApi,
   getSelectedAccount,
   getSelectedWalletPath,
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
-
-const { useGetAllFiatRateQuery } = fiatCurrencyApi;
 import { Button, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useContext, useEffect, useMemo, useState } from 'react';
+
+const { useGetAllFiatRateQuery } = fiatCurrencyApi;
 
 const OrderDetailWrap = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -165,13 +164,19 @@ const OrderDetailInfo = ({
   const needsFiatRates = React.useMemo(() => {
     const isRelevantParty = selectedWalletPath?.hash160 === order?.sellerAccount?.hash160 || isBuyOffer;
     if (!isRelevantParty) return false;
-    
+
     // Check if order needs fiat conversion
     const isGoodsServices = order?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES;
     if (isGoodsServices) return true;
-    
+
     return order?.escrowOffer?.coinPayment && order?.escrowOffer?.coinPayment !== 'XEC';
-  }, [selectedWalletPath?.hash160, order?.sellerAccount?.hash160, isBuyOffer, order?.paymentMethod?.id, order?.escrowOffer?.coinPayment]);
+  }, [
+    selectedWalletPath?.hash160,
+    order?.sellerAccount?.hash160,
+    isBuyOffer,
+    order?.paymentMethod?.id,
+    order?.escrowOffer?.coinPayment
+  ]);
 
   const { data: fiatData } = useGetAllFiatRateQuery(undefined, {
     skip: !needsFiatRates,
@@ -324,7 +329,7 @@ const OrderDetailInfo = ({
       if (isGoodsServices) {
         // Goods & Services: Transform XEC currency fiat rates
         const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
-        
+
         if (xecCurrency?.fiatRates) {
           const transformedRates = xecCurrency.fiatRates
             .filter(item => item.rate && item.rate > 0)
@@ -333,10 +338,10 @@ const OrderDetailInfo = ({
               rate: 1 / item.rate,
               ts: item.ts
             }));
-          
+
           transformedRates.push({ coin: 'xec', rate: 1, ts: Date.now() });
           transformedRates.push({ coin: 'XEC', rate: 1, ts: Date.now() });
-          
+
           setRateData(transformedRates);
         } else {
           setRateData(null);
@@ -346,7 +351,7 @@ const OrderDetailInfo = ({
         const currencyData = fiatData?.getAllFiatRate?.find(
           item => item.currency === (order?.escrowOffer?.localCurrency ?? 'USD')
         );
-        
+
         if (currencyData?.fiatRates) {
           const transformedRates = currencyData.fiatRates
             .filter(item => item.rate && item.rate > 0)
@@ -355,17 +360,24 @@ const OrderDetailInfo = ({
               rate: 1 / item.rate,
               ts: item.ts
             }));
-          
+
           transformedRates.push({ coin: 'xec', rate: 1, ts: Date.now() });
           transformedRates.push({ coin: 'XEC', rate: 1, ts: Date.now() });
-          
+
           setRateData(transformedRates);
         } else {
           setRateData(null);
         }
       }
     }
-  }, [order?.escrowOffer?.localCurrency, fiatData?.getAllFiatRate, isGoodsServices, selectedWalletPath?.hash160, order?.sellerAccount?.hash160, isBuyOffer]);
+  }, [
+    order?.escrowOffer?.localCurrency,
+    fiatData?.getAllFiatRate,
+    isGoodsServices,
+    selectedWalletPath?.hash160,
+    order?.sellerAccount?.hash160,
+    isBuyOffer
+  ]);
 
   //convert to XEC
   useEffect(() => {
@@ -392,25 +404,25 @@ const OrderDetailInfo = ({
               : order?.buyerAccount.telegramUsername}
           </React.Fragment>
         )}
-          {(() => {
-            const baseLabel = order?.escrowOffer?.type === OfferType.Buy ? 'Buy' : 'Sell';
-            const flipped = baseLabel === 'Buy' ? 'Sell' : 'Buy';
+        {(() => {
+          const baseLabel = order?.escrowOffer?.type === OfferType.Buy ? 'Buy' : 'Sell';
+          const flipped = baseLabel === 'Buy' ? 'Sell' : 'Buy';
 
-            return (
-              <>
-                {order?.sellerAccount.id === selectedAccount?.id && (
-                  <Button className="btn-order-type" size="small" color="error" variant="outlined">
-                    {order?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES ? flipped : baseLabel}
-                  </Button>
-                )}
-                {order?.buyerAccount.id === selectedAccount?.id && (
-                  <Button className="btn-order-type" size="small" color="success" variant="outlined">
-                    {order?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES ? baseLabel : flipped}
-                  </Button>
-                )}
-              </>
-            );
-          })()}
+          return (
+            <>
+              {order?.sellerAccount.id === selectedAccount?.id && (
+                <Button className="btn-order-type" size="small" color="error" variant="outlined">
+                  {order?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES ? flipped : baseLabel}
+                </Button>
+              )}
+              {order?.buyerAccount.id === selectedAccount?.id && (
+                <Button className="btn-order-type" size="small" color="success" variant="outlined">
+                  {order?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES ? baseLabel : flipped}
+                </Button>
+              )}
+            </>
+          );
+        })()}
       </Typography>
       {showPrice && (
         <Typography variant="body1">

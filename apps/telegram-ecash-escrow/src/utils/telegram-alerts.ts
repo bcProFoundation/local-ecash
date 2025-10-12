@@ -20,10 +20,10 @@ interface AlertResponse {
 
 /**
  * Send an alert to the configured Telegram channel
- * 
+ *
  * @param payload - Alert information
  * @returns Promise with the result
- * 
+ *
  * @example
  * ```typescript
  * await sendTelegramAlert({
@@ -39,7 +39,7 @@ export async function sendTelegramAlert(payload: AlertPayload): Promise<AlertRes
     const response = await fetch('/api/alerts/telegram', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify(payload)
     });

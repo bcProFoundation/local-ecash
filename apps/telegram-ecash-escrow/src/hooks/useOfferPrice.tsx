@@ -1,7 +1,7 @@
-import React from 'react';
-import { getTickerText, PAYMENT_METHOD } from '@bcpros/lixi-models';
 import { convertXECAndCurrency, formatAmountFor1MXEC, isConvertGoodsServices, showPriceInfo } from '@/src/utils';
+import { getTickerText, PAYMENT_METHOD } from '@bcpros/lixi-models';
 import { fiatCurrencyApi } from '@bcpros/redux-store';
+import React from 'react';
 
 const { useGetAllFiatRateQuery } = fiatCurrencyApi;
 
@@ -49,8 +49,8 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
     );
   }, [paymentInfo]);
 
-  const isGoodsServicesConversion = React.useMemo(() =>
-    isConvertGoodsServices(paymentInfo?.priceGoodsServices, paymentInfo?.tickerPriceGoodsServices),
+  const isGoodsServicesConversion = React.useMemo(
+    () => isConvertGoodsServices(paymentInfo?.priceGoodsServices, paymentInfo?.tickerPriceGoodsServices),
     [paymentInfo]
   );
 
@@ -67,7 +67,7 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
     if (isGoodsServices) {
       // Goods & Services: Find XEC currency and transform its fiat rates
       const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
-      
+
       if (xecCurrency?.fiatRates) {
         // Transform: Backend returns "1 XEC = X USD", we need "1 USD = X XEC" (inverted)
         const transformedRates = xecCurrency.fiatRates
@@ -77,11 +77,11 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
             rate: 1 / item.rate, // Invert the rate
             ts: item.ts
           }));
-        
+
         // Add XEC itself with rate 1
         transformedRates.push({ coin: 'xec', rate: 1, ts: Date.now() });
         transformedRates.push({ coin: 'XEC', rate: 1, ts: Date.now() });
-        
+
         setRateData(transformedRates);
       } else {
         setRateData(null);
@@ -91,7 +91,7 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
       const currencyData = fiatData?.getAllFiatRate?.find(
         item => item.currency === (paymentInfo?.localCurrency ?? 'USD')
       );
-      
+
       if (currencyData?.fiatRates) {
         const transformedRates = currencyData.fiatRates
           .filter(item => item.rate && item.rate > 0)
@@ -100,10 +100,10 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
             rate: 1 / item.rate,
             ts: item.ts
           }));
-        
+
         transformedRates.push({ coin: 'xec', rate: 1, ts: Date.now() });
         transformedRates.push({ coin: 'XEC', rate: 1, ts: Date.now() });
-        
+
         setRateData(transformedRates);
       } else {
         setRateData(null);

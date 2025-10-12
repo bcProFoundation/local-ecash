@@ -17,6 +17,7 @@ When placing an order for a **Goods & Services** offer, users were getting an in
 The validation logic in `PlaceAnOrderModal.tsx` was treating **all offer types the same way**, checking the XEC amount regardless of the payment method type.
 
 **Problem**: For Goods & Services offers:
+
 - The "Amount" field represents **unit quantity** (e.g., 1 laptop, 2 hours of service)
 - NOT XEC amount
 - The 5.46 XEC minimum validation should only apply to **crypto offers** (Buy/Sell XEC), not Goods & Services
@@ -24,6 +25,7 @@ The validation logic in `PlaceAnOrderModal.tsx` was treating **all offer types t
 ## ✅ Solution
 
 Updated the validation logic to differentiate between:
+
 1. **Goods & Services offers**: Validate unit quantity (must be > 0)
 2. **Other offers (Buy/Sell XEC)**: Validate XEC amount (must be ≥ 5.46 XEC)
 
@@ -34,12 +36,13 @@ Updated the validation logic to differentiate between:
 **Location 1: Form validation rules (lines 874-889)**
 
 #### Before ❌
+
 ```typescript
 validate: value => {
   const numberValue = getNumberFromFormatNumber(value);
   const minValue = post?.postOffer?.orderLimitMin;
   const maxValue = post?.postOffer?.orderLimitMax;
-  
+
   if (numberValue < 0) return 'XEC amount must be greater than 0!';
   if (amountXEC < 5.46) return `You need to buy amount greater than 5.46 XEC`;
   // ☝️ Always checks XEC amount - WRONG for Goods & Services!
@@ -50,16 +53,17 @@ validate: value => {
   }
 
   return true;
-}
+};
 ```
 
 #### After ✅
+
 ```typescript
 validate: value => {
   const numberValue = getNumberFromFormatNumber(value);
   const minValue = post?.postOffer?.orderLimitMin;
   const maxValue = post?.postOffer?.orderLimitMax;
-  
+
   // For Goods & Services, validate unit quantity
   if (isGoodsServices) {
     if (numberValue <= 0) return 'Unit quantity must be greater than 0!';
@@ -75,12 +79,13 @@ validate: value => {
   }
 
   return true;
-}
+};
 ```
 
 **Location 2: Display error message (line 920)**
 
 #### Before ❌
+
 ```typescript
 <Typography component={'div'} className="text-receive-amount">
   {amountXEC < 5.46
@@ -90,6 +95,7 @@ validate: value => {
 ```
 
 #### After ✅
+
 ```typescript
 <Typography component={'div'} className="text-receive-amount">
   {!isGoodsServices && amountXEC < 5.46
@@ -101,6 +107,7 @@ validate: value => {
 ## 🧪 Testing
 
 ### Test Case 1: Goods & Services Offer (Fixed! ✅)
+
 1. **Navigate to**: Shopping tab
 2. **Select**: Any Goods & Services offer
 3. **Click**: "Place an order"
@@ -109,6 +116,7 @@ validate: value => {
 6. **Result**: ✅ PASS - No longer shows "5.46 XEC" error
 
 ### Test Case 2: Buy/Sell XEC Offer (Still works ✅)
+
 1. **Navigate to**: P2P Trading tab
 2. **Select**: Any Buy/Sell XEC offer
 3. **Click**: "Place an order"
@@ -117,6 +125,7 @@ validate: value => {
 6. **Result**: ✅ PASS - Validation still works for crypto offers
 
 ### Test Case 3: Edge Cases
+
 - ✅ Goods & Services with 0 units: Shows "Unit quantity must be greater than 0!"
 - ✅ Goods & Services with negative units: Shows "Unit quantity must be greater than 0!"
 - ✅ Goods & Services with valid units: Form validates
@@ -126,12 +135,14 @@ validate: value => {
 ## 📊 Impact
 
 ### Before Fix
+
 - ❌ **All Goods & Services orders were blocked**
 - ❌ Users couldn't purchase items/services
 - ❌ Confusing error message (XEC when buying units)
 - ❌ Shopping tab was unusable
 
 ### After Fix
+
 - ✅ Goods & Services orders work correctly
 - ✅ Unit-based validation for products/services
 - ✅ XEC-based validation for crypto offers
@@ -141,7 +152,9 @@ validate: value => {
 ## 🔑 Key Takeaways
 
 ### Payment Method Types
+
 1. **GOODS_SERVICES (ID: 5)**:
+
    - Amount = **unit quantity** (items, hours, etc.)
    - Validated: > 0
    - Price per unit can be in any currency (XEC, USD, EUR, etc.)
@@ -152,6 +165,7 @@ validate: value => {
    - Price is fiat per 1M XEC
 
 ### Validation Logic
+
 ```typescript
 // Check payment method type FIRST
 if (isGoodsServices) {

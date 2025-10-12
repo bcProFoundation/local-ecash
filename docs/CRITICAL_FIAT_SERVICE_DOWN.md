@@ -9,6 +9,7 @@
 ## 🔍 Error Details
 
 ### GraphQL Error Response
+
 ```http
 POST //graphql HTTP/1.1
 Host: lixi.test
@@ -28,7 +29,9 @@ Response:
 ```
 
 ### Root Cause
+
 The `getAllFiatRate` GraphQL query is returning empty array `[]` instead of populated fiat rates, indicating:
+
 - The fiat rate service is down or misconfigured
 - Database query is failing
 - External API (e.g., CoinGecko, CryptoCompare) is unavailable or not configured
@@ -54,12 +57,15 @@ This should be configured in your backend GraphQL server (likely in `lixi` backe
 ### Affected Features
 
 #### 1. ❌ Goods & Services Orders (USD, EUR, etc.)
+
 **Severity**: CRITICAL
+
 - Cannot place orders for fiat-priced offers
 - No XEC calculation possible
 - Users see error message or stuck loading state
 
 **Example Scenario**:
+
 ```
 Offer: Laptop repair @ 50 USD/unit
 User: Enters 2 units
@@ -68,17 +74,23 @@ Actual: ❌ Rate data is null, conversion fails
 ```
 
 #### 2. ❌ P2P Trading (Buy/Sell XEC)
+
 **Severity**: CRITICAL
+
 - Cannot calculate XEC amounts for fiat currencies
 - Buy/Sell orders in USD, EUR, etc. are blocked
 
 #### 3. ❌ Wallet Display
+
 **Severity**: MEDIUM
+
 - Cannot show fiat values for XEC balance
 - Portfolio view incomplete
 
 #### 4. ✅ XEC-Priced Offers Still Work
+
 **Severity**: NONE
+
 - Offers priced directly in XEC don't need conversion
 - Can still trade XEC-to-XEC
 
@@ -89,6 +101,7 @@ Actual: ❌ Rate data is null, conversion fails
 We've added error handling to improve user experience while the backend is fixed:
 
 ### Change 1: Capture Error State
+
 **File**: `PlaceAnOrderModal.tsx` (Line 335)
 
 ```typescript
@@ -96,6 +109,7 @@ const { data: fiatData, isError: fiatRateError, isLoading: fiatRateLoading } = u
 ```
 
 ### Change 2: Enhanced Logging
+
 **File**: `PlaceAnOrderModal.tsx` (Line 710)
 
 ```typescript
@@ -108,10 +122,11 @@ const convertToAmountXEC = async () => {
     return 0;
   }
   // ... rest of conversion
-}
+};
 ```
 
 ### Change 3: User-Facing Error Message
+
 **File**: `PlaceAnOrderModal.tsx` (Line 872)
 
 ```tsx
@@ -119,18 +134,18 @@ const convertToAmountXEC = async () => {
   <PlaceAnOrderWrap>
     {/* Show error when fiat service is down for fiat-priced offers */}
     {fiatRateError && isGoodsServicesConversion && (
-      <Box sx={{ 
-        backgroundColor: 'error.light', 
+      <Box sx={{
+        backgroundColor: 'error.light',
         color: 'error.contrastText',
-        padding: 2, 
-        borderRadius: 1, 
-        marginBottom: 2 
+        padding: 2,
+        borderRadius: 1,
+        marginBottom: 2
       }}>
         <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
           ⚠️ Fiat Service Unavailable
         </Typography>
         <Typography variant="body2">
-          Cannot calculate XEC amount for {post?.postOffer?.tickerPriceGoodsServices}-priced offers. 
+          Cannot calculate XEC amount for {post?.postOffer?.tickerPriceGoodsServices}-priced offers.
           The currency conversion service is temporarily unavailable. Please try again later or contact support.
         </Typography>
       </Box>
@@ -139,6 +154,7 @@ const convertToAmountXEC = async () => {
 ```
 
 **User sees**:
+
 ```
 ┌──────────────────────────────────────────────────┐
 │ ⚠️ Fiat Service Unavailable                      │
@@ -157,10 +173,11 @@ const convertToAmountXEC = async () => {
 ### Checklist for Backend Team
 
 #### 1. Check GraphQL Schema
+
 ```graphql
 type Query {
   # Make sure this is correct
-  getAllFiatRate: [FiatRate!]!  # Non-nullable array of non-nullable items
+  getAllFiatRate: [FiatRate!]! # Non-nullable array of non-nullable items
 }
 
 type FiatRate {
@@ -177,11 +194,13 @@ type CoinRate {
 **Issue**: If `getAllFiatRate` is marked as non-nullable (`!`) but the resolver returns `null`, GraphQL throws this error.
 
 **Fix Options**:
+
 1. Make field nullable: `getAllFiatRate: [FiatRate]` (allows null return)
 2. Fix resolver to always return an array (even if empty): `return []`
 3. Add default/fallback data when external service is down
 
 #### 2. Check Resolver Implementation
+
 **File**: `lixi-backend/src/resolvers/fiat-currency.resolver.ts` (or similar)
 
 ```typescript
@@ -189,20 +208,20 @@ type CoinRate {
 async getAllFiatRate() {
   try {
     const rates = await this.fiatCurrencyService.getAllRates();
-    
+
     // ❌ BAD: Returns null/undefined on error
     if (!rates) return null;
-    
+
     // ✅ GOOD: Returns empty array on error
     if (!rates) return [];
-    
+
     return rates;
   } catch (error) {
     console.error('Fiat rate fetch failed:', error);
-    
+
     // ❌ BAD: Throws error or returns null
     throw new Error('Fiat service unavailable');
-    
+
     // ✅ GOOD: Returns empty array or cached data
     return this.getCachedRates() || [];
   }
@@ -210,13 +229,16 @@ async getAllFiatRate() {
 ```
 
 #### 3. Check External API Integration
+
 Common issues:
+
 - **API Key expired**: Check CoinGecko/CryptoCompare API credentials
 - **Rate limit exceeded**: Implement caching (Redis) with TTL
 - **Network timeout**: Add timeout handling (5-10 seconds)
 - **API endpoint changed**: Verify external API URL
 
 **Example Service Fix**:
+
 ```typescript
 class FiatCurrencyService {
   private cache = new Map();
@@ -233,28 +255,28 @@ class FiatCurrencyService {
       const response = await fetch('https://api.coingecko.com/...', {
         timeout: 5000
       });
-      
+
       if (!response.ok) {
         throw new Error(`API returned ${response.status}`);
       }
 
       const data = await response.json();
-      
+
       // Cache the result
       this.cache.set('rates', data);
       this.cache.set('rates_timestamp', Date.now());
-      
+
       return data;
     } catch (error) {
       console.error('External API failed:', error);
-      
+
       // Return cached data if available (even if expired)
       const cachedData = this.cache.get('rates');
       if (cachedData) {
         console.warn('Using stale cached data');
         return cachedData;
       }
-      
+
       // Return empty array as last resort
       return [];
     }
@@ -263,6 +285,7 @@ class FiatCurrencyService {
 ```
 
 #### 4. Add Health Check Endpoint
+
 ```typescript
 @Get('/health/fiat-rates')
 async checkFiatRates() {
@@ -284,6 +307,7 @@ async checkFiatRates() {
 ```
 
 #### 5. Database Query Check
+
 If using database for rate storage:
 
 ```sql
@@ -291,8 +315,8 @@ If using database for rate storage:
 SELECT * FROM fiat_rates LIMIT 10;
 
 -- Check last update time
-SELECT currency, MAX(updated_at) 
-FROM fiat_rates 
+SELECT currency, MAX(updated_at)
+FROM fiat_rates
 GROUP BY currency;
 
 -- Check for missing currencies
@@ -304,6 +328,7 @@ SELECT currency FROM fiat_rates WHERE currency IN ('USD', 'EUR', 'GBP', 'JPY');
 ## 🧪 Testing the Fix
 
 ### 1. Manual Test in GraphQL Playground
+
 ```graphql
 query TestFiatRates {
   getAllFiatRate {
@@ -317,6 +342,7 @@ query TestFiatRates {
 ```
 
 **Expected Response**:
+
 ```json
 {
   "data": {
@@ -341,6 +367,7 @@ query TestFiatRates {
 ```
 
 ### 2. Test Frontend Integration
+
 1. Fix backend (resolve null issue)
 2. Restart backend server
 3. Reload frontend
@@ -353,6 +380,7 @@ query TestFiatRates {
    - ✅ Price shows: "X XEC / unit (50 USD)"
 
 ### 3. Test Error Recovery
+
 1. Stop external API or break connection
 2. Verify:
    - ✅ Backend returns empty array (not null)
@@ -369,19 +397,21 @@ query TestFiatRates {
 ## 📊 Monitoring & Alerts
 
 ### Add Monitoring
+
 1. **Rate Fetch Success Rate**: Track % of successful API calls
 2. **Cache Hit Rate**: Monitor cache effectiveness
 3. **Last Successful Update**: Alert if > 10 minutes old
 4. **Error Count**: Alert if > 5 errors in 1 minute
 
 ### Recommended Alerts
+
 ```yaml
 - alert: FiatRateServiceDown
   expr: fiat_rate_fetch_errors > 5
   for: 1m
   annotations:
-    summary: "Fiat rate service is experiencing errors"
-    description: "{{ $value }} errors in the last minute"
+    summary: 'Fiat rate service is experiencing errors'
+    description: '{{ $value }} errors in the last minute'
 
 - alert: FiatRateStale
   expr: (time() - fiat_rate_last_update_timestamp) > 600
@@ -410,18 +440,21 @@ Before marking as resolved:
 ## 📞 Next Steps
 
 ### Immediate (Backend Team)
+
 1. ⚠️ **Check external API status** (CoinGecko/CryptoCompare)
 2. ⚠️ **Review resolver code** for null returns
 3. ⚠️ **Add/fix caching** to prevent future outages
 4. ⚠️ **Deploy fix** to production
 
 ### Short-term (Both Teams)
+
 1. Add health monitoring for fiat service
 2. Implement automatic retry logic
 3. Add fallback to cached/stale data
 4. Create runbook for future incidents
 
 ### Long-term (Architecture)
+
 1. Consider multiple fiat data sources (redundancy)
 2. Implement circuit breaker pattern
 3. Add rate limiting and quotas

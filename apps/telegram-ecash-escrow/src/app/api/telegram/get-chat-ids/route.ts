@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 /**
  * Helper endpoint to get Telegram chat IDs for setup
  * GET /api/telegram/get-chat-ids
- * 
+ *
  * This is a temporary endpoint to help you find your group/channel ID
  * Remove this file after you've configured TELEGRAM_ALERT_CHANNEL_ID
  */
@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
 
   if (!botToken) {
     return NextResponse.json(
-      { 
+      {
         error: 'BOT_TOKEN not configured',
         message: 'Please set BOT_TOKEN in your .env file'
       },
@@ -22,10 +22,7 @@ export async function GET(request: NextRequest) {
 
   try {
     // Get recent updates from Telegram
-    const response = await fetch(
-      `https://api.telegram.org/bot${botToken}/getUpdates`,
-      { cache: 'no-store' }
-    );
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/getUpdates`, { cache: 'no-store' });
 
     if (!response.ok) {
       throw new Error(`Telegram API returned ${response.status}`);
@@ -35,7 +32,7 @@ export async function GET(request: NextRequest) {
 
     if (!data.ok) {
       return NextResponse.json(
-        { 
+        {
           error: 'Telegram API error',
           details: data
         },
@@ -45,7 +42,7 @@ export async function GET(request: NextRequest) {
 
     // Extract chat information from updates
     const chats = new Map();
-    
+
     data.result.forEach((update: any) => {
       const chat = update.message?.chat || update.my_chat_member?.chat;
       if (chat) {
@@ -80,18 +77,17 @@ export async function GET(request: NextRequest) {
         step5: 'DELETE THIS FILE (src/app/api/telegram/get-chat-ids/route.ts) for security'
       },
       troubleshooting: {
-        noChatsSeen: 'If you don\'t see your group/channel:',
+        noChatsSeen: "If you don't see your group/channel:",
         solution1: '1. Make sure your bot is added to the group/channel',
         solution2: '2. Make sure bot is an admin in the group/channel',
         solution3: '3. Send a message in the group (e.g., "test")',
         solution4: '4. Refresh this page'
       }
     });
-
   } catch (error) {
     console.error('Error fetching Telegram updates:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to fetch updates',
         message: error instanceof Error ? error.message : 'Unknown error',
         details: 'Make sure BOT_TOKEN is correct in .env'

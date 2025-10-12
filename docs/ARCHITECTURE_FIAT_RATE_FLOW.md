@@ -1,6 +1,7 @@
 # Fiat Rate Service Architecture
 
 ## Overview
+
 This document explains why the frontend calls the GraphQL API instead of calling the fiat rates service directly.
 
 **Related Backend Documentation:** `/home/nghiacc/projects/lixi/docs/ARCHITECTURE_FIAT_RATE_FLOW.md`
@@ -10,6 +11,7 @@ This document explains why the frontend calls the GraphQL API instead of calling
 ## Architecture Pattern: Backend for Frontend (BFF)
 
 ### The Flow (With Fallback)
+
 ```
 Frontend (React/Next.js)
     ↓ useGetFiatRateWithFallback()
@@ -44,11 +46,13 @@ Frontend (React/Next.js)
 ```
 
 ### Failure Detection Points
+
 1. **GraphQL Network Error** → Trigger Fallback
 2. **GraphQL Empty/Null Data** → Trigger Fallback
 3. **GraphQL Zero Rates** → Trigger Fallback (USD/EUR/GBP = 0)
 
 ### Recovery
+
 - GraphQL recovers → Automatically switch back to primary
 - No manual intervention needed
 
@@ -57,48 +61,56 @@ Frontend (React/Next.js)
 ## Key Reasons for This Architecture
 
 ### 🔐 1. **Security**
+
 - **Backend keeps API credentials secret**
 - Frontend never exposes API keys or sensitive configuration
 - No risk of credentials being leaked through browser dev tools or network inspection
 - API authentication handled securely on server-side
 
 ### 🌐 2. **CORS Prevention**
+
 - All frontend requests go to same domain (`/graphql`)
 - No cross-origin (CORS) issues since GraphQL endpoint is on same server
 - Eliminates need for CORS preflight requests
 - Simpler security configuration
 
 ### 🔄 3. **Data Transformation**
+
 - Backend normalizes different API versions and formats
 - Consistent data structure returned to frontend
 - Changes in external API don't break frontend
 - Backend can aggregate/transform data before sending
 
 ### ⚡ 4. **Caching & Performance**
+
 - Centralized caching strategy on backend
 - Reduces external API calls (rate limiting friendly)
 - Can implement Redis/memory cache for hot data
 - RTK Query provides automatic frontend caching
 
 ### 🛡️ 5. **Rate Limiting Protection**
+
 - Backend controls request frequency to external API
 - Prevents frontend abuse or accidental DDoS
 - Can implement queue system for high traffic
 - Protects against hitting API rate limits
 
 ### 🚨 6. **Error Handling**
+
 - Consistent error format through GraphQL
 - Backend can retry failed requests
 - Better error recovery strategies
 - Unified monitoring and alerting
 
 ### 📊 7. **Multiple Sources**
+
 - Can aggregate multiple APIs in one query
 - Future: Can switch between providers (dev/prod)
 - Can implement fallback to secondary APIs
 - Flexibility to change data sources
 
 ### 📈 8. **Monitoring**
+
 - All API calls logged on backend
 - Centralized debugging and tracing
 - Performance metrics collection
@@ -109,6 +121,7 @@ Frontend (React/Next.js)
 ## Implementation in Our Codebase
 
 ### Frontend (React/Next.js)
+
 ```typescript
 // apps/telegram-ecash-escrow/src/app/shopping/page.tsx
 const { data: fiatData, error, isLoading } = useGetAllFiatRateQuery();
@@ -117,12 +130,14 @@ const { data: fiatData, error, isLoading } = useGetAllFiatRateQuery();
 ```
 
 **Benefits:**
+
 - Type-safe with auto-generated TypeScript types
 - Automatic caching via RTK Query
 - Built-in loading/error states
 - No need to manage API endpoints or credentials
 
 ### Backend GraphQL
+
 ```graphql
 query getAllFiatRate {
   getAllFiatRate {
@@ -137,6 +152,7 @@ query getAllFiatRate {
 ```
 
 **Backend Responsibilities:**
+
 - Calls external fiat rate API
 - Normalizes response format
 - Handles errors and retries
@@ -148,17 +164,21 @@ query getAllFiatRate {
 ## Current API Configuration
 
 ### Development API
+
 ```
 https://aws-dev.abcpay.cash/bws/api/v3/fiatrates/
 ```
+
 - **Status:** ⚠️ Returns all rates as 0 (service issue)
 - **Issue:** Backend service down or misconfigured
 - **Detection:** Frontend detects zero rates and sends Telegram alerts
 
 ### Production API
+
 ```
 https://aws.abcpay.cash/bws/api/v3/fiatrates/
 ```
+
 - **Status:** ✅ Working correctly with real rates
 - **CORS:** Enabled (`Access-Control-Allow-Origin: *`)
 - **Note:** Could be called directly, but architecture uses GraphQL layer
@@ -168,9 +188,11 @@ https://aws.abcpay.cash/bws/api/v3/fiatrates/
 ## Why Not Call API Directly?
 
 ### Could We?
+
 **Technically Yes** - Production API has CORS enabled, so browser can call it directly.
 
 ### Should We?
+
 **No** - Even though it's possible, keeping the GraphQL layer provides:
 
 1. **Consistency:** Other services use same pattern
@@ -181,7 +203,9 @@ https://aws.abcpay.cash/bws/api/v3/fiatrates/
 6. **Type Safety:** GraphQL schema provides strong typing
 
 ### Exception Case
+
 Direct API calls might be considered for:
+
 - Emergency fallback if GraphQL layer is down
 - Client-side validation/testing tools
 - Development debugging
@@ -193,11 +217,10 @@ But production code should always use GraphQL layer.
 ## Error Detection & Handling
 
 ### Frontend Detects Issues
+
 ```typescript
 // Check for invalid data
-const isZeroRates = xecRates.every(rate => 
-  ['USD', 'EUR', 'GBP'].includes(rate.coin) && rate.rate === 0
-);
+const isZeroRates = xecRates.every(rate => ['USD', 'EUR', 'GBP'].includes(rate.coin) && rate.rate === 0);
 
 // Check for missing data
 const noData = !fiatData?.getAllFiatRate || fiatData.getAllFiatRate.length === 0;
@@ -206,12 +229,14 @@ const noData = !fiatData?.getAllFiatRate || fiatData.getAllFiatRate.length === 0
 ### Three-Tier Error Logging
 
 #### 1. Users See
+
 ```
-"The currency conversion service is temporarily unavailable. 
+"The currency conversion service is temporarily unavailable.
 Please try again later or contact support."
 ```
 
 #### 2. Developers See (Console)
+
 ```javascript
 {
   errorCode: "FIAT_001",
@@ -222,6 +247,7 @@ Please try again later or contact support."
 ```
 
 #### 3. Backend Team Receives (Telegram)
+
 ```json
 {
   "errorType": "INVALID_DATA_ZERO_RATES",
@@ -242,26 +268,31 @@ Please try again later or contact support."
 ## Benefits Summary
 
 ### ✅ **Backend as BFF (Backend for Frontend)**
+
 - Clean separation of concerns
 - Backend owns external integrations
 - Frontend focuses on UI/UX
 
 ### ✅ **Type-Safe GraphQL Schema**
+
 - Auto-generated TypeScript types
 - IDE autocomplete support
 - Compile-time error detection
 
 ### ✅ **RTK Query Integration**
+
 - Automatic caching and state management
 - Built-in loading/error states
 - Optimistic updates support
 
 ### ✅ **Frontend Never Knows About External API Changes**
+
 - Backend handles version upgrades
 - Data format changes isolated
 - No frontend deployment needed for API updates
 
 ### ✅ **Better Developer Experience**
+
 - Single endpoint to call (`/graphql`)
 - Consistent error handling
 - Easy to mock for testing
@@ -272,12 +303,15 @@ Please try again later or contact support."
 ## Architecture Decision Record (ADR)
 
 ### Decision
+
 Use GraphQL backend as proxy/gateway for all external API calls, including fiat rate service.
 
 ### Status
+
 ✅ **Accepted** - This is the established pattern in the codebase
 
 ### Context
+
 - Need to fetch fiat currency rates for price conversions
 - External API available at `https://aws.abcpay.cash/bws/api/v3/fiatrates/`
 - API has CORS enabled and could be called directly from browser
@@ -285,6 +319,7 @@ Use GraphQL backend as proxy/gateway for all external API calls, including fiat 
 ### Consequences
 
 **Positive:**
+
 - Security: API credentials never exposed to client
 - Maintainability: Single point to update API integrations
 - Performance: Backend-level caching reduces API calls
@@ -292,11 +327,13 @@ Use GraphQL backend as proxy/gateway for all external API calls, including fiat 
 - Monitoring: Centralized logging and alerting
 
 **Negative:**
+
 - Latency: Extra network hop through GraphQL layer
 - Complexity: Requires backend deployment for API changes
 - Dependency: Frontend blocked if GraphQL server is down
 
 **Mitigation:**
+
 - GraphQL layer is fast (minimal overhead)
 - Backend rarely needs changes for external API updates
 - Can implement frontend fallback to direct API in emergency
@@ -315,6 +352,7 @@ Use GraphQL backend as proxy/gateway for all external API calls, including fiat 
 ## Future Considerations
 
 ### Possible Improvements
+
 1. **GraphQL Subscriptions:** Real-time rate updates
 2. **Client-Side Polling:** Automatic refresh every N minutes
 3. ~~**Fallback Strategy:** Direct API call if GraphQL fails~~ ✅ **IMPLEMENTED** (See `/docs/FIAT_RATE_FALLBACK_STRATEGY.md`)
@@ -322,9 +360,11 @@ Use GraphQL backend as proxy/gateway for all external API calls, including fiat 
 5. **Multiple Provider Support:** Aggregate rates from multiple sources
 
 ### Fallback Implementation ✅
+
 **Status:** Implemented (October 12, 2025)
 
 The application now includes automatic fallback to direct API calls when GraphQL fails:
+
 - **Hook:** `useGetFiatRateWithFallback()` replaces direct `useGetAllFiatRateQuery()`
 - **Validation:** Detects empty, null, and zero rate responses
 - **Alerting:** Sends Telegram notifications on fallback activation
@@ -334,7 +374,9 @@ The application now includes automatic fallback to direct API calls when GraphQL
 **Documentation:** See `/docs/FIAT_RATE_FALLBACK_STRATEGY.md` for complete implementation details.
 
 ### Migration Path (if needed)
+
 If ever needed to migrate to direct API calls:
+
 1. Create new RTK Query endpoint for direct API
 2. Update fiat rate hook to use new endpoint
 3. Remove GraphQL query from frontend

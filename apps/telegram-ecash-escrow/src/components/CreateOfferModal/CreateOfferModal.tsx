@@ -10,6 +10,7 @@ import {
 import { LIST_PAYMENT_APP } from '@/src/store/constants/list-payment-app';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { formatNumber, getNumberFromFormatNumber } from '@/src/store/util';
+import renderTextWithLinks from '@/src/utils/linkHelpers';
 import {
   COIN,
   Country,
@@ -66,7 +67,6 @@ import {
 import { styled } from '@mui/material/styles';
 import { TransitionProps } from '@mui/material/transitions';
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import renderTextWithLinks from '@/src/utils/linkHelpers';
 import { Controller, useForm } from 'react-hook-form';
 import { NumericFormat } from 'react-number-format';
 import FilterListLocationModal from '../FilterList/FilterListLocationModal';

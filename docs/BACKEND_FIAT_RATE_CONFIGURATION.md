@@ -27,7 +27,9 @@ https://aws-dev.abcpay.cash/bws/api/v3/fiatrates/
 ## 🔍 Current Issue
 
 ### Frontend Query
+
 The frontend calls:
+
 ```graphql
 query GetAllFiatRate {
   getAllFiatRate {
@@ -42,6 +44,7 @@ query GetAllFiatRate {
 ```
 
 ### Current Response
+
 ```json
 {
   "data": {
@@ -51,6 +54,7 @@ query GetAllFiatRate {
 ```
 
 ### Expected Response
+
 ```json
 {
   "data": {
@@ -85,12 +89,14 @@ query GetAllFiatRate {
 Find where the fiat rate service is configured in your backend. This is typically in:
 
 **Option A: Environment Variable**
+
 ```bash
 # .env or similar
 FIAT_RATE_API_URL=https://aws-dev.abcpay.cash/bws/api/v3/fiatrates/
 ```
 
 **Option B: Configuration File**
+
 ```typescript
 // config/fiatRate.ts or similar
 export const fiatRateConfig = {
@@ -101,6 +107,7 @@ export const fiatRateConfig = {
 ```
 
 **Option C: GraphQL Resolver**
+
 ```typescript
 // resolvers/fiatCurrency.resolver.ts or similar
 async getAllFiatRate() {
@@ -113,6 +120,7 @@ async getAllFiatRate() {
 ### Step 2: Update the URL
 
 Change from the current (possibly incorrect) URL to:
+
 ```
 https://aws-dev.abcpay.cash/bws/api/v3/fiatrates/
 ```
@@ -138,19 +146,19 @@ async getAllFiatRate() {
       timeout: 5000,
       headers: { 'Content-Type': 'application/json' }
     });
-    
+
     if (!response.ok) {
       console.error(`Fiat rate API returned ${response.status}`);
       throw new Error('Failed to fetch fiat rates');
     }
-    
+
     const data = await response.json();
-    
+
     if (!data || data.length === 0) {
       console.warn('Fiat rate API returned empty data');
       return []; // or return cached data
     }
-    
+
     return transformToSchema(data);
   } catch (error) {
     console.error('Error fetching fiat rates:', error);
@@ -171,11 +179,11 @@ const CACHE_DURATION = 60000; // 1 minute
 
 async getAllFiatRate() {
   const now = Date.now();
-  
+
   if (cachedRates.length > 0 && now - lastFetch < CACHE_DURATION) {
     return cachedRates;
   }
-  
+
   try {
     const freshRates = await fetchFiatRates();
     cachedRates = freshRates;
@@ -197,6 +205,7 @@ async getAllFiatRate() {
 ## 🧪 Testing
 
 ### Test 1: Verify GraphQL Query
+
 ```bash
 curl -X POST https://lixi.test/graphql \
   -H "Content-Type: application/json" \
@@ -208,6 +217,7 @@ curl -X POST https://lixi.test/graphql \
 Expected: Should return array with fiat rates, not empty array.
 
 ### Test 2: Test Frontend Integration
+
 1. Restart backend server
 2. Clear browser cache
 3. Open a Goods & Services offer with fiat price (USD, EUR, etc.)
@@ -215,7 +225,9 @@ Expected: Should return array with fiat rates, not empty array.
 5. Should see XEC amount calculated without error
 
 ### Test 3: Check Console Logs
+
 Frontend should show:
+
 ```
 🔍 PlaceAnOrderModal mounted - Fiat API State: {
   getAllFiatRate: Array(X),  // X > 0
@@ -245,18 +257,22 @@ Frontend should show:
 ### Common Problems
 
 **Problem 1: API Returns Different Schema**
+
 - Check the actual API response structure
 - Update the transformation logic to match your GraphQL schema
 
 **Problem 2: CORS Issues**
+
 - Ensure backend allows requests to the fiat rate API
 - Add proper CORS headers if needed
 
 **Problem 3: Authentication Required**
+
 - Check if the API requires API keys or tokens
 - Add authentication headers if needed
 
 **Problem 4: Network/Firewall Issues**
+
 - Ensure backend server can reach `aws-dev.abcpay.cash`
 - Check firewall rules
 
@@ -265,6 +281,7 @@ Frontend should show:
 ## 📞 Support
 
 If you need frontend team assistance:
+
 - Check `/docs/CRITICAL_FIAT_SERVICE_DOWN.md` for frontend error details
 - Frontend Telegram alerts are configured in group "Local eCash Alerts" (ID: -1003006766820)
 - All critical fiat service failures will be automatically reported there

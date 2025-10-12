@@ -1,5 +1,6 @@
 'use client';
 
+import { DEFAULT_TICKER_GOODS_SERVICES } from '@/src/store/constants';
 import { LIST_BANK } from '@/src/store/constants/list-bank';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { UtxoContext } from '@/src/store/context/utxoProvider';
@@ -18,7 +19,6 @@ import {
   isConvertGoodsServices,
   showPriceInfo
 } from '@/src/store/util';
-import { DEFAULT_TICKER_GOODS_SERVICES } from '@/src/store/constants';
 import { sendCriticalAlert } from '@/src/utils/telegram-alerts';
 import {
   BankInfoInput,
@@ -44,7 +44,6 @@ import {
   useSliceDispatch as useLixiSliceDispatch,
   useSliceSelector as useLixiSliceSelector
 } from '@bcpros/redux-store';
-const { useGetAllFiatRateQuery } = fiatCurrencyApi;
 import { ChevronLeft } from '@mui/icons-material';
 import {
   Box,
@@ -80,6 +79,7 @@ import { NumericFormat } from 'react-number-format';
 import { FormControlWithNativeSelect } from '../FilterOffer/FilterOfferModal';
 import CustomToast from '../Toast/CustomToast';
 import ConfirmDepositModal from './ConfirmDepositModal';
+const { useGetAllFiatRateQuery } = fiatCurrencyApi;
 
 interface PlaceAnOrderModalProps {
   isOpen: boolean;
@@ -338,12 +338,16 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const needsFiatRates = useMemo(() => {
     // Goods & Services always need fiat rates (priced in fiat, convert to XEC)
     if (isGoodsServices) return true;
-    
+
     // Crypto P2P offers need fiat rates if coinPayment is not XEC
     return post?.postOffer?.coinPayment && post?.postOffer?.coinPayment !== 'XEC';
   }, [isGoodsServices, post?.postOffer?.coinPayment]);
 
-  const { data: fiatData, isError: fiatRateError, isLoading: fiatRateLoading } = useGetAllFiatRateQuery(undefined, {
+  const {
+    data: fiatData,
+    isError: fiatRateError,
+    isLoading: fiatRateLoading
+  } = useGetAllFiatRateQuery(undefined, {
     // Skip if fiat rates are not needed (pure XEC offers)
     skip: !needsFiatRates,
     // Use cached data from Shopping page prefetch if available
@@ -907,8 +911,9 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   useEffect(() => {
     if (showPrice) {
       // Only convert if we have rateData, or if it's not needed (XEC-only offers)
-      const needsRateData = isGoodsServicesConversion || (post?.postOffer?.coinPayment && post?.postOffer?.coinPayment !== 'XEC');
-      
+      const needsRateData =
+        isGoodsServicesConversion || (post?.postOffer?.coinPayment && post?.postOffer?.coinPayment !== 'XEC');
+
       if (!needsRateData || rateData) {
         convertToAmountXEC();
       }
@@ -923,15 +928,13 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     // For Crypto Offers: Use the selected fiat currency from localCurrency (user's choice)
     if (isGoodsServices) {
       // Goods & Services: Find XEC currency and get its fiat rates
-      const xecCurrency = fiatData?.getAllFiatRate?.find(
-        item => item.currency === 'XEC'
-      );
-      
+      const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
+
       if (xecCurrency?.fiatRates) {
         // Backend returns: {coin: 'USD', rate: 0.0000147} meaning "1 XEC = 0.0000147 USD"
         // We need to invert to: {coin: 'USD', rate: 68027.21} meaning "1 USD = 68027.21 XEC"
         // AND add {coin: 'xec', rate: 1} for the conversion function
-        
+
         const transformedRates = xecCurrency.fiatRates
           .filter(item => item.rate && item.rate > 0) // Filter out zero rates
           .map(item => ({
@@ -939,11 +942,11 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
             rate: 1 / item.rate, // INVERT: If 1 XEC = 0.0000147 USD, then 1 USD = 68027 XEC
             ts: item.ts
           }));
-        
+
         // Add XEC itself with rate 1 (1 XEC = 1 XEC)
         transformedRates.push({ coin: 'xec', rate: 1, ts: Date.now() });
         transformedRates.push({ coin: 'XEC', rate: 1, ts: Date.now() });
-        
+
         setRateData(transformedRates);
         console.log('📊 Fiat rates loaded for Goods & Services:', {
           currency: 'XEC',
@@ -953,7 +956,9 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
           sampleOriginal: xecCurrency.fiatRates.slice(0, 3),
           sampleTransformed: transformedRates.slice(0, 3),
           lookingForCoin: post?.postOffer?.tickerPriceGoodsServices,
-          matchedRate: transformedRates.find(r => r.coin?.toUpperCase() === post?.postOffer?.tickerPriceGoodsServices?.toUpperCase())
+          matchedRate: transformedRates.find(
+            r => r.coin?.toUpperCase() === post?.postOffer?.tickerPriceGoodsServices?.toUpperCase()
+          )
         });
       } else {
         setRateData(null);
@@ -964,7 +969,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
       const currencyData = fiatData?.getAllFiatRate?.find(
         item => item.currency === (post?.postOffer?.localCurrency ?? 'USD')
       );
-      
+
       if (currencyData?.fiatRates) {
         // Same transformation: invert rates
         const transformedRates = currencyData.fiatRates
@@ -974,11 +979,11 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
             rate: 1 / item.rate,
             ts: item.ts
           }));
-        
+
         // Add XEC with rate 1
         transformedRates.push({ coin: 'xec', rate: 1, ts: Date.now() });
         transformedRates.push({ coin: 'XEC', rate: 1, ts: Date.now() });
-        
+
         setRateData(transformedRates);
         console.log('📊 Fiat rates loaded for Crypto Offer:', {
           localCurrency: post?.postOffer?.localCurrency,
@@ -988,7 +993,12 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
         setRateData(null);
       }
     }
-  }, [post?.postOffer?.localCurrency, fiatData?.getAllFiatRate, isGoodsServices, post?.postOffer?.tickerPriceGoodsServices]);
+  }, [
+    post?.postOffer?.localCurrency,
+    fiatData?.getAllFiatRate,
+    isGoodsServices,
+    post?.postOffer?.tickerPriceGoodsServices
+  ]);
 
   useEffect(() => {
     if (amountXEC && amountXEC !== 0) {
@@ -1000,7 +1010,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   useEffect(() => {
     // Check both RTK Query error AND null/undefined/empty array data response
     const hasNoData = fiatRateError || !fiatData?.getAllFiatRate || fiatData?.getAllFiatRate?.length === 0;
-    
+
     // NEW: Check if all rates are zero (invalid data)
     let hasInvalidRates = false;
     if (fiatData?.getAllFiatRate && fiatData.getAllFiatRate.length > 0) {
@@ -1009,20 +1019,18 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
       if (xecCurrency?.fiatRates && xecCurrency.fiatRates.length > 0) {
         // Check if all rates are 0 (at least check USD, EUR, GBP)
         const majorCurrencies = ['USD', 'EUR', 'GBP'];
-        const majorRates = xecCurrency.fiatRates.filter(r => 
-          majorCurrencies.includes(r.coin?.toUpperCase())
-        );
-        
+        const majorRates = xecCurrency.fiatRates.filter(r => majorCurrencies.includes(r.coin?.toUpperCase()));
+
         if (majorRates.length > 0) {
           // If all major currency rates are 0, the data is invalid
           hasInvalidRates = majorRates.every(r => r.rate === 0);
         }
       }
     }
-    
+
     const hasError = hasNoData || hasInvalidRates;
     const isFiatServiceDown = hasError && isGoodsServicesConversion;
-    
+
     console.log('� Alert useEffect triggered:', {
       hasNoData,
       hasInvalidRates,
@@ -1034,15 +1042,15 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
       isFiatServiceDown,
       willSendAlert: isFiatServiceDown
     });
-    
+
     if (isFiatServiceDown) {
       const errorType = hasInvalidRates ? 'INVALID_DATA_ZERO_RATES' : 'NO_DATA_EMPTY_RESPONSE';
-      const errorMessage = hasInvalidRates 
+      const errorMessage = hasInvalidRates
         ? 'getAllFiatRate API returning zero rates - fiat conversion data invalid'
         : 'getAllFiatRate API returning empty/null - fiat-priced orders blocked';
-      
+
       console.log('🚨 Fiat service down detected, sending alert...');
-      
+
       // Collect detailed diagnostic data
       const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
       const sampleRates = xecCurrency?.fiatRates?.slice(0, 5).map(r => ({
@@ -1050,92 +1058,95 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
         rate: r.rate,
         timestamp: r.ts
       }));
-      
+
       // Send alert with comprehensive technical details
-      sendCriticalAlert(
-        'Fiat Currency Service',
-        errorMessage,
-        {
-          // Error Classification
-          errorType,
-          errorCode: hasInvalidRates ? 'FIAT_001' : 'FIAT_002',
-          severity: 'CRITICAL',
-          
-          // API Response Details
-          apiResponse: {
-            isError: fiatRateError,
-            dataReceived: !!fiatData?.getAllFiatRate,
-            arrayLength: fiatData?.getAllFiatRate?.length || 0,
-            xecCurrencyFound: !!xecCurrency,
-            xecRatesCount: xecCurrency?.fiatRates?.length || 0,
-            sampleRates: sampleRates || []
-          },
-          
-          // Request Context
-          requestContext: {
-            offerId: post.id,
-            offerType: 'GOODS_SERVICES',
-            offerCurrency: post?.postOffer?.tickerPriceGoodsServices,
-            offerPrice: post?.postOffer?.priceGoodsServices,
-            component: 'PlaceAnOrderModal'
-          },
-          
-          // Impact Assessment
-          impact: {
-            affectedFeature: 'Goods & Services Orders',
-            affectedCurrencies: ['USD', 'EUR', 'GBP', 'All Fiat Currencies'],
-            userBlocked: true,
-            workaround: 'None - requires backend fix'
-          },
-          
-          // Technical Details
-          technical: {
-            graphqlQuery: 'getAllFiatRate',
-            expectedStructure: '[{currency: "XEC", fiatRates: [{coin: "USD", rate: 0.00002}]}]',
-            detectedIssue: hasInvalidRates ? 'All major currency rates = 0' : 'Empty/null response',
-            checkPerformed: hasInvalidRates ? 'USD/EUR/GBP rate validation' : 'Data existence check'
-          },
-          
-          // Timestamps
-          detectedAt: new Date().toISOString(),
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          
-          // Environment
-          environment: {
-            url: window.location.href,
-            userAgent: navigator.userAgent
-          }
+      sendCriticalAlert('Fiat Currency Service', errorMessage, {
+        // Error Classification
+        errorType,
+        errorCode: hasInvalidRates ? 'FIAT_001' : 'FIAT_002',
+        severity: 'CRITICAL',
+
+        // API Response Details
+        apiResponse: {
+          isError: fiatRateError,
+          dataReceived: !!fiatData?.getAllFiatRate,
+          arrayLength: fiatData?.getAllFiatRate?.length || 0,
+          xecCurrencyFound: !!xecCurrency,
+          xecRatesCount: xecCurrency?.fiatRates?.length || 0,
+          sampleRates: sampleRates || []
+        },
+
+        // Request Context
+        requestContext: {
+          offerId: post.id,
+          offerType: 'GOODS_SERVICES',
+          offerCurrency: post?.postOffer?.tickerPriceGoodsServices,
+          offerPrice: post?.postOffer?.priceGoodsServices,
+          component: 'PlaceAnOrderModal'
+        },
+
+        // Impact Assessment
+        impact: {
+          affectedFeature: 'Goods & Services Orders',
+          affectedCurrencies: ['USD', 'EUR', 'GBP', 'All Fiat Currencies'],
+          userBlocked: true,
+          workaround: 'None - requires backend fix'
+        },
+
+        // Technical Details
+        technical: {
+          graphqlQuery: 'getAllFiatRate',
+          expectedStructure: '[{currency: "XEC", fiatRates: [{coin: "USD", rate: 0.00002}]}]',
+          detectedIssue: hasInvalidRates ? 'All major currency rates = 0' : 'Empty/null response',
+          checkPerformed: hasInvalidRates ? 'USD/EUR/GBP rate validation' : 'Data existence check'
+        },
+
+        // Timestamps
+        detectedAt: new Date().toISOString(),
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+
+        // Environment
+        environment: {
+          url: window.location.href,
+          userAgent: navigator.userAgent
         }
-      ).then(() => {
-        console.log('✅ Telegram alert sent successfully');
-      }).catch(err => {
-        // Log but don't throw - alert sending should never break the UI
-        console.error('❌ Failed to send Telegram alert:', err);
-      });
+      })
+        .then(() => {
+          console.log('✅ Telegram alert sent successfully');
+        })
+        .catch(err => {
+          // Log but don't throw - alert sending should never break the UI
+          console.error('❌ Failed to send Telegram alert:', err);
+        });
     }
-  }, [fiatRateError, fiatData?.getAllFiatRate, isGoodsServicesConversion, post.id, post?.postOffer?.tickerPriceGoodsServices, post?.postOffer?.priceGoodsServices]);
+  }, [
+    fiatRateError,
+    fiatData?.getAllFiatRate,
+    isGoodsServicesConversion,
+    post.id,
+    post?.postOffer?.tickerPriceGoodsServices,
+    post?.postOffer?.priceGoodsServices
+  ]);
 
   // Calculate if we should show error banner (same logic as alert detection)
   const showErrorBanner = useMemo(() => {
     if (!isGoodsServicesConversion) return false;
-    
+
     // Check for no data
     const hasNoData = fiatRateError || !fiatData?.getAllFiatRate || fiatData?.getAllFiatRate?.length === 0;
     if (hasNoData) return true;
-    
+
     // Check if all rates are zero (invalid data)
     const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
     if (xecCurrency?.fiatRates && xecCurrency.fiatRates.length > 0) {
       const majorCurrencies = ['USD', 'EUR', 'GBP'];
-      const majorRates = xecCurrency.fiatRates.filter(r => 
-        majorCurrencies.includes(r.coin?.toUpperCase())
-      );
-      
+      const majorRates = xecCurrency.fiatRates.filter(r => majorCurrencies.includes(r.coin?.toUpperCase()));
+
       if (majorRates.length > 0) {
         return majorRates.every(r => r.rate === 0);
       }
     }
-    
+
     return false;
   }, [fiatRateError, fiatData?.getAllFiatRate, isGoodsServicesConversion]);
   useEffect(() => {
@@ -1148,7 +1159,8 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   }, [fiatRateError, fiatData?.getAllFiatRate, isGoodsServicesConversion, showErrorBanner]);
 
   // Generic error message for users (technical details go to Telegram)
-  const errorBannerMessage = 'The currency conversion service is temporarily unavailable. Please try again later or contact support.';
+  const errorBannerMessage =
+    'The currency conversion service is temporarily unavailable. Please try again later or contact support.';
 
   return (
     <React.Fragment>
@@ -1173,19 +1185,22 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
           <PlaceAnOrderWrap>
             {/* Show error when fiat service is down for fiat-priced offers */}
             {showErrorBanner && (
-              <Box sx={{ 
-                backgroundColor: '#d32f2f',
-                color: '#ffffff',
-                padding: 2, 
-                borderRadius: 1, 
-                marginBottom: 2,
-                border: '1px solid #b71c1c'
-              }}>
+              <Box
+                sx={{
+                  backgroundColor: '#d32f2f',
+                  color: '#ffffff',
+                  padding: 2,
+                  borderRadius: 1,
+                  marginBottom: 2,
+                  border: '1px solid #b71c1c'
+                }}
+              >
                 <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#ffffff', marginBottom: 1 }}>
                   ⚠️ Fiat Service Unavailable
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#ffffff' }}>
-                  Cannot calculate XEC amount for {post?.postOffer?.tickerPriceGoodsServices}-priced offers. {errorBannerMessage}
+                  Cannot calculate XEC amount for {post?.postOffer?.tickerPriceGoodsServices}-priced offers.{' '}
+                  {errorBannerMessage}
                 </Typography>
               </Box>
             )}
@@ -1204,11 +1219,11 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                       const numberValue = getNumberFromFormatNumber(value);
                       const minValue = post?.postOffer?.orderLimitMin;
                       const maxValue = post?.postOffer?.orderLimitMax;
-                      
+
                       // For Goods & Services, validate unit quantity
                       if (isGoodsServices) {
                         if (numberValue <= 0) return 'Unit quantity must be greater than 0!';
-                        
+
                         // Check if total XEC amount is less than 5.46 XEC minimum
                         // Only show this error when we have calculated the XEC amount
                         if (amountXECGoodsServices > 0 && amountXECGoodsServices < 5.46) {
@@ -1259,8 +1274,9 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                 />
                 <Typography component={'div'} className="text-receive-amount">
                   {/* Show 5.46 XEC error for crypto offers OR for Goods & Services when total is too low */}
-                  {(!isGoodsServices && amountXEC < 5.46) || (isGoodsServices && amountXECGoodsServices > 0 && amountXECGoodsServices < 5.46)
-                    ? isGoodsServices 
+                  {(!isGoodsServices && amountXEC < 5.46) ||
+                  (isGoodsServices && amountXECGoodsServices > 0 && amountXECGoodsServices < 5.46)
+                    ? isGoodsServices
                       ? `Total amount (${formatNumber(amountXECGoodsServices)} XEC) is less than minimum 5.46 XEC. Try increasing the quantity.`
                       : 'You need to buy amount greater than 5.46 XEC'
                     : showPrice && (
@@ -1276,8 +1292,14 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                               // Goods/Services display: show XEC/unit and the offer's unit price only if unit ticker is not XEC
                               <>
                                 {formatAmountForGoodsServices(amountXECPerUnitGoodsServices)}
-                                {post?.postOffer?.priceGoodsServices && (post.postOffer?.tickerPriceGoodsServices ?? DEFAULT_TICKER_GOODS_SERVICES) !== DEFAULT_TICKER_GOODS_SERVICES ? (
-                                  <span> ({post.postOffer.priceGoodsServices} {post.postOffer.tickerPriceGoodsServices ?? 'USD'})</span>
+                                {post?.postOffer?.priceGoodsServices &&
+                                (post.postOffer?.tickerPriceGoodsServices ?? DEFAULT_TICKER_GOODS_SERVICES) !==
+                                  DEFAULT_TICKER_GOODS_SERVICES ? (
+                                  <span>
+                                    {' '}
+                                    ({post.postOffer.priceGoodsServices}{' '}
+                                    {post.postOffer.tickerPriceGoodsServices ?? 'USD'})
+                                  </span>
                                 ) : null}
                               </>
                             ) : (

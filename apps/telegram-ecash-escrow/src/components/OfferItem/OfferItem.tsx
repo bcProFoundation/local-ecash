@@ -1,16 +1,16 @@
 'use client';
 
-import { COIN_OTHERS, COIN_USD_STABLECOIN, COIN_USD_STABLECOIN_TICKER, DEFAULT_TICKER_GOODS_SERVICES } from '@/src/store/constants';
-import { SettingContext } from '@/src/store/context/settingProvider';
+import useOfferPrice from '@/src/hooks/useOfferPrice';
 import {
-  convertXECAndCurrency,
-  formatAmountFor1MXEC,
-  formatNumber,
-  getOrderLimitText,
-  isConvertGoodsServices,
-  showPriceInfo
-} from '@/src/store/util';
-import { COIN, GOODS_SERVICES_UNIT, PAYMENT_METHOD, getTickerText } from '@bcpros/lixi-models';
+  COIN_OTHERS,
+  COIN_USD_STABLECOIN,
+  COIN_USD_STABLECOIN_TICKER,
+  DEFAULT_TICKER_GOODS_SERVICES
+} from '@/src/store/constants';
+import { SettingContext } from '@/src/store/context/settingProvider';
+import { formatNumber, getOrderLimitText } from '@/src/store/util';
+import renderTextWithLinks from '@/src/utils/linkHelpers';
+import { GOODS_SERVICES_UNIT } from '@bcpros/lixi-models';
 import {
   OfferStatus,
   OfferType,
@@ -18,7 +18,6 @@ import {
   Role,
   TimelineQueryItem,
   accountsApi,
-  fiatCurrencyApi,
   getSeedBackupTime,
   getSelectedWalletPath,
   openModal,
@@ -33,11 +32,9 @@ import { styled } from '@mui/material/styles';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
-import React, { useContext, useEffect, useMemo, useState } from 'react';
-import renderTextWithLinks from '@/src/utils/linkHelpers';
+import React, { useContext, useEffect } from 'react';
 import useAuthorization from '../Auth/use-authorization.hooks';
 import { BackupModalProps } from '../Common/BackupModal';
-import useOfferPrice from '@/src/hooks/useOfferPrice';
 
 const CardWrapper = styled(Card)(({ theme }) => ({
   marginTop: 16,
@@ -152,8 +149,10 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
   );
 
   // Offer price values from centralized hook
-  const { showPrice, coinCurrency, amountPer1MXEC, amountXECGoodsServices, isGoodsServices } =
-    useOfferPrice({ paymentInfo: post?.postOffer, inputAmount: 1 });
+  const { showPrice, coinCurrency, amountPer1MXEC, amountXECGoodsServices, isGoodsServices } = useOfferPrice({
+    paymentInfo: post?.postOffer,
+    inputAmount: 1
+  });
 
   const handleBuyClick = e => {
     e.stopPropagation();
@@ -210,7 +209,6 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
   };
 
   // Use shared helpers from utils/linkHelpers
-  
 
   //open placeAnOrderModal if offerId is in url
   useEffect(() => {
@@ -227,7 +225,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
   const OfferItem = (
     <OfferShowWrapItem>
       <div className="push-offer-wrap">
-          <Typography variant="body2" style={{ fontWeight: 'bold' }} onClick={handleItemClick}>
+        <Typography variant="body2" style={{ fontWeight: 'bold' }} onClick={handleItemClick}>
           {renderTextWithLinks(offerData?.message, { loadImages: expanded }) ?? ''}
         </Typography>
         {(accountQueryData?.getAccountByAddress.role === Role.Moderator ||
@@ -317,12 +315,16 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
         <Typography component={'div'} className="action-section">
           <Typography variant="body2">
             <span className="prefix">Price: </span>
-                {isGoodsServices ? (
+            {isGoodsServices ? (
               // Goods/Services display
               <>
                 {formatNumber(amountXECGoodsServices)} XEC / {GOODS_SERVICES_UNIT}{' '}
-                {offerData?.priceGoodsServices && (offerData?.tickerPriceGoodsServices ?? DEFAULT_TICKER_GOODS_SERVICES) !== DEFAULT_TICKER_GOODS_SERVICES ? (
-                  <span>({offerData.priceGoodsServices} {offerData.tickerPriceGoodsServices ?? 'USD'})</span>
+                {offerData?.priceGoodsServices &&
+                (offerData?.tickerPriceGoodsServices ?? DEFAULT_TICKER_GOODS_SERVICES) !==
+                  DEFAULT_TICKER_GOODS_SERVICES ? (
+                  <span>
+                    ({offerData.priceGoodsServices} {offerData.tickerPriceGoodsServices ?? 'USD'})
+                  </span>
                 ) : null}
               </>
             ) : showPrice ? (

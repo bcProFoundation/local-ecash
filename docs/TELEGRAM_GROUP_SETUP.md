@@ -7,6 +7,7 @@
 ## ✅ Why Use a Group?
 
 **Advantages of Groups over Channels:**
+
 - 💬 **Team discussion**: Everyone can reply and discuss issues
 - 👥 **Collaboration**: Multiple people can respond and coordinate
 - 🔔 **Mentions**: Can @mention team members for specific issues
@@ -14,6 +15,7 @@
 - 📱 **Better for small teams**: More interactive than one-way channels
 
 **Channels are better for:**
+
 - One-way announcements
 - Large audiences (100+ people)
 - Public notifications
@@ -65,12 +67,15 @@ We've created a helper endpoint just for this!
    pnpm dev
    ```
 4. **Visit this URL in your browser**:
+
    ```
    http://localhost:3000/api/telegram/get-chat-ids
    ```
+
    (or whatever port your app runs on)
 
 5. **You'll see JSON output** like:
+
    ```json
    {
      "success": true,
@@ -100,17 +105,21 @@ We've created a helper endpoint just for this!
 1. **Add your bot** to the group (from Step 2 above)
 2. **Send a message** in your group (e.g., type "test" or "/start")
 3. **Open in browser**:
+
    ```
    https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates
    ```
+
    Replace `<YOUR_BOT_TOKEN>` with your actual bot token from `.env`
-   
+
    Example:
+
    ```
    https://api.telegram.org/bot7655589619:AAEqPYvim3_HPTOxuy_01_kUy0j2mNCfvQ4/getUpdates
    ```
 
 4. **Find your group** in the JSON response:
+
    ```json
    {
      "ok": true,
@@ -169,18 +178,17 @@ We've created a helper endpoint just for this!
 Since your bot is already in the group and you're running the app:
 
 1. **Create a test endpoint** in your app temporarily:
+
    ```typescript
    // Add to src/app/api/test-telegram/route.ts
    import { NextRequest, NextResponse } from 'next/server';
-   
+
    export async function GET(request: NextRequest) {
      const botToken = process.env.BOT_TOKEN;
-     
-     const response = await fetch(
-       `https://api.telegram.org/bot${botToken}/getUpdates`
-     );
+
+     const response = await fetch(`https://api.telegram.org/bot${botToken}/getUpdates`);
      const data = await response.json();
-     
+
      return NextResponse.json(data);
    }
    ```
@@ -199,6 +207,7 @@ TELEGRAM_ALERT_CHANNEL_ID="-123456789"  # Your group chat ID
 ```
 
 **Important notes:**
+
 - Group IDs are negative numbers (start with `-`)
 - Use quotes if you have any special characters
 - Channel IDs usually start with `-100` (like `-1001234567890`)
@@ -219,11 +228,9 @@ Send a test alert from your app:
 ```typescript
 import { sendCriticalAlert } from '@/src/utils/telegram-alerts';
 
-await sendCriticalAlert(
-  'Test Service',
-  'Testing Telegram group alerts - can everyone see this?',
-  { testTime: new Date().toISOString() }
-);
+await sendCriticalAlert('Test Service', 'Testing Telegram group alerts - can everyone see this?', {
+  testTime: new Date().toISOString()
+});
 ```
 
 You should see a message in your group like:
@@ -261,7 +268,7 @@ Environment: production
 ```
 🚨 Bot: CRITICAL: Fiat Currency Service
        getAllFiatRate API is down
-       
+
 👤 Alice: I see it. Checking the external API now.
 
 👤 Bob: Looking at the logs. Last successful call was 10 mins ago.
@@ -296,7 +303,7 @@ Create separate groups for different environments:
 # Development
 TELEGRAM_ALERT_CHANNEL_ID="-123456789"  # Dev Alerts group
 
-# Staging  
+# Staging
 TELEGRAM_ALERT_CHANNEL_ID="-987654321"  # Staging Alerts group
 
 # Production
@@ -309,20 +316,18 @@ You can customize alerts for better group interaction:
 
 ```typescript
 // Add @mentions for critical alerts
-await sendCriticalAlert(
-  'Database',
-  '@alice @bob Database connection pool exhausted! Need immediate attention.',
-  { activeConnections: 100 }
-);
+await sendCriticalAlert('Database', '@alice @bob Database connection pool exhausted! Need immediate attention.', {
+  activeConnections: 100
+});
 
 // Add action items
 await sendErrorAlert(
   'Payment API',
   'Payment processing failed for 5 transactions\n\n' +
-  '**Action Required:**\n' +
-  '1. Check payment gateway logs\n' +
-  '2. Verify API credentials\n' +
-  '3. Retry failed transactions',
+    '**Action Required:**\n' +
+    '1. Check payment gateway logs\n' +
+    '2. Verify API credentials\n' +
+    '3. Retry failed transactions',
   { failedCount: 5 }
 );
 ```
@@ -369,11 +374,13 @@ Use /status to check system health
 ### "Chat not found" error
 
 **Causes:**
+
 - Bot is not in the group
 - Bot is not an admin
 - Wrong chat ID
 
 **Fix:**
+
 1. Verify bot is in the group and is admin
 2. Double-check the chat ID (should be negative)
 3. Make sure quotes are correct in `.env`
@@ -381,12 +388,14 @@ Use /status to check system health
 ### Alerts not appearing in group
 
 **Check:**
+
 1. Bot is an admin with "Send Messages" permission
 2. `TELEGRAM_ALERT_CHANNEL_ID` is set correctly
 3. Server restarted after changing `.env`
 4. No errors in server logs
 
 **Test manually:**
+
 ```bash
 curl "https://api.telegram.org/bot<BOT_TOKEN>/sendMessage" \
   -d "chat_id=<GROUP_ID>&text=Test message"
@@ -395,6 +404,7 @@ curl "https://api.telegram.org/bot<BOT_TOKEN>/sendMessage" \
 ### Bot was kicked/left the group
 
 **Fix:**
+
 1. Re-add the bot to the group
 2. Make it admin again
 3. Test with a message
@@ -403,15 +413,15 @@ curl "https://api.telegram.org/bot<BOT_TOKEN>/sendMessage" \
 
 ## 📊 Comparison: Group vs Channel
 
-| Feature | Group | Channel |
-|---------|-------|---------|
-| **Discussion** | ✅ Yes, everyone can chat | ❌ No, one-way only |
-| **Team Size** | Best for 5-50 people | Best for 50+ people |
-| **Mentions** | ✅ Yes, @mention anyone | ❌ No mentions |
-| **Replies** | ✅ Yes, can reply to bot | ❌ No replies |
-| **Admin Required** | ✅ Yes | ✅ Yes |
-| **Privacy** | Private by default | Public or private |
-| **Use Case** | DevOps team alerts | Public announcements |
+| Feature            | Group                     | Channel              |
+| ------------------ | ------------------------- | -------------------- |
+| **Discussion**     | ✅ Yes, everyone can chat | ❌ No, one-way only  |
+| **Team Size**      | Best for 5-50 people      | Best for 50+ people  |
+| **Mentions**       | ✅ Yes, @mention anyone   | ❌ No mentions       |
+| **Replies**        | ✅ Yes, can reply to bot  | ❌ No replies        |
+| **Admin Required** | ✅ Yes                    | ✅ Yes               |
+| **Privacy**        | Private by default        | Public or private    |
+| **Use Case**       | DevOps team alerts        | Public announcements |
 
 ---
 
@@ -435,12 +445,14 @@ Before going live with group alerts:
 ## 🎉 You're All Set!
 
 Your team can now:
+
 - 📬 Receive immediate alerts
 - 💬 Discuss issues in real-time
 - 🤝 Coordinate response
 - ✅ Track resolution
 
 **Example group name ideas:**
+
 - `Local eCash Alerts 🚨`
 - `DevOps - Production Alerts`
 - `Engineering On-Call`
