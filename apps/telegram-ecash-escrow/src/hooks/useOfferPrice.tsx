@@ -1,5 +1,5 @@
 import { convertXECAndCurrency, formatAmountFor1MXEC, isConvertGoodsServices, showPriceInfo } from '@/src/utils';
-import { getTickerText, PAYMENT_METHOD } from '@bcpros/lixi-models';
+import { PAYMENT_METHOD, getTickerText } from '@bcpros/lixi-models';
 import { fiatCurrencyApi } from '@bcpros/redux-store';
 import React from 'react';
 
