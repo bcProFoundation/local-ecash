@@ -151,6 +151,7 @@ export const getCoinRate = ({
   }
 
   // Case-insensitive comparison to handle both uppercase and lowercase coin codes
+  if (!coinPayment) return undefined;
   return rateData.find(item => item.coin?.toLowerCase() === coinPayment.toLowerCase())?.rate;
 };
 
