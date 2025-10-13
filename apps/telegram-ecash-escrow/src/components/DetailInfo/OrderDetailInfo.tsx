@@ -8,7 +8,8 @@ import {
   formatAmountForGoodsServices,
   formatNumber,
   isConvertGoodsServices,
-  showPriceInfo
+  showPriceInfo,
+  transformFiatRates
 } from '@/src/store/util';
 import { COIN, PAYMENT_METHOD, coinInfo, getTickerText } from '@bcpros/lixi-models';
 import {
@@ -331,17 +332,7 @@ const OrderDetailInfo = ({
         const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
 
         if (xecCurrency?.fiatRates) {
-          const transformedRates = xecCurrency.fiatRates
-            .filter(item => item.rate && item.rate > 0)
-            .map(item => ({
-              coin: item.coin,
-              rate: 1 / item.rate,
-              ts: item.ts
-            }));
-
-          transformedRates.push({ coin: 'xec', rate: 1, ts: Date.now() });
-          transformedRates.push({ coin: 'XEC', rate: 1, ts: Date.now() });
-
+          const transformedRates = transformFiatRates(xecCurrency.fiatRates);
           setRateData(transformedRates);
         } else {
           setRateData(null);
@@ -353,17 +344,7 @@ const OrderDetailInfo = ({
         );
 
         if (currencyData?.fiatRates) {
-          const transformedRates = currencyData.fiatRates
-            .filter(item => item.rate && item.rate > 0)
-            .map(item => ({
-              coin: item.coin,
-              rate: 1 / item.rate,
-              ts: item.ts
-            }));
-
-          transformedRates.push({ coin: 'xec', rate: 1, ts: Date.now() });
-          transformedRates.push({ coin: 'XEC', rate: 1, ts: Date.now() });
-
+          const transformedRates = transformFiatRates(currencyData.fiatRates);
           setRateData(transformedRates);
         } else {
           setRateData(null);

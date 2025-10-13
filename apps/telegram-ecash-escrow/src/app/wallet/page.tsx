@@ -10,7 +10,7 @@ import MobileLayout from '@/src/components/layout/MobileLayout';
 import { TabType } from '@/src/store/constants';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { UtxoContext } from '@/src/store/context/utxoProvider';
-import { formatNumber } from '@/src/store/util';
+import { formatNumber, transformFiatRates } from '@/src/store/util';
 import { COIN, coinInfo } from '@bcpros/lixi-models';
 import {
   WalletContextNode,
@@ -219,18 +219,7 @@ export default function Wallet() {
     const currencyData = fiatData?.getAllFiatRate?.find(item => item.currency === fiatCurrencyFilter);
 
     if (currencyData?.fiatRates) {
-      // Transform: invert rates
-      const transformedRates = currencyData.fiatRates
-        .filter(item => item.rate && item.rate > 0)
-        .map(item => ({
-          coin: item.coin,
-          rate: 1 / item.rate,
-          ts: item.ts
-        }));
-
-      transformedRates.push({ coin: 'xec', rate: 1, ts: Date.now() });
-      transformedRates.push({ coin: 'XEC', rate: 1, ts: Date.now() });
-
+      const transformedRates = transformFiatRates(currencyData.fiatRates);
       setRateData(transformedRates);
     } else {
       setRateData(null);

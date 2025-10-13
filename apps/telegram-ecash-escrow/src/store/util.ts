@@ -126,7 +126,8 @@ const getCoinRate = (
   // We need to find the USD (or tickerPriceGoodsServices) rate from rateData
   if (isGoodsServicesConversion && tickerPriceGoodsServices) {
     // Find the rate for the ticker currency (e.g., USD rate)
-    const tickerRate = rateData.find(item => item.coin?.toUpperCase() === tickerPriceGoodsServices.toUpperCase())?.rate;
+    const tickerPriceGoodsServicesUpper = tickerPriceGoodsServices.toUpperCase();
+    const tickerRate = rateData.find((item: { coin?: string; rate?: number }) => item.coin?.toUpperCase() === tickerPriceGoodsServicesUpper)?.rate;
     if (tickerRate && priceGoodsServices && priceGoodsServices > 0) {
       // Return the fiat currency rate multiplied by the price
       // E.g., if 1 USD = 0.00002 XEC and item costs 1 USD, return 0.00002
@@ -218,6 +219,40 @@ export function formatAmountFor1MXEC(amount, marginPercentage = 0, coinCurrency 
 
 export function formatAmountForGoodsServices(amount) {
   return `${formatNumber(amount)} XEC / ${GOODS_SERVICES_UNIT}`;
+}
+
+/**
+ * Transforms fiat rate data from backend format to frontend format.
+ * 
+ * Backend returns: {coin: 'USD', rate: 0.0000147} meaning "1 XEC = 0.0000147 USD"
+ * Frontend needs: {coin: 'USD', rate: 68027.21} meaning "1 USD = 68027.21 XEC"
+ * 
+ * This function:
+ * 1. Filters out zero/invalid rates
+ * 2. Inverts all rates (rate = 1 / originalRate)
+ * 3. Adds XEC entries with rate 1 for self-conversion
+ * 
+ * @param fiatRates - Array of fiat rates from backend API
+ * @returns Transformed rate array ready for conversion calculations, or null if input is invalid
+ */
+export function transformFiatRates(fiatRates: any[]): any[] | null {
+  if (!fiatRates || fiatRates.length === 0) {
+    return null;
+  }
+
+  const transformedRates = fiatRates
+    .filter(item => item.rate && item.rate > 0) // Filter out zero/invalid rates
+    .map(item => ({
+      coin: item.coin, // Keep coin as-is (e.g., 'USD', 'EUR')
+      rate: 1 / item.rate, // INVERT: If 1 XEC = 0.0000147 USD, then 1 USD = 68027 XEC
+      ts: item.ts
+    }));
+
+  // Add XEC itself with rate 1 (1 XEC = 1 XEC)
+  transformedRates.push({ coin: 'xec', rate: 1, ts: Date.now() });
+  transformedRates.push({ coin: 'XEC', rate: 1, ts: Date.now() });
+
+  return transformedRates;
 }
 
 export function hexToUint8Array(hexString) {

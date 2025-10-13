@@ -1,4 +1,10 @@
-import { convertXECAndCurrency, formatAmountFor1MXEC, isConvertGoodsServices, showPriceInfo } from '@/src/utils';
+import {
+  convertXECAndCurrency,
+  formatAmountFor1MXEC,
+  isConvertGoodsServices,
+  showPriceInfo,
+  transformFiatRates
+} from '@/src/utils';
 import { PAYMENT_METHOD, getTickerText } from '@bcpros/lixi-models';
 import { fiatCurrencyApi } from '@bcpros/redux-store';
 import React from 'react';
@@ -69,19 +75,7 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
       const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
 
       if (xecCurrency?.fiatRates) {
-        // Transform: Backend returns "1 XEC = X USD", we need "1 USD = X XEC" (inverted)
-        const transformedRates = xecCurrency.fiatRates
-          .filter(item => item.rate && item.rate > 0)
-          .map(item => ({
-            coin: item.coin,
-            rate: 1 / item.rate, // Invert the rate
-            ts: item.ts
-          }));
-
-        // Add XEC itself with rate 1
-        transformedRates.push({ coin: 'xec', rate: 1, ts: Date.now() });
-        transformedRates.push({ coin: 'XEC', rate: 1, ts: Date.now() });
-
+        const transformedRates = transformFiatRates(xecCurrency.fiatRates);
         setRateData(transformedRates);
       } else {
         setRateData(null);
@@ -93,17 +87,7 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
       );
 
       if (currencyData?.fiatRates) {
-        const transformedRates = currencyData.fiatRates
-          .filter(item => item.rate && item.rate > 0)
-          .map(item => ({
-            coin: item.coin,
-            rate: 1 / item.rate,
-            ts: item.ts
-          }));
-
-        transformedRates.push({ coin: 'xec', rate: 1, ts: Date.now() });
-        transformedRates.push({ coin: 'XEC', rate: 1, ts: Date.now() });
-
+        const transformedRates = transformFiatRates(currencyData.fiatRates);
         setRateData(transformedRates);
       } else {
         setRateData(null);

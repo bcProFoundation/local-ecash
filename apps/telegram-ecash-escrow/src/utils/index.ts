@@ -13,7 +13,8 @@ export {
   isSafeImageUrl,
   parseSafeHttpUrl,
   sanitizeUrl,
-  showPriceInfo
+  showPriceInfo,
+  transformFiatRates
 } from '@/src/store/util';
 
 // Consumers can import from '@/src/utils' going forward. Example:
