@@ -340,8 +340,8 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     // Goods & Services always need fiat rates (priced in fiat, convert to XEC)
     if (isGoodsServices) return true;
 
-    // Crypto P2P offers need fiat rates if coinPayment is not XEC
-    return post?.postOffer?.coinPayment && post?.postOffer?.coinPayment !== 'XEC';
+    // Crypto P2P offers need fiat rates if coinPayment is not XEC (case-insensitive)
+    return post?.postOffer?.coinPayment && post.postOffer.coinPayment.toUpperCase() !== 'XEC';
   }, [isGoodsServices, post?.postOffer?.coinPayment]);
 
   const {
@@ -795,9 +795,10 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
 
     // Calculate XEC per unit for Goods & Services
     // For legacy offers without priceGoodsServices, default to 1 XEC
-    const legacyPrice = (post?.postOffer?.priceGoodsServices && post?.postOffer?.priceGoodsServices > 0) 
-      ? post?.postOffer?.priceGoodsServices 
-      : 1;
+    const legacyPrice =
+      post?.postOffer?.priceGoodsServices && post?.postOffer?.priceGoodsServices > 0
+        ? post?.postOffer?.priceGoodsServices
+        : 1;
     const xecPerUnit = isGoodsServicesConversion ? amountXEC / amountNumber : legacyPrice;
     setAmountXECPerUnitGoodsServices(xecPerUnit);
     setAmountXECGoodsServices(xecPerUnit * amountNumber);
@@ -926,6 +927,18 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
         }
       }
     } else {
+      // Pure XEC offers: Set identity rate data (1 XEC = 1 XEC) without fetching
+      if (post?.postOffer?.coinPayment?.toUpperCase() === 'XEC') {
+        setRateData([
+          { coin: 'XEC', rate: 1, ts: Date.now() },
+          { coin: 'xec', rate: 1, ts: Date.now() }
+        ]);
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('📊 Using identity rate for pure XEC offer');
+        }
+        return;
+      }
+
       // Crypto Offers: Find the user's selected local currency and transform the same way
       const currencyData = fiatData?.getAllFiatRate?.find(
         item => item.currency === (post?.postOffer?.localCurrency ?? 'USD')
@@ -947,6 +960,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     }
   }, [
     post?.postOffer?.localCurrency,
+    post?.postOffer?.coinPayment,
     fiatData?.getAllFiatRate,
     isGoodsServices,
     post?.postOffer?.tickerPriceGoodsServices

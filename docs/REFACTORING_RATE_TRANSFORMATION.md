@@ -173,9 +173,9 @@ If you need to modify rate transformation logic:
 2. **DON'T**: Copy-paste transformation code into new components
 3. **ALWAYS**: Import and use the utility function:
    ```typescript
-   import { transformFiatRates } from '@/src/store/util';
+   import { transformFiatRates } from '@/store/util';
    // or
-   import { transformFiatRates } from '@/src/utils';
+   import { transformFiatRates } from '@/utils';
    ```
 
 ### Breaking Changes

@@ -23,14 +23,9 @@ export async function POST(request: NextRequest) {
     // Get Telegram configuration from environment
     const botToken = process.env.BOT_TOKEN;
     const alertChannelId = process.env.TELEGRAM_ALERT_CHANNEL_ID;
-    const alertApiToken = process.env.ALERT_API_TOKEN;
 
-    // Authenticate request with shared secret
-    const providedToken = request.headers.get('x-alert-token');
-    if (!alertApiToken || providedToken !== alertApiToken) {
-      console.warn('Unauthorized alert request - invalid token');
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // Note: This endpoint is intentionally unauthenticated to allow client-side error reporting
+    // If abuse becomes an issue, consider implementing rate limiting or user session validation
 
     if (!botToken) {
       console.error('BOT_TOKEN not configured in environment variables');

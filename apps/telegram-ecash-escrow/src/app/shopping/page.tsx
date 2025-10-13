@@ -127,8 +127,6 @@ export default function Shopping() {
   const loadMoreItemsFilter = () => {
     if (hasNextFilter && !isFetchingFilter) {
       fetchNextFilter();
-    } else if (hasNextFilter) {
-      fetchNextFilter();
     }
   };
 

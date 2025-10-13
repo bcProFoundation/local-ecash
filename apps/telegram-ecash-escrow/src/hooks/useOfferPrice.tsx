@@ -81,6 +81,15 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
         setRateData(null);
       }
     } else {
+      // Pure XEC offers: Set identity rate data (1 XEC = 1 XEC)
+      if (paymentInfo?.coinPayment?.toUpperCase() === 'XEC') {
+        setRateData([
+          { coin: 'XEC', rate: 1, ts: Date.now() },
+          { coin: 'xec', rate: 1, ts: Date.now() }
+        ]);
+        return;
+      }
+
       // Crypto Offers: Find and transform the user's selected local currency
       const currencyData = fiatData?.getAllFiatRate?.find(
         item => item.currency === (paymentInfo?.localCurrency ?? 'USD')
@@ -93,7 +102,7 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
         setRateData(null);
       }
     }
-  }, [paymentInfo?.localCurrency, fiatData, isGoodsServices]);
+  }, [paymentInfo?.localCurrency, paymentInfo?.coinPayment, fiatData, isGoodsServices]);
 
   React.useEffect(() => {
     if (!rateData) return;
@@ -106,10 +115,10 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
     // For Goods & Services:
     // - If priceGoodsServices is set and tickerPriceGoodsServices is not XEC: use converted amountXEC
     // - Otherwise (legacy offers or XEC-priced): use priceGoodsServices or default to 1 XEC
-    const displayPrice = isGoodsServicesConversion 
-      ? amountXEC 
-      : (paymentInfo?.priceGoodsServices && paymentInfo?.priceGoodsServices > 0) 
-        ? paymentInfo.priceGoodsServices 
+    const displayPrice = isGoodsServicesConversion
+      ? amountXEC
+      : paymentInfo?.priceGoodsServices && paymentInfo?.priceGoodsServices > 0
+        ? paymentInfo.priceGoodsServices
         : 1; // Default to 1 XEC for legacy offers without price
 
     setAmountXECGoodsServices(displayPrice);
