@@ -20,7 +20,6 @@ import {
   showPriceInfo,
   transformFiatRates
 } from '@/src/store/util';
-import { sendCriticalAlert } from '@/src/utils/telegram-alerts';
 import {
   BankInfoInput,
   COIN,
@@ -727,7 +726,10 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const convertToAmountXEC = async () => {
     if (!rateData) {
       // Show error if fiat rate is needed but not available
-      if (isGoodsServicesConversion || (post?.postOffer?.coinPayment && post?.postOffer?.coinPayment !== 'XEC')) {
+      if (
+        isGoodsServicesConversion ||
+        (post?.postOffer?.coinPayment && post.postOffer.coinPayment.toUpperCase() !== 'XEC')
+      ) {
         if (process.env.NODE_ENV !== 'production') {
           console.error('❌ [FIAT_ERROR] Rate data unavailable', {
             errorCode: 'CONV_001',
@@ -887,7 +889,8 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     if (showPrice) {
       // Only convert if we have rateData, or if it's not needed (XEC-only offers)
       const needsRateData =
-        isGoodsServicesConversion || (post?.postOffer?.coinPayment && post?.postOffer?.coinPayment !== 'XEC');
+        isGoodsServicesConversion ||
+        (post?.postOffer?.coinPayment && post.postOffer.coinPayment.toUpperCase() !== 'XEC');
 
       if (!needsRateData || rateData) {
         convertToAmountXEC();
@@ -1003,71 +1006,25 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
         ? 'getAllFiatRate API returning zero rates - fiat conversion data invalid'
         : 'getAllFiatRate API returning empty/null - fiat-priced orders blocked';
 
-      // Collect detailed diagnostic data
-      const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
-      const sampleRates = xecCurrency?.fiatRates?.slice(0, 5).map(r => ({
-        coin: r.coin,
-        rate: r.rate,
-        timestamp: r.ts
-      }));
-
-      // Send alert with comprehensive technical details
-      sendCriticalAlert('Fiat Currency Service', errorMessage, {
-        // Error Classification
-        errorType,
-        errorCode: hasInvalidRates ? 'FIAT_001' : 'FIAT_002',
-        severity: 'CRITICAL',
-
-        // API Response Details
-        apiResponse: {
-          isError: fiatRateError,
-          dataReceived: !!fiatData?.getAllFiatRate,
-          arrayLength: fiatData?.getAllFiatRate?.length || 0,
-          xecCurrencyFound: !!xecCurrency,
-          xecRatesCount: xecCurrency?.fiatRates?.length || 0,
-          sampleRates: sampleRates || []
-        },
-
-        // Request Context
-        requestContext: {
+      // Log error for debugging (alerts are handled by backend)
+      if (process.env.NODE_ENV !== 'production') {
+        const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
+        console.error('❌ [FIAT_ERROR] Fiat service down:', {
+          errorType,
+          errorCode: hasInvalidRates ? 'FIAT_001' : 'FIAT_002',
+          errorMessage,
+          apiResponse: {
+            isError: fiatRateError,
+            dataReceived: !!fiatData?.getAllFiatRate,
+            arrayLength: fiatData?.getAllFiatRate?.length || 0,
+            xecCurrencyFound: !!xecCurrency,
+            xecRatesCount: xecCurrency?.fiatRates?.length || 0
+          },
           offerId: post.id,
-          offerType: 'GOODS_SERVICES',
           offerCurrency: post?.postOffer?.tickerPriceGoodsServices,
-          offerPrice: post?.postOffer?.priceGoodsServices,
-          component: 'PlaceAnOrderModal'
-        },
-
-        // Impact Assessment
-        impact: {
-          affectedFeature: 'Goods & Services Orders',
-          affectedCurrencies: ['USD', 'EUR', 'GBP', 'All Fiat Currencies'],
-          userBlocked: true,
-          workaround: 'None - requires backend fix'
-        },
-
-        // Technical Details
-        technical: {
-          graphqlQuery: 'getAllFiatRate',
-          expectedStructure: '[{currency: "XEC", fiatRates: [{coin: "USD", rate: 0.00002}]}]',
-          detectedIssue: hasInvalidRates ? 'All major currency rates = 0' : 'Empty/null response',
-          checkPerformed: hasInvalidRates ? 'USD/EUR/GBP rate validation' : 'Data existence check'
-        },
-
-        // Timestamps
-        detectedAt: new Date().toISOString(),
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-
-        // Environment
-        environment: {
-          url: window.location.href,
-          userAgent: navigator.userAgent
-        }
-      }).catch(err => {
-        // Log but don't throw - alert sending should never break the UI
-        if (process.env.NODE_ENV !== 'production') {
-          console.error('❌ Failed to send Telegram alert:', err);
-        }
-      });
+          timestamp: new Date().toISOString()
+        });
+      }
     }
   }, [
     fiatRateError,
