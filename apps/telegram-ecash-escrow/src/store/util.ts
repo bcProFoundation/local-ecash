@@ -127,7 +127,9 @@ const getCoinRate = (
   if (isGoodsServicesConversion && tickerPriceGoodsServices) {
     // Find the rate for the ticker currency (e.g., USD rate)
     const tickerPriceGoodsServicesUpper = tickerPriceGoodsServices.toUpperCase();
-    const tickerRate = rateData.find((item: { coin?: string; rate?: number }) => item.coin?.toUpperCase() === tickerPriceGoodsServicesUpper)?.rate;
+    const tickerRate = rateData.find(
+      (item: { coin?: string; rate?: number }) => item.coin?.toUpperCase() === tickerPriceGoodsServicesUpper
+    )?.rate;
     if (tickerRate && priceGoodsServices && priceGoodsServices > 0) {
       // Return the fiat currency rate multiplied by the price
       // E.g., if 1 USD = 0.00002 XEC and item costs 1 USD, return 0.00002
@@ -223,15 +225,15 @@ export function formatAmountForGoodsServices(amount) {
 
 /**
  * Transforms fiat rate data from backend format to frontend format.
- * 
+ *
  * Backend returns: {coin: 'USD', rate: 0.0000147} meaning "1 XEC = 0.0000147 USD"
  * Frontend needs: {coin: 'USD', rate: 68027.21} meaning "1 USD = 68027.21 XEC"
- * 
+ *
  * This function:
  * 1. Filters out zero/invalid rates
  * 2. Inverts all rates (rate = 1 / originalRate)
  * 3. Adds XEC entries with rate 1 for self-conversion
- * 
+ *
  * @param fiatRates - Array of fiat rates from backend API
  * @returns Transformed rate array ready for conversion calculations, or null if input is invalid
  */

@@ -1044,13 +1044,12 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
           url: window.location.href,
           userAgent: navigator.userAgent
         }
-      })
-        .catch(err => {
-          // Log but don't throw - alert sending should never break the UI
-          if (process.env.NODE_ENV !== 'production') {
-            console.error('❌ Failed to send Telegram alert:', err);
-          }
-        });
+      }).catch(err => {
+        // Log but don't throw - alert sending should never break the UI
+        if (process.env.NODE_ENV !== 'production') {
+          console.error('❌ Failed to send Telegram alert:', err);
+        }
+      });
     }
   }, [
     fiatRateError,

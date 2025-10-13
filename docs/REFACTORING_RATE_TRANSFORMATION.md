@@ -11,6 +11,7 @@ Extracted duplicated fiat rate transformation logic into a reusable utility func
 ## Problem Statement
 
 The rate transformation logic was duplicated across 4 components:
+
 - `PlaceAnOrderModal.tsx` (~40 lines)
 - `useOfferPrice.tsx` (~40 lines)
 - `wallet/page.tsx` (~20 lines)
@@ -19,6 +20,7 @@ The rate transformation logic was duplicated across 4 components:
 **Total duplicate code**: ~140 lines across 4 files
 
 This duplication created several issues:
+
 1. **Maintenance burden**: Changes had to be made in 4 separate locations
 2. **Inconsistency risk**: Easy to miss updating one file, causing bugs
 3. **Code bloat**: Unnecessary repetition of identical logic
@@ -33,15 +35,15 @@ This duplication created several issues:
 ```typescript
 /**
  * Transforms fiat rate data from backend format to frontend format.
- * 
+ *
  * Backend returns: {coin: 'USD', rate: 0.0000147} meaning "1 XEC = 0.0000147 USD"
  * Frontend needs: {coin: 'USD', rate: 68027.21} meaning "1 USD = 68027.21 XEC"
- * 
+ *
  * This function:
  * 1. Filters out zero/invalid rates
  * 2. Inverts all rates (rate = 1 / originalRate)
  * 3. Adds XEC entries with rate 1 for self-conversion
- * 
+ *
  * @param fiatRates - Array of fiat rates from backend API
  * @returns Transformed rate array ready for conversion calculations, or null if input is invalid
  */
@@ -69,6 +71,7 @@ export function transformFiatRates(fiatRates: any[]): any[] | null {
 ### Updated Components
 
 **Before** (PlaceAnOrderModal.tsx example):
+
 ```typescript
 const transformedRates = xecCurrency.fiatRates
   .filter(item => item.rate && item.rate > 0)
@@ -85,6 +88,7 @@ setRateData(transformedRates);
 ```
 
 **After**:
+
 ```typescript
 const transformedRates = transformFiatRates(xecCurrency.fiatRates);
 setRateData(transformedRates);
@@ -105,6 +109,7 @@ if (process.env.NODE_ENV !== 'production') {
 ```
 
 **Error logging** (kept for production monitoring):
+
 ```typescript
 console.error('❌ [FIAT_ERROR] Conversion failed', {...});
 ```
@@ -112,20 +117,22 @@ console.error('❌ [FIAT_ERROR] Conversion failed', {...});
 ## Results
 
 ### Code Reduction
+
 - **Files changed**: 6
 - **Lines removed**: 177
 - **Lines added**: 92
 - **Net reduction**: 85 lines (32% decrease)
 
 ### Component Updates
-| Component | Lines Before | Lines After | Reduction |
-|-----------|-------------|-------------|-----------|
-| PlaceAnOrderModal.tsx | ~40 | ~3 | -37 lines |
-| useOfferPrice.tsx | ~40 | ~3 | -37 lines |
-| wallet/page.tsx | ~20 | ~3 | -17 lines |
-| OrderDetailInfo.tsx | ~40 | ~3 | -37 lines |
-| **util.ts (new)** | 0 | +37 | +37 lines |
-| **utils/index.ts** | - | +1 | +1 line |
+
+| Component             | Lines Before | Lines After | Reduction |
+| --------------------- | ------------ | ----------- | --------- |
+| PlaceAnOrderModal.tsx | ~40          | ~3          | -37 lines |
+| useOfferPrice.tsx     | ~40          | ~3          | -37 lines |
+| wallet/page.tsx       | ~20          | ~3          | -17 lines |
+| OrderDetailInfo.tsx   | ~40          | ~3          | -37 lines |
+| **util.ts (new)**     | 0            | +37         | +37 lines |
+| **utils/index.ts**    | -            | +1          | +1 line   |
 
 ### Benefits
 
@@ -140,6 +147,7 @@ console.error('❌ [FIAT_ERROR] Conversion failed', {...});
 ## Testing
 
 ### Verification Steps
+
 1. ✅ TypeScript compilation successful
 2. ✅ Next.js build passed
 3. ✅ No linting errors
@@ -147,6 +155,7 @@ console.error('❌ [FIAT_ERROR] Conversion failed', {...});
 5. ✅ Utility function exported and imported properly
 
 ### Manual Testing Required
+
 - [ ] Verify rate transformation works in PlaceAnOrderModal
 - [ ] Test useOfferPrice hook returns correct values
 - [ ] Check wallet page displays correct fiat amounts
@@ -170,10 +179,13 @@ If you need to modify rate transformation logic:
    ```
 
 ### Breaking Changes
+
 None. This is a pure refactoring with no functional changes.
 
 ### Rollback Plan
+
 If issues arise:
+
 ```bash
 git revert 989474e
 ```
@@ -187,6 +199,7 @@ git revert 989474e
 ## Conclusion
 
 This refactoring significantly improves code quality by:
+
 - Eliminating 85 lines of duplicate code
 - Establishing a single source of truth
 - Making the codebase more maintainable
