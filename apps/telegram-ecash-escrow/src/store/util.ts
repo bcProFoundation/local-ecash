@@ -114,14 +114,23 @@ export function isConvertGoodsServices(priceGoodsServices: number | null, ticker
   );
 }
 
-const getCoinRate = (
+export interface GetCoinRateOptions {
+  isGoodsServicesConversion: boolean;
+  coinPayment: string;
+  priceGoodsServices: number | null;
+  priceCoinOthers: number | null;
+  tickerPriceGoodsServices: string | null;
+  rateData: Array<{ coin?: string; rate?: number }>;
+}
+
+export const getCoinRate = ({
   isGoodsServicesConversion,
   coinPayment,
   priceGoodsServices,
   priceCoinOthers,
   tickerPriceGoodsServices,
   rateData
-) => {
+}: GetCoinRateOptions): any | null => {
   // For Goods & Services: priceGoodsServices is the PRICE (e.g., 1 USD)
   // We need to find the USD (or tickerPriceGoodsServices) rate from rateData
   if (isGoodsServicesConversion && tickerPriceGoodsServices) {
@@ -171,14 +180,14 @@ export const convertXECAndCurrency = ({ rateData, paymentInfo, inputAmount }) =>
 
   // If payment is cryptocurrency (not USD stablecoin)
   if (isGoodsServicesConversion || (coinPayment && coinPayment !== COIN_USD_STABLECOIN_TICKER)) {
-    const coinRate = getCoinRate(
+    const coinRate = getCoinRate({
       isGoodsServicesConversion,
       coinPayment,
       priceGoodsServices,
       priceCoinOthers,
       tickerPriceGoodsServices,
       rateData
-    );
+    });
     if (!coinRate) return { amountXEC: 0, amountCoinOrCurrency: 0 };
 
     // Calculate XEC amount

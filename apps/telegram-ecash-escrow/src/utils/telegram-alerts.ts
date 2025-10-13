@@ -39,7 +39,8 @@ export async function sendTelegramAlert(payload: AlertPayload): Promise<AlertRes
     const response = await fetch('/api/alerts/telegram', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'x-alert-token': process.env.NEXT_PUBLIC_ALERT_API_TOKEN || ''
       },
       body: JSON.stringify(payload)
     });

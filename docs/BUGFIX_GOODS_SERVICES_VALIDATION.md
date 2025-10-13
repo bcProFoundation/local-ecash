@@ -75,7 +75,7 @@ validate: value => {
 
   if (minValue || maxValue) {
     if (numberValue < minValue || numberValue > maxValue)
-      return `Amount must between ${formatNumber(minValue)} - ${formatFormat(maxValue)}`;
+      return `Amount must between ${formatNumber(minValue)} - ${formatNumber(maxValue)}`;
   }
 
   return true;

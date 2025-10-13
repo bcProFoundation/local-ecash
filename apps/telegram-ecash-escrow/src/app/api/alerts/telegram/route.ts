@@ -23,6 +23,14 @@ export async function POST(request: NextRequest) {
     // Get Telegram configuration from environment
     const botToken = process.env.BOT_TOKEN;
     const alertChannelId = process.env.TELEGRAM_ALERT_CHANNEL_ID;
+    const alertApiToken = process.env.ALERT_API_TOKEN;
+
+    // Authenticate request with shared secret
+    const providedToken = request.headers.get('x-alert-token');
+    if (!alertApiToken || providedToken !== alertApiToken) {
+      console.warn('Unauthorized alert request - invalid token');
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     if (!botToken) {
       console.error('BOT_TOKEN not configured in environment variables');
@@ -30,8 +38,8 @@ export async function POST(request: NextRequest) {
     }
 
     if (!alertChannelId) {
-      console.warn('TELEGRAM_ALERT_CHANNEL_ID not configured - alert not sent');
-      return NextResponse.json({ warning: 'Alert channel/group not configured', messageSent: false }, { status: 200 });
+      console.error('TELEGRAM_ALERT_CHANNEL_ID not configured - alert not sent');
+      return NextResponse.json({ error: 'Alert channel/group not configured' }, { status: 500 });
     }
 
     // Format the message with severity emoji
@@ -55,46 +63,60 @@ export async function POST(request: NextRequest) {
     alertMessage += `*Time:* ${new Date().toISOString()}\n`;
     alertMessage += `*Environment:* ${process.env.NODE_ENV || 'unknown'}`;
 
-    // Send to Telegram using Bot API
+    // Send to Telegram using Bot API with timeout
     const telegramApiUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
 
-    const telegramResponse = await fetch(telegramApiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        chat_id: alertChannelId,
-        text: alertMessage,
-        parse_mode: 'Markdown',
-        disable_web_page_preview: true
-      })
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-    const telegramData = await telegramResponse.json();
-
-    if (!telegramResponse.ok) {
-      console.error('Failed to send Telegram alert:', telegramData);
-      return NextResponse.json(
-        {
-          error: 'Failed to send Telegram alert',
-          details: telegramData
+    try {
+      const telegramResponse = await fetch(telegramApiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
         },
-        { status: 500 }
-      );
+        body: JSON.stringify({
+          chat_id: alertChannelId,
+          text: alertMessage,
+          parse_mode: 'Markdown',
+          disable_web_page_preview: true
+        }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeout);
+      const telegramData = await telegramResponse.json();
+
+      if (!telegramResponse.ok) {
+        console.error('Failed to send Telegram alert:', telegramData);
+        return NextResponse.json(
+          {
+            error: 'Failed to send Telegram alert',
+            details: telegramData
+          },
+          { status: 500 }
+        );
+      }
+
+      console.log('Telegram alert sent successfully:', {
+        service,
+        severity,
+        messageId: telegramData.result?.message_id
+      });
+
+      return NextResponse.json({
+        success: true,
+        messageSent: true,
+        messageId: telegramData.result?.message_id
+      });
+    } catch (fetchError) {
+      clearTimeout(timeout);
+      if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+        console.error('Telegram API request timed out');
+        return NextResponse.json({ error: 'Request timed out' }, { status: 504 });
+      }
+      throw fetchError; // Re-throw for outer catch
     }
-
-    console.log('Telegram alert sent successfully:', {
-      service,
-      severity,
-      messageId: telegramData.result?.message_id
-    });
-
-    return NextResponse.json({
-      success: true,
-      messageSent: true,
-      messageId: telegramData.result?.message_id
-    });
   } catch (error) {
     console.error('Error sending Telegram alert:', error);
     return NextResponse.json(
