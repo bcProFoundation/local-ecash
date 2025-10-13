@@ -187,7 +187,11 @@ export default function Shopping() {
                 </span>
               )}
             </Typography>
-            <div id="scrollableDiv" className="offer-list" style={{ overflow: 'auto', maxHeight: 'calc(100vh - 250px)' }}>
+            <div
+              id="scrollableDiv"
+              className="offer-list"
+              style={{ overflow: 'auto', maxHeight: 'calc(100vh - 250px)' }}
+            >
               {!isLoadingFilter ? (
                 <InfiniteScroll
                   dataLength={dataFilter.length}

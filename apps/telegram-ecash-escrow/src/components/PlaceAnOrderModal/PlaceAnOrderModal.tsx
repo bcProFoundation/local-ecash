@@ -794,7 +794,11 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     amountXecRounded > 0 ? setAmountXEC(amountXecRounded) : setAmountXEC(0);
 
     // Calculate XEC per unit for Goods & Services
-    const xecPerUnit = isGoodsServicesConversion ? amountXEC / amountNumber : post?.postOffer?.priceGoodsServices;
+    // For legacy offers without priceGoodsServices, default to 1 XEC
+    const legacyPrice = (post?.postOffer?.priceGoodsServices && post?.postOffer?.priceGoodsServices > 0) 
+      ? post?.postOffer?.priceGoodsServices 
+      : 1;
+    const xecPerUnit = isGoodsServicesConversion ? amountXEC / amountNumber : legacyPrice;
     setAmountXECPerUnitGoodsServices(xecPerUnit);
     setAmountXECGoodsServices(xecPerUnit * amountNumber);
     setTextAmountPer1MXEC(formatAmountFor1MXEC(amountCoinOrCurrency, post?.postOffer?.marginPercentage, coinCurrency));

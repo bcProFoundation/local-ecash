@@ -103,7 +103,16 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
       inputAmount: inputAmount
     });
 
-    setAmountXECGoodsServices(isGoodsServicesConversion ? amountXEC : paymentInfo?.priceGoodsServices);
+    // For Goods & Services:
+    // - If priceGoodsServices is set and tickerPriceGoodsServices is not XEC: use converted amountXEC
+    // - Otherwise (legacy offers or XEC-priced): use priceGoodsServices or default to 1 XEC
+    const displayPrice = isGoodsServicesConversion 
+      ? amountXEC 
+      : (paymentInfo?.priceGoodsServices && paymentInfo?.priceGoodsServices > 0) 
+        ? paymentInfo.priceGoodsServices 
+        : 1; // Default to 1 XEC for legacy offers without price
+
+    setAmountXECGoodsServices(displayPrice);
     setAmountPer1MXEC(formatAmountFor1MXEC(amountCoinOrCurrency, paymentInfo?.marginPercentage, coinCurrency));
   }, [rateData, paymentInfo, inputAmount, isGoodsServicesConversion, coinCurrency]);
 
