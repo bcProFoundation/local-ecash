@@ -1,5 +1,6 @@
 'use client';
 
+import FiatRateErrorBanner from '@/src/components/Common/FiatRateErrorBanner';
 import Header from '@/src/components/Header/Header';
 import OfferItem from '@/src/components/OfferItem/OfferItem';
 import {
@@ -87,7 +88,11 @@ export default function Home() {
 
   // Prefetch fiat rates in the background for better modal performance
   // This will cache the data so PlaceAnOrderModal can use it immediately
-  useGetAllFiatRateQuery(undefined, {
+  const {
+    data: fiatData,
+    isError: fiatRateError,
+    isLoading: isFiatRateLoading
+  } = useGetAllFiatRateQuery(undefined, {
     pollingInterval: 0,
     refetchOnMountOrArgChange: true
   });
@@ -146,6 +151,9 @@ export default function Home() {
           <Header />
 
           <FilterComponent />
+
+          {/* Show fiat rate error banner if service is down */}
+          <FiatRateErrorBanner fiatData={fiatData} fiatRateError={fiatRateError} isLoading={isFiatRateLoading} />
 
           <Section>
             <Typography className="title-offer" variant="body1" component="div">

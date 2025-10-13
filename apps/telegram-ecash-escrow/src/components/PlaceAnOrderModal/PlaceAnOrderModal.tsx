@@ -1,5 +1,6 @@
 'use client';
 
+import FiatRateErrorBanner from '@/src/components/Common/FiatRateErrorBanner';
 import { DEFAULT_TICKER_GOODS_SERVICES } from '@/src/store/constants';
 import { LIST_BANK } from '@/src/store/constants/list-bank';
 import { SettingContext } from '@/src/store/context/settingProvider';
@@ -1035,32 +1036,6 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     post?.postOffer?.priceGoodsServices
   ]);
 
-  // Calculate if we should show error banner (same logic as alert detection)
-  const showErrorBanner = useMemo(() => {
-    if (!isGoodsServicesConversion) return false;
-
-    // Check for no data
-    const hasNoData = fiatRateError || !fiatData?.getAllFiatRate || fiatData?.getAllFiatRate?.length === 0;
-    if (hasNoData) return true;
-
-    // Check if all rates are zero (invalid data)
-    const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
-    if (xecCurrency?.fiatRates && xecCurrency.fiatRates.length > 0) {
-      const majorCurrencies = ['USD', 'EUR', 'GBP'];
-      const majorRates = xecCurrency.fiatRates.filter(r => majorCurrencies.includes(r.coin?.toUpperCase()));
-
-      if (majorRates.length > 0) {
-        return majorRates.every(r => r.rate === 0);
-      }
-    }
-
-    return false;
-  }, [fiatRateError, fiatData?.getAllFiatRate, isGoodsServicesConversion]);
-
-  // Generic error message for users (technical details go to Telegram)
-  const errorBannerMessage =
-    'The currency conversion service is temporarily unavailable. Please try again later or contact support.';
-
   return (
     <React.Fragment>
       <StyledDialog
@@ -1083,26 +1058,14 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
         <DialogContent>
           <PlaceAnOrderWrap>
             {/* Show error when fiat service is down for fiat-priced offers */}
-            {showErrorBanner && (
-              <Box
-                sx={{
-                  backgroundColor: '#d32f2f',
-                  color: '#ffffff',
-                  padding: 2,
-                  borderRadius: 1,
-                  marginBottom: 2,
-                  border: '1px solid #b71c1c'
-                }}
-              >
-                <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#ffffff', marginBottom: 1 }}>
-                  ⚠️ Fiat Service Unavailable
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#ffffff' }}>
-                  Cannot calculate XEC amount for {post?.postOffer?.tickerPriceGoodsServices}-priced offers.{' '}
-                  {errorBannerMessage}
-                </Typography>
-              </Box>
-            )}
+            <FiatRateErrorBanner
+              fiatData={fiatData}
+              fiatRateError={fiatRateError}
+              isLoading={fiatRateLoading}
+              goodsServicesOnly={true}
+              tickerPriceGoodsServices={post?.postOffer?.tickerPriceGoodsServices}
+              variant="warning"
+            />
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <Controller
