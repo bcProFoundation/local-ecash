@@ -889,17 +889,14 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   useEffect(() => {
     if (showPrice) {
       // Only convert if we have rateData, or if it's not needed (XEC-only offers)
-      const needsRateData =
-        isGoodsServicesConversion ||
-        (post?.postOffer?.coinPayment && post.postOffer.coinPayment.toUpperCase() !== 'XEC');
-
-      if (!needsRateData || rateData) {
+      // Reuse the needsFiatRates memo instead of duplicating the condition
+      if (!needsFiatRates || rateData) {
         convertToAmountXEC();
       }
     } else {
       setAmountXEC(getNumberFromFormatNumber(amountValue) ?? 0);
     }
-  }, [amountValue, showPrice, rateData]);
+  }, [amountValue, showPrice, rateData, needsFiatRates]);
 
   //get rate data
   useEffect(() => {
