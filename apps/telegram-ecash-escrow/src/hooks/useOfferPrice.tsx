@@ -1,7 +1,15 @@
-import React from 'react';
+import {
+  convertXECAndCurrency,
+  formatAmountFor1MXEC,
+  isConvertGoodsServices,
+  showPriceInfo,
+  transformFiatRates
+} from '@/src/utils';
+import { PAYMENT_METHOD, getTickerText } from '@bcpros/lixi-models';
 import { fiatCurrencyApi } from '@bcpros/redux-store';
-import { getTickerText, PAYMENT_METHOD } from '@bcpros/lixi-models';
-import { convertXECAndCurrency, formatAmountFor1MXEC, isConvertGoodsServices, showPriceInfo } from '@/src/utils';
+import React from 'react';
+
+const { useGetAllFiatRateQuery } = fiatCurrencyApi;
 
 type UseOfferPriceOpts = {
   paymentInfo: any; // PostOffer-like object
@@ -9,8 +17,19 @@ type UseOfferPriceOpts = {
 };
 
 export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOfferPriceOpts) {
-  const { useGetAllFiatRateQuery } = fiatCurrencyApi;
-  const { data: fiatData } = useGetAllFiatRateQuery();
+  // Get fiat rates from GraphQL API with cache reuse
+  // Skip if not needed (will be checked by needsFiatRates logic)
+  const needsFiatRates = React.useMemo(() => {
+    const isGoodsServices = paymentInfo?.paymentMethods?.[0]?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES;
+    if (isGoodsServices) return true;
+    return paymentInfo?.coinPayment && paymentInfo?.coinPayment !== 'XEC';
+  }, [paymentInfo]);
+
+  const { data: fiatData } = useGetAllFiatRateQuery(undefined, {
+    skip: !needsFiatRates,
+    refetchOnMountOrArgChange: false,
+    refetchOnFocus: false
+  });
 
   const [rateData, setRateData] = React.useState<any>(null);
   const [amountPer1MXEC, setAmountPer1MXEC] = React.useState('');
@@ -36,8 +55,8 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
     );
   }, [paymentInfo]);
 
-  const isGoodsServicesConversion = React.useMemo(() =>
-    isConvertGoodsServices(paymentInfo?.priceGoodsServices, paymentInfo?.tickerPriceGoodsServices),
+  const isGoodsServicesConversion = React.useMemo(
+    () => isConvertGoodsServices(paymentInfo?.priceGoodsServices, paymentInfo?.tickerPriceGoodsServices),
     [paymentInfo]
   );
 
@@ -49,9 +68,41 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
   );
 
   React.useEffect(() => {
-    const rate = fiatData?.getAllFiatRate?.find(item => item.currency === (paymentInfo?.localCurrency ?? 'USD'));
-    setRateData(rate?.fiatRates);
-  }, [paymentInfo?.localCurrency, fiatData]);
+    // For Goods & Services: Always use XEC fiat rates (price is in fiat, need to convert to XEC)
+    // For Crypto Offers: Use the selected fiat currency from localCurrency (user's choice)
+    if (isGoodsServices) {
+      // Goods & Services: Find XEC currency and transform its fiat rates
+      const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
+
+      if (xecCurrency?.fiatRates) {
+        const transformedRates = transformFiatRates(xecCurrency.fiatRates);
+        setRateData(transformedRates);
+      } else {
+        setRateData(null);
+      }
+    } else {
+      // Pure XEC offers: Set identity rate data (1 XEC = 1 XEC)
+      if (paymentInfo?.coinPayment?.toUpperCase() === 'XEC') {
+        setRateData([
+          { coin: 'XEC', rate: 1, ts: Date.now() },
+          { coin: 'xec', rate: 1, ts: Date.now() }
+        ]);
+        return;
+      }
+
+      // Crypto Offers: Find and transform the user's selected local currency
+      const currencyData = fiatData?.getAllFiatRate?.find(
+        item => item.currency === (paymentInfo?.localCurrency ?? 'USD')
+      );
+
+      if (currencyData?.fiatRates) {
+        const transformedRates = transformFiatRates(currencyData.fiatRates);
+        setRateData(transformedRates);
+      } else {
+        setRateData(null);
+      }
+    }
+  }, [paymentInfo?.localCurrency, paymentInfo?.coinPayment, fiatData, isGoodsServices]);
 
   React.useEffect(() => {
     if (!rateData) return;
@@ -61,7 +112,16 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
       inputAmount: inputAmount
     });
 
-    setAmountXECGoodsServices(isGoodsServicesConversion ? amountXEC : paymentInfo?.priceGoodsServices);
+    // For Goods & Services:
+    // - If priceGoodsServices is set and tickerPriceGoodsServices is not XEC: use converted amountXEC
+    // - Otherwise (legacy offers or XEC-priced): use priceGoodsServices or default to 1 XEC
+    const displayPrice = isGoodsServicesConversion
+      ? amountXEC
+      : paymentInfo?.priceGoodsServices && paymentInfo?.priceGoodsServices > 0
+        ? paymentInfo.priceGoodsServices
+        : 1; // Default to 1 XEC for legacy offers without price
+
+    setAmountXECGoodsServices(displayPrice);
     setAmountPer1MXEC(formatAmountFor1MXEC(amountCoinOrCurrency, paymentInfo?.marginPercentage, coinCurrency));
   }, [rateData, paymentInfo, inputAmount, isGoodsServicesConversion, coinCurrency]);
 
