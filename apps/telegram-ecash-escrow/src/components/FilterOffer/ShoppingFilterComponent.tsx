@@ -55,9 +55,17 @@ const WrapFilter = styled('div')(({ theme }) => ({
   }
 }));
 
+interface ShoppingFilterConfig {
+  coin?: string | null;
+  coinOthers?: string | null;
+  tickerPriceGoodsServices?: string | null;
+  fiatCurrency?: string | null;
+  amount?: number | string | null;  // Often a formatted string in input, but converted to number in handlers
+}
+
 interface ShoppingFilterComponentProps {
-  filterConfig: any;
-  setFilterConfig: (config: any) => void;
+  filterConfig: ShoppingFilterConfig;
+  setFilterConfig: (config: ShoppingFilterConfig) => void;
 }
 
 const ShoppingFilterComponent: React.FC<ShoppingFilterComponentProps> = ({ filterConfig, setFilterConfig }) => {
