@@ -132,7 +132,6 @@ export default function Footer() {
     }
 
     if (path === '/shopping' && currentPath === '/shopping') {
-      console.log('reset shopping api query');
       dispatch(offerApi.api.util.resetApiState());
 
       return;
