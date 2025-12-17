@@ -1,6 +1,8 @@
+import { ShoppingFilterConfig } from '@/src/shared/models/shoppingFilterConfig';
 import { ALL, ALL_CURRENCIES, COIN_USD_STABLECOIN_TICKER, LIST_USD_STABLECOIN } from '@/src/store/constants';
 import { FilterCurrencyType } from '@/src/store/type/types';
 import { getNumberFromFormatNumber, isShowAmountOrSortFilter } from '@/src/store/util';
+import { OfferFilterInput } from '@bcpros/redux-store';
 import { ArrowDropDown, Close } from '@mui/icons-material';
 import {
   Button,
@@ -54,14 +56,6 @@ const WrapFilter = styled('div')(({ theme }) => ({
     }
   }
 }));
-
-interface ShoppingFilterConfig {
-  coin?: string | null;
-  coinOthers?: string | null;
-  tickerPriceGoodsServices?: string | null;
-  fiatCurrency?: string | null;
-  amount?: number | string | null;  // Often a formatted string in input, but converted to number in handlers
-}
 
 interface ShoppingFilterComponentProps {
   filterConfig: ShoppingFilterConfig;
@@ -127,9 +121,13 @@ const ShoppingFilterComponent: React.FC<ShoppingFilterComponentProps> = ({ filte
     return ALL_CURRENCIES;
   };
 
-  const isResetCurrency = filterConfig?.tickerPriceGoodsServices;
+  const isResetCurrency = !!filterConfig?.tickerPriceGoodsServices;
 
-  const isShowAmountFilter = isShowAmountOrSortFilter(filterConfig);
+  const offerFilterInput: OfferFilterInput = {
+    ...filterConfig,
+    amount: typeof filterConfig.amount === 'string' ? Number(filterConfig.amount) : filterConfig.amount
+  };
+  const isShowAmountFilter = Boolean(isShowAmountOrSortFilter(offerFilterInput));
 
   return (
     <React.Fragment>
