@@ -4,6 +4,7 @@ import FiatRateErrorBanner from '@/src/components/Common/FiatRateErrorBanner';
 import ShoppingFilterComponent from '@/src/components/FilterOffer/ShoppingFilterComponent';
 import Header from '@/src/components/Header/Header';
 import OfferItem from '@/src/components/OfferItem/OfferItem';
+import { ShoppingFilterConfig } from '@/src/shared/models/shoppingFilterConfig';
 import { PAYMENT_METHOD } from '@bcpros/lixi-models';
 import {
   OfferOrderField,
@@ -151,6 +152,13 @@ export default function Shopping() {
     dispatch(openModal('SortOfferModal', {}));
   };
 
+  const handleConfigChange = (config: ShoppingFilterConfig) => {
+    setShoppingFilterConfig(prev => ({
+      ...prev,
+      ...config
+    }));
+  };
+
   const isSorted = useMemo(
     () =>
       shoppingFilterConfig?.offerOrder?.direction !== OrderDirection.Desc ||
@@ -169,7 +177,7 @@ export default function Shopping() {
         <ShoppingPage>
           <Header />
 
-          <ShoppingFilterComponent filterConfig={shoppingFilterConfig} setFilterConfig={setShoppingFilterConfig} />
+          <ShoppingFilterComponent filterConfig={shoppingFilterConfig} setFilterConfig={handleConfigChange} />
 
           {/* Show fiat rate error banner if service is down */}
           <FiatRateErrorBanner fiatData={fiatData} fiatRateError={fiatRateError} isLoading={isFiatRateLoading} />

@@ -58,7 +58,7 @@ export const formatNumber = (number: number) => {
 };
 
 export const isShowAmountOrSortFilter = (offerFilterConfig: OfferFilterInput) => {
-  return offerFilterConfig?.fiatCurrency || (offerFilterConfig?.coin && offerFilterConfig.coin !== COIN_OTHERS);
+  return !!offerFilterConfig?.fiatCurrency || (offerFilterConfig?.coin && offerFilterConfig.coin !== COIN_OTHERS);
 };
 
 export const capitalizeStr = (str: string) => {
