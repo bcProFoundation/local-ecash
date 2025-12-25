@@ -4,6 +4,10 @@ import { NextResponse } from 'next/server';
 import { LocalUser } from 'src/shared/models/localUser';
 import { sessionOptions } from 'src/shared/models/session';
 
+export async function OPTIONS() {
+  return NextResponse.json({}, { status: 200 });
+}
+
 export async function POST(req) {
   const session: any = await getIronSession(await cookies(), sessionOptions);
   const { id, address, name } = await req.body;

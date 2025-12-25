@@ -72,7 +72,32 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
     // For Crypto Offers: Use the selected fiat currency from localCurrency (user's choice)
     if (isGoodsServices) {
       // Goods & Services: Find XEC currency and transform its fiat rates
-      const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
+      let xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
+
+      // Fallback: Construct XEC rates from other currencies if XEC is missing
+      // The v4 API returns rates keyed by Fiat currency (e.g. USD -> XEC), but we need XEC -> Fiat
+      if (!xecCurrency && fiatData?.getAllFiatRate) {
+        const constructedRates = fiatData.getAllFiatRate
+          .map(fiat => {
+            const xecRate = fiat.fiatRates.find(r => r.coin.toLowerCase() === 'xec');
+            if (xecRate) {
+              // fiat.currency is 'USD'
+              // xecRate.rate is 0.00001036 (1 XEC = 0.00001036 USD)
+              // We want { coin: 'USD', rate: 0.00001036 } so transformFiatRates can invert it
+              return {
+                coin: fiat.currency,
+                rate: xecRate.rate,
+                ts: xecRate.ts
+              };
+            }
+            return null;
+          })
+          .filter(Boolean);
+
+        if (constructedRates.length > 0) {
+          xecCurrency = { currency: 'XEC', fiatRates: constructedRates };
+        }
+      }
 
       if (xecCurrency?.fiatRates) {
         const transformedRates = transformFiatRates(xecCurrency.fiatRates);
