@@ -269,16 +269,16 @@ export function transformFiatRates(fiatRates: any[]): any[] | null {
 
 /**
  * Constructs XEC fiat rates from fiat currency entries when XEC entry is missing from API.
- * 
+ *
  * API may return: [
  *   { currency: 'USD', fiatRates: [{ coin: 'XEC', rate: 0.0000147 }] },
  *   { currency: 'EUR', fiatRates: [{ coin: 'XEC', rate: 0.0000135 }] }
  * ]
- * 
+ *
  * But we need: { currency: 'XEC', fiatRates: [{ coin: 'USD', rate: 0.0000147 }, { coin: 'EUR', rate: 0.0000135 }] }
- * 
+ *
  * This function constructs the XEC entry by collecting XEC rates from all fiat currencies.
- * 
+ *
  * @param getAllFiatRate - The full getAllFiatRate array from the API
  * @returns Constructed fiat rates for XEC currency, or null if no valid data found
  */
@@ -294,9 +294,7 @@ export function constructXECRatesFromFiatCurrencies(getAllFiatRate: any[]): any[
     if (!currencyEntry?.currency || !currencyEntry?.fiatRates) continue;
 
     // Find the XEC rate in this fiat currency's rates
-    const xecRate = currencyEntry.fiatRates.find(
-      (rate: any) => rate.coin?.toUpperCase() === 'XEC'
-    );
+    const xecRate = currencyEntry.fiatRates.find((rate: any) => rate.coin?.toUpperCase() === 'XEC');
 
     if (xecRate && xecRate.rate && xecRate.rate > 0) {
       // Add this fiat currency with its XEC rate

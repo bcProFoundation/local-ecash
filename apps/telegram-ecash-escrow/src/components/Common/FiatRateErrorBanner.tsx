@@ -51,7 +51,7 @@ export default function FiatRateErrorBanner({
     // Check if all rates are zero (invalid data)
     // Try to find XEC currency first
     let xecCurrency = fiatData?.getAllFiatRate?.find((item: any) => item.currency === 'XEC');
-    
+
     // FALLBACK: If XEC entry is missing, try to construct rates from fiat currencies
     if (!xecCurrency?.fiatRates) {
       // Check if we can construct XEC rates from fiat currencies
@@ -60,14 +60,14 @@ export default function FiatRateErrorBanner({
         const xecRate = item.fiatRates.find((rate: any) => rate.coin?.toUpperCase() === 'XEC');
         return xecRate && xecRate.rate && xecRate.rate > 0;
       });
-      
+
       // If we can't construct rates from any fiat currency, show error
       if (!hasValidFiatData) return true;
-      
+
       // If we can construct rates, don't show error
       return false;
     }
-    
+
     if (xecCurrency?.fiatRates && xecCurrency.fiatRates.length > 0) {
       const majorCurrencies = ['USD', 'EUR', 'GBP'];
       const majorRates = xecCurrency.fiatRates.filter((r: any) => majorCurrencies.includes(r.coin?.toUpperCase()));
