@@ -6,6 +6,7 @@
 // changing existing implementations or breaking imports.
 
 export {
+  constructXECRatesFromFiatCurrencies,
   convertXECAndCurrency,
   formatAmountFor1MXEC,
   formatAmountForGoodsServices,

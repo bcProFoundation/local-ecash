@@ -3,6 +3,7 @@
 import { DEFAULT_TICKER_GOODS_SERVICES, securityDepositPercentage } from '@/src/store/constants';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import {
+  constructXECRatesFromFiatCurrencies,
   convertXECAndCurrency,
   formatAmountFor1MXEC,
   formatAmountForGoodsServices,
@@ -335,7 +336,14 @@ const OrderDetailInfo = ({
           const transformedRates = transformFiatRates(xecCurrency.fiatRates);
           setRateData(transformedRates);
         } else {
-          setRateData(null);
+          // FALLBACK: If XEC entry is missing, construct it from fiat currencies
+          const constructedRates = constructXECRatesFromFiatCurrencies(fiatData?.getAllFiatRate);
+          if (constructedRates) {
+            const transformedRates = transformFiatRates(constructedRates);
+            setRateData(transformedRates);
+          } else {
+            setRateData(null);
+          }
         }
       } else {
         // Crypto Orders: Transform the user's selected local currency

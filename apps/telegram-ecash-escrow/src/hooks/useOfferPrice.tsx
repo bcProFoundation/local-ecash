@@ -1,4 +1,5 @@
 import {
+  constructXECRatesFromFiatCurrencies,
   convertXECAndCurrency,
   formatAmountFor1MXEC,
   isConvertGoodsServices,
@@ -78,7 +79,14 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
         const transformedRates = transformFiatRates(xecCurrency.fiatRates);
         setRateData(transformedRates);
       } else {
-        setRateData(null);
+        // FALLBACK: If XEC entry is missing, construct it from fiat currencies
+        const constructedRates = constructXECRatesFromFiatCurrencies(fiatData?.getAllFiatRate);
+        if (constructedRates) {
+          const transformedRates = transformFiatRates(constructedRates);
+          setRateData(transformedRates);
+        } else {
+          setRateData(null);
+        }
       }
     } else {
       // Pure XEC offers: Set identity rate data (1 XEC = 1 XEC)

@@ -8,6 +8,7 @@ import { UtxoContext } from '@/src/store/context/utxoProvider';
 import { buyerDepositFee, splitUtxos } from '@/src/store/escrow';
 import { Escrow, EscrowBuyerDepositFee, EscrowFee } from '@/src/store/escrow/script';
 import {
+  constructXECRatesFromFiatCurrencies,
   convertXECAndCurrency,
   convertXECToSatoshi,
   estimatedFee,
@@ -922,9 +923,26 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
           });
         }
       } else {
-        setRateData(null);
-        if (process.env.NODE_ENV !== 'production') {
-          console.warn('⚠️ XEC currency not found in fiatData for Goods & Services');
+        // FALLBACK: If XEC entry is missing, construct it from fiat currencies
+        const constructedRates = constructXECRatesFromFiatCurrencies(fiatData?.getAllFiatRate);
+        if (constructedRates) {
+          const transformedRates = transformFiatRates(constructedRates);
+          setRateData(transformedRates);
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('📊 Fiat rates constructed from fiat currencies (fallback):', {
+              constructedRatesCount: constructedRates.length,
+              transformedRatesCount: transformedRates?.length || 0,
+              priceInCurrency: post?.postOffer?.tickerPriceGoodsServices,
+              matchedRate: transformedRates?.find(
+                r => r.coin?.toUpperCase() === post?.postOffer?.tickerPriceGoodsServices?.toUpperCase()
+              )
+            });
+          }
+        } else {
+          setRateData(null);
+          if (process.env.NODE_ENV !== 'production') {
+            console.warn('⚠️ XEC currency not found in fiatData for Goods & Services');
+          }
         }
       }
     } else {
