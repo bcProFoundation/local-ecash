@@ -97,7 +97,7 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
     // For Goods & Services: Always use XEC fiat rates (XEC has rates to all fiats)
     // For XEC Offers: Use the local currency rates directly (no inversion needed)
     // For other Crypto Offers: Use the selected fiat currency from localCurrency (user's choice)
-    
+
     if (isGoodsServices) {
       // Goods & Services: Find XEC currency and transform its fiat rates
       const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
@@ -122,9 +122,7 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
       // So for 1M XEC: 0.3 * 1,000,000 = 300,000 VND
       // We do NOT invert because the rate is already "XEC -> local currency"
       const currency = (paymentInfo?.localCurrency ?? 'USD').toUpperCase();
-      const currencyData = fiatData?.getAllFiatRate?.find(
-        item => item.currency?.toUpperCase() === currency
-      );
+      const currencyData = fiatData?.getAllFiatRate?.find(item => item.currency?.toUpperCase() === currency);
 
       console.log('useOfferPrice XEC offer: Looking for currency', currency, {
         found: !!currencyData,
@@ -134,7 +132,7 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
       if (currencyData?.fiatRates) {
         // Find XEC rate directly - DO NOT transform/invert
         const xecRateEntry = currencyData.fiatRates.find(r => r.coin?.toLowerCase() === 'xec');
-        
+
         if (xecRateEntry && xecRateEntry.rate > 0) {
           // Store just the XEC rate entry for calculation (no inversion needed)
           setRateData([{ ...xecRateEntry, isRawRate: true }]);
@@ -150,13 +148,11 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
       // priceCoinOthers = price per token in USD (e.g., 1 USD per EAT)
       // We need raw XEC-to-USD rate (NOT inverted)
       // API returns: { coin: 'xec', rate: 0.00001 } meaning "1 XEC = 0.00001 USD"
-      // 
+      //
       // Calculation: If 1 EAT = 1 USD and 1 XEC = 0.00001 USD
       // Then 1M XEC = 0.00001 * 1,000,000 = 10 USD = 10 EAT
       const currency = 'USD';
-      const currencyData = fiatData?.getAllFiatRate?.find(
-        item => item.currency?.toUpperCase() === currency
-      );
+      const currencyData = fiatData?.getAllFiatRate?.find(item => item.currency?.toUpperCase() === currency);
 
       console.log('useOfferPrice Coin Others: Looking for USD rates', {
         found: !!currencyData,
@@ -166,12 +162,14 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
       if (currencyData?.fiatRates) {
         // Find XEC rate directly - DO NOT invert
         const xecRateEntry = currencyData.fiatRates.find(r => r.coin?.toLowerCase() === 'xec');
-        console.log('useOfferPrice Coin Others: USD rate data', { 
+        console.log('useOfferPrice Coin Others: USD rate data', {
           xecRateEntry,
           xecRateValue: xecRateEntry?.rate,
-          expectedPriceFor1MXEC: xecRateEntry?.rate ? (xecRateEntry.rate * 1000000) / paymentInfo.priceCoinOthers : 'N/A'
+          expectedPriceFor1MXEC: xecRateEntry?.rate
+            ? (xecRateEntry.rate * 1000000) / paymentInfo.priceCoinOthers
+            : 'N/A'
         });
-        
+
         if (xecRateEntry && xecRateEntry.rate > 0) {
           // Store raw rate with marker for special handling
           setRateData([{ ...xecRateEntry, isRawRate: true, isCoinOthers: true }]);
@@ -185,9 +183,7 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
     } else {
       // Other Crypto Offers: transform rates as before
       const currency = (paymentInfo?.localCurrency ?? 'USD').toUpperCase();
-      const currencyData = fiatData?.getAllFiatRate?.find(
-        item => item.currency?.toUpperCase() === currency
-      );
+      const currencyData = fiatData?.getAllFiatRate?.find(item => item.currency?.toUpperCase() === currency);
 
       if (currencyData?.fiatRates) {
         const transformedRates = transformFiatRates(currencyData.fiatRates);
@@ -201,15 +197,18 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
 
   React.useEffect(() => {
     if (!rateData) {
-      console.log('useOfferPrice: No rateData available', { coinPayment: paymentInfo?.coinPayment, localCurrency: paymentInfo?.localCurrency });
+      console.log('useOfferPrice: No rateData available', {
+        coinPayment: paymentInfo?.coinPayment,
+        localCurrency: paymentInfo?.localCurrency
+      });
       return;
     }
 
-    console.log('useOfferPrice: Processing rateData', { 
-      isXECOffer, 
-      coinPayment: paymentInfo?.coinPayment, 
+    console.log('useOfferPrice: Processing rateData', {
+      isXECOffer,
+      coinPayment: paymentInfo?.coinPayment,
       localCurrency: paymentInfo?.localCurrency,
-      rateDataLength: rateData?.length 
+      rateDataLength: rateData?.length
     });
 
     // Special handling for XEC offers to show Fiat price
@@ -217,28 +216,30 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
       // For XEC offers, we stored the raw (non-inverted) XEC rate
       // API returns: { coin: 'xec', rate: 0.3 } meaning "1 XEC = 0.3 VND"
       // So for 1M XEC: 0.3 * 1,000,000 = 300,000 VND
-      
+
       const xecRateEntry = rateData.find(item => item.coin?.toLowerCase() === 'xec');
-      
-      console.log('useOfferPrice XEC offer calculation:', { 
+
+      console.log('useOfferPrice XEC offer calculation:', {
         localCurrency: paymentInfo?.localCurrency,
         xecRateEntry,
         isRawRate: xecRateEntry?.isRawRate
       });
-      
+
       if (xecRateEntry && xecRateEntry.rate && xecRateEntry.rate > 0) {
         // Rate is already "1 XEC = X local currency" - just multiply by 1M
         const priceOf1XECInLocalCurrency = xecRateEntry.rate;
         const priceOf1MXECInLocalCurrency = priceOf1XECInLocalCurrency * 1000000;
 
-        console.log('useOfferPrice XEC calculation result:', { 
-          priceOf1XECInLocalCurrency, 
+        console.log('useOfferPrice XEC calculation result:', {
+          priceOf1XECInLocalCurrency,
           priceOf1MXECInLocalCurrency,
-          coinCurrency 
+          coinCurrency
         });
 
         setAmountXECGoodsServices(1); // 1 XEC
-        setAmountPer1MXEC(formatAmountFor1MXEC(priceOf1MXECInLocalCurrency, paymentInfo?.marginPercentage, coinCurrency));
+        setAmountPer1MXEC(
+          formatAmountFor1MXEC(priceOf1MXECInLocalCurrency, paymentInfo?.marginPercentage, coinCurrency)
+        );
         return;
       } else {
         console.log('useOfferPrice: XEC rate not found in rate data');
@@ -249,14 +250,14 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
     const isCoinOthers = paymentInfo?.coinPayment === 'Others' && paymentInfo?.priceCoinOthers;
     if (isCoinOthers) {
       const xecRateEntry = rateData.find(item => item.coin?.toLowerCase() === 'xec');
-      
-      console.log('useOfferPrice Coin Others calculation:', { 
+
+      console.log('useOfferPrice Coin Others calculation:', {
         coinOthers: paymentInfo?.coinOthers,
         priceCoinOthers: paymentInfo?.priceCoinOthers,
         xecRateEntry,
         isCoinOthers: xecRateEntry?.isCoinOthers
       });
-      
+
       if (xecRateEntry && xecRateEntry.rate && xecRateEntry.rate > 0) {
         // Rate is "1 XEC = X USD" (raw, not inverted)
         // priceCoinOthers is "1 Token = Y USD"
@@ -266,12 +267,12 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
         const usdPer1MXEC = xecToUSD * 1000000; // e.g., 10 USD per 1M XEC
         const tokensPer1MXEC = usdPer1MXEC / tokenPriceInUSD; // e.g., 10 EAT per 1M XEC
 
-        console.log('useOfferPrice Coin Others calculation result:', { 
+        console.log('useOfferPrice Coin Others calculation result:', {
           xecToUSD,
           tokenPriceInUSD,
           usdPer1MXEC,
           tokensPer1MXEC,
-          coinCurrency 
+          coinCurrency
         });
 
         setAmountXECGoodsServices(1);

@@ -294,30 +294,18 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
         })}
 
       {(offerData?.coinPayment === COIN_USD_STABLECOIN_TICKER || offerData?.coinPayment === COIN_OTHERS) && (
-        <Button
-          size="small"
-          variant="outlined"
-          sx={{ color: 'text.secondary', borderColor: 'text.secondary' }}
-        >
+        <Button size="small" variant="outlined" sx={{ color: 'text.secondary', borderColor: 'text.secondary' }}>
           {offerData.coinPayment === COIN_USD_STABLECOIN_TICKER ? COIN_USD_STABLECOIN : COIN_OTHERS}
         </Button>
       )}
 
       {offerData?.coinOthers && (
-        <Button
-          size="small"
-          variant="outlined"
-          sx={{ color: 'text.secondary', borderColor: 'text.secondary' }}
-        >
+        <Button size="small" variant="outlined" sx={{ color: 'text.secondary', borderColor: 'text.secondary' }}>
           {offerData.coinOthers}
         </Button>
       )}
       {offerData?.paymentApp && (
-        <Button
-          size="small"
-          variant="outlined"
-          sx={{ color: 'text.secondary', borderColor: 'text.secondary' }}
-        >
+        <Button size="small" variant="outlined" sx={{ color: 'text.secondary', borderColor: 'text.secondary' }}>
           {offerData.paymentApp}
         </Button>
       )}
