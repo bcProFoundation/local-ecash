@@ -135,8 +135,21 @@ const OfferDetail = () => {
     }
   };
 
-  if (_.isEmpty(id) || _.isNil(id) || isError) {
+  if (_.isEmpty(id) || _.isNil(id)) {
     return <div style={{ color: 'white' }}>Invalid offer id</div>;
+  }
+
+  if (isError || (!currentData && !id)) {
+    return (
+      <MobileLayout>
+        <OfferDetailPage>
+          <TickerHeader title="Offer Details" />
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+            <Typography style={{ color: 'white', fontSize: '18px' }}>No offer here</Typography>
+          </div>
+        </OfferDetailPage>
+      </MobileLayout>
+    );
   }
 
   const ListItem = () => {
@@ -214,7 +227,7 @@ const OfferDetail = () => {
     <MobileLayout>
       <OfferDetailPage>
         <TickerHeader
-          title="Offer Detail"
+          title="Offer Details"
           showShareIcon={currentData?.post.postOffer.status !== OfferStatus.Archive}
           postData={currentData?.post}
         />

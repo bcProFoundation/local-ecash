@@ -100,7 +100,8 @@ export function showPriceInfo(
   }
 
   // Case 2: If it's COIN_OTHERS with no price or zero price, don't show
-  if (coinPayment === COIN_OTHERS && (!priceCoinOthers || priceCoinOthers === 0)) {
+  // Note: Compare case-insensitively for robustness
+  if (coinPayment?.toUpperCase() === COIN_OTHERS.toUpperCase() && (!priceCoinOthers || priceCoinOthers === 0)) {
     return false;
   }
 
@@ -148,7 +149,8 @@ export const getCoinRate = ({
 
   // COIN_OTHERS: priceCoinOthers is the price per token in USD (e.g., 1 USD per EAT)
   // We need to convert this USD price to XEC using the USD rate
-  if (coinPayment === COIN_OTHERS && priceCoinOthers && priceCoinOthers > 0) {
+  // Note: coinPayment might be uppercased, so compare case-insensitively
+  if (coinPayment?.toUpperCase() === COIN_OTHERS.toUpperCase() && priceCoinOthers && priceCoinOthers > 0) {
     // Find the USD rate to convert priceCoinOthers (which is in USD) to XEC
     const usdRate = rateData.find((item: { coin?: string; rate?: number }) => item.coin?.toUpperCase() === 'USD')?.rate;
     if (usdRate) {
@@ -176,7 +178,7 @@ export const getCoinRate = ({
 export const convertXECAndCurrency = ({ rateData, paymentInfo, inputAmount }) => {
   if (!rateData || !paymentInfo) return { amountXEC: 0, amountCoinOrCurrency: 0 };
 
-  const { coinPayment, priceGoodsServices, tickerPriceGoodsServices, priceCoinOthers } = paymentInfo;
+  const { coinPayment, priceGoodsServices, tickerPriceGoodsServices, priceCoinOthers, localCurrency } = paymentInfo;
 
   const CONST_AMOUNT_XEC = 1000000; // 1M XEC
   let amountXEC = 0;
@@ -189,11 +191,21 @@ export const convertXECAndCurrency = ({ rateData, paymentInfo, inputAmount }) =>
 
   if (!latestRateXec) return { amountXEC: 0, amountCoinOrCurrency: 0 };
 
-  // If payment is cryptocurrency (not USD stablecoin)
-  if (isGoodsServicesConversion || (coinPayment && coinPayment !== COIN_USD_STABLECOIN_TICKER)) {
+  // For P2P offers, null/undefined coinPayment means XEC (default)
+  const effectiveCoinPayment = coinPayment?.toUpperCase() || 'XEC';
+
+  // Determine if we need fiat conversion based on the display currency
+  // For XEC P2P offers with fiat localCurrency, user enters fiat amount
+  const isXecPaymentWithFiatDisplay =
+    effectiveCoinPayment === 'XEC' &&
+    localCurrency &&
+    localCurrency.toUpperCase() !== 'XEC';
+
+  // If payment is cryptocurrency (not USD stablecoin) AND not XEC with fiat display
+  if ((isGoodsServicesConversion || (effectiveCoinPayment && effectiveCoinPayment !== COIN_USD_STABLECOIN_TICKER)) && !isXecPaymentWithFiatDisplay) {
     const coinRate = getCoinRate({
       isGoodsServicesConversion,
-      coinPayment,
+      coinPayment: effectiveCoinPayment,
       priceGoodsServices,
       priceCoinOthers,
       tickerPriceGoodsServices,
@@ -209,8 +221,23 @@ export const convertXECAndCurrency = ({ rateData, paymentInfo, inputAmount }) =>
     amountCoinOrCurrency = (latestRateXec * CONST_AMOUNT_XEC) / coinRate;
   } else {
     // Convert between XEC and fiat currency
-    amountXEC = inputAmount / latestRateXec; // amount currency to XEC
-    amountCoinOrCurrency = CONST_AMOUNT_XEC * latestRateXec; // amount curreny from 1M XEC
+    // For XEC P2P with fiat display: use localCurrency rate for conversion
+    if (isXecPaymentWithFiatDisplay) {
+      const localCurrencyRate = rateData.find(
+        item => item.coin?.toUpperCase() === localCurrency.toUpperCase()
+      )?.rate;
+      if (localCurrencyRate && localCurrencyRate > 0) {
+        amountXEC = inputAmount * localCurrencyRate; // amount fiat to XEC
+        amountCoinOrCurrency = CONST_AMOUNT_XEC / localCurrencyRate; // amount fiat from 1M XEC
+      } else {
+        // Fallback to generic conversion
+        amountXEC = inputAmount / latestRateXec;
+        amountCoinOrCurrency = CONST_AMOUNT_XEC * latestRateXec;
+      }
+    } else {
+      amountXEC = inputAmount / latestRateXec; // amount currency to XEC
+      amountCoinOrCurrency = CONST_AMOUNT_XEC * latestRateXec; // amount currency from 1M XEC
+    }
   }
 
   return { amountXEC, amountCoinOrCurrency };
