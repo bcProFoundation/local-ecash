@@ -197,12 +197,13 @@ export const convertXECAndCurrency = ({ rateData, paymentInfo, inputAmount }) =>
   // Determine if we need fiat conversion based on the display currency
   // For XEC P2P offers with fiat localCurrency, user enters fiat amount
   const isXecPaymentWithFiatDisplay =
-    effectiveCoinPayment === 'XEC' &&
-    localCurrency &&
-    localCurrency.toUpperCase() !== 'XEC';
+    effectiveCoinPayment === 'XEC' && localCurrency && localCurrency.toUpperCase() !== 'XEC';
 
   // If payment is cryptocurrency (not USD stablecoin) AND not XEC with fiat display
-  if ((isGoodsServicesConversion || (effectiveCoinPayment && effectiveCoinPayment !== COIN_USD_STABLECOIN_TICKER)) && !isXecPaymentWithFiatDisplay) {
+  if (
+    (isGoodsServicesConversion || (effectiveCoinPayment && effectiveCoinPayment !== COIN_USD_STABLECOIN_TICKER)) &&
+    !isXecPaymentWithFiatDisplay
+  ) {
     const coinRate = getCoinRate({
       isGoodsServicesConversion,
       coinPayment: effectiveCoinPayment,
@@ -223,9 +224,7 @@ export const convertXECAndCurrency = ({ rateData, paymentInfo, inputAmount }) =>
     // Convert between XEC and fiat currency
     // For XEC P2P with fiat display: use localCurrency rate for conversion
     if (isXecPaymentWithFiatDisplay) {
-      const localCurrencyRate = rateData.find(
-        item => item.coin?.toUpperCase() === localCurrency.toUpperCase()
-      )?.rate;
+      const localCurrencyRate = rateData.find(item => item.coin?.toUpperCase() === localCurrency.toUpperCase())?.rate;
       if (localCurrencyRate && localCurrencyRate > 0) {
         amountXEC = inputAmount * localCurrencyRate; // amount fiat to XEC
         amountCoinOrCurrency = CONST_AMOUNT_XEC / localCurrencyRate; // amount fiat from 1M XEC

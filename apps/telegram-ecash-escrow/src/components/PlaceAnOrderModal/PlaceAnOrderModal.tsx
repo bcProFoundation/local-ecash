@@ -359,7 +359,12 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     }
 
     return false;
-  }, [isGoodsServices, post?.postOffer?.coinPayment, post?.postOffer?.localCurrency, post?.postOffer?.tickerPriceGoodsServices]);
+  }, [
+    isGoodsServices,
+    post?.postOffer?.coinPayment,
+    post?.postOffer?.localCurrency,
+    post?.postOffer?.tickerPriceGoodsServices
+  ]);
 
   const {
     data: fiatData,
@@ -1015,7 +1020,10 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
       // We need XEC currency entry to get USD→XEC conversion rate
       // This is similar to Goods & Services which also prices in fiat
       // Note: Compare case-insensitively since coinPayment might have different casing
-      if (post?.postOffer?.coinPayment?.toUpperCase() === COIN_OTHERS.toUpperCase() && post?.postOffer?.priceCoinOthers) {
+      if (
+        post?.postOffer?.coinPayment?.toUpperCase() === COIN_OTHERS.toUpperCase() &&
+        post?.postOffer?.priceCoinOthers
+      ) {
         const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
 
         if (xecCurrency?.fiatRates) {
@@ -1084,7 +1092,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
         paymentInfo: post?.postOffer,
         inputAmount: 1
       });
-      
+
       if (xecPerUnit > 0) {
         setAmountXECPerUnitGoodsServices(xecPerUnit);
         // Don't set amountXECGoodsServices - it should remain 0 until user enters an amount
