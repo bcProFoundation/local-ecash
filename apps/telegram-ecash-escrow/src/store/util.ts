@@ -150,9 +150,7 @@ export const getCoinRate = ({
   // We need to convert this USD price to XEC using the USD rate
   if (coinPayment === COIN_OTHERS && priceCoinOthers && priceCoinOthers > 0) {
     // Find the USD rate to convert priceCoinOthers (which is in USD) to XEC
-    const usdRate = rateData.find(
-      (item: { coin?: string; rate?: number }) => item.coin?.toUpperCase() === 'USD'
-    )?.rate;
+    const usdRate = rateData.find((item: { coin?: string; rate?: number }) => item.coin?.toUpperCase() === 'USD')?.rate;
     if (usdRate) {
       // priceCoinOthers = 1 USD per EAT, usdRate = 68027 XEC per USD
       // Return: 1 * 68027 = 68027 XEC per EAT

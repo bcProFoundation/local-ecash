@@ -779,7 +779,11 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
 
     // For Goods & Services conversion, calculate XEC per unit BEFORE applying fees
     // This ensures the price display matches the actual conversion rate
-    const xecPerUnitBeforeFees = isGoodsServicesConversion ? xec / amountNumber : (post?.postOffer?.priceGoodsServices && post?.postOffer?.priceGoodsServices > 0 ? post?.postOffer?.priceGoodsServices : 1);
+    const xecPerUnitBeforeFees = isGoodsServicesConversion
+      ? xec / amountNumber
+      : post?.postOffer?.priceGoodsServices && post?.postOffer?.priceGoodsServices > 0
+        ? post?.postOffer?.priceGoodsServices
+        : 1;
 
     //cals fee
     const feeSats = XPI.BitcoinCash.getByteCount({ P2PKH: 5 }, { P2PKH: 1, P2SH: 1 }) * coinInfo[COIN.XEC].defaultFee; // assume worst case input is 5, because we estimate from buyer, so we don't know input of seller
@@ -962,7 +966,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
       // This is similar to Goods & Services which also prices in fiat
       if (post?.postOffer?.coinPayment === COIN_OTHERS && post?.postOffer?.priceCoinOthers) {
         const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
-        
+
         if (xecCurrency?.fiatRates) {
           const transformedRates = transformFiatRates(xecCurrency.fiatRates);
           setRateData(transformedRates);

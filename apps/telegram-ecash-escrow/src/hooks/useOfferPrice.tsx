@@ -175,7 +175,14 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
         setRateData(null);
       }
     }
-  }, [paymentInfo?.localCurrency, paymentInfo?.coinPayment, paymentInfo?.priceCoinOthers, fiatData, isGoodsServices, isXECOffer]);
+  }, [
+    paymentInfo?.localCurrency,
+    paymentInfo?.coinPayment,
+    paymentInfo?.priceCoinOthers,
+    fiatData,
+    isGoodsServices,
+    isXECOffer
+  ]);
 
   React.useEffect(() => {
     if (!rateData) {
