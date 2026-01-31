@@ -18,16 +18,6 @@ type UseOfferPriceOpts = {
 };
 
 export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOfferPriceOpts) {
-  // Debug: Log the input paymentInfo
-  React.useEffect(() => {
-    console.log('useOfferPrice INPUT:', {
-      coinPayment: paymentInfo?.coinPayment,
-      localCurrency: paymentInfo?.localCurrency,
-      paymentMethodId: paymentInfo?.paymentMethods?.[0]?.paymentMethod?.id,
-      marginPercentage: paymentInfo?.marginPercentage
-    });
-  }, [paymentInfo]);
-
   // Get fiat rates from GraphQL API with cache reuse
   // We need rates for: Goods & Services, XEC offers (coinPayment null + localCurrency set), or crypto offers
   const needsFiatRates = React.useMemo(() => {
@@ -116,7 +106,6 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
           const transformedRates = transformFiatRates(constructedRates);
           setRateData(transformedRates);
         } else {
-          console.log('useOfferPrice: No XEC currency data found', fiatData);
           setRateData(null);
         }
       }
@@ -146,11 +135,6 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
       const currency = (paymentInfo?.localCurrency ?? 'USD').toUpperCase();
       const currencyData = fiatData?.getAllFiatRate?.find(item => item.currency?.toUpperCase() === currency);
 
-      console.log('useOfferPrice XEC offer: Looking for currency', currency, {
-        found: !!currencyData,
-        availableCurrencies: fiatData?.getAllFiatRate?.map(item => item.currency)?.slice(0, 10)
-      });
-
       if (currencyData?.fiatRates) {
         // Find XEC rate directly - DO NOT transform/invert
         const xecRateEntry = currencyData.fiatRates.find(r => r.coin?.toLowerCase() === 'xec');
@@ -162,7 +146,6 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
           setRateData(null);
         }
       } else {
-        console.log('useOfferPrice XEC offer: No currency data found for', currency);
         setRateData(null);
       }
     } else {
@@ -174,7 +157,6 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
         const transformedRates = transformFiatRates(currencyData.fiatRates);
         setRateData(transformedRates);
       } else {
-        console.log('useOfferPrice: No currency data found for', currency);
         setRateData(null);
       }
     }
@@ -189,19 +171,8 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
 
   React.useEffect(() => {
     if (!rateData) {
-      console.log('useOfferPrice: No rateData available', {
-        coinPayment: paymentInfo?.coinPayment,
-        localCurrency: paymentInfo?.localCurrency
-      });
       return;
     }
-
-    console.log('useOfferPrice: Processing rateData', {
-      isXECOffer,
-      coinPayment: paymentInfo?.coinPayment,
-      localCurrency: paymentInfo?.localCurrency,
-      rateDataLength: rateData?.length
-    });
 
     // Special handling for XEC offers to show Fiat price
     if (isXECOffer) {
@@ -211,30 +182,16 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
 
       const xecRateEntry = rateData.find(item => item.coin?.toLowerCase() === 'xec');
 
-      console.log('useOfferPrice XEC offer calculation:', {
-        localCurrency: paymentInfo?.localCurrency,
-        xecRateEntry,
-        isRawRate: xecRateEntry?.isRawRate
-      });
-
       if (xecRateEntry && xecRateEntry.rate && xecRateEntry.rate > 0) {
         // Rate is already "1 XEC = X local currency" - just multiply by 1M
         const priceOf1XECInLocalCurrency = xecRateEntry.rate;
         const priceOf1MXECInLocalCurrency = priceOf1XECInLocalCurrency * 1000000;
-
-        console.log('useOfferPrice XEC calculation result:', {
-          priceOf1XECInLocalCurrency,
-          priceOf1MXECInLocalCurrency,
-          coinCurrency
-        });
 
         setAmountXECGoodsServices(1); // 1 XEC
         setAmountPer1MXEC(
           formatAmountFor1MXEC(priceOf1MXECInLocalCurrency, paymentInfo?.marginPercentage, coinCurrency, isBuyOffer)
         );
         return;
-      } else {
-        console.log('useOfferPrice: XEC rate not found in rate data');
       }
     }
 
