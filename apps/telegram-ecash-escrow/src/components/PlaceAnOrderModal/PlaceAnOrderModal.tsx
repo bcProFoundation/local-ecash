@@ -809,7 +809,9 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     // Use the ORIGINAL conversion rate (before fees) so price display is accurate
     setAmountXECPerUnitGoodsServices(xecPerUnitBeforeFees);
     setAmountXECGoodsServices(xecPerUnitBeforeFees * amountNumber);
-    setTextAmountPer1MXEC(formatAmountFor1MXEC(amountCoinOrCurrency, post?.postOffer?.marginPercentage, coinCurrency));
+    setTextAmountPer1MXEC(
+      formatAmountFor1MXEC(amountCoinOrCurrency, post?.postOffer?.marginPercentage, coinCurrency, isBuyOffer)
+    );
   };
 
   const handleCreateOrderBeforeConfirm = async () => {

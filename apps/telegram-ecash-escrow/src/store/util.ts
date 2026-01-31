@@ -216,14 +216,22 @@ export const convertXECAndCurrency = ({ rateData, paymentInfo, inputAmount }) =>
   return { amountXEC, amountCoinOrCurrency };
 };
 
-export function formatAmountFor1MXEC(amount, marginPercentage = 0, coinCurrency = '') {
+export function formatAmountFor1MXEC(amount, marginPercentage = 0, coinCurrency = '', isBuyOffer = true) {
   if (amount === undefined || amount === null) return '';
 
-  // Apply margin percentage
-  // Positive margin = maker's profit = taker gets LESS tokens per XEC
-  // Formula: amount / (1 + margin/100)
-  // Example: 9.44 EAT at 5% margin → 9.44 / 1.05 = 8.99 EAT per 1M XEC
-  const amountWithMargin = amount / (1 + marginPercentage / 100);
+  // Apply margin percentage based on offer type
+  // For BUY offers (maker buys XEC): Positive margin = maker pays MORE per XEC = price per 1M XEC is LOWER (taker receives less)
+  //   Formula: amount / (1 + margin/100)
+  // For SELL offers (maker sells XEC): Positive margin = maker wants MORE per XEC = price per 1M XEC is HIGHER
+  //   Formula: amount * (1 + margin/100)
+  let amountWithMargin;
+  if (isBuyOffer) {
+    // BUY offer: Higher margin = lower price display (taker gets less per XEC they sell)
+    amountWithMargin = amount / (1 + marginPercentage / 100);
+  } else {
+    // SELL offer: Higher margin = higher price display (taker pays more per XEC they buy)
+    amountWithMargin = amount * (1 + marginPercentage / 100);
+  }
 
   // Format the number according to rules
   let formattedAmount;

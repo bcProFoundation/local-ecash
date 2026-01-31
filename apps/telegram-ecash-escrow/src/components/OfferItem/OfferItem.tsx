@@ -360,7 +360,8 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
                 <span>
                   ~ <span style={{ fontWeight: 'bold' }}>{amountPer1MXEC}</span>
                 </span>{' '}
-                ( Market price +{post?.postOffer?.marginPercentage ?? 0}% )
+                ( Market price {(post?.postOffer?.marginPercentage ?? 0) >= 0 ? '+' : ''}
+                {post?.postOffer?.marginPercentage ?? 0}% )
               </>
             ) : (
               // Show simple market price

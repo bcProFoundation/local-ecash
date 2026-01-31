@@ -7,7 +7,7 @@ import {
   transformFiatRates
 } from '@/src/utils';
 import { PAYMENT_METHOD, getTickerText } from '@bcpros/lixi-models';
-import { fiatCurrencyApi } from '@bcpros/redux-store';
+import { OfferType, fiatCurrencyApi } from '@bcpros/redux-store';
 import React from 'react';
 
 const { useGetAllFiatRateQuery } = fiatCurrencyApi;
@@ -55,6 +55,9 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
     () => paymentInfo?.paymentMethods?.[0]?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES,
     [paymentInfo]
   );
+
+  // Determine if this is a BUY offer (maker wants to buy XEC) or SELL offer (maker wants to sell XEC)
+  const isBuyOffer = React.useMemo(() => paymentInfo?.type === OfferType.Buy, [paymentInfo]);
 
   // An "XEC offer" is when someone trades XEC for fiat currency.
   // In this case, coinPayment is null/undefined (XEC is the base currency) and localCurrency is set.
@@ -227,7 +230,7 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
 
         setAmountXECGoodsServices(1); // 1 XEC
         setAmountPer1MXEC(
-          formatAmountFor1MXEC(priceOf1MXECInLocalCurrency, paymentInfo?.marginPercentage, coinCurrency)
+          formatAmountFor1MXEC(priceOf1MXECInLocalCurrency, paymentInfo?.marginPercentage, coinCurrency, isBuyOffer)
         );
         return;
       } else {
@@ -253,8 +256,10 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
         : 1; // Default to 1 XEC for legacy offers without price
 
     setAmountXECGoodsServices(displayPrice);
-    setAmountPer1MXEC(formatAmountFor1MXEC(amountCoinOrCurrency, paymentInfo?.marginPercentage, coinCurrency));
-  }, [rateData, paymentInfo, inputAmount, isGoodsServicesConversion, coinCurrency, isXECOffer]);
+    setAmountPer1MXEC(
+      formatAmountFor1MXEC(amountCoinOrCurrency, paymentInfo?.marginPercentage, coinCurrency, isBuyOffer)
+    );
+  }, [rateData, paymentInfo, inputAmount, isGoodsServicesConversion, coinCurrency, isXECOffer, isBuyOffer]);
 
   return {
     showPrice,
