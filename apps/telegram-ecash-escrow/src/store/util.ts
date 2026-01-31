@@ -141,12 +141,24 @@ export const getCoinRate = ({
     )?.rate;
     if (tickerRate && priceGoodsServices && priceGoodsServices > 0) {
       // Return the fiat currency rate multiplied by the price
-      // E.g., if 1 USD = 0.00002 XEC and item costs 1 USD, return 0.00002
+      // E.g., if 1 USD = 68027 XEC and item costs 1 USD, return 68027
       return tickerRate * priceGoodsServices;
     }
   }
 
+  // COIN_OTHERS: priceCoinOthers is the price per token in USD (e.g., 1 USD per EAT)
+  // We need to convert this USD price to XEC using the USD rate
   if (coinPayment === COIN_OTHERS && priceCoinOthers && priceCoinOthers > 0) {
+    // Find the USD rate to convert priceCoinOthers (which is in USD) to XEC
+    const usdRate = rateData.find(
+      (item: { coin?: string; rate?: number }) => item.coin?.toUpperCase() === 'USD'
+    )?.rate;
+    if (usdRate) {
+      // priceCoinOthers = 1 USD per EAT, usdRate = 68027 XEC per USD
+      // Return: 1 * 68027 = 68027 XEC per EAT
+      return usdRate * priceCoinOthers;
+    }
+    // Fallback if no USD rate found (shouldn't happen with valid fiat data)
     return priceCoinOthers;
   }
 
@@ -210,7 +222,10 @@ export function formatAmountFor1MXEC(amount, marginPercentage = 0, coinCurrency 
   if (amount === undefined || amount === null) return '';
 
   // Apply margin percentage
-  const amountWithMargin = amount * (1 + marginPercentage / 100);
+  // Positive margin = maker's profit = taker gets LESS tokens per XEC
+  // Formula: amount / (1 + margin/100)
+  // Example: 9.44 EAT at 5% margin → 9.44 / 1.05 = 8.99 EAT per 1M XEC
+  const amountWithMargin = amount / (1 + marginPercentage / 100);
 
   // Format the number according to rules
   let formattedAmount;

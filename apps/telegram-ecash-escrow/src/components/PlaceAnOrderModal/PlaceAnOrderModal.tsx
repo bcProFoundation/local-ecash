@@ -1,7 +1,7 @@
 'use client';
 
 import FiatRateErrorBanner from '@/src/components/Common/FiatRateErrorBanner';
-import { DEFAULT_TICKER_GOODS_SERVICES } from '@/src/store/constants';
+import { COIN_OTHERS, DEFAULT_TICKER_GOODS_SERVICES } from '@/src/store/constants';
 import { LIST_BANK } from '@/src/store/constants/list-bank';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { UtxoContext } from '@/src/store/context/utxoProvider';
@@ -777,6 +777,10 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     let amountXEC = xec;
     let amountCoinOrCurrency = coinOrCurrency;
 
+    // For Goods & Services conversion, calculate XEC per unit BEFORE applying fees
+    // This ensures the price display matches the actual conversion rate
+    const xecPerUnitBeforeFees = isGoodsServicesConversion ? xec / amountNumber : (post?.postOffer?.priceGoodsServices && post?.postOffer?.priceGoodsServices > 0 ? post?.postOffer?.priceGoodsServices : 1);
+
     //cals fee
     const feeSats = XPI.BitcoinCash.getByteCount({ P2PKH: 5 }, { P2PKH: 1, P2SH: 1 }) * coinInfo[COIN.XEC].defaultFee; // assume worst case input is 5, because we estimate from buyer, so we don't know input of seller
     const feeAmount = parseFloat((feeSats / Math.pow(10, coinInfo[COIN.XEC].cashDecimals)).toFixed(2));
@@ -798,14 +802,9 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     amountXecRounded > 0 ? setAmountXEC(amountXecRounded) : setAmountXEC(0);
 
     // Calculate XEC per unit for Goods & Services
-    // For legacy offers without priceGoodsServices, default to 1 XEC
-    const legacyPrice =
-      post?.postOffer?.priceGoodsServices && post?.postOffer?.priceGoodsServices > 0
-        ? post?.postOffer?.priceGoodsServices
-        : 1;
-    const xecPerUnit = isGoodsServicesConversion ? amountXEC / amountNumber : legacyPrice;
-    setAmountXECPerUnitGoodsServices(xecPerUnit);
-    setAmountXECGoodsServices(xecPerUnit * amountNumber);
+    // Use the ORIGINAL conversion rate (before fees) so price display is accurate
+    setAmountXECPerUnitGoodsServices(xecPerUnitBeforeFees);
+    setAmountXECGoodsServices(xecPerUnitBeforeFees * amountNumber);
     setTextAmountPer1MXEC(formatAmountFor1MXEC(amountCoinOrCurrency, post?.postOffer?.marginPercentage, coinCurrency));
   };
 
@@ -954,6 +953,36 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
         ]);
         if (process.env.NODE_ENV !== 'production') {
           console.log('📊 Using identity rate for pure XEC offer');
+        }
+        return;
+      }
+
+      // COIN_OTHERS (custom crypto like EAT): priceCoinOthers is in USD
+      // We need XEC currency entry to get USD→XEC conversion rate
+      // This is similar to Goods & Services which also prices in fiat
+      if (post?.postOffer?.coinPayment === COIN_OTHERS && post?.postOffer?.priceCoinOthers) {
+        const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
+        
+        if (xecCurrency?.fiatRates) {
+          const transformedRates = transformFiatRates(xecCurrency.fiatRates);
+          setRateData(transformedRates);
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('📊 Fiat rates loaded for COIN_OTHERS Offer:', {
+              coinOthers: post?.postOffer?.coinOthers,
+              priceCoinOthers: post?.postOffer?.priceCoinOthers,
+              transformedRatesCount: transformedRates?.length || 0,
+              usdRate: transformedRates?.find(r => r.coin?.toUpperCase() === 'USD')?.rate
+            });
+          }
+        } else {
+          // Fallback: construct XEC rates from fiat currencies
+          const constructedRates = constructXECRatesFromFiatCurrencies(fiatData?.getAllFiatRate);
+          if (constructedRates) {
+            const transformedRates = transformFiatRates(constructedRates);
+            setRateData(transformedRates);
+          } else {
+            setRateData(null);
+          }
         }
         return;
       }
@@ -1150,12 +1179,10 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                   )}
                 />
                 <Typography component={'div'} className="text-receive-amount">
-                  {/* Show 5.46 XEC error for crypto offers OR for Goods & Services when total is too low */}
-                  {(!isGoodsServices && amountXEC < 5.46) ||
-                  (isGoodsServices && amountXECGoodsServices > 0 && amountXECGoodsServices < 5.46)
-                    ? isGoodsServices
-                      ? `Total amount (${formatNumber(amountXECGoodsServices)} XEC) is less than minimum 5.46 XEC. Try increasing the quantity.`
-                      : 'You need to buy amount greater than 5.46 XEC'
+                  {/* Show 5.46 XEC error ONLY for Goods & Services when total is too low */}
+                  {/* For crypto offers, the 5.46 XEC minimum is enforced in validation but message is hidden to avoid confusion */}
+                  {isGoodsServices && amountXECGoodsServices > 0 && amountXECGoodsServices < 5.46
+                    ? `Total amount (${formatNumber(amountXECGoodsServices)} XEC) is less than minimum 5.46 XEC. Try increasing the quantity.`
                     : showPrice && (
                         <div>
                           You will {isBuyOffer ? 'send' : 'receive'}{' '}
