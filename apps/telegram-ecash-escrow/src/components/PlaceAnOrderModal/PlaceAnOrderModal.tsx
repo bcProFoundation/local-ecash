@@ -930,7 +930,20 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     // For Goods & Services: Always use XEC fiat rates (price is in fiat, need to convert to XEC)
     // For Crypto Offers: Use the selected fiat currency from localCurrency (user's choice)
     if (isGoodsServices) {
-      // Goods & Services: Find XEC currency and get its fiat rates
+      // Check if Goods & Services is priced in XEC (no conversion needed)
+      if (post?.postOffer?.tickerPriceGoodsServices?.toUpperCase() === 'XEC') {
+        // Set identity rate data (1 XEC = 1 XEC) - no fiat conversion needed
+        setRateData([
+          { coin: 'XEC', rate: 1, ts: Date.now() },
+          { coin: 'xec', rate: 1, ts: Date.now() }
+        ]);
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('📊 Using identity rate for XEC-priced Goods & Services');
+        }
+        return;
+      }
+
+      // Goods & Services priced in fiat: Find XEC currency and get its fiat rates
       const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
 
       if (xecCurrency?.fiatRates) {
