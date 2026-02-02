@@ -253,7 +253,9 @@ export function formatAmountFor1MXEC(amount, marginPercentage = 0, coinCurrency 
   let amountWithMargin;
   if (isBuyOffer) {
     // BUY offer: Higher margin = lower price display (taker gets less per XEC they sell)
-    amountWithMargin = amount / (1 + marginPercentage / 100);
+    // Guard against divide-by-zero when marginPercentage === -100
+    const divisor = 1 + marginPercentage / 100;
+    amountWithMargin = divisor !== 0 ? amount / divisor : amount;
   } else {
     // SELL offer: Higher margin = higher price display (taker pays more per XEC they buy)
     amountWithMargin = amount * (1 + marginPercentage / 100);

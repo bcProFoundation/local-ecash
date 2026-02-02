@@ -110,7 +110,7 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
         }
       }
     } else if (
-      paymentInfo?.coinPayment?.toLowerCase() === PAYMENT_METHOD.COIN_OTHERS.toLowerCase() &&
+      paymentInfo?.coinPayment?.toLowerCase() === 'others' &&
       paymentInfo?.priceCoinOthers
     ) {
       // COIN_OTHERS (custom crypto like EAT): priceCoinOthers is in USD

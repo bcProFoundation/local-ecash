@@ -78,7 +78,7 @@ const OfferDetail = () => {
   const [value, setValue] = useState<TabType>(TabType.PENDING);
   const [orderStatus, setOrderStatus] = useState<EscrowOrderStatus>(EscrowOrderStatus.Pending);
 
-  const { currentData, isError } = usePostQuery({ id: id! }, { skip: !id });
+  const { currentData, isError, isFetching } = usePostQuery({ id: id! }, { skip: !id });
   const {
     data: escrowOrdersData,
     hasNext: hasNextEscrowOrders,
@@ -139,7 +139,7 @@ const OfferDetail = () => {
     return <div style={{ color: 'white' }}>Invalid offer id</div>;
   }
 
-  if (isError || (!currentData && !id)) {
+  if (isError || (!isFetching && !currentData?.post?.postOffer)) {
     return (
       <MobileLayout>
         <OfferDetailPage>
