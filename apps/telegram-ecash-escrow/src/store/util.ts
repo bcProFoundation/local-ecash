@@ -158,8 +158,8 @@ export const getCoinRate = ({
       // Return: 1 * 68027 = 68027 XEC per EAT
       return usdRate * priceCoinOthers;
     }
-    // Fallback if no USD rate found (shouldn't happen with valid fiat data)
-    return priceCoinOthers;
+    // If no USD rate is found, return undefined so callers can handle the missing rate safely
+    return undefined;
   }
 
   // Case-insensitive comparison to handle both uppercase and lowercase coin codes
