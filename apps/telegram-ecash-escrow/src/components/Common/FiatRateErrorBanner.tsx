@@ -44,6 +44,9 @@ export default function FiatRateErrorBanner({
     // If goodsServicesOnly is true, don't show banner for non-G&S offers
     if (goodsServicesOnly && !tickerPriceGoodsServices) return false;
 
+    // Don't show banner for XEC-priced offers (no conversion needed)
+    if (tickerPriceGoodsServices?.toUpperCase() === 'XEC') return false;
+
     // Check for no data
     const hasNoData = fiatRateError || !fiatData?.getAllFiatRate || fiatData?.getAllFiatRate?.length === 0;
     if (hasNoData) return true;

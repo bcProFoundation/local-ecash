@@ -69,7 +69,8 @@ const OrderDetailInfo = ({ key, post }: { key: string; post: Post }) => {
             <span>
               ~ <span style={{ fontWeight: 'bold' }}>{amountPer1MXEC}</span>
             </span>{' '}
-            ( Market price +{post?.offer?.marginPercentage ?? 0}% )
+            ( Market price {(post?.offer?.marginPercentage ?? 0) >= 0 ? '+' : ''}
+            {post?.offer?.marginPercentage ?? 0}% )
           </>
         ) : (
           <>Market price</>

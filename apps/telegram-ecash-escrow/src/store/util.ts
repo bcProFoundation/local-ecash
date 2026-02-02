@@ -100,7 +100,8 @@ export function showPriceInfo(
   }
 
   // Case 2: If it's COIN_OTHERS with no price or zero price, don't show
-  if (coinPayment === COIN_OTHERS && (!priceCoinOthers || priceCoinOthers === 0)) {
+  // Note: Compare case-insensitively for robustness
+  if (coinPayment?.toUpperCase() === COIN_OTHERS.toUpperCase() && (!priceCoinOthers || priceCoinOthers === 0)) {
     return false;
   }
 
@@ -141,13 +142,24 @@ export const getCoinRate = ({
     )?.rate;
     if (tickerRate && priceGoodsServices && priceGoodsServices > 0) {
       // Return the fiat currency rate multiplied by the price
-      // E.g., if 1 USD = 0.00002 XEC and item costs 1 USD, return 0.00002
+      // E.g., if 1 USD = 68027 XEC and item costs 1 USD, return 68027
       return tickerRate * priceGoodsServices;
     }
   }
 
-  if (coinPayment === COIN_OTHERS && priceCoinOthers && priceCoinOthers > 0) {
-    return priceCoinOthers;
+  // COIN_OTHERS: priceCoinOthers is the price per token in USD (e.g., 1 USD per EAT)
+  // We need to convert this USD price to XEC using the USD rate
+  // Note: coinPayment might be uppercased, so compare case-insensitively
+  if (coinPayment?.toUpperCase() === COIN_OTHERS.toUpperCase() && priceCoinOthers && priceCoinOthers > 0) {
+    // Find the USD rate to convert priceCoinOthers (which is in USD) to XEC
+    const usdRate = rateData.find((item: { coin?: string; rate?: number }) => item.coin?.toUpperCase() === 'USD')?.rate;
+    if (usdRate) {
+      // priceCoinOthers = 1 USD per EAT, usdRate = 68027 XEC per USD
+      // Return: 1 * 68027 = 68027 XEC per EAT
+      return usdRate * priceCoinOthers;
+    }
+    // If no USD rate is found, return undefined so callers can handle the missing rate safely
+    return undefined;
   }
 
   // Case-insensitive comparison to handle both uppercase and lowercase coin codes
@@ -166,7 +178,7 @@ export const getCoinRate = ({
 export const convertXECAndCurrency = ({ rateData, paymentInfo, inputAmount }) => {
   if (!rateData || !paymentInfo) return { amountXEC: 0, amountCoinOrCurrency: 0 };
 
-  const { coinPayment, priceGoodsServices, tickerPriceGoodsServices, priceCoinOthers } = paymentInfo;
+  const { coinPayment, priceGoodsServices, tickerPriceGoodsServices, priceCoinOthers, localCurrency } = paymentInfo;
 
   const CONST_AMOUNT_XEC = 1000000; // 1M XEC
   let amountXEC = 0;
@@ -179,11 +191,22 @@ export const convertXECAndCurrency = ({ rateData, paymentInfo, inputAmount }) =>
 
   if (!latestRateXec) return { amountXEC: 0, amountCoinOrCurrency: 0 };
 
-  // If payment is cryptocurrency (not USD stablecoin)
-  if (isGoodsServicesConversion || (coinPayment && coinPayment !== COIN_USD_STABLECOIN_TICKER)) {
+  // For P2P offers, null/undefined coinPayment means XEC (default)
+  const effectiveCoinPayment = coinPayment?.toUpperCase() || 'XEC';
+
+  // Determine if we need fiat conversion based on the display currency
+  // For XEC P2P offers with fiat localCurrency, user enters fiat amount
+  const isXecPaymentWithFiatDisplay =
+    effectiveCoinPayment === 'XEC' && localCurrency && localCurrency.toUpperCase() !== 'XEC';
+
+  // If payment is cryptocurrency (not USD stablecoin) AND not XEC with fiat display
+  if (
+    (isGoodsServicesConversion || (effectiveCoinPayment && effectiveCoinPayment !== COIN_USD_STABLECOIN_TICKER)) &&
+    !isXecPaymentWithFiatDisplay
+  ) {
     const coinRate = getCoinRate({
       isGoodsServicesConversion,
-      coinPayment,
+      coinPayment: effectiveCoinPayment,
       priceGoodsServices,
       priceCoinOthers,
       tickerPriceGoodsServices,
@@ -199,18 +222,44 @@ export const convertXECAndCurrency = ({ rateData, paymentInfo, inputAmount }) =>
     amountCoinOrCurrency = (latestRateXec * CONST_AMOUNT_XEC) / coinRate;
   } else {
     // Convert between XEC and fiat currency
-    amountXEC = inputAmount / latestRateXec; // amount currency to XEC
-    amountCoinOrCurrency = CONST_AMOUNT_XEC * latestRateXec; // amount curreny from 1M XEC
+    // For XEC P2P with fiat display: use localCurrency rate for conversion
+    if (isXecPaymentWithFiatDisplay) {
+      const localCurrencyRate = rateData.find(item => item.coin?.toUpperCase() === localCurrency.toUpperCase())?.rate;
+      if (localCurrencyRate && localCurrencyRate > 0) {
+        amountXEC = inputAmount * localCurrencyRate; // amount fiat to XEC
+        amountCoinOrCurrency = CONST_AMOUNT_XEC / localCurrencyRate; // amount fiat from 1M XEC
+      } else {
+        // Fallback to generic conversion
+        amountXEC = inputAmount / latestRateXec;
+        amountCoinOrCurrency = CONST_AMOUNT_XEC * latestRateXec;
+      }
+    } else {
+      amountXEC = inputAmount / latestRateXec; // amount currency to XEC
+      amountCoinOrCurrency = CONST_AMOUNT_XEC * latestRateXec; // amount currency from 1M XEC
+    }
   }
 
   return { amountXEC, amountCoinOrCurrency };
 };
 
-export function formatAmountFor1MXEC(amount, marginPercentage = 0, coinCurrency = '') {
+export function formatAmountFor1MXEC(amount, marginPercentage = 0, coinCurrency = '', isBuyOffer = true) {
   if (amount === undefined || amount === null) return '';
 
-  // Apply margin percentage
-  const amountWithMargin = amount * (1 + marginPercentage / 100);
+  // Apply margin percentage based on offer type
+  // For BUY offers (maker buys XEC): Positive margin = maker pays MORE per XEC = price per 1M XEC is LOWER (taker receives less)
+  //   Formula: amount / (1 + margin/100)
+  // For SELL offers (maker sells XEC): Positive margin = maker wants MORE per XEC = price per 1M XEC is HIGHER
+  //   Formula: amount * (1 + margin/100)
+  let amountWithMargin;
+  if (isBuyOffer) {
+    // BUY offer: Higher margin = lower price display (taker gets less per XEC they sell)
+    // Guard against divide-by-zero when marginPercentage === -100
+    const divisor = 1 + marginPercentage / 100;
+    amountWithMargin = divisor !== 0 ? amount / divisor : amount;
+  } else {
+    // SELL offer: Higher margin = higher price display (taker pays more per XEC they buy)
+    amountWithMargin = amount * (1 + marginPercentage / 100);
+  }
 
   // Format the number according to rules
   let formattedAmount;

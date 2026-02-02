@@ -193,7 +193,8 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
               <span>
                 ~ <span style={{ fontWeight: 'bold' }}>{amountPer1MXEC}</span>
               </span>{' '}
-              ( Market price +{offerData?.marginPercentage}% )
+              ( Market price {(offerData?.marginPercentage ?? 0) >= 0 ? '+' : ''}
+              {offerData?.marginPercentage ?? 0}% )
             </>
           ) : (
             <>Market price</>

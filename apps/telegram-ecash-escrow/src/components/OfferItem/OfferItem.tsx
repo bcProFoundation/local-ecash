@@ -78,24 +78,46 @@ const CardWrapper = styled(Card)(({ theme }) => ({
   }
 }));
 
-export const BuyButtonStyled = styled(Button)(({ theme }) => ({
-  display: 'flex',
-  gap: 8,
-  fontWeight: 600,
-  margin: 0,
-  background: '#0076c4',
-  width: 'fit-content',
-  filter: 'drop-shadow(0px 0px 3px #0076c4)',
-  color: 'white',
-  boxShadow: 'none',
-  borderRadius: '12px',
-  fontSize: '13px',
+export const BuyButtonStyled = styled(Button, {
+  shouldForwardProp: prop => prop !== 'actionType'
+})<{ actionType?: 'buy' | 'sell' }>(({ theme, actionType }) => {
+  let bgColor = '#0076c4';
+  let shadowColor = '#0076c4';
+  let hoverColor = '#005c99';
 
-  '&:disabled': {
-    backgroundColor: theme.palette.action.disabledBackground,
-    color: theme.palette.action.disabled
+  if (actionType === 'sell') {
+    bgColor = theme.palette.error.main;
+    shadowColor = theme.palette.error.main;
+    hoverColor = theme.palette.error.dark;
+  } else if (actionType === 'buy') {
+    bgColor = theme.palette.success.main;
+    shadowColor = theme.palette.success.main;
+    hoverColor = theme.palette.success.dark;
   }
-}));
+
+  return {
+    display: 'flex',
+    gap: 8,
+    fontWeight: 600,
+    margin: 0,
+    background: bgColor,
+    width: 'fit-content',
+    filter: `drop-shadow(0px 0px 3px ${shadowColor})`,
+    color: 'white',
+    boxShadow: 'none',
+    borderRadius: '12px',
+    fontSize: '13px',
+
+    '&:hover': {
+      backgroundColor: hoverColor
+    },
+
+    '&:disabled': {
+      backgroundColor: theme.palette.action.disabledBackground,
+      color: theme.palette.action.disabled
+    }
+  };
+});
 
 const OfferShowWrapItem = styled('div')(({ theme }) => ({
   backdropFilter: 'blur(4px)',
@@ -260,25 +282,30 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
         offerData.paymentMethods?.length > 0 &&
         offerData.paymentMethods.map(item => {
           return (
-            <Button size="small" color="success" variant="outlined" key={item.paymentMethod.name}>
+            <Button
+              size="small"
+              variant="outlined"
+              key={item.paymentMethod.name}
+              sx={{ color: 'text.secondary', borderColor: 'text.secondary' }}
+            >
               {item.paymentMethod.name}
             </Button>
           );
         })}
 
       {(offerData?.coinPayment === COIN_USD_STABLECOIN_TICKER || offerData?.coinPayment === COIN_OTHERS) && (
-        <Button size="small" color="success" variant="outlined">
+        <Button size="small" variant="outlined" sx={{ color: 'text.secondary', borderColor: 'text.secondary' }}>
           {offerData.coinPayment === COIN_USD_STABLECOIN_TICKER ? COIN_USD_STABLECOIN : COIN_OTHERS}
         </Button>
       )}
 
       {offerData?.coinOthers && (
-        <Button size="small" color="success" variant="outlined">
+        <Button size="small" variant="outlined" sx={{ color: 'text.secondary', borderColor: 'text.secondary' }}>
           {offerData.coinOthers}
         </Button>
       )}
       {offerData?.paymentApp && (
-        <Button size="small" color="success" variant="outlined">
+        <Button size="small" variant="outlined" sx={{ color: 'text.secondary', borderColor: 'text.secondary' }}>
           {offerData.paymentApp}
         </Button>
       )}
@@ -317,7 +344,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
             <span className="prefix">Price: </span>
             {isGoodsServices ? (
               // Goods/Services display
-              <>
+              <span style={{ fontWeight: 'bold' }}>
                 {formatNumber(amountXECGoodsServices)} XEC / {GOODS_SERVICES_UNIT}{' '}
                 {offerData?.priceGoodsServices &&
                 (offerData?.tickerPriceGoodsServices ?? DEFAULT_TICKER_GOODS_SERVICES) !==
@@ -326,21 +353,26 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
                     ({offerData.priceGoodsServices} {offerData.tickerPriceGoodsServices ?? 'USD'})
                   </span>
                 ) : null}
-              </>
+              </span>
             ) : showPrice ? (
               // Show detailed price
               <>
                 <span>
                   ~ <span style={{ fontWeight: 'bold' }}>{amountPer1MXEC}</span>
                 </span>{' '}
-                ( Market price +{post?.postOffer?.marginPercentage ?? 0}% )
+                ( Market price {(post?.postOffer?.marginPercentage ?? 0) >= 0 ? '+' : ''}
+                {post?.postOffer?.marginPercentage ?? 0}% )
               </>
             ) : (
               // Show simple market price
               <>Market price</>
             )}
           </Typography>
-          <BuyButtonStyled variant="contained" onClick={e => handleBuyClick(e)}>
+          <BuyButtonStyled
+            variant="contained"
+            onClick={e => handleBuyClick(e)}
+            actionType={takerButtonLabel === 'Sell' ? 'sell' : 'buy'}
+          >
             {takerButtonLabel}
             {!isGoodsServices && <Image width={25} height={25} src="/eCash.svg" alt="" />}
           </BuyButtonStyled>

@@ -1,7 +1,7 @@
 'use client';
 
 import FiatRateErrorBanner from '@/src/components/Common/FiatRateErrorBanner';
-import { DEFAULT_TICKER_GOODS_SERVICES } from '@/src/store/constants';
+import { COIN_OTHERS, DEFAULT_TICKER_GOODS_SERVICES } from '@/src/store/constants';
 import { LIST_BANK } from '@/src/store/constants/list-bank';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { UtxoContext } from '@/src/store/context/utxoProvider';
@@ -338,12 +338,33 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   // Lazy load fiat rates - will use cached data from Shopping page if available
   // Skip fetching entirely if this is a pure XEC offer (no conversion needed)
   const needsFiatRates = useMemo(() => {
-    // Goods & Services always need fiat rates (priced in fiat, convert to XEC)
-    if (isGoodsServices) return true;
+    // Goods & Services: Need fiat rates only if priced in fiat (not XEC)
+    if (isGoodsServices) {
+      return post?.postOffer?.tickerPriceGoodsServices?.toUpperCase() !== 'XEC';
+    }
 
-    // Crypto P2P offers need fiat rates if coinPayment is not XEC (case-insensitive)
-    return post?.postOffer?.coinPayment && post.postOffer.coinPayment.toUpperCase() !== 'XEC';
-  }, [isGoodsServices, post?.postOffer?.coinPayment]);
+    // For P2P offers, null/undefined coinPayment means XEC (default)
+    const effectiveCoinPayment = post?.postOffer?.coinPayment?.toUpperCase() || 'XEC';
+
+    // Crypto P2P offers need fiat rates if:
+    // 1. coinPayment is not XEC (trading other crypto like COIN_OTHERS), OR
+    // 2. localCurrency is set and different from XEC (need to convert fiat to XEC for display/calculation)
+    if (effectiveCoinPayment !== 'XEC') {
+      return true;
+    }
+
+    // XEC payment but user interface shows fiat currency - need rates for price display
+    if (post?.postOffer?.localCurrency && post.postOffer.localCurrency.toUpperCase() !== 'XEC') {
+      return true;
+    }
+
+    return false;
+  }, [
+    isGoodsServices,
+    post?.postOffer?.coinPayment,
+    post?.postOffer?.localCurrency,
+    post?.postOffer?.tickerPriceGoodsServices
+  ]);
 
   const {
     data: fiatData,
@@ -352,9 +373,9 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   } = useGetAllFiatRateQuery(undefined, {
     // Skip if fiat rates are not needed (pure XEC offers)
     skip: !needsFiatRates,
-    // Use cached data from Shopping page prefetch if available
-    // Only refetch if cache is stale (>5 minutes)
-    refetchOnMountOrArgChange: false,
+    // Always refetch on mount to ensure fresh data for conversion calculations
+    // This is important because users may open the modal without visiting shopping page first
+    refetchOnMountOrArgChange: true,
     // Keep cached data for 5 minutes
     refetchOnFocus: false
   });
@@ -777,6 +798,14 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     let amountXEC = xec;
     let amountCoinOrCurrency = coinOrCurrency;
 
+    // For Goods & Services conversion, calculate XEC per unit BEFORE applying fees
+    // This ensures the price display matches the actual conversion rate
+    const xecPerUnitBeforeFees = isGoodsServicesConversion
+      ? xec / amountNumber
+      : post?.postOffer?.priceGoodsServices && post?.postOffer?.priceGoodsServices > 0
+        ? post?.postOffer?.priceGoodsServices
+        : 1;
+
     //cals fee
     const feeSats = XPI.BitcoinCash.getByteCount({ P2PKH: 5 }, { P2PKH: 1, P2SH: 1 }) * coinInfo[COIN.XEC].defaultFee; // assume worst case input is 5, because we estimate from buyer, so we don't know input of seller
     const feeAmount = parseFloat((feeSats / Math.pow(10, coinInfo[COIN.XEC].cashDecimals)).toFixed(2));
@@ -798,15 +827,12 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     amountXecRounded > 0 ? setAmountXEC(amountXecRounded) : setAmountXEC(0);
 
     // Calculate XEC per unit for Goods & Services
-    // For legacy offers without priceGoodsServices, default to 1 XEC
-    const legacyPrice =
-      post?.postOffer?.priceGoodsServices && post?.postOffer?.priceGoodsServices > 0
-        ? post?.postOffer?.priceGoodsServices
-        : 1;
-    const xecPerUnit = isGoodsServicesConversion ? amountXEC / amountNumber : legacyPrice;
-    setAmountXECPerUnitGoodsServices(xecPerUnit);
-    setAmountXECGoodsServices(xecPerUnit * amountNumber);
-    setTextAmountPer1MXEC(formatAmountFor1MXEC(amountCoinOrCurrency, post?.postOffer?.marginPercentage, coinCurrency));
+    // Use the ORIGINAL conversion rate (before fees) so price display is accurate
+    setAmountXECPerUnitGoodsServices(xecPerUnitBeforeFees);
+    setAmountXECGoodsServices(xecPerUnitBeforeFees * amountNumber);
+    setTextAmountPer1MXEC(
+      formatAmountFor1MXEC(amountCoinOrCurrency, post?.postOffer?.marginPercentage, coinCurrency, isBuyOffer)
+    );
   };
 
   const handleCreateOrderBeforeConfirm = async () => {
@@ -904,7 +930,27 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     // For Goods & Services: Always use XEC fiat rates (price is in fiat, need to convert to XEC)
     // For Crypto Offers: Use the selected fiat currency from localCurrency (user's choice)
     if (isGoodsServices) {
-      // Goods & Services: Find XEC currency and get its fiat rates
+      // Special case: Goods & Services priced directly in XEC
+      // No fiat conversion needed - set identity rate and compute directly from priceGoodsServices
+      if (post?.postOffer?.tickerPriceGoodsServices?.toUpperCase() === 'XEC') {
+        // Set identity rate for XEC -> XEC (1:1)
+        setRateData([
+          { coin: 'XEC', rate: 1, ts: Date.now() },
+          { coin: 'xec', rate: 1, ts: Date.now() }
+        ]);
+        // Directly set the XEC price per unit from priceGoodsServices
+        const priceInXEC = post?.postOffer?.priceGoodsServices ?? 1;
+        setAmountXECPerUnitGoodsServices(priceInXEC);
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('📊 G&S priced in XEC - using identity rate:', {
+            priceGoodsServices: priceInXEC,
+            tickerPriceGoodsServices: 'XEC'
+          });
+        }
+        return;
+      }
+
+      // Goods & Services priced in fiat: Find XEC currency and get its fiat rates
       const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
 
       if (xecCurrency?.fiatRates) {
@@ -946,14 +992,80 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
         }
       }
     } else {
-      // Pure XEC offers: Set identity rate data (1 XEC = 1 XEC) without fetching
-      if (post?.postOffer?.coinPayment?.toUpperCase() === 'XEC') {
+      // XEC P2P offers with fiat localCurrency: Need to get fiat rates for price display
+      // User sees fiat currency but we need to show XEC equivalent
+      // Note: null/undefined coinPayment means XEC (default for P2P offers)
+      const effectiveCoinPayment = post?.postOffer?.coinPayment?.toUpperCase() || 'XEC';
+      if (effectiveCoinPayment === 'XEC') {
+        // If localCurrency is fiat (not XEC), we need fiat rates for display
+        if (post?.postOffer?.localCurrency && post.postOffer.localCurrency.toUpperCase() !== 'XEC') {
+          const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
+          if (xecCurrency?.fiatRates) {
+            const transformedRates = transformFiatRates(xecCurrency.fiatRates);
+            setRateData(transformedRates);
+            if (process.env.NODE_ENV !== 'production') {
+              console.log('📊 Fiat rates loaded for XEC P2P offer with fiat display:', {
+                localCurrency: post?.postOffer?.localCurrency,
+                transformedRatesCount: transformedRates?.length || 0,
+                matchedRate: transformedRates?.find(
+                  r => r.coin?.toUpperCase() === post?.postOffer?.localCurrency?.toUpperCase()
+                )
+              });
+            }
+          } else {
+            // Fallback: construct XEC rates from fiat currencies
+            const constructedRates = constructXECRatesFromFiatCurrencies(fiatData?.getAllFiatRate);
+            if (constructedRates) {
+              const transformedRates = transformFiatRates(constructedRates);
+              setRateData(transformedRates);
+            } else {
+              setRateData(null);
+            }
+          }
+          return;
+        }
+
+        // Pure XEC offers with XEC display: Set identity rate data (1 XEC = 1 XEC)
         setRateData([
           { coin: 'XEC', rate: 1, ts: Date.now() },
           { coin: 'xec', rate: 1, ts: Date.now() }
         ]);
         if (process.env.NODE_ENV !== 'production') {
           console.log('📊 Using identity rate for pure XEC offer');
+        }
+        return;
+      }
+
+      // COIN_OTHERS (custom crypto like EAT): priceCoinOthers is in USD
+      // We need XEC currency entry to get USD→XEC conversion rate
+      // This is similar to Goods & Services which also prices in fiat
+      // Note: Compare case-insensitively since coinPayment might have different casing
+      if (
+        post?.postOffer?.coinPayment?.toUpperCase() === COIN_OTHERS.toUpperCase() &&
+        post?.postOffer?.priceCoinOthers
+      ) {
+        const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
+
+        if (xecCurrency?.fiatRates) {
+          const transformedRates = transformFiatRates(xecCurrency.fiatRates);
+          setRateData(transformedRates);
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('📊 Fiat rates loaded for COIN_OTHERS Offer:', {
+              coinOthers: post?.postOffer?.coinOthers,
+              priceCoinOthers: post?.postOffer?.priceCoinOthers,
+              transformedRatesCount: transformedRates?.length || 0,
+              usdRate: transformedRates?.find(r => r.coin?.toUpperCase() === 'USD')?.rate
+            });
+          }
+        } else {
+          // Fallback: construct XEC rates from fiat currencies
+          const constructedRates = constructXECRatesFromFiatCurrencies(fiatData?.getAllFiatRate);
+          if (constructedRates) {
+            const transformedRates = transformFiatRates(constructedRates);
+            setRateData(transformedRates);
+          } else {
+            setRateData(null);
+          }
         }
         return;
       }
@@ -990,6 +1102,31 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
       trigger('amount'); // Re-run validation for the "amount" field
     }
   }, [amountXEC, trigger]);
+
+  // Initialize default price for Goods & Services offers when rate data is available
+  useEffect(() => {
+    if (isGoodsServices && rateData && post?.postOffer?.priceGoodsServices) {
+      // Calculate the XEC price per unit using conversion function with 1 unit
+      const { amountXEC: xecPerUnit } = convertXECAndCurrency({
+        rateData: rateData,
+        paymentInfo: post?.postOffer,
+        inputAmount: 1
+      });
+
+      if (xecPerUnit > 0) {
+        setAmountXECPerUnitGoodsServices(xecPerUnit);
+        // Don't set amountXECGoodsServices - it should remain 0 until user enters an amount
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('📊 Initialized G&S default price:', {
+            priceGoodsServices: post?.postOffer?.priceGoodsServices,
+            tickerPriceGoodsServices: post?.postOffer?.tickerPriceGoodsServices,
+            xecPerUnit: xecPerUnit,
+            rateDataCount: rateData.length
+          });
+        }
+      }
+    }
+  }, [isGoodsServices, rateData, post?.postOffer?.priceGoodsServices, post?.postOffer?.tickerPriceGoodsServices]);
 
   // Send Telegram alert when fiat service error is detected
   useEffect(() => {
@@ -1109,6 +1246,12 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                       } else {
                         // For other offer types, validate XEC amount
                         if (numberValue < 0) return 'XEC amount must be greater than 0!';
+                        // Only validate minimum XEC if we have rate data (conversion completed)
+                        // For XEC P2P with fiat display, rateData is required for conversion
+                        if (needsFiatRates && !rateData) {
+                          // Rate data still loading - skip validation for now
+                          return true;
+                        }
                         if (amountXEC < 5.46) return `You need to buy amount greater than 5.46 XEC`;
                       }
 
@@ -1150,17 +1293,18 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                   )}
                 />
                 <Typography component={'div'} className="text-receive-amount">
-                  {/* Show 5.46 XEC error for crypto offers OR for Goods & Services when total is too low */}
-                  {(!isGoodsServices && amountXEC < 5.46) ||
-                  (isGoodsServices && amountXECGoodsServices > 0 && amountXECGoodsServices < 5.46)
-                    ? isGoodsServices
-                      ? `Total amount (${formatNumber(amountXECGoodsServices)} XEC) is less than minimum 5.46 XEC. Try increasing the quantity.`
-                      : 'You need to buy amount greater than 5.46 XEC'
+                  {/* Show 5.46 XEC error ONLY for Goods & Services when total is too low */}
+                  {/* For crypto offers, the 5.46 XEC minimum is enforced in validation but message is hidden to avoid confusion */}
+                  {isGoodsServices && amountXECGoodsServices > 0 && amountXECGoodsServices < 5.46
+                    ? `Total amount (${formatNumber(amountXECGoodsServices)} XEC) is less than minimum 5.46 XEC. Try increasing the quantity.`
                     : showPrice && (
                         <div>
                           You will {isBuyOffer ? 'send' : 'receive'}{' '}
                           <span className="amount-receive">
-                            {formatNumber(isGoodsServices ? amountXECGoodsServices : amountXEC)}
+                            {/* Show loading state when rate data is being fetched */}
+                            {needsFiatRates && !rateData
+                              ? 'loading...'
+                              : formatNumber(isGoodsServices ? amountXECGoodsServices : amountXEC)}
                           </span>{' '}
                           {COIN.XEC} {isBuyOffer && '(estimated)'}
                           <div>
