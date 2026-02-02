@@ -109,7 +109,10 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
           setRateData(null);
         }
       }
-    } else if (paymentInfo?.coinPayment === 'Others' && paymentInfo?.priceCoinOthers) {
+    } else if (
+      paymentInfo?.coinPayment?.toLowerCase() === PAYMENT_METHOD.COIN_OTHERS.toLowerCase() &&
+      paymentInfo?.priceCoinOthers
+    ) {
       // COIN_OTHERS (custom crypto like EAT): priceCoinOthers is in USD
       // Use XEC currency entry to get USD→XEC conversion rate (same as Goods & Services)
       const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
