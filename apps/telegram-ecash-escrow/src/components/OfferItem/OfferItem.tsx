@@ -142,9 +142,10 @@ const OfferShowWrapItem = styled('div')(({ theme }) => ({
 
 type OfferItemProps = {
   timelineItem?: TimelineQueryItem;
+  hidePaymentMethods?: boolean;
 };
 
-export default function OfferItem({ timelineItem }: OfferItemProps) {
+export default function OfferItem({ timelineItem, hidePaymentMethods = false }: OfferItemProps) {
   const { status } = useSession();
   const askAuthorization = useAuthorization();
   const searchParams = useSearchParams();
@@ -337,7 +338,7 @@ export default function OfferItem({ timelineItem }: OfferItemProps) {
             )}
           </CardContent>
         </Collapse>
-        <CardContent>{OfferItemPaymentMethod}</CardContent>
+        {!hidePaymentMethods && <CardContent>{OfferItemPaymentMethod}</CardContent>}
 
         <Typography component={'div'} className="action-section">
           <Typography variant="body2">
