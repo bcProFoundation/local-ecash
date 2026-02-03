@@ -1,6 +1,5 @@
 'use client';
 
-import { styled } from '@mui/material/styles';
 import { LIST_CURRENCIES_USED } from '@bcpros/lixi-models';
 import { ChevronLeft } from '@mui/icons-material';
 import {
@@ -16,6 +15,7 @@ import {
   useMediaQuery,
   useTheme
 } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import { TransitionProps } from '@mui/material/transitions';
 import React, { useMemo, useState } from 'react';
 import { FilterCurrencyType } from '../../store/type/types';
@@ -113,8 +113,7 @@ const ShoppingCurrencyModal: React.FC<ShoppingCurrencyModalProps> = props => {
 
     const lowerSearch = searchTerm.toLowerCase();
     return currencyList.filter(
-      option =>
-        option.code.toLowerCase().includes(lowerSearch) || option.name.toLowerCase().includes(lowerSearch)
+      option => option.code.toLowerCase().includes(lowerSearch) || option.name.toLowerCase().includes(lowerSearch)
     );
   }, [currencyList, searchTerm]);
 
@@ -140,12 +139,7 @@ const ShoppingCurrencyModal: React.FC<ShoppingCurrencyModalProps> = props => {
   };
 
   return (
-    <StyledDialog
-      fullScreen={fullScreen}
-      open={isOpen}
-      onClose={handleClose}
-      TransitionComponent={Transition}
-    >
+    <StyledDialog fullScreen={fullScreen} open={isOpen} onClose={handleClose} TransitionComponent={Transition}>
       <DialogTitle>
         <IconButton className="back-btn" onClick={handleClose}>
           <ChevronLeft />
@@ -178,9 +172,7 @@ const ShoppingCurrencyModal: React.FC<ShoppingCurrencyModalProps> = props => {
             </Button>
           ))}
           {filteredCurrencies.length === 0 && (
-            <Typography sx={{ p: 2, textAlign: 'center', color: 'text.secondary' }}>
-              No currencies found
-            </Typography>
+            <Typography sx={{ p: 2, textAlign: 'center', color: 'text.secondary' }}>No currencies found</Typography>
           )}
         </Box>
       </DialogContent>
