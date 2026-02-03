@@ -165,6 +165,17 @@ export default function OfferItem({ timelineItem, hidePaymentMethods = false }: 
   const settingContext = useContext(SettingContext);
   const seedBackupTime = settingContext?.setting?.lastSeedBackupTime ?? lastSeedBackupTimeOnDevice ?? '';
 
+  // Format fiat price without decimals and with thousands separators for display
+  const formatFiatPrice = (price: number | string | undefined): string => {
+    if (!price) return '';
+    const num = typeof price === 'string' ? parseFloat(price) : price;
+    if (isNaN(num)) return String(price);
+    return new Intl.NumberFormat('en-GB', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(Math.round(num));
+  };
+
   const { useGetAccountByAddressQuery } = accountsApi;
   const { currentData: accountQueryData } = useGetAccountByAddressQuery(
     { address: selectedWalletPath?.xAddress },
@@ -351,7 +362,7 @@ export default function OfferItem({ timelineItem, hidePaymentMethods = false }: 
                 (offerData?.tickerPriceGoodsServices ?? DEFAULT_TICKER_GOODS_SERVICES) !==
                   DEFAULT_TICKER_GOODS_SERVICES ? (
                   <span>
-                    ({offerData.priceGoodsServices} {offerData.tickerPriceGoodsServices ?? 'USD'})
+                    ({formatFiatPrice(offerData.priceGoodsServices)} {offerData.tickerPriceGoodsServices ?? 'USD'})
                   </span>
                 ) : null}
               </span>

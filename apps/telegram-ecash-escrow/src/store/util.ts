@@ -283,7 +283,9 @@ export function formatAmountFor1MXEC(amount, marginPercentage = 0, coinCurrency 
 }
 
 export function formatAmountForGoodsServices(amount) {
-  return `${formatNumber(amount)} XEC / ${GOODS_SERVICES_UNIT}`;
+  // Limit XEC to 2 decimal places
+  const roundedAmount = Math.round(amount * 100) / 100;
+  return `${formatNumber(roundedAmount)} XEC / ${GOODS_SERVICES_UNIT}`;
 }
 
 /**
