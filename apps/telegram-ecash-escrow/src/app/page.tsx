@@ -88,9 +88,12 @@ export default function Home() {
   const dispatch = useLixiSliceDispatch();
 
   // Filter out Goods & Services offers from P2P trading view
+  // Default to showing Buy offers (isBuyOffer: true means showing offers where users want to buy XEC)
   const tradingFilterConfig = useMemo(
     () => ({
       ...offerFilterConfig,
+      // Default to Buy offers if not specified (users typically want to buy XEC)
+      isBuyOffer: offerFilterConfig.isBuyOffer ?? true,
       // Exclude Goods & Services payment method (ID = 5)
       paymentMethodIds:
         offerFilterConfig.paymentMethodIds && offerFilterConfig.paymentMethodIds.length > 0

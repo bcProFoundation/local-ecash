@@ -302,8 +302,11 @@ export function formatPriceByType(price: number | string, currency: string): str
 
   const numPrice = typeof price === 'string' ? parseFloat(price) : price;
 
-  // Currencies with no decimal places
-  const noDecimalCurrencies = ['VND', 'JPY', 'KRW', 'TWD', 'PHP', 'IDR', 'THB'];
+  // Handle NaN values from invalid string inputs
+  if (isNaN(numPrice)) return '0';
+
+  // Currencies with no decimal places (THB uses 2 decimal places per ISO 4217)
+  const noDecimalCurrencies = ['VND', 'JPY', 'KRW', 'TWD', 'PHP', 'IDR'];
 
   if (noDecimalCurrencies.includes(currency?.toUpperCase())) {
     // Format with thousands separators, no decimals

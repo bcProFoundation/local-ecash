@@ -1,10 +1,9 @@
 'use client';
 
 import FiatRateErrorBanner from '@/src/components/Common/FiatRateErrorBanner';
-import ShoppingFilterComponent from '@/src/components/FilterOffer/ShoppingFilterComponent';
-import Header from '@/src/components/Header/Header';
+import ShoppingHeader from '@/src/components/Header/ShoppingHeader';
 import OfferItem from '@/src/components/OfferItem/OfferItem';
-import { ShoppingFilterConfig } from '@/src/shared/models/shoppingFilterConfig';
+import { FilterCurrencyType } from '@/src/store/type/types';
 import { PAYMENT_METHOD } from '@bcpros/lixi-models';
 import {
   OfferOrderField,
@@ -153,10 +152,10 @@ export default function Shopping() {
     dispatch(openModal('SortOfferModal', {}));
   };
 
-  const handleConfigChange = (config: ShoppingFilterConfig) => {
+  const handleCurrencyChange = (currency: FilterCurrencyType) => {
     setShoppingFilterConfig(prev => ({
       ...prev,
-      ...config
+      tickerPriceGoodsServices: currency.value || null
     }));
   };
 
@@ -176,16 +175,16 @@ export default function Shopping() {
           </StyledBadge>
         </Slide>
         <ShoppingPage>
-          <Header />
-
-          <ShoppingFilterComponent filterConfig={shoppingFilterConfig} setFilterConfig={handleConfigChange} />
+          <ShoppingHeader
+            selectedCurrency={shoppingFilterConfig.tickerPriceGoodsServices}
+            onCurrencyChange={handleCurrencyChange}
+          />
 
           {/* Show fiat rate error banner if service is down */}
           <FiatRateErrorBanner fiatData={fiatData} fiatRateError={fiatRateError} isLoading={isFiatRateLoading} />
 
           <Section>
             <Typography className="title-offer" variant="body1" component="div">
-              <span>Offers</span>
               {isShowSortIcon && (
                 <SortIcon
                   style={{ cursor: 'pointer', color: `${isSorted ? '#0076C4' : ''}` }}

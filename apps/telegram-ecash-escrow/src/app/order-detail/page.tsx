@@ -404,6 +404,7 @@ const OrderDetail = () => {
           description: 'Order has already been completed!'
         })
       );
+      setLoading(false);
       return;
     }
 
