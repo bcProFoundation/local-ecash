@@ -128,6 +128,9 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
       },
       '.active': {
         color: '#fff'
+      },
+      '&:first-of-type': {
+        marginBottom: '16px'
       }
     }
   },
