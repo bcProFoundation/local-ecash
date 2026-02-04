@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { TransitionProps } from '@mui/material/transitions';
-import React, { useMemo, useState } from 'react';
+import React, { useId, useMemo, useState } from 'react';
 import { FilterCurrencyType } from '../../store/type/types';
 
 interface ShoppingCurrencyModalProps {
@@ -94,6 +94,7 @@ const ShoppingCurrencyModal: React.FC<ShoppingCurrencyModalProps> = props => {
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
 
   const [searchTerm, setSearchTerm] = useState('');
+  const titleId = useId();
 
   // Build combined list of fiat currencies + XEC, sorted alphabetically by code
   const currencyList = useMemo(() => {
@@ -139,8 +140,14 @@ const ShoppingCurrencyModal: React.FC<ShoppingCurrencyModalProps> = props => {
   };
 
   return (
-    <StyledDialog fullScreen={fullScreen} open={isOpen} onClose={handleClose} TransitionComponent={Transition}>
-      <DialogTitle>
+    <StyledDialog
+      fullScreen={fullScreen}
+      open={isOpen}
+      onClose={handleClose}
+      TransitionComponent={Transition}
+      aria-labelledby={titleId}
+    >
+      <DialogTitle id={titleId}>
         <IconButton className="back-btn" onClick={handleClose} aria-label="Close">
           <ChevronLeft />
         </IconButton>
