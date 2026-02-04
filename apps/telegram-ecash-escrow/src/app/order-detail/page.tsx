@@ -7,7 +7,7 @@ import MobileLayout from '@/src/components/layout/MobileLayout';
 import QRCode from '@/src/components/QRcode/QRcode';
 import TelegramButton from '@/src/components/TelegramButton/TelegramButton';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
-import { securityDepositPercentage } from '@/src/store/constants';
+import { GoodsServicesPaymentType, securityDepositPercentage } from '@/src/store/constants';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { UtxoContext } from '@/src/store/context/utxoProvider';
 import { buildReleaseTx, buildReturnFeeTx, buildReturnTx, sellerBuildDepositTx } from '@/src/store/escrow';
@@ -149,6 +149,11 @@ const OrderDetail = () => {
   const [allowOfferTakerChatTrigger] = useAllowOfferTakerChatMutation();
 
   const isBuyOffer = currentData?.escrowOrder?.escrowOffer?.type === OfferType.Buy;
+
+  // Check if this is an external payment order (seller escrows as collateral)
+  const isExternalPaymentOrder =
+    (currentData?.escrowOrder?.escrowOffer as { paymentTypeGoodsServices?: string })?.paymentTypeGoodsServices ===
+    GoodsServicesPaymentType.EXTERNAL;
 
   useEffect(() => {
     if (
@@ -375,6 +380,54 @@ const OrderDetail = () => {
         showToast('success', {
           message: 'success',
           description: 'Order cancelled successfully!'
+        })
+      );
+    } catch (e) {
+      console.log(e);
+      showError();
+    }
+
+    setLoading(false);
+  };
+
+  /**
+   * Handler for buyer to confirm receipt in external payment orders
+   * This releases the seller's collateral back to the seller
+   */
+  const handleBuyerConfirmReceipt = async () => {
+    setLoading(true);
+
+    if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Complete) {
+      dispatch(
+        showToast('warning', {
+          message: 'warning',
+          description: 'Order has already been completed!'
+        })
+      );
+      return;
+    }
+
+    try {
+      const buyerSk = fromHex(selectedWalletPath?.privateKey);
+      const buyerPk = fromHex(selectedWalletPath.publicKey as string);
+      const buyerPkh = shaRmd160(buyerPk);
+      const nonce = currentData?.escrowOrder.nonce as string;
+      // Use BUYER_RETURN action to sign (XEC goes back to seller)
+      const buyerSignatory = SignOracleSignatory(buyerSk, ACTION.BUYER_RETURN, nonce);
+
+      await updateEscrowOrderSignatoryTrigger({
+        input: {
+          orderId: id!,
+          action: 'BUYER_CONFIRM_RECEIPT' as EscrowOrderAction,
+          signatory: hexEncode(buyerSignatory),
+          signatoryOwnerHash160: hexEncode(buyerPkh)
+        }
+      }).unwrap();
+
+      dispatch(
+        showToast('success', {
+          message: 'success',
+          description: 'Receipt confirmed! Seller collateral released.'
         })
       );
     } catch (e) {
@@ -1157,74 +1210,144 @@ const OrderDetail = () => {
 
         // Default escrow state
         if (isSeller) {
-          state.statusComponent = (
-            <Typography variant="body1" color="error" align="center">
-              Only release the escrowed funds once you have confirmed that the buyer has completed the payment or
-              goods/services.
-            </Typography>
-          );
-          state.actionButtons = (
-            <div className="group-button-wrap">
-              <Button color="warning" variant="contained" disabled={loading} onClick={() => handleCreateDispute()}>
-                Dispute
-              </Button>
-              <Button color="success" variant="contained" onClick={() => setOpenReleaseModal(true)} disabled={loading}>
-                Release
-              </Button>
-            </div>
-          );
-        } else {
-          state.statusColor = '#66bb6a';
-          state.statusComponent = (
-            <React.Fragment>
-              <Typography variant="body1" color="#66bb6a" align="center">
-                Successfully Escrowed!
+          // For external payment, seller sees different message (they deposited as collateral)
+          if (isExternalPaymentOrder) {
+            state.statusComponent = (
+              <Typography variant="body1" color="warning.main" align="center">
+                Your XEC collateral is held in escrow. The buyer will confirm receipt after you deliver the
+                goods/services. Your collateral will be released back to you upon confirmation.
               </Typography>
-              <Stack
-                direction="row"
-                spacing={0}
-                justifyContent="center"
-                color="white"
-                alignItems="center"
-                margin="20px"
-              >
-                <Image width={50} height={50} src="/safebox-close.svg" alt="" />
-                <CheckIcon color="success" style={{ fontSize: '50px' }} />
-              </Stack>
-              <Typography variant="body1" color="#66bb6a" align="center">
-                {`${currentData.escrowOrder.amount} XEC has been safely locked. You are now safe to send payments or goods to settle the order.`}
-              </Typography>
-            </React.Fragment>
-          );
-          state.actionButtons = (
-            <div>
-              {telegramButton('Chat with seller for payment details')}
+            );
+            state.actionButtons = (
               <div className="group-button-wrap">
-                {currentData.escrowOrder?.markAsPaid ? (
-                  <Button
-                    color="warning"
-                    variant="contained"
-                    disabled={loading || isDisabled}
-                    onClick={() => handleCreateDispute()}
-                  >
-                    Dispute
-                  </Button>
-                ) : (
-                  <Button color="success" variant="contained" disabled={loading} onClick={() => handleMarkAsPaid()}>
-                    Mark as paid
-                  </Button>
-                )}
-                <Button
-                  style={{ backgroundColor: '#a41208' }}
-                  variant="contained"
-                  onClick={() => setOpenCancelModal(true)}
-                  disabled={loading}
-                >
-                  Cancel
+                <Button color="warning" variant="contained" disabled={loading} onClick={() => handleCreateDispute()}>
+                  Dispute
                 </Button>
               </div>
-            </div>
-          );
+            );
+          } else {
+            state.statusComponent = (
+              <Typography variant="body1" color="error" align="center">
+                Only release the escrowed funds once you have confirmed that the buyer has completed the payment or
+                goods/services.
+              </Typography>
+            );
+            state.actionButtons = (
+              <div className="group-button-wrap">
+                <Button color="warning" variant="contained" disabled={loading} onClick={() => handleCreateDispute()}>
+                  Dispute
+                </Button>
+                <Button
+                  color="success"
+                  variant="contained"
+                  onClick={() => setOpenReleaseModal(true)}
+                  disabled={loading}
+                >
+                  Release
+                </Button>
+              </div>
+            );
+          }
+        } else {
+          state.statusColor = '#66bb6a';
+
+          // For external payment, buyer sees different message and actions
+          if (isExternalPaymentOrder) {
+            state.statusComponent = (
+              <React.Fragment>
+                <Typography variant="body1" color="#66bb6a" align="center">
+                  Seller Collateral Escrowed!
+                </Typography>
+                <Stack
+                  direction="row"
+                  spacing={0}
+                  justifyContent="center"
+                  color="white"
+                  alignItems="center"
+                  margin="20px"
+                >
+                  <Image width={50} height={50} src="/safebox-close.svg" alt="" />
+                  <CheckIcon color="success" style={{ fontSize: '50px' }} />
+                </Stack>
+                <Typography variant="body1" color="#66bb6a" align="center">
+                  {`${currentData.escrowOrder.amount} XEC has been locked as seller's collateral.`}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 1 }}>
+                  Pay the seller externally for the goods/services. Once you receive them, click "Confirm Receipt" to
+                  release the collateral back to the seller.
+                </Typography>
+              </React.Fragment>
+            );
+            state.actionButtons = (
+              <div>
+                {telegramButton('Chat with seller for payment details')}
+                <div className="group-button-wrap">
+                  <Button color="warning" variant="contained" disabled={loading} onClick={() => handleCreateDispute()}>
+                    Dispute
+                  </Button>
+                  <Button
+                    color="success"
+                    variant="contained"
+                    disabled={loading}
+                    onClick={() => handleBuyerConfirmReceipt()}
+                  >
+                    Confirm Receipt
+                  </Button>
+                </div>
+              </div>
+            );
+          } else {
+            state.statusComponent = (
+              <React.Fragment>
+                <Typography variant="body1" color="#66bb6a" align="center">
+                  Successfully Escrowed!
+                </Typography>
+                <Stack
+                  direction="row"
+                  spacing={0}
+                  justifyContent="center"
+                  color="white"
+                  alignItems="center"
+                  margin="20px"
+                >
+                  <Image width={50} height={50} src="/safebox-close.svg" alt="" />
+                  <CheckIcon color="success" style={{ fontSize: '50px' }} />
+                </Stack>
+                <Typography variant="body1" color="#66bb6a" align="center">
+                  {`${currentData.escrowOrder.amount} XEC has been safely locked. You are now safe to send payments or goods to settle the order.`}
+                </Typography>
+              </React.Fragment>
+            );
+            state.actionButtons = (
+              <div>
+                {telegramButton('Chat with seller for payment details')}
+                <div className="group-button-wrap">
+                  {currentData.escrowOrder?.markAsPaid ? (
+                    <Button
+                      color="warning"
+                      variant="contained"
+                      disabled={loading || isDisabled}
+                      onClick={() => handleCreateDispute()}
+                    >
+                      Dispute
+                    </Button>
+                  ) : (
+                    <Button color="success" variant="contained" disabled={loading} onClick={() => handleMarkAsPaid()}>
+                      Mark as paid
+                    </Button>
+                  )}
+                  <Button
+                    style={{ backgroundColor: '#a41208' }}
+                    variant="contained"
+                    onClick={() => setOpenCancelModal(true)}
+                    disabled={loading}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            );
+          }
         }
         break;
 

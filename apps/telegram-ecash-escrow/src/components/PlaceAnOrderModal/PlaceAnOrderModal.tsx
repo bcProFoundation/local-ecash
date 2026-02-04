@@ -1,7 +1,7 @@
 'use client';
 
 import FiatRateErrorBanner from '@/src/components/Common/FiatRateErrorBanner';
-import { COIN_OTHERS, DEFAULT_TICKER_GOODS_SERVICES } from '@/src/store/constants';
+import { COIN_OTHERS, DEFAULT_TICKER_GOODS_SERVICES, GoodsServicesPaymentType } from '@/src/store/constants';
 import { LIST_BANK } from '@/src/store/constants/list-bank';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { UtxoContext } from '@/src/store/context/utxoProvider';
@@ -320,6 +320,11 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const [isGoodsServicesConversion, setIsGoodsServicesConversion] = useState(() =>
     isConvertGoodsServices(post?.postOffer?.priceGoodsServices, post?.postOffer?.tickerPriceGoodsServices)
   );
+  // Check if this is an external payment offer (seller escrows as collateral)
+  const isExternalPayment =
+    isGoodsServices &&
+    (post?.postOffer as { paymentTypeGoodsServices?: string })?.paymentTypeGoodsServices ===
+      GoodsServicesPaymentType.EXTERNAL;
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
 
   const { useCreateEscrowOrderMutation, useGetModeratorAccountQuery, useGetRandomArbitratorAccountQuery } =
@@ -838,6 +843,14 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const handleCreateOrderBeforeConfirm = async () => {
     const isValid = await trigger();
     if (!isValid) return;
+
+    // For external payment, buyer doesn't need to deposit - seller will deposit as collateral later
+    if (isExternalPayment) {
+      handleSubmit(data => {
+        handleCreateEscrowOrder(data, false);
+      })();
+      return;
+    }
 
     if (checkBuyerEnoughFund() && !isBuyOffer) {
       setOpenConfirmDeposit(true);
@@ -1393,6 +1406,32 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                 <Typography color="error">{errors?.paymentMethod?.message as string}</Typography>
               )}
             </RadioGroup>
+
+            {/* External Payment Notice */}
+            {isExternalPayment && (
+              <Box
+                sx={{
+                  mt: 2,
+                  p: 2,
+                  borderRadius: 1,
+                  bgcolor: 'info.main',
+                  color: 'info.contrastText'
+                }}
+              >
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
+                  External Payment (Seller Collateral)
+                </Typography>
+                <Typography variant="body2">
+                  This is an external payment offer. You will pay the seller directly outside the system (offline). The
+                  seller will escrow XEC as collateral to guarantee the delivery.
+                </Typography>
+                <Typography variant="body2" sx={{ mt: 1, fontWeight: 500 }}>
+                  After receiving the goods/services, please confirm delivery to release the collateral back to the
+                  seller.
+                </Typography>
+              </Box>
+            )}
+
             {isBuyOffer && InfoPaymentDetail()}
           </PlaceAnOrderWrap>
         </DialogContent>

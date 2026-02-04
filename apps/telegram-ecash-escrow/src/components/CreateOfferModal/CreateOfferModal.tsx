@@ -4,7 +4,9 @@ import {
   COIN_OTHERS,
   COIN_USD_STABLECOIN_TICKER,
   DEFAULT_TICKER_GOODS_SERVICES,
+  GoodsServicesPaymentType,
   LIST_COIN,
+  LIST_GOODS_SERVICES_PAYMENT_TYPE,
   LIST_TICKER_GOODS_SERVICES
 } from '@/src/store/constants';
 import { LIST_PAYMENT_APP } from '@/src/store/constants/list-payment-app';
@@ -262,6 +264,7 @@ interface OfferFormValues {
   priceCoinOthers: number | null;
   priceGoodsServices?: number | null;
   tickerPriceGoodsServices?: string | null;
+  paymentTypeGoodsServices?: GoodsServicesPaymentType | null;
   percentage: number;
   note: string;
   country: Country | null;
@@ -340,6 +343,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       priceCoinOthers: offer?.priceCoinOthers ?? null,
       priceGoodsServices: offer?.priceGoodsServices ?? null,
       tickerPriceGoodsServices: offer?.tickerPriceGoodsServices ?? DEFAULT_TICKER_GOODS_SERVICES,
+      paymentTypeGoodsServices: offer?.paymentTypeGoodsServices ?? GoodsServicesPaymentType.IN_APP,
       percentage: offer?.marginPercentage ?? 0,
       note: offer?.noteOffer ?? '',
       country: null,
@@ -354,6 +358,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   const percentageValue = watch('percentage');
   const currencyValue = watch('currency');
   const coinValue = watch('coin');
+  const paymentTypeGoodsServicesValue = watch('paymentTypeGoodsServices');
 
   const isGoodService = option === PAYMENT_METHOD.GOODS_SERVICES;
 
@@ -396,6 +401,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
           ? getNumberFromFormatNumber(data.priceGoodsServices as unknown as string)
           : 0,
         tickerPriceGoodsServices: data?.tickerPriceGoodsServices ? data.tickerPriceGoodsServices : null,
+        paymentTypeGoodsServices: data?.paymentTypeGoodsServices ?? null,
         localCurrency: data?.currency ? data.currency.split(':')[0] : null,
         paymentApp: data?.paymentApp ? data.paymentApp : null,
         marginPercentage: Number(data?.percentage ?? 0),
@@ -1225,6 +1231,43 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                       }}
                     />
                   </FormControl>
+                )}
+              />
+            </Grid>
+
+            {/* Payment Type for Goods & Services */}
+            <Grid item xs={12}>
+              <Typography variant="body2" className="label" sx={{ mt: 2 }}>
+                Payment Type
+              </Typography>
+            </Grid>
+
+            <Grid item xs={12} style={{ paddingTop: 0 }}>
+              <Controller
+                name="paymentTypeGoodsServices"
+                control={control}
+                render={({ field: { onChange, value } }) => (
+                  <RadioGroup value={value ?? GoodsServicesPaymentType.IN_APP} onChange={e => onChange(e.target.value)}>
+                    {LIST_GOODS_SERVICES_PAYMENT_TYPE.map(item => (
+                      <FormControlLabel
+                        key={item.value}
+                        value={item.value}
+                        control={<Radio size="small" />}
+                        label={
+                          <div>
+                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                              {item.label}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {item.description}
+                            </Typography>
+                          </div>
+                        }
+                        disabled={isEdit}
+                        sx={{ alignItems: 'flex-start', mb: 1 }}
+                      />
+                    ))}
+                  </RadioGroup>
                 )}
               />
             </Grid>

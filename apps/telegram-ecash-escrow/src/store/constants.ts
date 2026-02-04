@@ -106,6 +106,29 @@ export const LIST_TICKER_GOODS_SERVICES = [
 ];
 export const DEFAULT_TICKER_GOODS_SERVICES = 'XEC';
 
+/**
+ * Payment type for Goods & Services offers
+ * - IN_APP: Buyer pays XEC through the escrow system (traditional flow)
+ * - EXTERNAL: Payment arranged outside the system (seller escrows as collateral)
+ */
+export enum GoodsServicesPaymentType {
+  IN_APP = 'IN_APP', // Buyer pays XEC in-app (default)
+  EXTERNAL = 'EXTERNAL' // Payment outside system, seller escrows as collateral
+}
+
+export const LIST_GOODS_SERVICES_PAYMENT_TYPE = [
+  {
+    value: GoodsServicesPaymentType.IN_APP,
+    label: 'Buyer pays in XEC',
+    description: 'Buyer sends XEC to escrow, you receive XEC after delivering goods/services'
+  },
+  {
+    value: GoodsServicesPaymentType.EXTERNAL,
+    label: 'External payment (Seller collateral)',
+    description: 'You escrow XEC as collateral, buyer pays you externally, then releases your XEC back'
+  }
+];
+
 export const LIST_USD_STABLECOIN = [
   {
     id: 1,
