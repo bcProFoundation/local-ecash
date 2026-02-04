@@ -141,7 +141,7 @@ const ShoppingCurrencyModal: React.FC<ShoppingCurrencyModalProps> = props => {
   return (
     <StyledDialog fullScreen={fullScreen} open={isOpen} onClose={handleClose} TransitionComponent={Transition}>
       <DialogTitle>
-        <IconButton className="back-btn" onClick={handleClose}>
+        <IconButton className="back-btn" onClick={handleClose} aria-label="Close">
           <ChevronLeft />
         </IconButton>
         <Typography style={{ fontSize: '20px', fontWeight: 'bold' }}>Select currency</Typography>

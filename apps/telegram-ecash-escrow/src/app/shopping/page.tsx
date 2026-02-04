@@ -213,7 +213,6 @@ export default function Shopping() {
                       <Skeleton variant="text" />
                     </>
                   }
-                  scrollableTarget="scrollableDiv"
                   scrollThreshold={'100px'}
                 >
                   {dataFilter.map(item => {

@@ -167,7 +167,7 @@ export default function OfferItem({ timelineItem, hidePaymentMethods = false }: 
 
   // Format fiat price without decimals and with thousands separators for display
   const formatFiatPrice = (price: number | string | undefined): string => {
-    if (!price) return '';
+    if (price == null || price === '') return '';
     const num = typeof price === 'string' ? parseFloat(price) : price;
     if (isNaN(num)) return String(price);
     return new Intl.NumberFormat('en-GB', {
