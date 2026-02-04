@@ -98,9 +98,10 @@ export default function Shopping() {
     refetchOnMountOrArgChange: true
   });
 
-  // Fixed filter config for shopping: only Goods & Services sell offers
+  // Fixed filter config for shopping: all Goods & Services offers (both buy and sell)
   const [shoppingFilterConfig, setShoppingFilterConfig] = useState({
-    isBuyOffer: true, // Buy offers (users wanting to buy XEC by selling goods/services - so shoppers can buy the goods)
+    // Show both buy and sell offers (null = show all)
+    isBuyOffer: null,
     paymentMethodIds: [PAYMENT_METHOD.GOODS_SERVICES],
     tickerPriceGoodsServices: null, // NEW: Backend filter for G&S currency
     fiatCurrency: null,
