@@ -6,6 +6,7 @@ import {
   DEFAULT_TICKER_GOODS_SERVICES,
   LIST_COIN,
   LIST_TICKER_GOODS_SERVICES,
+  LIST_USD_STABLECOIN,
   OfferCategory
 } from '@/src/store/constants';
 import { LIST_PAYMENT_APP } from '@/src/store/constants/list-payment-app';
@@ -67,7 +68,7 @@ import {
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { TransitionProps } from '@mui/material/transitions';
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { NumericFormat } from 'react-number-format';
 import FilterListLocationModal from '../FilterList/FilterListLocationModal';
@@ -252,6 +253,8 @@ interface CreateOfferModalProps {
   offer?: OfferQueryItem;
   isEdit?: boolean;
   isFirstOffer?: boolean;
+  initialCurrency?: string | null; // Currency pre-selected from Shopping filter
+  initialOfferCategory?: 'XEC' | 'GOODS_SERVICES'; // Pre-select offer category
 }
 
 interface OfferFormValues {
@@ -286,7 +289,7 @@ const Transition = React.forwardRef(function Transition(
 
 // Main component
 const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
-  const { isEdit = false, offer, isFirstOffer = false } = props;
+  const { isEdit = false, offer, isFirstOffer = false, initialCurrency = null, initialOfferCategory } = props;
   const dispatch = useLixiSliceDispatch();
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
@@ -313,11 +316,18 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   const [activeStep, setActiveStep] = useState(isEdit ? 2 : 1);
   const [coinCurrency, setCoinCurrency] = useState<string>(COIN.XEC);
   const [fixAmount, setFixAmount] = useState(1000);
-  const [isBuyOffer, setIsBuyOffer] = useState(offer?.type ? offer?.type === OfferType.Buy : true);
+  // For Goods & Services, default to Sell; for XEC trading, default to Buy
+  const [isBuyOffer, setIsBuyOffer] = useState(() => {
+    if (offer?.type) return offer.type === OfferType.Buy;
+    // Default to Sell for all offer types (users typically want to sell)
+    return false;
+  });
   const [isHiddenOffer, setIsHiddenOffer] = useState(true);
   // Offer category: 'XEC' for P2P trading, 'GOODS_SERVICES' for goods/services marketplace
   // Check offerCategory first (new structure), then fallback to paymentMethodId=5 (legacy)
   const [offerCategory, setOfferCategory] = useState<'XEC' | 'GOODS_SERVICES'>(() => {
+    // Use initialOfferCategory if provided
+    if (initialOfferCategory) return initialOfferCategory;
     if ((offer as any)?.offerCategory === OfferCategory.GOODS_SERVICES) {
       return 'GOODS_SERVICES';
     }
@@ -355,8 +365,12 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       coinOthers: offer?.coinOthers ?? '',
       priceCoinOthers: offer?.priceCoinOthers ?? null,
       priceGoodsServices: offer?.priceGoodsServices ?? null,
-      tickerPriceGoodsServices: offer?.tickerPriceGoodsServices ?? DEFAULT_TICKER_GOODS_SERVICES,
-      offerCategory: (offer as any)?.offerCategory ?? null,
+      // Use initialCurrency if provided, otherwise use offer's currency or default
+      tickerPriceGoodsServices: initialCurrency || offer?.tickerPriceGoodsServices || DEFAULT_TICKER_GOODS_SERVICES,
+      offerCategory:
+        initialOfferCategory === 'GOODS_SERVICES'
+          ? OfferCategory.GOODS_SERVICES
+          : (offer as any)?.offerCategory ?? null,
       percentage: offer?.marginPercentage ?? 0,
       note: offer?.noteOffer ?? '',
       country: null,
@@ -372,9 +386,97 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   const currencyValue = watch('currency');
   const coinValue = watch('coin');
   const offerCategoryValue = watch('offerCategory');
+  const tickerPriceGoodsServicesValue = watch('tickerPriceGoodsServices');
+  const coinOthersValue = watch('coinOthers');
 
   // Check if this is a Goods & Services offer based on offerCategory
   const isGoodService = offerCategory === 'GOODS_SERVICES';
+
+  // Compute available price tickers for Goods & Services based on initialCurrency
+  // - If fiat currency selected: only that currency (locked)
+  // - If crypto selected (except USD stablecoins & Others): that crypto + USD oracle
+  // - If USD stablecoin selected: only that stablecoin (no USD oracle)
+  // - If XEC or no currency selected: show default list (XEC, USD, VND)
+  const availablePriceTickers = useMemo(() => {
+    // 1. Try to use form values first (user selection)
+    const paymentMethodId = Number(option);
+
+    if (paymentMethodId === PAYMENT_METHOD.CRYPTO) {
+      const selectedCoinRaw = coinValue ? coinValue.split(':')[0] : null;
+
+      if (selectedCoinRaw) {
+        // Special Case: USD Stablecoin
+        if (selectedCoinRaw === COIN_USD_STABLECOIN_TICKER) {
+          // If sub-type selected (e.g. USDT), use it.
+          if (coinOthersValue) return [{ id: 1, name: coinOthersValue }];
+          // If not selected, show 'USD'? Or generic.
+          return [{ id: 1, name: 'USD' }];
+        }
+
+        // Special Case: Others
+        if (selectedCoinRaw === COIN_OTHERS) {
+          if (coinOthersValue) return [{ id: 1, name: coinOthersValue }];
+          return [{ id: 1, name: 'Others' }];
+        }
+
+        // Regular Crypto: Coin + USD
+        return [
+          { id: 1, name: selectedCoinRaw },
+          { id: 2, name: 'USD' }
+        ];
+      }
+    } else if (paymentMethodId !== 0 && paymentMethodId !== PAYMENT_METHOD.GOODS_SERVICES) {
+      // Fiat methods
+      const selectedCurrencyRaw = currencyValue ? currencyValue.split(':')[0] : null;
+      if (selectedCurrencyRaw) {
+        return [{ id: 1, name: selectedCurrencyRaw }];
+      }
+    }
+
+    if (!initialCurrency) {
+      // No initial currency - show default list
+      return LIST_TICKER_GOODS_SERVICES;
+    }
+
+    // Check if it's a fiat currency
+    const isFiat = LIST_CURRENCIES_USED.some(c => c.code === initialCurrency);
+    if (isFiat) {
+      // Fiat currency - only that currency
+      return [{ id: 1, name: initialCurrency }];
+    }
+
+    // Check if it's a USD stablecoin
+    const isUSDStablecoin = LIST_USD_STABLECOIN.some(c => c.name === initialCurrency);
+    if (isUSDStablecoin) {
+      // USD stablecoin - only that stablecoin, no USD oracle
+      return [{ id: 1, name: initialCurrency }];
+    }
+
+    // Check if it's "Others" (COIN_OTHERS)
+    if (initialCurrency === COIN_OTHERS) {
+      // Others - only that option, no USD oracle
+      return [{ id: 1, name: initialCurrency }];
+    }
+
+    // It's a crypto (XEC, BTC, etc.) - show crypto + USD oracle option
+    return [
+      { id: 1, name: initialCurrency },
+      { id: 2, name: 'USD' }
+    ];
+  }, [option, coinValue, currencyValue, coinOthersValue, initialCurrency]);
+
+  // Effect to ensure ticker price matches available options
+  useEffect(() => {
+    if (isGoodService && availablePriceTickers.length > 0) {
+      const currentTicker = getValues('tickerPriceGoodsServices');
+      // Check if current ticker is valid in the new list
+      const isValid = availablePriceTickers.some(t => t.name === currentTicker);
+
+      if (!isValid) {
+        setValue('tickerPriceGoodsServices', availablePriceTickers[0].name);
+      }
+    }
+  }, [availablePriceTickers, isGoodService, getValues, setValue]);
 
   // Use shared renderTextWithLinks utility imported above
 
@@ -914,7 +1016,9 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                     >
                       <option aria-label="None" value="" />
                       {LIST_COIN.map(item => {
-                        if (item.ticker === 'XEC') return null;
+                        // For XEC Trading, hide XEC (since we're trading XEC for other currencies)
+                        // For Goods & Services, show XEC (users can accept XEC as payment)
+                        if (item.ticker === 'XEC' && offerCategory !== 'GOODS_SERVICES') return null;
                         return (
                           <option key={item.ticker} value={`${item.ticker}:${item.fixAmount}`}>
                             {item.name} {item.isDisplayTicker && `(${item.ticker})`}
@@ -1264,15 +1368,20 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                         endAdornment: (
                           <InputAdornment position="end">
                             <Select
-                              defaultValue={getValues('tickerPriceGoodsServices') ?? DEFAULT_TICKER_GOODS_SERVICES}
+                              value={
+                                tickerPriceGoodsServicesValue &&
+                                availablePriceTickers.some(t => t.name === tickerPriceGoodsServicesValue)
+                                  ? tickerPriceGoodsServicesValue
+                                  : availablePriceTickers[0]?.name ?? DEFAULT_TICKER_GOODS_SERVICES
+                              }
                               onChange={event => {
                                 setValue('tickerPriceGoodsServices', event.target.value);
                               }}
                               variant="standard"
                               disableUnderline
-                              disabled={isEdit}
+                              disabled={isEdit || availablePriceTickers.length === 1}
                             >
-                              {LIST_TICKER_GOODS_SERVICES.map(item => (
+                              {availablePriceTickers.map(item => (
                                 <MenuItem key={item.id} value={item.name}>
                                   {item.name}
                                 </MenuItem>
@@ -1448,7 +1557,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                     helperText={isGoodService ? errors.priceGoodsServices?.message : errors.priceCoinOthers?.message}
                     variant="standard"
                     InputProps={{
-                      endAdornment: isGoodService ? offer?.tickerPriceGoodsServices : 'USD'
+                      endAdornment: 'USD'
                     }}
                   />
                 </FormControl>
@@ -1462,7 +1571,12 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
             <Typography variant="body1">
               <span className="prefix">Price: </span>{' '}
               {isGoodService ? getValues('priceGoodsServices') : getValues('priceCoinOthers')}{' '}
-              {isGoodService ? getValues('tickerPriceGoodsServices') : 'USD'}
+              {isGoodService
+                ? tickerPriceGoodsServicesValue &&
+                  availablePriceTickers.some(t => t.name === tickerPriceGoodsServicesValue)
+                  ? tickerPriceGoodsServicesValue
+                  : availablePriceTickers[0]?.name || DEFAULT_TICKER_GOODS_SERVICES
+                : 'USD'}
             </Typography>
           </Grid>
         );
