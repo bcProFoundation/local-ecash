@@ -323,9 +323,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   );
   // Check if this is an external payment offer (seller escrows as collateral)
   const isExternalPayment =
-    isGoodsServices &&
-    (post?.postOffer as { offerCategory?: string })?.offerCategory ===
-      OfferCategory.GOODS_SERVICES;
+    isGoodsServices && (post?.postOffer as { offerCategory?: string })?.offerCategory === OfferCategory.GOODS_SERVICES;
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
 
   const { useCreateEscrowOrderMutation, useGetModeratorAccountQuery, useGetRandomArbitratorAccountQuery } =
