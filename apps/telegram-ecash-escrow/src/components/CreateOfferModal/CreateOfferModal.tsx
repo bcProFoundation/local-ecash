@@ -4,10 +4,9 @@ import {
   COIN_OTHERS,
   COIN_USD_STABLECOIN_TICKER,
   DEFAULT_TICKER_GOODS_SERVICES,
-  GoodsServicesPaymentType,
   LIST_COIN,
-  LIST_GOODS_SERVICES_PAYMENT_TYPE,
-  LIST_TICKER_GOODS_SERVICES
+  LIST_TICKER_GOODS_SERVICES,
+  OfferCategory
 } from '@/src/store/constants';
 import { LIST_PAYMENT_APP } from '@/src/store/constants/list-payment-app';
 import { SettingContext } from '@/src/store/context/settingProvider';
@@ -264,7 +263,7 @@ interface OfferFormValues {
   priceCoinOthers: number | null;
   priceGoodsServices?: number | null;
   tickerPriceGoodsServices?: string | null;
-  paymentTypeGoodsServices?: GoodsServicesPaymentType | null;
+  offerCategory?: OfferCategory | null;
   percentage: number;
   note: string;
   country: Country | null;
@@ -313,6 +312,17 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   const [fixAmount, setFixAmount] = useState(1000);
   const [isBuyOffer, setIsBuyOffer] = useState(offer?.type ? offer?.type === OfferType.Buy : true);
   const [isHiddenOffer, setIsHiddenOffer] = useState(true);
+  // Offer category: 'XEC' for P2P trading, 'GOODS_SERVICES' for goods/services marketplace
+  // Check offerCategory first (new structure), then fallback to paymentMethodId=5 (legacy)
+  const [offerCategory, setOfferCategory] = useState<'XEC' | 'GOODS_SERVICES'>(() => {
+    if ((offer as any)?.offerCategory === OfferCategory.GOODS_SERVICES) {
+      return 'GOODS_SERVICES';
+    }
+    if (offer?.paymentMethods[0]?.paymentMethod.id === PAYMENT_METHOD.GOODS_SERVICES) {
+      return 'GOODS_SERVICES';
+    }
+    return 'XEC';
+  });
 
   // Modal state
   const [openCountryList, setOpenCountryList] = useState(false);
@@ -343,7 +353,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       priceCoinOthers: offer?.priceCoinOthers ?? null,
       priceGoodsServices: offer?.priceGoodsServices ?? null,
       tickerPriceGoodsServices: offer?.tickerPriceGoodsServices ?? DEFAULT_TICKER_GOODS_SERVICES,
-      paymentTypeGoodsServices: (offer as any)?.paymentTypeGoodsServices ?? GoodsServicesPaymentType.IN_APP,
+      offerCategory: (offer as any)?.offerCategory ?? null,
       percentage: offer?.marginPercentage ?? 0,
       note: offer?.noteOffer ?? '',
       country: null,
@@ -358,9 +368,10 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   const percentageValue = watch('percentage');
   const currencyValue = watch('currency');
   const coinValue = watch('coin');
-  const paymentTypeGoodsServicesValue = watch('paymentTypeGoodsServices');
+  const offerCategoryValue = watch('offerCategory');
 
-  const isGoodService = option === PAYMENT_METHOD.GOODS_SERVICES;
+  // Check if this is a Goods & Services offer based on offerCategory
+  const isGoodService = offerCategory === 'GOODS_SERVICES';
 
   // Use shared renderTextWithLinks utility imported above
 
@@ -378,8 +389,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
     }, second * 1000);
   };
 
-  // Helper function to check if margin should be shown
-  const showMarginComponent = () => option !== PAYMENT_METHOD.GOODS_SERVICES;
+  // Helper function to check if margin should be shown (hide for Goods & Services offers)
+  const showMarginComponent = () => offerCategory !== 'GOODS_SERVICES';
 
   // Handler for creating/updating offers
   const handleCreateOffer = async (data: OfferFormValues, isHidden: boolean) => {
@@ -401,7 +412,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
           ? getNumberFromFormatNumber(data.priceGoodsServices as unknown as string)
           : 0,
         tickerPriceGoodsServices: data?.tickerPriceGoodsServices ? data.tickerPriceGoodsServices : null,
-        paymentTypeGoodsServices: data?.paymentTypeGoodsServices ?? null,
+        offerCategory: data?.offerCategory ?? null,
         localCurrency: data?.currency ? data.currency.split(':')[0] : null,
         paymentApp: data?.paymentApp ? data.paymentApp : null,
         marginPercentage: Number(data?.percentage ?? 0),
@@ -416,7 +427,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
         input.locationId = null;
       }
 
-      if (option === PAYMENT_METHOD.GOODS_SERVICES) {
+      // For Goods & Services offers, clear coin-related fields
+      if (offerCategory === 'GOODS_SERVICES') {
         input.priceCoinOthers = 0;
         input.coinOthers = null;
       }
@@ -486,6 +498,11 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
 
   // Helper function for offer note placeholder text
   const getPlaceholderOfferNote = (): string => {
+    // For Goods & Services offers, show specific placeholder
+    if (offerCategory === 'GOODS_SERVICES') {
+      return 'A public note attached to your offer. For example: "Exchanging XEC for a logo design. Send your proposal along with a proposed price."';
+    }
+
     switch (option) {
       case PAYMENT_METHOD.CASH_IN_PERSON:
         return 'A public note attached to your offer. For example: "Exchanging XEC to cash, only meeting in public places at daytime!"';
@@ -494,8 +511,6 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
         return 'A public note attached to your offer. For example: "Bank transfer in Vietnam only. Available from 9AM to 5PM workdays."';
       case PAYMENT_METHOD.CRYPTO:
         return 'A public note attached to your offer. For example: "Accepting USDT on TRX and ETH network."';
-      case PAYMENT_METHOD.GOODS_SERVICES:
-        return 'A public note attached to your offer. For example: "Exchanging XEC for a logo design. Send your proposal along with a proposed price.';
       default:
         return 'Input offer note';
     }
@@ -548,8 +563,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
 
   // Effect to update coinCurrency when related form values change
   useEffect(() => {
-    // If the user selected Goods & Services payment method, show the unit label
-    if (option === PAYMENT_METHOD.GOODS_SERVICES) {
+    // If this is a Goods & Services offer, show the unit label
+    if (offerCategory === 'GOODS_SERVICES') {
       setCoinCurrency(GOODS_SERVICES_UNIT);
       return;
     }
@@ -558,7 +573,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
     const coin = coinValue?.split(':')[0];
 
     setCoinCurrency(currency ?? (coin?.includes(COIN_OTHERS) ? getValues('coinOthers') : coin) ?? GOODS_SERVICES_UNIT);
-  }, [currencyValue, coinValue, getValues('coinOthers'), option]);
+  }, [currencyValue, coinValue, getValues('coinOthers'), offerCategory]);
 
   // Effect to load payment methods and countries on component mount
   useEffect(() => {
@@ -652,6 +667,40 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   const Step1Content = () => (
     <div className="container-step1">
       <Grid container spacing={2}>
+        {/* Offer Category Selector */}
+        <Grid item xs={12} className="type-btn-group">
+          <Button
+            className={`type-buy-btn ${offerCategory === 'XEC' ? 'active' : 'inactive'}`}
+            variant="contained"
+            color="primary"
+            onClick={() => {
+              setOfferCategory('XEC');
+              setValue('option', '');
+              setValue('percentage', 0);
+              // Clear offerCategory for XEC offers (null = XEC_TRADING)
+              setValue('offerCategory', null);
+            }}
+            disabled={isEdit}
+          >
+            XEC Trading
+          </Button>
+          <Button
+            className={`type-sell-btn ${offerCategory === 'GOODS_SERVICES' ? 'active' : 'inactive'}`}
+            variant="contained"
+            color="secondary"
+            onClick={() => {
+              setOfferCategory('GOODS_SERVICES');
+              setValue('option', '');
+              setValue('percentage', 0);
+              // Set offerCategory to mark as Goods/Services offer
+              setValue('offerCategory', OfferCategory.GOODS_SERVICES);
+            }}
+            disabled={isEdit}
+          >
+            Goods & Services
+          </Button>
+        </Grid>
+
         {/* Buy/Sell buttons */}
         <Grid item xs={12} className="type-btn-group">
           <Button
@@ -675,13 +724,17 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
         {/* Description */}
         <Grid item xs={12}>
           <Typography fontStyle={'italic'} className="heading" variant="body2">
-            {isBuyOffer
-              ? 'You are buying XEC. Your offer will be listed for users who want to SELL XEC.'
-              : 'You are selling XEC. Your offer will be listed for users who want to BUY XEC.'}
+            {offerCategory === 'GOODS_SERVICES'
+              ? isBuyOffer
+                ? 'You are buying Goods / Services. Your offer will be listed for users who want to SELL Goods / Services.'
+                : 'You are selling Goods / Services. Your offer will be listed for users who want to BUY Goods / Services.'
+              : isBuyOffer
+                ? 'You are buying XEC. Your offer will be listed for users who want to SELL XEC.'
+                : 'You are selling XEC. Your offer will be listed for users who want to BUY XEC.'}
           </Typography>
         </Grid>
 
-        {/* Payment method */}
+        {/* Payment method - Show for both categories, exclude Goods & Services option */}
         <Grid item xs={12}>
           <Typography variant="body2" className="label">
             Payment method
@@ -700,27 +753,23 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                 style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', columnGap: '16px' }}
                 value={value}
                 onChange={e => {
-                  if (e.target.value === '5') {
-                    setValue('percentage', 0);
-                    setValue('coin', null);
-                    setValue('currency', null);
-                    setValue('coinOthers', null);
-                  }
                   onChange(e);
                 }}
                 onBlur={onBlur}
                 ref={ref}
               >
-                {paymentMethods.map(item => (
-                  <div key={item.id}>
-                    <FormControlLabel
-                      checked={option === item.id}
-                      value={item.id}
-                      control={<Radio />}
-                      label={item.name}
-                    />
-                  </div>
-                ))}
+                {paymentMethods
+                  .filter(item => item.id !== PAYMENT_METHOD.GOODS_SERVICES)
+                  .map(item => (
+                    <div key={item.id}>
+                      <FormControlLabel
+                        checked={option === item.id}
+                        value={item.id}
+                        control={<Radio />}
+                        label={item.name}
+                      />
+                    </div>
+                  ))}
               </RadioGroup>
             )}
           />
@@ -1171,7 +1220,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
         {showMarginComponent() && <MarginComponent />}
 
         {/* Price fields for goods and services */}
-        {option === PAYMENT_METHOD.GOODS_SERVICES && (
+        {offerCategory === 'GOODS_SERVICES' && (
           <>
             <Grid item xs={12}>
               <Typography variant="body2" className="label">
@@ -1231,43 +1280,6 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                       }}
                     />
                   </FormControl>
-                )}
-              />
-            </Grid>
-
-            {/* Payment Type for Goods & Services */}
-            <Grid item xs={12}>
-              <Typography variant="body2" className="label" sx={{ mt: 2 }}>
-                Payment Type
-              </Typography>
-            </Grid>
-
-            <Grid item xs={12} style={{ paddingTop: 0 }}>
-              <Controller
-                name="paymentTypeGoodsServices"
-                control={control}
-                render={({ field: { onChange, value } }) => (
-                  <RadioGroup value={value ?? GoodsServicesPaymentType.IN_APP} onChange={e => onChange(e.target.value)}>
-                    {LIST_GOODS_SERVICES_PAYMENT_TYPE.map(item => (
-                      <FormControlLabel
-                        key={item.value}
-                        value={item.value}
-                        control={<Radio size="small" />}
-                        label={
-                          <div>
-                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                              {item.label}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {item.description}
-                            </Typography>
-                          </div>
-                        }
-                        disabled={isEdit}
-                        sx={{ alignItems: 'flex-start', mb: 1 }}
-                      />
-                    ))}
-                  </RadioGroup>
                 )}
               />
             </Grid>

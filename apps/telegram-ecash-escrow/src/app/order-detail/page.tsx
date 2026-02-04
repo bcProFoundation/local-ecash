@@ -7,7 +7,7 @@ import MobileLayout from '@/src/components/layout/MobileLayout';
 import QRCode from '@/src/components/QRcode/QRcode';
 import TelegramButton from '@/src/components/TelegramButton/TelegramButton';
 import TickerHeader from '@/src/components/TickerHeader/TickerHeader';
-import { GoodsServicesPaymentType, securityDepositPercentage } from '@/src/store/constants';
+import { OfferCategory, securityDepositPercentage } from '@/src/store/constants';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { UtxoContext } from '@/src/store/context/utxoProvider';
 import { buildReleaseTx, buildReturnFeeTx, buildReturnTx, sellerBuildDepositTx } from '@/src/store/escrow';
@@ -152,8 +152,8 @@ const OrderDetail = () => {
 
   // Check if this is an external payment order (seller escrows as collateral)
   const isExternalPaymentOrder =
-    (currentData?.escrowOrder?.escrowOffer as { paymentTypeGoodsServices?: string })?.paymentTypeGoodsServices ===
-    GoodsServicesPaymentType.EXTERNAL;
+    (currentData?.escrowOrder?.escrowOffer as { offerCategory?: string })?.offerCategory ===
+    OfferCategory.GOODS_SERVICES;
 
   useEffect(() => {
     if (

@@ -107,25 +107,25 @@ export const LIST_TICKER_GOODS_SERVICES = [
 export const DEFAULT_TICKER_GOODS_SERVICES = 'XEC';
 
 /**
- * Payment type for Goods & Services offers
- * - IN_APP: Buyer pays XEC through the escrow system (traditional flow)
- * - EXTERNAL: Payment arranged outside the system (seller escrows as collateral)
+ * Offer category to distinguish XEC trading vs Goods & Services marketplace
+ * - XEC_TRADING: Traditional P2P exchange (buying/selling XEC for fiat/crypto)
+ * - GOODS_SERVICES: Marketplace for goods and services (paid in XEC)
  */
-export enum GoodsServicesPaymentType {
-  IN_APP = 'IN_APP', // Buyer pays XEC in-app (default)
-  EXTERNAL = 'EXTERNAL' // Payment outside system, seller escrows as collateral
+export enum OfferCategory {
+  XEC_TRADING = 'XEC_TRADING', // P2P XEC trading (default when null)
+  GOODS_SERVICES = 'GOODS_SERVICES' // Goods & Services marketplace
 }
 
-export const LIST_GOODS_SERVICES_PAYMENT_TYPE = [
+export const LIST_OFFER_CATEGORY = [
   {
-    value: GoodsServicesPaymentType.IN_APP,
-    label: 'Buyer pays in XEC',
-    description: 'Buyer sends XEC to escrow, you receive XEC after delivering goods/services'
+    value: OfferCategory.XEC_TRADING,
+    label: 'XEC Trading',
+    description: 'Trade XEC for fiat or other cryptocurrencies'
   },
   {
-    value: GoodsServicesPaymentType.EXTERNAL,
-    label: 'External payment (Seller collateral)',
-    description: 'You escrow XEC as collateral, buyer pays you externally, then releases your XEC back'
+    value: OfferCategory.GOODS_SERVICES,
+    label: 'Goods & Services',
+    description: 'Buy or sell goods and services for XEC'
   }
 ];
 

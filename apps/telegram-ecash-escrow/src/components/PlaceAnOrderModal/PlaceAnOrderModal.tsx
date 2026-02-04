@@ -1,7 +1,7 @@
 'use client';
 
 import FiatRateErrorBanner from '@/src/components/Common/FiatRateErrorBanner';
-import { COIN_OTHERS, DEFAULT_TICKER_GOODS_SERVICES, GoodsServicesPaymentType } from '@/src/store/constants';
+import { COIN_OTHERS, DEFAULT_TICKER_GOODS_SERVICES, OfferCategory } from '@/src/store/constants';
 import { LIST_BANK } from '@/src/store/constants/list-bank';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { UtxoContext } from '@/src/store/context/utxoProvider';
@@ -324,8 +324,8 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   // Check if this is an external payment offer (seller escrows as collateral)
   const isExternalPayment =
     isGoodsServices &&
-    (post?.postOffer as { paymentTypeGoodsServices?: string })?.paymentTypeGoodsServices ===
-      GoodsServicesPaymentType.EXTERNAL;
+    (post?.postOffer as { offerCategory?: string })?.offerCategory ===
+      OfferCategory.GOODS_SERVICES;
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
 
   const { useCreateEscrowOrderMutation, useGetModeratorAccountQuery, useGetRandomArbitratorAccountQuery } =
