@@ -343,7 +343,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
       priceCoinOthers: offer?.priceCoinOthers ?? null,
       priceGoodsServices: offer?.priceGoodsServices ?? null,
       tickerPriceGoodsServices: offer?.tickerPriceGoodsServices ?? DEFAULT_TICKER_GOODS_SERVICES,
-      paymentTypeGoodsServices: offer?.paymentTypeGoodsServices ?? GoodsServicesPaymentType.IN_APP,
+      paymentTypeGoodsServices: (offer as any)?.paymentTypeGoodsServices ?? GoodsServicesPaymentType.IN_APP,
       percentage: offer?.marginPercentage ?? 0,
       note: offer?.noteOffer ?? '',
       country: null,

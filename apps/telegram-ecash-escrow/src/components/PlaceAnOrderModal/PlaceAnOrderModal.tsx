@@ -15,6 +15,7 @@ import {
   formatAmountFor1MXEC,
   formatAmountForGoodsServices,
   formatNumber,
+  formatPriceByType,
   getNumberFromFormatNumber,
   getOrderLimitText,
   hexEncode,
@@ -1331,7 +1332,11 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                                   DEFAULT_TICKER_GOODS_SERVICES ? (
                                   <span>
                                     {' '}
-                                    ({post.postOffer.priceGoodsServices}{' '}
+                                    (
+                                    {formatPriceByType(
+                                      post.postOffer.priceGoodsServices,
+                                      post.postOffer.tickerPriceGoodsServices ?? 'USD'
+                                    )}{' '}
                                     {post.postOffer.tickerPriceGoodsServices ?? 'USD'})
                                   </span>
                                 ) : null}
