@@ -1648,7 +1648,11 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
               <div className="payment-currency">
                 <Typography>Payment currency</Typography>
                 <Button variant="outlined" color="warning">
-                  <Typography>{isGoodService ? 'XEC' : coinCurrency}</Typography>
+                  <Typography>
+                    {isGoodService
+                      ? getValues('tickerPriceGoodsServices') || DEFAULT_TICKER_GOODS_SERVICES
+                      : coinCurrency}
+                  </Typography>
                 </Button>
               </div>
             </div>
