@@ -30,7 +30,7 @@ import {
   hexToUint8Array,
   showPriceInfo
 } from '@/src/store/util';
-import { COIN, coinInfo } from '@bcpros/lixi-models';
+import { COIN, coinInfo, PAYMENT_METHOD } from '@bcpros/lixi-models';
 import {
   DisputeStatus,
   EscrowOrderAction,
@@ -151,9 +151,33 @@ const OrderDetail = () => {
   const isBuyOffer = currentData?.escrowOrder?.escrowOffer?.type === OfferType.Buy;
 
   // Check if this is an external payment order (seller escrows as collateral)
-  const isExternalPaymentOrder =
-    (currentData?.escrowOrder?.escrowOffer as { offerCategory?: string })?.offerCategory ===
-    OfferCategory.GOODS_SERVICES;
+  // External payment = G&S category with non-XEC payment method OR legacy G&S offers (paymentMethodId=5)
+  // Direct XEC payment in G&S (paymentMethodId = CRYPTO with coinPayment = 'XEC') should NOT be external
+  const isExternalPaymentOrder = useMemo(() => {
+    const hasGoodsServicesCategory =
+      (currentData?.escrowOrder?.escrowOffer as { offerCategory?: string })?.offerCategory ===
+      OfferCategory.GOODS_SERVICES;
+    const paymentMethodId = currentData?.escrowOrder?.paymentMethod?.id;
+    const coinPayment = (currentData?.escrowOrder?.escrowOffer?.coinPayment || '').toUpperCase();
+
+    // Legacy G&S offers (paymentMethodId = 5) are treated as external payment
+    if (paymentMethodId === PAYMENT_METHOD.GOODS_SERVICES) {
+      return true;
+    }
+
+    // Not a G&S category offer = not external payment
+    if (!hasGoodsServicesCategory) {
+      return false;
+    }
+
+    // G&S category with Crypto (XEC) payment method = direct XEC payment, NOT external
+    if (paymentMethodId === PAYMENT_METHOD.CRYPTO && coinPayment === 'XEC') {
+      return false;
+    }
+
+    // All other G&S category offers are external payment
+    return true;
+  }, [currentData?.escrowOrder]);
 
   useEffect(() => {
     if (

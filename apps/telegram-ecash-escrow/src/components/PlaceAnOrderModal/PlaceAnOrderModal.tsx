@@ -322,8 +322,32 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     isConvertGoodsServices(post?.postOffer?.priceGoodsServices, post?.postOffer?.tickerPriceGoodsServices)
   );
   // Check if this is an external payment offer (seller escrows as collateral)
-  const isExternalPayment =
-    isGoodsServices && (post?.postOffer as { offerCategory?: string })?.offerCategory === OfferCategory.GOODS_SERVICES;
+  // External payment = G&S category with non-XEC payment method OR legacy G&S offers (paymentMethodId=5)
+  // Direct XEC payment in G&S (paymentMethodId = CRYPTO with coinPayment = 'XEC') should NOT be external
+  const isExternalPayment = useMemo(() => {
+    const hasGoodsServicesCategory =
+      (post?.postOffer as { offerCategory?: string })?.offerCategory === OfferCategory.GOODS_SERVICES;
+    const paymentMethodId = post?.postOffer?.paymentMethods[0]?.paymentMethod?.id;
+    const coinPayment = (post?.postOffer?.coinPayment || '').toUpperCase();
+
+    // Legacy G&S offers (paymentMethodId = 5) are treated as external payment
+    if (paymentMethodId === PAYMENT_METHOD.GOODS_SERVICES) {
+      return true;
+    }
+
+    // Not a G&S category offer = not external payment
+    if (!hasGoodsServicesCategory) {
+      return false;
+    }
+
+    // G&S category with Crypto (XEC) payment method = direct XEC payment, NOT external
+    if (paymentMethodId === PAYMENT_METHOD.CRYPTO && coinPayment === 'XEC') {
+      return false;
+    }
+
+    // All other G&S category offers are external payment
+    return true;
+  }, [post?.postOffer]);
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
 
   const { useCreateEscrowOrderMutation, useGetModeratorAccountQuery, useGetRandomArbitratorAccountQuery } =
