@@ -173,7 +173,9 @@ const OrderDetail = () => {
       (currentData?.escrowOrder?.escrowOffer as { offerCategory?: string })?.offerCategory ===
       OfferCategory.GOODS_SERVICES;
     const paymentMethodId = currentData?.escrowOrder?.paymentMethod?.id;
-    const coinPayment = (currentData?.escrowOrder?.escrowOffer?.coinPayment || '').toUpperCase();
+    // Default missing coinPayment to 'XEC' to match behavior elsewhere
+    // This ensures G&S + CRYPTO with no coinPayment is treated as direct XEC payment (not external)
+    const coinPayment = (currentData?.escrowOrder?.escrowOffer?.coinPayment || 'XEC').toUpperCase();
 
     // Case 1: Legacy G&S offers (paymentMethodId = 5) are treated as external payment
     if (paymentMethodId === PAYMENT_METHOD.GOODS_SERVICES) {
@@ -458,7 +460,9 @@ const OrderDetail = () => {
       await updateEscrowOrderSignatoryTrigger({
         input: {
           orderId: id!,
-          action: 'BUYER_CONFIRM_RECEIPT' as EscrowOrderAction,
+          // Note: EscrowOrderAction.BuyerConfirmReceipt is the correct enum value
+          // Using string literal here for compatibility until types are regenerated
+          action: 'BUYER_CONFIRM_RECEIPT' as unknown as EscrowOrderAction,
           signatory: hexEncode(buyerSignatory),
           signatoryOwnerHash160: hexEncode(buyerPkh)
         }

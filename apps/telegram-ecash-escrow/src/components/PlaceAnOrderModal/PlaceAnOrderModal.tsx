@@ -343,7 +343,9 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     const hasGoodsServicesCategory =
       (post?.postOffer as { offerCategory?: string })?.offerCategory === OfferCategory.GOODS_SERVICES;
     const paymentMethodId = post?.postOffer?.paymentMethods[0]?.paymentMethod?.id;
-    const coinPayment = (post?.postOffer?.coinPayment || '').toUpperCase();
+    // Default missing coinPayment to 'XEC' to match behavior elsewhere
+    // This ensures G&S + CRYPTO with no coinPayment is treated as direct XEC payment (not external)
+    const coinPayment = (post?.postOffer?.coinPayment || 'XEC').toUpperCase();
 
     // Case 1: Legacy G&S offers (paymentMethodId = 5) are treated as external payment
     // These offers were created before offerCategory field existed

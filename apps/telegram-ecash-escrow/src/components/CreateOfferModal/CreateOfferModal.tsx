@@ -316,11 +316,20 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   const [activeStep, setActiveStep] = useState(isEdit ? 2 : 1);
   const [coinCurrency, setCoinCurrency] = useState<string>(COIN.XEC);
   const [fixAmount, setFixAmount] = useState(1000);
-  // For Goods & Services, default to Sell; for XEC trading, default to Buy
+  // Default buy/sell based on context:
+  // - When editing, mirror the existing offer type.
+  // - For Goods & Services (e.g., Shopping page), default to Sell.
+  // - For XEC trading and other contexts, default to Buy (original behavior).
   const [isBuyOffer, setIsBuyOffer] = useState(() => {
     if (offer?.type) return offer.type === OfferType.Buy;
-    // Default to Sell for all offer types (users typically want to sell)
-    return false;
+    const isGoodsServicesContext =
+      initialOfferCategory === 'GOODS_SERVICES' ||
+      (offer as any)?.offerCategory === OfferCategory.GOODS_SERVICES ||
+      offer?.paymentMethods[0]?.paymentMethod.id === PAYMENT_METHOD.GOODS_SERVICES;
+    // For Goods & Services offers, users are typically selling items/services.
+    if (isGoodsServicesContext) return false; // Sell
+    // For XEC trading and other offers, preserve original default: Buy.
+    return true;
   });
   const [isHiddenOffer, setIsHiddenOffer] = useState(true);
   // Offer category: 'XEC' for P2P trading, 'GOODS_SERVICES' for goods/services marketplace
