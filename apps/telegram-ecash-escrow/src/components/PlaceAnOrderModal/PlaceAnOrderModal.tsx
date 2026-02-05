@@ -321,31 +321,48 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const [isGoodsServicesConversion, setIsGoodsServicesConversion] = useState(() =>
     isConvertGoodsServices(post?.postOffer?.priceGoodsServices, post?.postOffer?.tickerPriceGoodsServices)
   );
-  // Check if this is an external payment offer (seller escrows as collateral)
-  // External payment = G&S category with non-XEC payment method OR legacy G&S offers (paymentMethodId=5)
-  // Direct XEC payment in G&S (paymentMethodId = CRYPTO with coinPayment = 'XEC') should NOT be external
+  /**
+   * Determines if this offer uses external payment flow (seller escrows collateral)
+   * vs direct payment flow (buyer deposits directly).
+   *
+   * PAYMENT FLOW TYPES:
+   * 1. EXTERNAL PAYMENT (seller escrows collateral):
+   *    - Legacy G&S offers (paymentMethodId = 5): Seller escrows XEC as collateral
+   *    - G&S category + Bank Transfer (paymentMethodId = 2): Buyer pays externally
+   *    - G&S category + Payment App (paymentMethodId = 3): Buyer pays via app
+   *    - G&S category + Crypto non-XEC (paymentMethodId = 4, coinPayment != 'XEC'): Buyer pays with other crypto
+   *    Flow: Seller deposits collateral → Buyer confirms receipt → Collateral returned to seller
+   *    Buyer action: BUYER_CONFIRM_RECEIPT
+   *
+   * 2. DIRECT PAYMENT (buyer deposits XEC):
+   *    - G&S category + Crypto XEC (paymentMethodId = 4, coinPayment = 'XEC'): Direct XEC payment
+   *    Flow: Buyer deposits XEC → Seller releases XEC to buyer (standard escrow)
+   *    Buyer action: Standard release flow (not BUYER_CONFIRM_RECEIPT)
+   */
   const isExternalPayment = useMemo(() => {
     const hasGoodsServicesCategory =
       (post?.postOffer as { offerCategory?: string })?.offerCategory === OfferCategory.GOODS_SERVICES;
     const paymentMethodId = post?.postOffer?.paymentMethods[0]?.paymentMethod?.id;
     const coinPayment = (post?.postOffer?.coinPayment || '').toUpperCase();
 
-    // Legacy G&S offers (paymentMethodId = 5) are treated as external payment
+    // Case 1: Legacy G&S offers (paymentMethodId = 5) are treated as external payment
+    // These offers were created before offerCategory field existed
     if (paymentMethodId === PAYMENT_METHOD.GOODS_SERVICES) {
       return true;
     }
 
-    // Not a G&S category offer = not external payment
+    // Case 2: Not a G&S category offer = not external payment (standard XEC trading)
     if (!hasGoodsServicesCategory) {
       return false;
     }
 
-    // G&S category with Crypto (XEC) payment method = direct XEC payment, NOT external
+    // Case 3: G&S category with Crypto (XEC) payment = direct XEC payment, NOT external
+    // This bypasses the collateral mechanism and uses standard buyer deposit flow
     if (paymentMethodId === PAYMENT_METHOD.CRYPTO && coinPayment === 'XEC') {
       return false;
     }
 
-    // All other G&S category offers are external payment
+    // Case 4: All other G&S category offers (Bank, Payment App, non-XEC Crypto) = external payment
     return true;
   }, [post?.postOffer]);
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
