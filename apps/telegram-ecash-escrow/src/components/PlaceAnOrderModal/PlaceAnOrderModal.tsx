@@ -1,7 +1,7 @@
 'use client';
 
 import FiatRateErrorBanner from '@/src/components/Common/FiatRateErrorBanner';
-import { COIN_OTHERS, DEFAULT_TICKER_GOODS_SERVICES } from '@/src/store/constants';
+import { COIN_OTHERS, DEFAULT_TICKER_GOODS_SERVICES, OfferCategory } from '@/src/store/constants';
 import { LIST_BANK } from '@/src/store/constants/list-bank';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { UtxoContext } from '@/src/store/context/utxoProvider';
@@ -15,6 +15,7 @@ import {
   formatAmountFor1MXEC,
   formatAmountForGoodsServices,
   formatNumber,
+  formatPriceByType,
   getNumberFromFormatNumber,
   getOrderLimitText,
   hexEncode,
@@ -320,6 +321,52 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const [isGoodsServicesConversion, setIsGoodsServicesConversion] = useState(() =>
     isConvertGoodsServices(post?.postOffer?.priceGoodsServices, post?.postOffer?.tickerPriceGoodsServices)
   );
+  /**
+   * Determines if this offer uses external payment flow (seller escrows collateral)
+   * vs direct payment flow (buyer deposits directly).
+   *
+   * PAYMENT FLOW TYPES:
+   * 1. EXTERNAL PAYMENT (seller escrows collateral):
+   *    - Legacy G&S offers (paymentMethodId = 5): Seller escrows XEC as collateral
+   *    - G&S category + Bank Transfer (paymentMethodId = 2): Buyer pays externally
+   *    - G&S category + Payment App (paymentMethodId = 3): Buyer pays via app
+   *    - G&S category + Crypto non-XEC (paymentMethodId = 4, coinPayment != 'XEC'): Buyer pays with other crypto
+   *    Flow: Seller deposits collateral → Buyer confirms receipt → Collateral returned to seller
+   *    Buyer action: BUYER_CONFIRM_RECEIPT
+   *
+   * 2. DIRECT PAYMENT (buyer deposits XEC):
+   *    - G&S category + Crypto XEC (paymentMethodId = 4, coinPayment = 'XEC'): Direct XEC payment
+   *    Flow: Buyer deposits XEC → Seller releases XEC to buyer (standard escrow)
+   *    Buyer action: Standard release flow (not BUYER_CONFIRM_RECEIPT)
+   */
+  const isExternalPayment = useMemo(() => {
+    const hasGoodsServicesCategory =
+      (post?.postOffer as { offerCategory?: string })?.offerCategory === OfferCategory.GOODS_SERVICES;
+    const paymentMethodId = post?.postOffer?.paymentMethods[0]?.paymentMethod?.id;
+    // Default missing coinPayment to 'XEC' to match behavior elsewhere
+    // This ensures G&S + CRYPTO with no coinPayment is treated as direct XEC payment (not external)
+    const coinPayment = (post?.postOffer?.coinPayment || 'XEC').toUpperCase();
+
+    // Case 1: Legacy G&S offers (paymentMethodId = 5) are treated as external payment
+    // These offers were created before offerCategory field existed
+    if (paymentMethodId === PAYMENT_METHOD.GOODS_SERVICES) {
+      return true;
+    }
+
+    // Case 2: Not a G&S category offer = not external payment (standard XEC trading)
+    if (!hasGoodsServicesCategory) {
+      return false;
+    }
+
+    // Case 3: G&S category with Crypto (XEC) payment = direct XEC payment, NOT external
+    // This bypasses the collateral mechanism and uses standard buyer deposit flow
+    if (paymentMethodId === PAYMENT_METHOD.CRYPTO && coinPayment === 'XEC') {
+      return false;
+    }
+
+    // Case 4: All other G&S category offers (Bank, Payment App, non-XEC Crypto) = external payment
+    return true;
+  }, [post?.postOffer]);
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
 
   const { useCreateEscrowOrderMutation, useGetModeratorAccountQuery, useGetRandomArbitratorAccountQuery } =
@@ -839,6 +886,14 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     const isValid = await trigger();
     if (!isValid) return;
 
+    // For external payment, buyer doesn't need to deposit - seller will deposit as collateral later
+    if (isExternalPayment) {
+      handleSubmit(data => {
+        handleCreateEscrowOrder(data, false);
+      })();
+      return;
+    }
+
     if (checkBuyerEnoughFund() && !isBuyOffer) {
       setOpenConfirmDeposit(true);
     } else {
@@ -1318,7 +1373,11 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                                   DEFAULT_TICKER_GOODS_SERVICES ? (
                                   <span>
                                     {' '}
-                                    ({post.postOffer.priceGoodsServices}{' '}
+                                    (
+                                    {formatPriceByType(
+                                      post.postOffer.priceGoodsServices,
+                                      post.postOffer.tickerPriceGoodsServices ?? 'USD'
+                                    )}{' '}
                                     {post.postOffer.tickerPriceGoodsServices ?? 'USD'})
                                   </span>
                                 ) : null}
@@ -1393,6 +1452,32 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                 <Typography color="error">{errors?.paymentMethod?.message as string}</Typography>
               )}
             </RadioGroup>
+
+            {/* External Payment Notice */}
+            {isExternalPayment && (
+              <Box
+                sx={{
+                  mt: 2,
+                  p: 2,
+                  borderRadius: 1,
+                  bgcolor: 'info.main',
+                  color: 'info.contrastText'
+                }}
+              >
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
+                  External Payment (Seller Collateral)
+                </Typography>
+                <Typography variant="body2">
+                  This is an external payment offer. You will pay the seller directly outside the system (offline). The
+                  seller will escrow XEC as collateral to guarantee the delivery.
+                </Typography>
+                <Typography variant="body2" sx={{ mt: 1, fontWeight: 500 }}>
+                  After receiving the goods/services, please confirm delivery to release the collateral back to the
+                  seller.
+                </Typography>
+              </Box>
+            )}
+
             {isBuyOffer && InfoPaymentDetail()}
           </PlaceAnOrderWrap>
         </DialogContent>
