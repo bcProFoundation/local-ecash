@@ -1,9 +1,13 @@
 /** @type {import('next').NextConfig} */
 const path = require('path');
 const webpack = require('webpack');
-const CopyPlugin = require('copy-webpack-plugin')
+const CopyPlugin = require('copy-webpack-plugin');
+const { parseXecChronikUrls } = require('./src/config/chronik');
 
 const nextConfig = {
+  env: {
+    NEXT_PUBLIC_CHRONIK_URL: parseXecChronikUrls(process.env.NEXT_PUBLIC_CHRONIK_URL).join(',')
+  },
   output: 'standalone',
   reactStrictMode: false,
   pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],

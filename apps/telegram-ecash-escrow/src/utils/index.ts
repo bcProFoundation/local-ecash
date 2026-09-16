@@ -6,10 +6,12 @@
 // changing existing implementations or breaking imports.
 
 export {
+  buildCryptoOfferRateData,
   constructXECRatesFromFiatCurrencies,
   convertXECAndCurrency,
   formatAmountFor1MXEC,
   formatAmountForGoodsServices,
+  getXecTransformedRateData,
   isConvertGoodsServices,
   isSafeImageUrl,
   parseSafeHttpUrl,

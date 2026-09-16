@@ -3,14 +3,14 @@
 import { DEFAULT_TICKER_GOODS_SERVICES, securityDepositPercentage } from '@/src/store/constants';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import {
-  constructXECRatesFromFiatCurrencies,
+  buildCryptoOfferRateData,
   convertXECAndCurrency,
   formatAmountFor1MXEC,
   formatAmountForGoodsServices,
   formatNumber,
+  getXecTransformedRateData,
   isConvertGoodsServices,
-  showPriceInfo,
-  transformFiatRates
+  showPriceInfo
 } from '@/src/store/util';
 import { COIN, PAYMENT_METHOD, coinInfo, getTickerText } from '@bcpros/lixi-models';
 import {
@@ -329,34 +329,10 @@ const OrderDetailInfo = ({
       // For Goods & Services: Always use XEC fiat rates (price is in fiat, need to convert to XEC)
       // For Crypto Orders: Use the selected fiat currency from localCurrency (user's choice)
       if (isGoodsServices) {
-        // Goods & Services: Transform XEC currency fiat rates
-        const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
-
-        if (xecCurrency?.fiatRates) {
-          const transformedRates = transformFiatRates(xecCurrency.fiatRates);
-          setRateData(transformedRates);
-        } else {
-          // FALLBACK: If XEC entry is missing, construct it from fiat currencies
-          const constructedRates = constructXECRatesFromFiatCurrencies(fiatData?.getAllFiatRate);
-          if (constructedRates) {
-            const transformedRates = transformFiatRates(constructedRates);
-            setRateData(transformedRates);
-          } else {
-            setRateData(null);
-          }
-        }
+        setRateData(getXecTransformedRateData(fiatData?.getAllFiatRate));
       } else {
-        // Crypto Orders: Transform the user's selected local currency
-        const currencyData = fiatData?.getAllFiatRate?.find(
-          item => item.currency === (order?.escrowOffer?.localCurrency ?? 'USD')
-        );
-
-        if (currencyData?.fiatRates) {
-          const transformedRates = transformFiatRates(currencyData.fiatRates);
-          setRateData(transformedRates);
-        } else {
-          setRateData(null);
-        }
+        const localCurrency = order?.escrowOffer?.localCurrency ?? 'USD';
+        setRateData(buildCryptoOfferRateData(fiatData?.getAllFiatRate, localCurrency));
       }
     }
   }, [
