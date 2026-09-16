@@ -9,7 +9,10 @@ RUN apk update && apk add --no-cache libc6-compat jq
 
 FROM alpine as base
 RUN npm install -g turbo@2.0.6
-RUN npm install pnpm --global
+# Pinned to pnpm 9: pnpm 10+ auto-switches to the packageManager-pinned pnpm 7
+# below, whose native binary does not exist for linux-x64-musl (Alpine) and
+# breaks the build. pnpm 9 matches the v9 lockfile and ignores the pin.
+RUN npm install pnpm@9 --global
 RUN pnpm config set store-dir ~/.pnpm-store
 
 # prune project
