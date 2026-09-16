@@ -232,10 +232,6 @@ export const convertXECAndCurrency = ({ rateData, paymentInfo, inputAmount }) =>
       if (localCurrencyRate && localCurrencyRate > 0) {
         amountXEC = inputAmount * localCurrencyRate; // amount fiat to XEC
         amountCoinOrCurrency = CONST_AMOUNT_XEC / localCurrencyRate; // amount fiat from 1M XEC
-      } else {
-        // Fallback to generic conversion
-        amountXEC = inputAmount / latestRateXec;
-        amountCoinOrCurrency = CONST_AMOUNT_XEC * latestRateXec;
       }
     } else {
       // USD stablecoin / fiat display: use inverted fiat rate (XEC per 1 fiat unit)
@@ -244,9 +240,6 @@ export const convertXECAndCurrency = ({ rateData, paymentInfo, inputAmount }) =>
       if (fiatRate && fiatRate > 0) {
         amountXEC = inputAmount * fiatRate;
         amountCoinOrCurrency = CONST_AMOUNT_XEC / fiatRate;
-      } else {
-        amountXEC = inputAmount / latestRateXec;
-        amountCoinOrCurrency = CONST_AMOUNT_XEC * latestRateXec;
       }
     }
   }
