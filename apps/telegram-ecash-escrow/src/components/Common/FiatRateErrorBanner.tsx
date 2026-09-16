@@ -108,10 +108,10 @@ export default function FiatRateErrorBanner({
         marginBottom: 2
       }}
     >
-      <Typography variant="body2" sx={{ fontWeight: 'bold', marginBottom: 0.5 }}>
+      <Typography variant="body2" sx={{ fontWeight: 'bold', marginBottom: 0.5, color: 'inherit' }}>
         ⚠️ {variant === 'error' ? 'Fiat Service Unavailable' : 'Currency Conversion Service Unavailable'}
       </Typography>
-      <Typography variant="body2">
+      <Typography variant="body2" sx={{ color: 'inherit' }}>
         {goodsServicesOnly && tickerPriceGoodsServices ? (
           <>
             Cannot calculate XEC amount for {tickerPriceGoodsServices}-priced offers. The currency conversion service is
