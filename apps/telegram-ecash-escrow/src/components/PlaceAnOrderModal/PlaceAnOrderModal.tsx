@@ -8,7 +8,7 @@ import { UtxoContext } from '@/src/store/context/utxoProvider';
 import { buyerDepositFee, splitUtxos } from '@/src/store/escrow';
 import { Escrow, EscrowBuyerDepositFee, EscrowFee } from '@/src/store/escrow/script';
 import {
-  constructXECRatesFromFiatCurrencies,
+  buildCryptoOfferRateData,
   convertXECAndCurrency,
   convertXECToSatoshi,
   estimatedFee,
@@ -17,10 +17,10 @@ import {
   formatNumber,
   getNumberFromFormatNumber,
   getOrderLimitText,
+  getXecTransformedRateData,
   hexEncode,
   isConvertGoodsServices,
-  showPriceInfo,
-  transformFiatRates
+  showPriceInfo
 } from '@/src/store/util';
 import {
   BankInfoInput,
@@ -950,46 +950,17 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
         return;
       }
 
-      // Goods & Services priced in fiat: Find XEC currency and get its fiat rates
-      const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
-
-      if (xecCurrency?.fiatRates) {
-        const transformedRates = transformFiatRates(xecCurrency.fiatRates);
-
-        setRateData(transformedRates);
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('📊 Fiat rates loaded for Goods & Services:', {
-            currency: 'XEC',
-            originalRatesCount: xecCurrency.fiatRates.length,
-            transformedRatesCount: transformedRates?.length || 0,
-            priceInCurrency: post?.postOffer?.tickerPriceGoodsServices,
-            matchedRate: transformedRates?.find(
-              r => r.coin?.toUpperCase() === post?.postOffer?.tickerPriceGoodsServices?.toUpperCase()
-            )
-          });
-        }
-      } else {
-        // FALLBACK: If XEC entry is missing, construct it from fiat currencies
-        const constructedRates = constructXECRatesFromFiatCurrencies(fiatData?.getAllFiatRate);
-        if (constructedRates) {
-          const transformedRates = transformFiatRates(constructedRates);
-          setRateData(transformedRates);
-          if (process.env.NODE_ENV !== 'production') {
-            console.log('📊 Fiat rates constructed from fiat currencies (fallback):', {
-              constructedRatesCount: constructedRates.length,
-              transformedRatesCount: transformedRates?.length || 0,
-              priceInCurrency: post?.postOffer?.tickerPriceGoodsServices,
-              matchedRate: transformedRates?.find(
-                r => r.coin?.toUpperCase() === post?.postOffer?.tickerPriceGoodsServices?.toUpperCase()
-              )
-            });
-          }
-        } else {
-          setRateData(null);
-          if (process.env.NODE_ENV !== 'production') {
-            console.warn('⚠️ XEC currency not found in fiatData for Goods & Services');
-          }
-        }
+      const transformedRates = getXecTransformedRateData(fiatData?.getAllFiatRate);
+      setRateData(transformedRates);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('📊 Fiat rates loaded for Goods & Services:', {
+          currency: 'XEC',
+          transformedRatesCount: transformedRates?.length || 0,
+          priceInCurrency: post?.postOffer?.tickerPriceGoodsServices,
+          matchedRate: transformedRates?.find(
+            r => r.coin?.toUpperCase() === post?.postOffer?.tickerPriceGoodsServices?.toUpperCase()
+          )
+        });
       }
     } else {
       // XEC P2P offers with fiat localCurrency: Need to get fiat rates for price display
@@ -999,28 +970,16 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
       if (effectiveCoinPayment === 'XEC') {
         // If localCurrency is fiat (not XEC), we need fiat rates for display
         if (post?.postOffer?.localCurrency && post.postOffer.localCurrency.toUpperCase() !== 'XEC') {
-          const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
-          if (xecCurrency?.fiatRates) {
-            const transformedRates = transformFiatRates(xecCurrency.fiatRates);
-            setRateData(transformedRates);
-            if (process.env.NODE_ENV !== 'production') {
-              console.log('📊 Fiat rates loaded for XEC P2P offer with fiat display:', {
-                localCurrency: post?.postOffer?.localCurrency,
-                transformedRatesCount: transformedRates?.length || 0,
-                matchedRate: transformedRates?.find(
-                  r => r.coin?.toUpperCase() === post?.postOffer?.localCurrency?.toUpperCase()
-                )
-              });
-            }
-          } else {
-            // Fallback: construct XEC rates from fiat currencies
-            const constructedRates = constructXECRatesFromFiatCurrencies(fiatData?.getAllFiatRate);
-            if (constructedRates) {
-              const transformedRates = transformFiatRates(constructedRates);
-              setRateData(transformedRates);
-            } else {
-              setRateData(null);
-            }
+          const transformedRates = getXecTransformedRateData(fiatData?.getAllFiatRate);
+          setRateData(transformedRates);
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('📊 Fiat rates loaded for XEC P2P offer with fiat display:', {
+              localCurrency: post?.postOffer?.localCurrency,
+              transformedRatesCount: transformedRates?.length || 0,
+              matchedRate: transformedRates?.find(
+                r => r.coin?.toUpperCase() === post?.postOffer?.localCurrency?.toUpperCase()
+              )
+            });
           }
           return;
         }
@@ -1044,49 +1003,27 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
         post?.postOffer?.coinPayment?.toUpperCase() === COIN_OTHERS.toUpperCase() &&
         post?.postOffer?.priceCoinOthers
       ) {
-        const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
-
-        if (xecCurrency?.fiatRates) {
-          const transformedRates = transformFiatRates(xecCurrency.fiatRates);
-          setRateData(transformedRates);
-          if (process.env.NODE_ENV !== 'production') {
-            console.log('📊 Fiat rates loaded for COIN_OTHERS Offer:', {
-              coinOthers: post?.postOffer?.coinOthers,
-              priceCoinOthers: post?.postOffer?.priceCoinOthers,
-              transformedRatesCount: transformedRates?.length || 0,
-              usdRate: transformedRates?.find(r => r.coin?.toUpperCase() === 'USD')?.rate
-            });
-          }
-        } else {
-          // Fallback: construct XEC rates from fiat currencies
-          const constructedRates = constructXECRatesFromFiatCurrencies(fiatData?.getAllFiatRate);
-          if (constructedRates) {
-            const transformedRates = transformFiatRates(constructedRates);
-            setRateData(transformedRates);
-          } else {
-            setRateData(null);
-          }
+        const transformedRates = getXecTransformedRateData(fiatData?.getAllFiatRate);
+        setRateData(transformedRates);
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('📊 Fiat rates loaded for COIN_OTHERS Offer:', {
+            coinOthers: post?.postOffer?.coinOthers,
+            priceCoinOthers: post?.postOffer?.priceCoinOthers,
+            transformedRatesCount: transformedRates?.length || 0,
+            usdRate: transformedRates?.find(r => r.coin?.toUpperCase() === 'USD')?.rate
+          });
         }
         return;
       }
 
-      // Crypto Offers: Find the user's selected local currency and transform the same way
-      const currencyData = fiatData?.getAllFiatRate?.find(
-        item => item.currency === (post?.postOffer?.localCurrency ?? 'USD')
-      );
-
-      if (currencyData?.fiatRates) {
-        const transformedRates = transformFiatRates(currencyData.fiatRates);
-
-        setRateData(transformedRates);
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('📊 Fiat rates loaded for Crypto Offer:', {
-            localCurrency: post?.postOffer?.localCurrency,
-            transformedRatesCount: transformedRates?.length || 0
-          });
-        }
-      } else {
-        setRateData(null);
+      const localCurrency = post?.postOffer?.localCurrency ?? 'USD';
+      const transformedRates = buildCryptoOfferRateData(fiatData?.getAllFiatRate, localCurrency);
+      setRateData(transformedRates);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('📊 Fiat rates loaded for Crypto Offer:', {
+          localCurrency,
+          transformedRatesCount: transformedRates?.length || 0
+        });
       }
     }
   }, [

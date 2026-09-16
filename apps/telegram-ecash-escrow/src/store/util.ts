@@ -238,8 +238,16 @@ export const convertXECAndCurrency = ({ rateData, paymentInfo, inputAmount }) =>
         amountCoinOrCurrency = CONST_AMOUNT_XEC * latestRateXec;
       }
     } else {
-      amountXEC = inputAmount / latestRateXec; // amount currency to XEC
-      amountCoinOrCurrency = CONST_AMOUNT_XEC * latestRateXec; // amount currency from 1M XEC
+      // USD stablecoin / fiat display: use inverted fiat rate (XEC per 1 fiat unit)
+      const displayCurrency = (localCurrency || effectiveCoinPayment || 'USD').toUpperCase();
+      const fiatRate = rateData.find(item => item.coin?.toUpperCase() === displayCurrency)?.rate;
+      if (fiatRate && fiatRate > 0) {
+        amountXEC = inputAmount * fiatRate;
+        amountCoinOrCurrency = CONST_AMOUNT_XEC / fiatRate;
+      } else {
+        amountXEC = inputAmount / latestRateXec;
+        amountCoinOrCurrency = CONST_AMOUNT_XEC * latestRateXec;
+      }
     }
   }
 
@@ -337,6 +345,73 @@ export function transformFiatRates(fiatRates: any[]): any[] | null {
  * @param getAllFiatRate - The full getAllFiatRate array from the API
  * @returns Constructed fiat rates for XEC currency, or null if no valid data found
  */
+/**
+ * Returns transformed XEC-grouped fiat rates (fiat codes as coin, inverted to XEC-per-fiat).
+ * Falls back to constructing XEC entry from fiat-grouped data when the XEC entry is missing.
+ */
+export function getXecTransformedRateData(getAllFiatRate: any[] | undefined): any[] | null {
+  if (!getAllFiatRate?.length) {
+    return null;
+  }
+
+  const xecCurrency = getAllFiatRate.find(item => item.currency === 'XEC');
+  if (xecCurrency?.fiatRates?.length) {
+    return transformFiatRates(xecCurrency.fiatRates);
+  }
+
+  const constructedRates = constructXECRatesFromFiatCurrencies(getAllFiatRate);
+  return constructedRates ? transformFiatRates(constructedRates) : null;
+}
+
+/**
+ * Builds rate data for crypto P2P offers (BTC, XRP, USD stablecoin, etc.).
+ *
+ * Uses XEC-grouped fiat rates (transformed) as the base, then merges crypto coin rates
+ * expressed as XEC per 1 coin from the fiat-grouped entry for localCurrency.
+ *
+ * transformFiatRates must only be applied to XEC-grouped fiatRates where each entry is
+ * { coin: fiatCode, rate: fiatPerXec }. Applying it to fiat-grouped crypto rates
+ * (coin: cryptoSymbol) produces incorrect billion-scale prices.
+ */
+export function buildCryptoOfferRateData(
+  getAllFiatRate: any[] | undefined,
+  localCurrency: string = 'USD'
+): any[] | null {
+  const rateData = getXecTransformedRateData(getAllFiatRate);
+  if (!rateData) {
+    return null;
+  }
+
+  const normalizedCurrency = localCurrency.toUpperCase();
+  const fiatGroup = getAllFiatRate?.find(item => item.currency?.toUpperCase() === normalizedCurrency);
+  if (!fiatGroup?.fiatRates?.length) {
+    return rateData;
+  }
+
+  const xecFiatPerCoin = fiatGroup.fiatRates.find(rate => rate.coin?.toUpperCase() === 'XEC')?.rate;
+  if (!xecFiatPerCoin || xecFiatPerCoin <= 0) {
+    return rateData;
+  }
+
+  for (const entry of fiatGroup.fiatRates) {
+    const coin = entry.coin?.toUpperCase();
+    if (!coin || coin === 'XEC' || !entry.rate || entry.rate <= 0) {
+      continue;
+    }
+    if (rateData.some(rate => rate.coin?.toUpperCase() === coin)) {
+      continue;
+    }
+
+    rateData.push({
+      coin: entry.coin,
+      rate: entry.rate / xecFiatPerCoin,
+      ts: entry.ts
+    });
+  }
+
+  return rateData;
+}
+
 export function constructXECRatesFromFiatCurrencies(getAllFiatRate: any[]): any[] | null {
   if (!getAllFiatRate || getAllFiatRate.length === 0) {
     return null;

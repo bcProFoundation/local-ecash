@@ -1,10 +1,10 @@
 import {
-  constructXECRatesFromFiatCurrencies,
+  buildCryptoOfferRateData,
   convertXECAndCurrency,
   formatAmountFor1MXEC,
+  getXecTransformedRateData,
   isConvertGoodsServices,
-  showPriceInfo,
-  transformFiatRates
+  showPriceInfo
 } from '@/src/utils';
 import { PAYMENT_METHOD, getTickerText } from '@bcpros/lixi-models';
 import { OfferType, fiatCurrencyApi } from '@bcpros/redux-store';
@@ -92,41 +92,8 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
     // For COIN_OTHERS: Use XEC currency entry (same as Goods & Services since price is in USD)
     // For other Crypto Offers: Use the selected fiat currency from localCurrency (user's choice)
 
-    if (isGoodsServices) {
-      // Goods & Services: Find XEC currency and transform its fiat rates
-      const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
-
-      if (xecCurrency?.fiatRates) {
-        const transformedRates = transformFiatRates(xecCurrency.fiatRates);
-        setRateData(transformedRates);
-      } else {
-        // FALLBACK: If XEC entry is missing, construct it from fiat currencies
-        const constructedRates = constructXECRatesFromFiatCurrencies(fiatData?.getAllFiatRate);
-        if (constructedRates) {
-          const transformedRates = transformFiatRates(constructedRates);
-          setRateData(transformedRates);
-        } else {
-          setRateData(null);
-        }
-      }
-    } else if (paymentInfo?.coinPayment?.toLowerCase() === 'others' && paymentInfo?.priceCoinOthers) {
-      // COIN_OTHERS (custom crypto like EAT): priceCoinOthers is in USD
-      // Use XEC currency entry to get USD→XEC conversion rate (same as Goods & Services)
-      const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
-
-      if (xecCurrency?.fiatRates) {
-        const transformedRates = transformFiatRates(xecCurrency.fiatRates);
-        setRateData(transformedRates);
-      } else {
-        // FALLBACK: If XEC entry is missing, construct it from fiat currencies
-        const constructedRates = constructXECRatesFromFiatCurrencies(fiatData?.getAllFiatRate);
-        if (constructedRates) {
-          const transformedRates = transformFiatRates(constructedRates);
-          setRateData(transformedRates);
-        } else {
-          setRateData(null);
-        }
-      }
+    if (isGoodsServices || (paymentInfo?.coinPayment?.toLowerCase() === 'others' && paymentInfo?.priceCoinOthers)) {
+      setRateData(getXecTransformedRateData(fiatData?.getAllFiatRate));
     } else if (isXECOffer) {
       // XEC Offers: Use the local currency data directly WITHOUT transformation
       // API returns: { coin: 'xec', rate: 0.3 } meaning "1 XEC = 0.3 VND"
@@ -149,16 +116,8 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
         setRateData(null);
       }
     } else {
-      // Other Crypto Offers: transform rates as before
       const currency = (paymentInfo?.localCurrency ?? 'USD').toUpperCase();
-      const currencyData = fiatData?.getAllFiatRate?.find(item => item.currency?.toUpperCase() === currency);
-
-      if (currencyData?.fiatRates) {
-        const transformedRates = transformFiatRates(currencyData.fiatRates);
-        setRateData(transformedRates);
-      } else {
-        setRateData(null);
-      }
+      setRateData(buildCryptoOfferRateData(fiatData?.getAllFiatRate, currency));
     }
   }, [
     paymentInfo?.localCurrency,
