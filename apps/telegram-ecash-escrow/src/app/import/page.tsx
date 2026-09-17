@@ -150,6 +150,7 @@ export default function ImportWallet() {
       setSuccess(true);
     } catch (e) {
       setError(true);
+      console.error('Create new wallet failed:', e?.response?.data?.message ?? e);
     }
 
     setLoading(false);
