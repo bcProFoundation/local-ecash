@@ -17,6 +17,7 @@ import _ from 'lodash';
 import { signIn, useSession } from 'next-auth/react';
 import React, { useContext, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import ConfirmCreateNewAccountModal from '../Auth/ConfirmCreateNewAccountModal';
 
 const ContainerImportWallet = styled.div`
   padding: 1rem;
@@ -83,6 +84,8 @@ const MiniAppBackdrop = () => {
   const [error, setError] = useState(false);
   const [networkError, setNetworkError] = useState(false);
   const [newAccountBackdrop, setNewAccountBackdrop] = useState(false);
+  const [openConfirmCreateAccount, setOpenConfirmCreateAccount] = useState(false);
+  const [createWalletError, setCreateWalletError] = useState('');
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
   const { getXecWalletPublicKey } = useContext(WalletContextNode);
 
@@ -179,10 +182,13 @@ const MiniAppBackdrop = () => {
 
   const handleCreateNewWallet = async () => {
     setLoading(true);
+    setCreateWalletError('');
     try {
       const { id } = launchParams.initData.user;
 
-      await axiosClient.get(`/api/accounts/telegram/unlink/${id}`);
+      await axiosClient.get(`/api/accounts/telegram/unlink/${id}`, {
+        params: { confirmTelegramId: id }
+      });
 
       const dataGenerateAccount: GenerateAccountType = {
         coin: COIN.XEC,
@@ -192,10 +198,11 @@ const MiniAppBackdrop = () => {
 
       dispatch(generateAccount(dataGenerateAccount));
 
+      setOpenConfirmCreateAccount(false);
       setSuccess(true);
     } catch (e) {
       console.log('handleCreateNewWal ~ e:', e);
-      setError(true);
+      setCreateWalletError(e?.response?.data?.message ?? 'Create new wallet failed');
     }
 
     setLoading(false);
@@ -311,7 +318,7 @@ const MiniAppBackdrop = () => {
               <Button
                 className="btn-create"
                 variant="contained"
-                onClick={() => handleCreateNewWallet()}
+                onClick={() => setOpenConfirmCreateAccount(true)}
                 disabled={loading || success || !_.isNil(selectedWalletPath)}
               >
                 Create new wallet
@@ -333,11 +340,33 @@ const MiniAppBackdrop = () => {
         </Alert>
       </Snackbar>
 
+      <Snackbar open={!!createWalletError} autoHideDuration={5000} onClose={() => setCreateWalletError('')}>
+        <Alert severity="error" variant="filled" sx={{ width: '100%' }}>
+          {createWalletError}
+        </Alert>
+      </Snackbar>
+
       <Snackbar open={error} autoHideDuration={3500} onClose={() => setError(false)}>
         <Alert severity="error" variant="filled" sx={{ width: '100%' }}>
           Import wallet failed — Please check your mnemonic seed phrase!
         </Alert>
       </Snackbar>
+
+      {launchParams?.initData?.user?.id && (
+        <ConfirmCreateNewAccountModal
+          isOpen={openConfirmCreateAccount}
+          isLoading={loading}
+          telegramId={launchParams.initData.user.id.toString()}
+          onDismissModal={value => setOpenConfirmCreateAccount(value)}
+          createAccount={isCreateAccount => {
+            if (isCreateAccount) {
+              handleCreateNewWallet();
+            } else {
+              setOpenConfirmCreateAccount(false);
+            }
+          }}
+        />
+      )}
     </React.Fragment>
   );
 };
