@@ -1,6 +1,7 @@
 'use client';
 
-import { LIST_CURRENCIES_USED } from '@bcpros/lixi-models';
+import { LIST_COIN } from '@/src/store/constants';
+import { LIST_CURRENCIES_USED, PAYMENT_METHOD } from '@bcpros/lixi-models';
 import { ChevronLeft } from '@mui/icons-material';
 import {
   Box,
@@ -10,6 +11,8 @@ import {
   DialogTitle,
   IconButton,
   Slide,
+  Tab,
+  Tabs,
   TextField,
   Typography,
   useMediaQuery,
@@ -17,7 +20,7 @@ import {
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { TransitionProps } from '@mui/material/transitions';
-import React, { useId, useMemo, useState } from 'react';
+import React, { useId, useState } from 'react';
 import { FilterCurrencyType } from '../../store/type/types';
 
 interface ShoppingCurrencyModalProps {
@@ -67,11 +70,29 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
   },
 
   '.MuiDialogContent-root': {
-    padding: '16px'
+    padding: 0
   },
 
   button: {
     color: theme.palette.text.secondary
+  }
+}));
+
+const StyledTabs = styled(Tabs)(({ theme }) => ({
+  '.MuiTab-root': {
+    color: theme.custom.colorPrimary,
+    textTransform: 'none',
+    fontWeight: 600,
+    fontSize: '16px',
+
+    '&.Mui-selected': {
+      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+      backdropFilter: 'blur(8px)'
+    }
+  },
+
+  '.MuiTabs-indicator': {
+    backgroundColor: theme.palette.primary.main || '#0076c4'
   }
 }));
 
@@ -85,43 +106,41 @@ const Transition = React.forwardRef(function Transition(
 });
 
 /**
- * Simplified currency modal for Shopping tab
- * Shows fiat currencies + XEC in a single list, sorted alphabetically
+ * Currency modal for Shopping tab - Shows Fiat and Crypto tabs
+ * Similar to P2P trading currency modal but for Goods & Services
  */
 const ShoppingCurrencyModal: React.FC<ShoppingCurrencyModalProps> = props => {
   const { isOpen, onDismissModal, setSelectedItem } = props;
+  const keyFilterTab = 'shopping-currency-tab';
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
-
-  const [searchTerm, setSearchTerm] = useState('');
   const titleId = useId();
 
-  // Build combined list of fiat currencies + XEC, sorted alphabetically by code
-  const currencyList = useMemo(() => {
-    // Add XEC as a currency option
-    const xecOption = { code: 'XEC', name: 'eCash' };
+  const [searchTerm, setSearchTerm] = useState('');
+  const [value, setValue] = useState(() => {
+    if (typeof window === 'undefined') return 0;
+    try {
+      return Number(sessionStorage.getItem(keyFilterTab)) || 0;
+    } catch {
+      return 0;
+    }
+  });
 
-    // Combine fiat currencies with XEC
-    const allCurrencies = [...LIST_CURRENCIES_USED, xecOption];
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    try {
+      sessionStorage.setItem(keyFilterTab, newValue.toString());
+    } catch (error) {
+      // Ignore storage errors (e.g., quota exceeded, unavailable)
+      console.error('Failed to persist shopping currency tab selection to sessionStorage.', error);
+    }
+    setValue(newValue);
+    setSearchTerm('');
+  };
 
-    // Sort alphabetically by code
-    return allCurrencies.sort((a, b) => a.code.localeCompare(b.code));
-  }, []);
-
-  // Filter currencies based on search term
-  const filteredCurrencies = useMemo(() => {
-    if (!searchTerm) return currencyList;
-
-    const lowerSearch = searchTerm.toLowerCase();
-    return currencyList.filter(
-      option => option.code.toLowerCase().includes(lowerSearch) || option.name.toLowerCase().includes(lowerSearch)
-    );
-  }, [currencyList, searchTerm]);
-
-  const handleSelect = (currency: { code: string; name: string }) => {
+  const handleSelect = (currency: any) => {
     const filterCurrency: FilterCurrencyType = {
-      paymentMethod: 5, // PAYMENT_METHOD.GOODS_SERVICES
-      value: currency.code
+      paymentMethod: PAYMENT_METHOD.GOODS_SERVICES,
+      value: currency?.code ?? currency?.ticker ?? currency
     };
     setSelectedItem?.(filterCurrency);
     onDismissModal?.(false);
@@ -129,7 +148,7 @@ const ShoppingCurrencyModal: React.FC<ShoppingCurrencyModalProps> = props => {
   };
 
   const handleClear = () => {
-    setSelectedItem?.({ paymentMethod: 5, value: '' });
+    setSelectedItem?.({ paymentMethod: PAYMENT_METHOD.GOODS_SERVICES, value: '' });
     onDismissModal?.(false);
     setSearchTerm('');
   };
@@ -137,6 +156,76 @@ const ShoppingCurrencyModal: React.FC<ShoppingCurrencyModalProps> = props => {
   const handleClose = () => {
     onDismissModal?.(false);
     setSearchTerm('');
+  };
+
+  const searchTextField = (
+    <TextField
+      label="Search"
+      variant="filled"
+      fullWidth
+      onChange={e => setSearchTerm(e.target.value)}
+      value={searchTerm}
+      autoFocus
+    />
+  );
+
+  const contentFiat = () => {
+    const filteredFiats = LIST_CURRENCIES_USED.filter(option =>
+      `${option?.name} (${option?.code})`.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    return (
+      <div className="content-fiat">
+        {searchTextField}
+        <Box sx={{ mt: 1, maxHeight: 'calc(100vh - 260px)', overflow: 'auto', px: 2 }}>
+          {filteredFiats.map(option => (
+            <Button
+              key={option?.code}
+              onClick={() => handleSelect(option)}
+              fullWidth
+              variant="text"
+              style={{ textTransform: 'capitalize', fontSize: '1.1rem' }}
+              sx={{ justifyContent: 'flex-start', textAlign: 'left' }}
+            >
+              {option?.name} ({option?.code})
+            </Button>
+          ))}
+          {filteredFiats.length === 0 && (
+            <Typography sx={{ p: 2, textAlign: 'center', color: 'text.secondary' }}>No currencies found</Typography>
+          )}
+        </Box>
+      </div>
+    );
+  };
+
+  const contentCrypto = () => {
+    // Include XEC in the crypto list for Goods & Services (users can pay directly in XEC)
+    const filteredCrypto = LIST_COIN.filter(option => {
+      return `${option?.name} (${option?.ticker})`.toLowerCase().includes(searchTerm.toLowerCase());
+    });
+
+    return (
+      <div className="content-crypto">
+        {searchTextField}
+        <Box sx={{ mt: 1, maxHeight: 'calc(100vh - 260px)', overflow: 'auto', px: 2 }}>
+          {filteredCrypto.map(option => (
+            <Button
+              key={option?.ticker}
+              onClick={() => handleSelect(option)}
+              fullWidth
+              variant="text"
+              style={{ fontSize: '1.1rem', textTransform: 'none' }}
+              sx={{ justifyContent: 'flex-start', textAlign: 'left' }}
+            >
+              {option?.name} {option?.isDisplayTicker && `(${option?.ticker})`}
+            </Button>
+          ))}
+          {filteredCrypto.length === 0 && (
+            <Typography sx={{ p: 2, textAlign: 'center', color: 'text.secondary' }}>No crypto found</Typography>
+          )}
+        </Box>
+      </div>
+    );
   };
 
   return (
@@ -157,30 +246,13 @@ const ShoppingCurrencyModal: React.FC<ShoppingCurrencyModalProps> = props => {
         </Button>
       </DialogTitle>
       <DialogContent>
-        <TextField
-          label="Search"
-          variant="filled"
-          fullWidth
-          onChange={e => setSearchTerm(e.target.value)}
-          value={searchTerm}
-          autoFocus
-        />
-        <Box sx={{ mt: 1, maxHeight: 'calc(100vh - 200px)', overflow: 'auto' }}>
-          {filteredCurrencies.map(option => (
-            <Button
-              key={option.code}
-              onClick={() => handleSelect(option)}
-              fullWidth
-              variant="text"
-              style={{ textTransform: 'none', fontSize: '1.1rem' }}
-              sx={{ justifyContent: 'flex-start', textAlign: 'left' }}
-            >
-              {option.code} - {option.name}
-            </Button>
-          ))}
-          {filteredCurrencies.length === 0 && (
-            <Typography sx={{ p: 2, textAlign: 'center', color: 'text.secondary' }}>No currencies found</Typography>
-          )}
+        <StyledTabs value={value} onChange={handleTabChange} variant="fullWidth">
+          <Tab label="Fiat" />
+          <Tab label="Crypto" />
+        </StyledTabs>
+        <Box sx={{ p: 2 }}>
+          {value === 0 && contentFiat()}
+          {value === 1 && contentCrypto()}
         </Box>
       </DialogContent>
     </StyledDialog>

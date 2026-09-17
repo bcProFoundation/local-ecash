@@ -3,6 +3,7 @@
 import FiatRateErrorBanner from '@/src/components/Common/FiatRateErrorBanner';
 import Header from '@/src/components/Header/Header';
 import OfferItem from '@/src/components/OfferItem/OfferItem';
+import { PAYMENT_METHOD } from '@bcpros/lixi-models';
 import {
   OfferOrderField,
   OrderDirection,
@@ -86,6 +87,22 @@ export default function Home() {
   const [visible, setVisible] = useState(true);
   const dispatch = useLixiSliceDispatch();
 
+  // Filter out Goods & Services offers from P2P trading view
+  // Default to showing Buy offers (isBuyOffer: true means showing offers where users want to buy XEC)
+  const tradingFilterConfig = useMemo(
+    () => ({
+      ...offerFilterConfig,
+      // Default to Buy offers if not specified (users typically want to buy XEC)
+      isBuyOffer: offerFilterConfig.isBuyOffer ?? true,
+      // Exclude Goods & Services payment method (ID = 5)
+      paymentMethodIds:
+        offerFilterConfig.paymentMethodIds && offerFilterConfig.paymentMethodIds.length > 0
+          ? offerFilterConfig.paymentMethodIds.filter(id => id !== PAYMENT_METHOD.GOODS_SERVICES)
+          : [1, 2, 3, 4] // Default: Bank Transfer, Payment App, Crypto, Cash In Person (exclude Goods/Services)
+    }),
+    [offerFilterConfig]
+  );
+
   // Prefetch fiat rates in the background for better modal performance
   // This will cache the data so PlaceAnOrderModal can use it immediately
   const {
@@ -97,7 +114,7 @@ export default function Home() {
     refetchOnMountOrArgChange: true
   });
 
-  const isShowSortIcon = isShowAmountOrSortFilter(offerFilterConfig);
+  const isShowSortIcon = isShowAmountOrSortFilter(tradingFilterConfig);
 
   const {
     data: dataFilter,
@@ -106,7 +123,7 @@ export default function Home() {
     fetchNext: fetchNextFilter,
     isLoading: isLoadingFilter,
     refetch
-  } = useInfiniteOfferFilterDatabaseQuery({ first: 20, offerFilterInput: offerFilterConfig }, false);
+  } = useInfiniteOfferFilterDatabaseQuery({ first: 20, offerFilterInput: tradingFilterConfig }, false);
 
   const loadMoreItemsFilter = () => {
     if (hasNextFilter && !isFetchingFilter) {
