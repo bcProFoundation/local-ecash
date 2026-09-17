@@ -98,8 +98,13 @@ const ConfirmCreateNewAccountModal: React.FC<ConfirmCreateNewAccountModalProps> 
         <DialogTitle paddingTop="0px !important">Confirm create new account</DialogTitle>
         <DialogContent>
           <Typography variant="body1" sx={{ marginTop: '10px' }}>
-            Create a new account with a new seed phrase. This will overwrite the existing account. Are you sure want to
-            continue?
+            Create a new wallet with a new seed phrase. This disconnects your Telegram login from your current LocaleCash
+            account.
+          </Typography>
+          <Typography variant="body2" sx={{ marginTop: '12px', color: 'warning.main' }}>
+            If you have open escrow orders or funds in escrow, you must keep using your current recovery phrase. A new
+            wallet cannot access those contracts. Only create a new wallet if you have lost your seed and accept that
+            any pending escrow funds may be unrecoverable.
           </Typography>
         </DialogContent>
         <DialogActions>
