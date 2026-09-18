@@ -99,6 +99,7 @@ export default function ImportWallet() {
   const [error, setError] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(false);
   const [openConfirmCreateAccount, setOpenConfirmCreateAccount] = useState(false);
+  const [createWalletError, setCreateWalletError] = useState('');
 
   const { getXecWalletPublicKey } = useContext(WalletContextNode);
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
@@ -137,8 +138,11 @@ export default function ImportWallet() {
 
   const handleCreateNewWallet = async () => {
     setLoading(true);
+    setCreateWalletError('');
     try {
-      await axiosClient.get(`/api/accounts/telegram/unlink/${id}`);
+      await axiosClient.get(`/api/accounts/telegram/unlink/${id}`, {
+        params: { confirmTelegramId: id }
+      });
 
       const dataGenerateAccount: GenerateAccountType = {
         coin: COIN.XEC,
@@ -147,9 +151,11 @@ export default function ImportWallet() {
       };
       dispatch(generateAccount(dataGenerateAccount));
 
+      setOpenConfirmCreateAccount(false);
       setSuccess(true);
     } catch (e) {
-      setError(true);
+      setCreateWalletError(e?.response?.data?.message ?? 'Create new wallet failed');
+      console.error('Create new wallet failed:', e?.response?.data?.message ?? e);
     }
 
     setLoading(false);
@@ -272,6 +278,7 @@ export default function ImportWallet() {
       <ConfirmCreateNewAccountModal
         isOpen={openConfirmCreateAccount}
         isLoading={loading}
+        telegramId={id ?? ''}
         onDismissModal={value => setOpenConfirmCreateAccount(value)}
         createAccount={isCreateAccount => {
           if (isCreateAccount) {
@@ -280,6 +287,13 @@ export default function ImportWallet() {
             setOpenConfirmCreateAccount(false);
           }
         }}
+      />
+      <CustomToast
+        isOpen={!!createWalletError}
+        handleClose={() => setCreateWalletError('')}
+        content={createWalletError}
+        type="error"
+        autoHideDuration={5000}
       />
     </MobileLayout>
   );
