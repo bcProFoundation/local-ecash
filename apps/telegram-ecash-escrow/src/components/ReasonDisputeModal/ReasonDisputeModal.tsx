@@ -97,6 +97,7 @@ const ReasonDisputeModal: React.FC<ReasonDisputeModalProps> = ({ id }: ReasonDis
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('Create dispute failed');
   const { socket } = useContext(SocketContext) || {};
 
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
@@ -131,6 +132,11 @@ const ReasonDisputeModal: React.FC<ReasonDisputeModalProps> = ({ id }: ReasonDis
         .unwrap()
         .then(() => handleCloseModal());
     } catch (err) {
+      const message =
+        err && typeof err === 'object' && 'message' in err && typeof (err as { message?: unknown }).message === 'string'
+          ? (err as { message: string }).message.replace(/^Error:\s*/i, '')
+          : '';
+      setErrorMessage(message || 'Create dispute failed');
       setError(true);
       setLoading(false);
     }
@@ -185,7 +191,7 @@ const ReasonDisputeModal: React.FC<ReasonDisputeModalProps> = ({ id }: ReasonDis
       <Portal>
         <CustomToast
           isOpen={error}
-          content="Create dispute failed"
+          content={errorMessage}
           handleClose={() => setError(false)}
           type="error"
           autoHideDuration={3500}
