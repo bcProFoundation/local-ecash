@@ -22,6 +22,7 @@ import {
   hexEncode,
   isConvertGoodsServices,
   isExternalGoodsServicesOrder,
+  isGoodsServicesOffer,
   showPriceInfo
 } from '@/src/store/util';
 import {
@@ -320,13 +321,15 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const [openConfirmDeposit, setOpenConfirmDeposit] = useState(false);
   const [amountXECGoodsServices, setAmountXECGoodsServices] = useState(0);
   const [amountXECPerUnitGoodsServices, setAmountXECPerUnitGoodsServices] = useState(0);
-  const [isGoodsServices, setIsGoodsServices] = useState(
-    post?.postOffer?.paymentMethods[0]?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES
-  );
+  const isGoodsServices = isGoodsServicesOffer(post?.postOffer);
   const [isGoodsServicesConversion, setIsGoodsServicesConversion] = useState(() =>
     isConvertGoodsServices(post?.postOffer?.priceGoodsServices, post?.postOffer?.tickerPriceGoodsServices)
   );
-  const isExternalPayment = isExternalGoodsServicesOrder(post?.postOffer?.paymentMethods?.[0]?.paymentMethod?.id);
+  const isExternalPayment = isExternalGoodsServicesOrder(
+    post?.postOffer?.paymentMethods?.[0]?.paymentMethod?.id,
+    null,
+    (post?.postOffer as { offerCategory?: string | null } | undefined)?.offerCategory
+  );
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
 
   const { useCreateEscrowOrderMutation, useGetModeratorAccountQuery, useGetRandomArbitratorAccountQuery } =
@@ -966,14 +969,14 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const showPrice = useMemo(() => {
     return (
       showPriceInfo(
-        post?.postOffer?.paymentMethods[0]?.paymentMethod?.id,
+        isGoodsServices ? PAYMENT_METHOD.GOODS_SERVICES : post?.postOffer?.paymentMethods[0]?.paymentMethod?.id,
         post?.postOffer?.coinPayment,
         post?.postOffer?.priceCoinOthers,
         post?.postOffer?.priceGoodsServices,
         post?.postOffer?.tickerPriceGoodsServices
       ) || isGoodsServices
     );
-  }, [post?.postOffer]);
+  }, [post?.postOffer, isGoodsServices]);
 
   const coinCurrency = useMemo(() => {
     return getTickerText(

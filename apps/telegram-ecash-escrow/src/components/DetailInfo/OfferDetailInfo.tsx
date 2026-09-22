@@ -5,7 +5,7 @@ import { DEFAULT_TICKER_GOODS_SERVICES } from '@/src/store/constants';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { formatNumber, formatPriceByType, getOrderLimitText, showPriceInfo, takerActionLabel } from '@/src/store/util';
 import renderTextWithLinks from '@/src/utils/linkHelpers';
-import { GOODS_SERVICES_UNIT, PAYMENT_METHOD, getTickerText } from '@bcpros/lixi-models';
+import { GOODS_SERVICES_UNIT, getTickerText } from '@bcpros/lixi-models';
 import {
   OfferStatus,
   OfferType,
@@ -264,9 +264,7 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
               // Takers always see the opposite action; Goods & Services still hide the XEC logo
               <BuyButtonStyled style={{ height: 'fit-content' }} variant="contained" onClick={e => handleBuyClick(e)}>
                 {takerActionLabelText}
-                {offerData?.paymentMethods?.[0]?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES ? null : (
-                  <Image width={25} height={25} src="/eCash.svg" alt="" />
-                )}
+                {_isGoodsServices ? null : <Image width={25} height={25} src="/eCash.svg" alt="" />}
               </BuyButtonStyled>
             )}
           </>

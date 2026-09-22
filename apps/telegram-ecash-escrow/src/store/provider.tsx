@@ -1,5 +1,6 @@
 'use client';
 
+import { installOfferCategoryQueryPatch } from '@/src/store/offerCategoryQuery';
 import {
   AuthenticationProvider,
   AuthorizationProvider,
@@ -17,6 +18,9 @@ import { Provider } from 'react-redux';
 import { persistStore, type Persistor } from 'redux-persist';
 import { PersistGate } from 'redux-persist/integration/react';
 import { AppStore, makeStore } from './store';
+
+installOfferCategoryQueryPatch();
+
 const PGate = PersistGate;
 
 interface ReduxProviderProps {

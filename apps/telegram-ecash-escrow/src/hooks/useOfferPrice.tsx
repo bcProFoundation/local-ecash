@@ -1,3 +1,4 @@
+import { isGoodsServicesOffer } from '@/src/store/goodsServices';
 import {
   buildCryptoOfferRateData,
   convertXECAndCurrency,
@@ -20,14 +21,15 @@ type UseOfferPriceOpts = {
 export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOfferPriceOpts) {
   // Get fiat rates from GraphQL API with cache reuse
   // We need rates for: Goods & Services, XEC offers (coinPayment null + localCurrency set), or crypto offers
+  const isGoodsServices = React.useMemo(() => isGoodsServicesOffer(paymentInfo), [paymentInfo]);
+
   const needsFiatRates = React.useMemo(() => {
-    const isGoodsServicesCheck = paymentInfo?.paymentMethods?.[0]?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES;
-    if (isGoodsServicesCheck) return true;
+    if (isGoodsServices) return true;
     // For XEC offers: coinPayment is null but localCurrency is set
     if (!paymentInfo?.coinPayment && paymentInfo?.localCurrency) return true;
     // For crypto offers: coinPayment is set
     return !!paymentInfo?.coinPayment;
-  }, [paymentInfo]);
+  }, [paymentInfo, isGoodsServices]);
 
   const { data: fiatData } = useGetAllFiatRateQuery(undefined, {
     skip: !needsFiatRates,
@@ -38,13 +40,6 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
   const [rateData, setRateData] = React.useState<any>(null);
   const [amountPer1MXEC, setAmountPer1MXEC] = React.useState('');
   const [amountXECGoodsServices, setAmountXECGoodsServices] = React.useState(0);
-
-  // Whether this offer uses the Goods & Services payment method.
-  // We compute this from the PAYMENT_METHOD enum instead of using a magic number.
-  const isGoodsServices = React.useMemo(
-    () => paymentInfo?.paymentMethods?.[0]?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES,
-    [paymentInfo]
-  );
 
   // Determine if this is a BUY offer (maker wants to buy XEC) or SELL offer (maker wants to sell XEC)
   const isBuyOffer = React.useMemo(() => paymentInfo?.type === OfferType.Buy, [paymentInfo]);
@@ -71,7 +66,9 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
   }, [paymentInfo, isXECOffer]);
 
   const showPrice = React.useMemo(() => {
-    const paymentId = paymentInfo?.paymentMethods?.[0]?.paymentMethod?.id ?? paymentInfo?.paymentMethod?.id;
+    const paymentId = isGoodsServices
+      ? PAYMENT_METHOD.GOODS_SERVICES
+      : paymentInfo?.paymentMethods?.[0]?.paymentMethod?.id ?? paymentInfo?.paymentMethod?.id;
     return showPriceInfo(
       paymentId,
       paymentInfo?.coinPayment,
@@ -79,7 +76,7 @@ export default function useOfferPrice({ paymentInfo, inputAmount = 1 }: UseOffer
       paymentInfo?.priceGoodsServices,
       paymentInfo?.tickerPriceGoodsServices
     );
-  }, [paymentInfo]);
+  }, [paymentInfo, isGoodsServices]);
 
   const isGoodsServicesConversion = React.useMemo(
     () => isConvertGoodsServices(paymentInfo?.priceGoodsServices, paymentInfo?.tickerPriceGoodsServices),

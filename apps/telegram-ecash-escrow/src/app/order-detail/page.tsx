@@ -31,7 +31,7 @@ import {
   isExternalGoodsServicesOrder,
   showPriceInfo
 } from '@/src/store/util';
-import { COIN, coinInfo, PAYMENT_METHOD } from '@bcpros/lixi-models';
+import { COIN, coinInfo } from '@bcpros/lixi-models';
 import {
   DisputeStatus,
   EscrowOrderAction,
@@ -157,19 +157,22 @@ const OrderDetail = () => {
   const [allowOfferTakerChatTrigger] = useAllowOfferTakerChatMutation();
 
   const isBuyOffer = currentData?.escrowOrder?.escrowOffer?.type === OfferType.Buy;
+  const goodsOfferCategory = (currentData?.escrowOrder?.escrowOffer as { offerCategory?: string | null } | undefined)
+    ?.offerCategory;
   const isExternalPaymentOrder = isExternalGoodsServicesOrder(
     currentData?.escrowOrder?.paymentMethod?.id,
-    currentData?.escrowOrder?.buyerDepositTx
+    currentData?.escrowOrder?.buyerDepositTx,
+    goodsOfferCategory
   );
 
   useEffect(() => {
     const shouldPoll =
-      currentData?.escrowOrder?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES &&
+      isExternalPaymentOrder &&
       currentData?.escrowOrder?.escrowOrderStatus === EscrowOrderStatus.Escrow &&
       !currentData?.escrowOrder?.returnSignatory &&
       !currentData?.escrowOrder?.releaseSignatory;
     setOrderPollMs(shouldPoll ? 8000 : 0);
-  }, [currentData?.escrowOrder]);
+  }, [currentData?.escrowOrder, isExternalPaymentOrder]);
 
   useEffect(() => {
     if (

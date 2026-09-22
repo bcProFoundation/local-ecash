@@ -4,7 +4,13 @@ import { Script, Tx } from 'ecash-lib';
 import * as _ from 'lodash';
 import { COIN_OTHERS, COIN_USD_STABLECOIN_TICKER, DEFAULT_TICKER_GOODS_SERVICES } from './constants';
 
-export { formatPriceByType, isExternalGoodsServicesOrder, takerActionLabel } from './goodsServices';
+export {
+  formatPriceByType,
+  isExternalGoodsServicesOrder,
+  isGoodsServicesOffer,
+  OFFER_CATEGORY,
+  takerActionLabel
+} from './goodsServices';
 
 export function serializeTransaction(tx: Tx): string {
   return JSON.stringify(tx, (key, value) => {

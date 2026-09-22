@@ -9,6 +9,7 @@ import {
 } from '@/src/store/constants';
 import { LIST_PAYMENT_APP } from '@/src/store/constants/list-payment-app';
 import { SettingContext } from '@/src/store/context/settingProvider';
+import { OFFER_CATEGORY } from '@/src/store/goodsServices';
 import { formatNumber, formatPriceByType, getNumberFromFormatNumber } from '@/src/store/util';
 import renderTextWithLinks from '@/src/utils/linkHelpers';
 import {
@@ -309,6 +310,12 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   const [coinCurrency, setCoinCurrency] = useState<string>(COIN.XEC);
   const [fixAmount, setFixAmount] = useState(1000);
   const [isBuyOffer, setIsBuyOffer] = useState(offer?.type ? offer?.type === OfferType.Buy : true);
+  const [offerCategory, setOfferCategory] = useState(
+    (offer as { offerCategory?: string | null } | undefined)?.offerCategory === OFFER_CATEGORY.GOODS_SERVICES ||
+      offer?.paymentMethods?.[0]?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES
+      ? OFFER_CATEGORY.GOODS_SERVICES
+      : OFFER_CATEGORY.XEC_TRADING
+  );
   const [isHiddenOffer, setIsHiddenOffer] = useState(true);
 
   // Modal state
@@ -355,7 +362,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   const currencyValue = watch('currency');
   const coinValue = watch('coin');
 
-  const isGoodService = option === PAYMENT_METHOD.GOODS_SERVICES;
+  const isGoodService = offerCategory === OFFER_CATEGORY.GOODS_SERVICES || option === PAYMENT_METHOD.GOODS_SERVICES;
 
   // Use shared renderTextWithLinks utility imported above
 
@@ -374,7 +381,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   };
 
   // Helper function to check if margin should be shown
-  const showMarginComponent = () => option !== PAYMENT_METHOD.GOODS_SERVICES;
+  const showMarginComponent = () => !isGoodService;
 
   // Handler for creating/updating offers
   const handleCreateOffer = async (data: OfferFormValues, isHidden: boolean) => {
@@ -410,9 +417,13 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
         input.locationId = null;
       }
 
-      if (option === PAYMENT_METHOD.GOODS_SERVICES) {
+      if (isGoodService) {
         input.priceCoinOthers = 0;
         input.coinOthers = null;
+        input.marginPercentage = 0;
+      } else {
+        input.priceGoodsServices = 0;
+        input.tickerPriceGoodsServices = null;
       }
       if (isEdit) {
         const inputUpdateOffer: UpdateOfferInput = {
@@ -434,12 +445,13 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
         );
         handleCloseModalWithDelay();
       } else {
-        const inputCreateOffer: CreateOfferInput = {
+        const inputCreateOffer = {
           ...input,
+          offerCategory: isGoodService ? OFFER_CATEGORY.GOODS_SERVICES : OFFER_CATEGORY.XEC_TRADING,
           price: '',
           coin: Coin.Xec,
           type: isBuyOffer ? OfferType.Buy : OfferType.Sell
-        };
+        } as CreateOfferInput;
         await createOfferTrigger({ input: inputCreateOffer }).unwrap();
         dispatch(
           showToast('success', {
@@ -480,6 +492,9 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
 
   // Helper function for offer note placeholder text
   const getPlaceholderOfferNote = (): string => {
+    if (isGoodService) {
+      return 'A public note attached to your offer. For example: "Logo design, delivered in 3 days. Paid by bank transfer."';
+    }
     switch (option) {
       case PAYMENT_METHOD.CASH_IN_PERSON:
         return 'A public note attached to your offer. For example: "Exchanging XEC to cash, only meeting in public places at daytime!"';
@@ -523,7 +538,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
             // Only set detected currency when the user hasn't selected Goods & Services
             // to avoid overriding the 'Unit' display for goods/services offers.
             const currentOption = Number(getValues('option'));
-            if (currentOption !== PAYMENT_METHOD.GOODS_SERVICES) {
+            if (currentOption !== PAYMENT_METHOD.GOODS_SERVICES && offerCategory !== OFFER_CATEGORY.GOODS_SERVICES) {
               setValue('currency', `${currencyDetected?.code}:${currencyDetected?.fixAmount}`);
             }
           }
@@ -543,7 +558,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   // Effect to update coinCurrency when related form values change
   useEffect(() => {
     // If the user selected Goods & Services payment method, show the unit label
-    if (option === PAYMENT_METHOD.GOODS_SERVICES) {
+    if (isGoodService) {
       setCoinCurrency(GOODS_SERVICES_UNIT);
       return;
     }
@@ -552,7 +567,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
     const coin = coinValue?.split(':')[0];
 
     setCoinCurrency(currency ?? (coin?.includes(COIN_OTHERS) ? getValues('coinOthers') : coin) ?? GOODS_SERVICES_UNIT);
-  }, [currencyValue, coinValue, getValues('coinOthers'), option]);
+  }, [currencyValue, coinValue, getValues('coinOthers'), option, isGoodService]);
 
   // Effect to load payment methods and countries on component mount
   useEffect(() => {
@@ -679,10 +694,46 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
           </Typography>
         </Grid>
 
+        {/* Offer category. Goods use a real payment rail. XEC is only collateral. */}
+        <Grid item xs={12} className="type-btn-group">
+          <Button
+            className={`type-buy-btn ${offerCategory === OFFER_CATEGORY.XEC_TRADING ? 'active' : 'inactive'}`}
+            variant="contained"
+            onClick={() => {
+              setOfferCategory(OFFER_CATEGORY.XEC_TRADING);
+              if (Number(getValues('option')) === PAYMENT_METHOD.GOODS_SERVICES) {
+                setValue('option', '');
+              }
+            }}
+          >
+            Trade XEC
+          </Button>
+          <Button
+            className={`type-sell-btn ${offerCategory === OFFER_CATEGORY.GOODS_SERVICES ? 'active' : 'inactive'}`}
+            variant="contained"
+            onClick={() => {
+              setOfferCategory(OFFER_CATEGORY.GOODS_SERVICES);
+              setValue('percentage', 0);
+              if (Number(getValues('option')) === PAYMENT_METHOD.GOODS_SERVICES) {
+                setValue('option', '');
+              }
+            }}
+          >
+            Goods & Services
+          </Button>
+        </Grid>
+        {isGoodService && (
+          <Grid item xs={12}>
+            <Typography fontStyle={'italic'} variant="body2">
+              The buyer pays with the method below. You lock XEC in escrow as collateral, not as payment.
+            </Typography>
+          </Grid>
+        )}
+
         {/* Payment method */}
         <Grid item xs={12}>
           <Typography variant="body2" className="label">
-            Payment method
+            {isGoodService ? 'How the buyer pays' : 'Payment method'}
           </Typography>
           <Controller
             name="option"
@@ -709,16 +760,18 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                 onBlur={onBlur}
                 ref={ref}
               >
-                {paymentMethods.map(item => (
-                  <div key={item.id}>
-                    <FormControlLabel
-                      checked={option === item.id}
-                      value={item.id}
-                      control={<Radio />}
-                      label={item.name}
-                    />
-                  </div>
-                ))}
+                {paymentMethods
+                  .filter(item => item.id !== PAYMENT_METHOD.GOODS_SERVICES && item.id !== PAYMENT_METHOD.FIAT_CURRENCY)
+                  .map(item => (
+                    <div key={item.id}>
+                      <FormControlLabel
+                        checked={option === item.id}
+                        value={item.id}
+                        control={<Radio />}
+                        label={item.name}
+                      />
+                    </div>
+                  ))}
               </RadioGroup>
             )}
           />
@@ -1169,7 +1222,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
         {showMarginComponent() && <MarginComponent />}
 
         {/* Price fields for goods and services */}
-        {option === PAYMENT_METHOD.GOODS_SERVICES && (
+        {isGoodService && (
           <>
             <Grid item xs={12}>
               <Typography variant="body2" className="label">
