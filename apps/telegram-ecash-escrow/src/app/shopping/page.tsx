@@ -98,9 +98,10 @@ export default function Shopping() {
     refetchOnMountOrArgChange: true
   });
 
-  // Fixed filter config for shopping: only Goods & Services sell offers
+  // Goods listings of both sides. Sell offers are merchant listings (taker buys).
+  // Buy offers are requests (taker sells and escrows collateral).
   const [shoppingFilterConfig, setShoppingFilterConfig] = useState({
-    isBuyOffer: true, // Buy offers (users wanting to buy XEC by selling goods/services - so shoppers can buy the goods)
+    isBuyOffer: null as boolean | null,
     paymentMethodIds: [PAYMENT_METHOD.GOODS_SERVICES],
     tickerPriceGoodsServices: null, // NEW: Backend filter for G&S currency
     fiatCurrency: null,

@@ -9,7 +9,7 @@ import {
 } from '@/src/store/constants';
 import { LIST_PAYMENT_APP } from '@/src/store/constants/list-payment-app';
 import { SettingContext } from '@/src/store/context/settingProvider';
-import { formatNumber, getNumberFromFormatNumber } from '@/src/store/util';
+import { formatNumber, formatPriceByType, getNumberFromFormatNumber } from '@/src/store/util';
 import renderTextWithLinks from '@/src/utils/linkHelpers';
 import {
   COIN,
@@ -669,9 +669,13 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
         {/* Description */}
         <Grid item xs={12}>
           <Typography fontStyle={'italic'} className="heading" variant="body2">
-            {isBuyOffer
-              ? 'You are buying XEC. Your offer will be listed for users who want to SELL XEC.'
-              : 'You are selling XEC. Your offer will be listed for users who want to BUY XEC.'}
+            {isGoodService
+              ? isBuyOffer
+                ? 'You are buying goods or services. You pay the seller outside escrow. The seller locks XEC as collateral until you confirm receipt.'
+                : 'You are selling goods or services. The buyer pays you outside escrow. You lock XEC as collateral until they confirm receipt.'
+              : isBuyOffer
+                ? 'You are buying XEC. Your offer will be listed for users who want to SELL XEC.'
+                : 'You are selling XEC. Your offer will be listed for users who want to BUY XEC.'}
           </Typography>
         </Grid>
 
@@ -1403,7 +1407,9 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
           <Grid item xs={12}>
             <Typography variant="body1">
               <span className="prefix">Price: </span>{' '}
-              {isGoodService ? getValues('priceGoodsServices') : getValues('priceCoinOthers')}{' '}
+              {isGoodService
+                ? formatPriceByType(getValues('priceGoodsServices'), getValues('tickerPriceGoodsServices'))
+                : getValues('priceCoinOthers')}{' '}
               {isGoodService ? getValues('tickerPriceGoodsServices') : 'USD'}
             </Typography>
           </Grid>
@@ -1416,7 +1422,13 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
         <Grid container spacing={2}>
           <Grid item xs={12}>
             <Typography fontStyle={'italic'} className="heading" variant="body1">
-              {isBuyOffer ? '*You are buying XEC' : '*You are selling XEC'}
+              {isGoodService
+                ? isBuyOffer
+                  ? '*You are buying goods or services'
+                  : '*You are selling goods or services'
+                : isBuyOffer
+                  ? '*You are buying XEC'
+                  : '*You are selling XEC'}
             </Typography>
           </Grid>
 

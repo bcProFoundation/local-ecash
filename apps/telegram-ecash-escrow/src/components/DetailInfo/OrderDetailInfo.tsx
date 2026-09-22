@@ -8,6 +8,7 @@ import {
   formatAmountFor1MXEC,
   formatAmountForGoodsServices,
   formatNumber,
+  formatPriceByType,
   getXecTransformedRateData,
   isConvertGoodsServices,
   showPriceInfo
@@ -234,7 +235,7 @@ const OrderDetailInfo = ({
 
       effectiveSetTextAmount(
         isGoodsServices
-          ? `${formatAmountForGoodsServices(xecPerUnit)}${order?.escrowOffer?.priceGoodsServices && (order.escrowOffer?.tickerPriceGoodsServices ?? DEFAULT_TICKER_GOODS_SERVICES) !== DEFAULT_TICKER_GOODS_SERVICES ? ` (${order.escrowOffer.priceGoodsServices} ${order.escrowOffer.tickerPriceGoodsServices ?? 'USD'})` : ''}`
+          ? `${formatAmountForGoodsServices(xecPerUnit)}${order?.escrowOffer?.priceGoodsServices && (order.escrowOffer?.tickerPriceGoodsServices ?? DEFAULT_TICKER_GOODS_SERVICES) !== DEFAULT_TICKER_GOODS_SERVICES ? ` (${formatPriceByType(order.escrowOffer.priceGoodsServices, order.escrowOffer.tickerPriceGoodsServices ?? 'USD')} ${order.escrowOffer.tickerPriceGoodsServices ?? 'USD'})` : ''}`
           : formatAmountFor1MXEC(amountCoinOrCurrency, order?.escrowOffer?.marginPercentage, coinCurrency, isBuyOffer)
       );
     }
@@ -370,6 +371,7 @@ const OrderDetailInfo = ({
           </React.Fragment>
         )}
         {(() => {
+          const isGoods = order?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES;
           const baseLabel = order?.escrowOffer?.type === OfferType.Buy ? 'Buy' : 'Sell';
           const flipped = baseLabel === 'Buy' ? 'Sell' : 'Buy';
 
@@ -377,12 +379,12 @@ const OrderDetailInfo = ({
             <>
               {order?.sellerAccount.id === selectedAccount?.id && (
                 <Button className="btn-order-type" size="small" color="error" variant="outlined">
-                  {order?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES ? flipped : baseLabel}
+                  {isGoods ? 'Sell' : baseLabel}
                 </Button>
               )}
               {order?.buyerAccount.id === selectedAccount?.id && (
                 <Button className="btn-order-type" size="small" color="success" variant="outlined">
-                  {order?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES ? baseLabel : flipped}
+                  {isGoods ? 'Buy' : flipped}
                 </Button>
               )}
             </>
@@ -402,6 +404,7 @@ const OrderDetailInfo = ({
         </div>
         <div className="order-type">
           {(() => {
+            const isGoods = order?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES;
             const baseLabel = order?.escrowOffer?.type === OfferType.Buy ? 'Buy' : 'Sell';
             const flipped = baseLabel === 'Buy' ? 'Sell' : 'Buy';
 
@@ -409,12 +412,12 @@ const OrderDetailInfo = ({
               <>
                 {order?.sellerAccount.id === selectedAccount?.id && (
                   <Button className="btn-order-type" size="small" color="error" variant="outlined">
-                    {order?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES ? flipped : baseLabel}
+                    {isGoods ? 'Sell' : baseLabel}
                   </Button>
                 )}
                 {order?.buyerAccount.id === selectedAccount?.id && (
                   <Button className="btn-order-type" size="small" color="success" variant="outlined">
-                    {order?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES ? baseLabel : flipped}
+                    {isGoods ? 'Buy' : flipped}
                   </Button>
                 )}
               </>
