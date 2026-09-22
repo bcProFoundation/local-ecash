@@ -10,7 +10,13 @@ import {
 import { LIST_PAYMENT_APP } from '@/src/store/constants/list-payment-app';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { OFFER_CATEGORY } from '@/src/store/goodsServices';
-import { formatNumber, formatPriceByType, getNumberFromFormatNumber } from '@/src/store/util';
+import {
+  formatNumber,
+  formatPriceByType,
+  getNumberFromFormatNumber,
+  parseLocalizedAmount,
+  sanitizeAmountDraft
+} from '@/src/store/util';
 import renderTextWithLinks from '@/src/utils/linkHelpers';
 import {
   COIN,
@@ -399,10 +405,13 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
         coinPayment: data?.coin ? data.coin.split(':')[0] : null,
         coinOthers: data?.coinOthers ? data.coinOthers : null,
         priceCoinOthers: data?.priceCoinOthers
-          ? getNumberFromFormatNumber(data.priceCoinOthers as unknown as string)
+          ? parseLocalizedAmount(data.priceCoinOthers as unknown as string, 'USD')
           : 0,
         priceGoodsServices: data?.priceGoodsServices
-          ? getNumberFromFormatNumber(data.priceGoodsServices as unknown as string)
+          ? parseLocalizedAmount(
+              data.priceGoodsServices as unknown as string,
+              data?.tickerPriceGoodsServices
+            )
           : 0,
         tickerPriceGoodsServices: data?.tickerPriceGoodsServices ? data.tickerPriceGoodsServices : null,
         localCurrency: data?.currency ? data.currency.split(':')[0] : null,
@@ -434,8 +443,11 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
           noteOffer: data.note,
           orderLimitMin: minNum,
           orderLimitMax: maxNum,
-          priceCoinOthers: getNumberFromFormatNumber(data.priceCoinOthers as unknown as string),
-          priceGoodsServices: getNumberFromFormatNumber(data.priceGoodsServices as unknown as string),
+          priceCoinOthers: parseLocalizedAmount(data.priceCoinOthers as unknown as string, 'USD'),
+          priceGoodsServices: parseLocalizedAmount(
+            data.priceGoodsServices as unknown as string,
+            data?.tickerPriceGoodsServices
+          ),
           id: offer?.postId
         };
         await updateOfferTrigger({ input: inputUpdateOffer }).unwrap();
@@ -659,10 +671,46 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
     </Grid>
   );
 
-  // Step 1: Basic settings (type, payment method)
+  // Step 1: listing type first, then buy or sell, then payment method
   const Step1Content = () => (
     <div className="container-step1">
       <Grid container spacing={2}>
+        {/* Offer category. Choose what is being listed before buy or sell. */}
+        <Grid item xs={12} className="type-btn-group">
+          <Button
+            className={`type-buy-btn ${offerCategory === OFFER_CATEGORY.XEC_TRADING ? 'active' : 'inactive'}`}
+            variant="contained"
+            onClick={() => {
+              setOfferCategory(OFFER_CATEGORY.XEC_TRADING);
+              if (Number(getValues('option')) === PAYMENT_METHOD.GOODS_SERVICES) {
+                setValue('option', '');
+              }
+            }}
+          >
+            Trade XEC
+          </Button>
+          <Button
+            className={`type-sell-btn ${offerCategory === OFFER_CATEGORY.GOODS_SERVICES ? 'active' : 'inactive'}`}
+            variant="contained"
+            onClick={() => {
+              setOfferCategory(OFFER_CATEGORY.GOODS_SERVICES);
+              setValue('percentage', 0);
+              if (Number(getValues('option')) === PAYMENT_METHOD.GOODS_SERVICES) {
+                setValue('option', '');
+              }
+            }}
+          >
+            Goods & Services
+          </Button>
+        </Grid>
+        {isGoodService && (
+          <Grid item xs={12}>
+            <Typography fontStyle={'italic'} variant="body2">
+              The buyer pays with the method below. XEC can be the payment, or collateral if they pay another way.
+            </Typography>
+          </Grid>
+        )}
+
         {/* Buy/Sell buttons */}
         <Grid item xs={12} className="type-btn-group">
           <Button
@@ -699,42 +747,6 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                 : 'You are selling XEC. Your offer will be listed for users who want to BUY XEC.'}
           </Typography>
         </Grid>
-
-        {/* Offer category. Goods use a real payment rail; XEC is one option, not the only one. */}
-        <Grid item xs={12} className="type-btn-group">
-          <Button
-            className={`type-buy-btn ${offerCategory === OFFER_CATEGORY.XEC_TRADING ? 'active' : 'inactive'}`}
-            variant="contained"
-            onClick={() => {
-              setOfferCategory(OFFER_CATEGORY.XEC_TRADING);
-              if (Number(getValues('option')) === PAYMENT_METHOD.GOODS_SERVICES) {
-                setValue('option', '');
-              }
-            }}
-          >
-            Trade XEC
-          </Button>
-          <Button
-            className={`type-sell-btn ${offerCategory === OFFER_CATEGORY.GOODS_SERVICES ? 'active' : 'inactive'}`}
-            variant="contained"
-            onClick={() => {
-              setOfferCategory(OFFER_CATEGORY.GOODS_SERVICES);
-              setValue('percentage', 0);
-              if (Number(getValues('option')) === PAYMENT_METHOD.GOODS_SERVICES) {
-                setValue('option', '');
-              }
-            }}
-          >
-            Goods & Services
-          </Button>
-        </Grid>
-        {isGoodService && (
-          <Grid item xs={12}>
-            <Typography fontStyle={'italic'} variant="body2">
-              The buyer pays with the method below. XEC can be the payment, or collateral if they pay another way.
-            </Typography>
-          </Grid>
-        )}
 
         {/* Payment method */}
         <Grid item xs={12}>
@@ -982,27 +994,23 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                       }
                     }}
                     render={({ field: { onChange, onBlur, value, name, ref } }) => (
-                      <FormControl style={{ width: '35%' }}>
-                        <NumericFormat
-                          allowLeadingZeros={false}
-                          allowNegative={false}
-                          thousandSeparator={true}
-                          decimalScale={8}
-                          customInput={TextField}
-                          onChange={onChange}
+                      <FormControl fullWidth>
+                        <TextField
+                          onChange={event => onChange(sanitizeAmountDraft(event.target.value))}
                           onBlur={onBlur}
-                          value={value}
+                          value={value ?? ''}
                           name={name}
                           inputRef={ref}
                           className="form-input"
                           id="priceCoinOthers"
                           label="Price"
-                          placeholder={`E.g. 1`}
+                          placeholder="E.g. 1000"
                           error={!!errors.priceCoinOthers}
                           helperText={errors.priceCoinOthers?.message}
                           variant="standard"
+                          inputProps={{ inputMode: 'decimal', autoComplete: 'off' }}
                           InputProps={{
-                            endAdornment: 'USD'
+                            endAdornment: <InputAdornment position="end">USD</InputAdornment>
                           }}
                         />
                       </FormControl>
@@ -1248,24 +1256,20 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                   }
                 }}
                 render={({ field: { onChange, onBlur, value, name, ref } }) => (
-                  <FormControl style={{ width: '35%' }}>
-                    <NumericFormat
-                      allowLeadingZeros={false}
-                      allowNegative={false}
-                      thousandSeparator={true}
-                      decimalScale={8}
-                      customInput={TextField}
-                      onChange={onChange}
+                  <FormControl fullWidth>
+                    <TextField
+                      onChange={event => onChange(sanitizeAmountDraft(event.target.value))}
                       onBlur={onBlur}
-                      value={value}
+                      value={value ?? ''}
                       name={name}
                       inputRef={ref}
                       className="form-input"
                       id="priceGoodsServices"
-                      placeholder={`E.g. 1`}
+                      placeholder="E.g. 1000000"
                       error={!!errors.priceGoodsServices}
                       helperText={errors.priceGoodsServices?.message}
                       variant="standard"
+                      inputProps={{ inputMode: 'decimal', autoComplete: 'off' }}
                       InputProps={{
                         endAdornment: (
                           <InputAdornment position="end">
@@ -1435,26 +1439,26 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                 }
               }}
               render={({ field: { onChange, onBlur, value, name, ref } }) => (
-                <FormControl style={{ width: '35%' }}>
-                  <NumericFormat
-                    allowLeadingZeros={false}
-                    allowNegative={false}
-                    thousandSeparator={true}
-                    decimalScale={8}
-                    customInput={TextField}
-                    onChange={onChange}
+                <FormControl fullWidth>
+                  <TextField
+                    onChange={event => onChange(sanitizeAmountDraft(event.target.value))}
                     onBlur={onBlur}
-                    value={value}
+                    value={value ?? ''}
                     name={name}
                     inputRef={ref}
                     className="form-input"
                     id={isGoodService ? 'priceGoodsServices' : 'priceCoinOthers'}
-                    placeholder={`E.g. 1`}
+                    placeholder="E.g. 1000000"
                     error={!!(isGoodService ? errors.priceGoodsServices : errors.priceCoinOthers)}
                     helperText={isGoodService ? errors.priceGoodsServices?.message : errors.priceCoinOthers?.message}
                     variant="standard"
+                    inputProps={{ inputMode: 'decimal', autoComplete: 'off' }}
                     InputProps={{
-                      endAdornment: isGoodService ? offer?.tickerPriceGoodsServices : 'USD'
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          {isGoodService ? offer?.tickerPriceGoodsServices : 'USD'}
+                        </InputAdornment>
+                      )
                     }}
                   />
                 </FormControl>

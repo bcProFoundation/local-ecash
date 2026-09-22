@@ -10,6 +10,8 @@ export {
   isExternalGoodsServicesOrder,
   isGoodsServicesOffer,
   OFFER_CATEGORY,
+  parseLocalizedAmount,
+  sanitizeAmountDraft,
   takerActionLabel
 } from './goodsServices';
 

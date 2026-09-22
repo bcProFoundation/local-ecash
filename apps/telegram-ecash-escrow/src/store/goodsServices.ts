@@ -2,12 +2,60 @@
 const NO_DECIMAL_CURRENCIES = ['VND', 'JPY', 'KRW', 'TWD', 'PHP', 'IDR'];
 
 /**
- * Format a goods/services unit price.
- * USD, EUR, THB and similar currencies keep 2 decimals. Whole-unit currencies do not.
+ * Read a price the user typed, without inserting grouping characters.
+ * Whole-unit currencies (VND, JPY, …) treat `.` and `,` as thousands separators.
+ * Other currencies treat a 1–2 digit tail as the decimal part, and groups of 3 as thousands
+ * (`1,000` and `1.000` are one thousand; `10.5` and `10,5` are ten and a half).
  */
+export function parseLocalizedAmount(
+  value: string | number | null | undefined,
+  currency?: string | null
+): number {
+  if (value == null || value === '') return 0;
+  if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+
+  const raw = String(value).trim().replace(/\s/g, '');
+  if (!raw) return 0;
+
+  const code = (currency || '').toUpperCase();
+  if (NO_DECIMAL_CURRENCIES.includes(code)) {
+    const digits = raw.replace(/[^\d]/g, '');
+    return digits ? Number(digits) : 0;
+  }
+
+  const lastComma = raw.lastIndexOf(',');
+  const lastDot = raw.lastIndexOf('.');
+  let normalized = raw;
+
+  if (lastComma !== -1 && lastDot !== -1) {
+    normalized =
+      lastComma > lastDot ? raw.replace(/\./g, '').replace(',', '.') : raw.replace(/,/g, '');
+  } else if (lastComma !== -1 || lastDot !== -1) {
+    const sep = lastComma !== -1 ? ',' : '.';
+    const parts = raw.split(sep);
+    const head = parts[0] ?? '';
+    const tail = parts[parts.length - 1] ?? '';
+    const grouped =
+      head !== '0' &&
+      head.length > 0 &&
+      head.length <= 3 &&
+      tail.length === 3 &&
+      parts.slice(1).every(part => part.length === 3);
+    normalized = grouped ? parts.join('') : `${parts.slice(0, -1).join('')}.${tail}`;
+  }
+
+  const num = Number(normalized.replace(/[^\d.]/g, ''));
+  return Number.isFinite(num) ? num : 0;
+}
+
+/** Keep only characters the user typed. Do not insert thousands separators. */
+export function sanitizeAmountDraft(input: string): string {
+  return input.replace(/[^\d.,]/g, '');
+}
+
 export function formatPriceByType(price: number | string | null | undefined, currency?: string | null): string {
   if (price == null || price === '') return '';
-  const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+  const numPrice = typeof price === 'string' ? parseLocalizedAmount(price, currency) : price;
   if (Number.isNaN(numPrice)) return '';
 
   const code = (currency || '').toUpperCase();
