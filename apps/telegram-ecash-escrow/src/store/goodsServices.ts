@@ -48,18 +48,27 @@ export function isGoodsServicesOffer(offer?: GoodsOfferLike | null): boolean {
   return methodId === GOODS_SERVICES_PAYMENT_METHOD_ID;
 }
 
+/** Crypto payment method id. Kept in sync with PAYMENT_METHOD.CRYPTO. */
+export const CRYPTO_PAYMENT_METHOD_ID = 4;
+
+/** Goods paid in XEC go through the buyer-deposit / release flow. XEC is the payment, not only collateral. */
+export function isDirectXecGoodsPayment(paymentMethodId?: number | null, coinPayment?: string | null): boolean {
+  return paymentMethodId === CRYPTO_PAYMENT_METHOD_ID && (coinPayment ?? '').trim().toUpperCase() === 'XEC';
+}
+
 /**
  * External goods orders: the buyer pays outside escrow and the seller locks XEC as collateral.
- * Orders that already include a buyer deposit stay on the normal release flow.
+ * Goods paid in XEC, and orders that already include a buyer deposit, stay on the normal release flow.
  */
 export function isExternalGoodsServicesOrder(
   paymentMethodId?: number | null,
   buyerDepositTx?: string | null,
-  offerCategory?: string | null
+  offerCategory?: string | null,
+  coinPayment?: string | null
 ): boolean {
-  return (
-    isGoodsServicesOffer({ offerCategory, paymentMethod: { id: paymentMethodId ?? undefined } }) && !buyerDepositTx
-  );
+  if (buyerDepositTx) return false;
+  if (!isGoodsServicesOffer({ offerCategory, paymentMethod: { id: paymentMethodId ?? undefined } })) return false;
+  return !isDirectXecGoodsPayment(paymentMethodId, coinPayment);
 }
 
 /** Taker action for a listing. Buy offers are taken by the seller; sell offers by the buyer. */

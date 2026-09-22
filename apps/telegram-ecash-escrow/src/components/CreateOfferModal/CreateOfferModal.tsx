@@ -363,6 +363,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   const coinValue = watch('coin');
 
   const isGoodService = offerCategory === OFFER_CATEGORY.GOODS_SERVICES || option === PAYMENT_METHOD.GOODS_SERVICES;
+  const selectedCoin = (coinValue?.split(':')[0] ?? '').toUpperCase();
+  const isGoodsPaidInXec = isGoodService && option === PAYMENT_METHOD.CRYPTO && selectedCoin === COIN.XEC;
 
   // Use shared renderTextWithLinks utility imported above
 
@@ -685,16 +687,20 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
         <Grid item xs={12}>
           <Typography fontStyle={'italic'} className="heading" variant="body2">
             {isGoodService
-              ? isBuyOffer
-                ? 'You are buying goods or services. You pay the seller outside escrow. The seller locks XEC as collateral until you confirm receipt.'
-                : 'You are selling goods or services. The buyer pays you outside escrow. You lock XEC as collateral until they confirm receipt.'
+              ? isGoodsPaidInXec
+                ? isBuyOffer
+                  ? 'You are buying goods or services and paying in XEC through escrow.'
+                  : 'You are selling goods or services. The buyer pays you in XEC through escrow.'
+                : isBuyOffer
+                  ? 'You are buying goods or services. You pay the seller with the method below. If that is not XEC, the seller locks XEC as collateral until you confirm receipt.'
+                  : 'You are selling goods or services. The buyer pays with the method below. If that is not XEC, you lock XEC as collateral until they confirm receipt.'
               : isBuyOffer
                 ? 'You are buying XEC. Your offer will be listed for users who want to SELL XEC.'
                 : 'You are selling XEC. Your offer will be listed for users who want to BUY XEC.'}
           </Typography>
         </Grid>
 
-        {/* Offer category. Goods use a real payment rail. XEC is only collateral. */}
+        {/* Offer category. Goods use a real payment rail; XEC is one option, not the only one. */}
         <Grid item xs={12} className="type-btn-group">
           <Button
             className={`type-buy-btn ${offerCategory === OFFER_CATEGORY.XEC_TRADING ? 'active' : 'inactive'}`}
@@ -725,7 +731,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
         {isGoodService && (
           <Grid item xs={12}>
             <Typography fontStyle={'italic'} variant="body2">
-              The buyer pays with the method below. You lock XEC in escrow as collateral, not as payment.
+              The buyer pays with the method below. XEC can be the payment, or collateral if they pay another way.
             </Typography>
           </Grid>
         )}
@@ -913,7 +919,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                     >
                       <option aria-label="None" value="" />
                       {LIST_COIN.map(item => {
-                        if (item.ticker === 'XEC') return null;
+                        // Trading XEC for another coin omits XEC. A goods offer can still be paid in XEC.
+                        if (item.ticker === 'XEC' && !isGoodService) return null;
                         return (
                           <option key={item.ticker} value={`${item.ticker}:${item.fixAmount}`}>
                             {item.name} {item.isDisplayTicker && `(${item.ticker})`}

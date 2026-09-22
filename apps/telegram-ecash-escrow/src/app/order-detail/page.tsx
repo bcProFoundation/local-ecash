@@ -162,7 +162,8 @@ const OrderDetail = () => {
   const isExternalPaymentOrder = isExternalGoodsServicesOrder(
     currentData?.escrowOrder?.paymentMethod?.id,
     currentData?.escrowOrder?.buyerDepositTx,
-    goodsOfferCategory
+    goodsOfferCategory,
+    currentData?.escrowOrder?.escrowOffer?.coinPayment
   );
 
   useEffect(() => {

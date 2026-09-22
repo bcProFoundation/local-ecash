@@ -6,6 +6,7 @@ import { COIN_OTHERS, COIN_USD_STABLECOIN_TICKER, DEFAULT_TICKER_GOODS_SERVICES 
 
 export {
   formatPriceByType,
+  isDirectXecGoodsPayment,
   isExternalGoodsServicesOrder,
   isGoodsServicesOffer,
   OFFER_CATEGORY,

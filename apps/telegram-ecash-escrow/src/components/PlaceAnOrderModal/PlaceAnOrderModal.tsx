@@ -328,7 +328,8 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const isExternalPayment = isExternalGoodsServicesOrder(
     post?.postOffer?.paymentMethods?.[0]?.paymentMethod?.id,
     null,
-    (post?.postOffer as { offerCategory?: string | null } | undefined)?.offerCategory
+    (post?.postOffer as { offerCategory?: string | null } | undefined)?.offerCategory,
+    post?.postOffer?.coinPayment
   );
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
 
