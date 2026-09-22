@@ -408,10 +408,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
           ? parseLocalizedAmount(data.priceCoinOthers as unknown as string, 'USD')
           : 0,
         priceGoodsServices: data?.priceGoodsServices
-          ? parseLocalizedAmount(
-              data.priceGoodsServices as unknown as string,
-              data?.tickerPriceGoodsServices
-            )
+          ? parseLocalizedAmount(data.priceGoodsServices as unknown as string, data?.tickerPriceGoodsServices)
           : 0,
         tickerPriceGoodsServices: data?.tickerPriceGoodsServices ? data.tickerPriceGoodsServices : null,
         localCurrency: data?.currency ? data.currency.split(':')[0] : null,

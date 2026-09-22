@@ -7,10 +7,7 @@ const NO_DECIMAL_CURRENCIES = ['VND', 'JPY', 'KRW', 'TWD', 'PHP', 'IDR'];
  * Other currencies treat a 1–2 digit tail as the decimal part, and groups of 3 as thousands
  * (`1,000` and `1.000` are one thousand; `10.5` and `10,5` are ten and a half).
  */
-export function parseLocalizedAmount(
-  value: string | number | null | undefined,
-  currency?: string | null
-): number {
+export function parseLocalizedAmount(value: string | number | null | undefined, currency?: string | null): number {
   if (value == null || value === '') return 0;
   if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
 
@@ -28,8 +25,7 @@ export function parseLocalizedAmount(
   let normalized = raw;
 
   if (lastComma !== -1 && lastDot !== -1) {
-    normalized =
-      lastComma > lastDot ? raw.replace(/\./g, '').replace(',', '.') : raw.replace(/,/g, '');
+    normalized = lastComma > lastDot ? raw.replace(/\./g, '').replace(',', '.') : raw.replace(/,/g, '');
   } else if (lastComma !== -1 || lastDot !== -1) {
     const sep = lastComma !== -1 ? ',' : '.';
     const parts = raw.split(sep);
