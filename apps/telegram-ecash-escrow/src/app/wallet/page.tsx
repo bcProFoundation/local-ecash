@@ -251,7 +251,7 @@ export default function Wallet() {
               <SwipeableViews index={value} onChangeIndex={handleChangeIndex}>
                 <TabPanel value={value} index={0}>
                   <SendWrap>
-                    <SendComponent totalValidAmount={totalValidAmount} totalValidUtxos={totalValidUtxos} />
+                    <SendComponent totalValidUtxos={totalValidUtxos} />
                   </SendWrap>
                 </TabPanel>
                 <TabPanel value={value} index={1}>
