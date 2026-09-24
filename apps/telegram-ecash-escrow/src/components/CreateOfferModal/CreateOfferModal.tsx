@@ -115,6 +115,14 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
     marginBottom: '4px'
   },
 
+  '.offer-note': {
+    fontSize: '14px',
+    fontWeight: 400,
+    lineHeight: 1.5,
+    marginTop: '16px',
+    marginBottom: '16px'
+  },
+
   '.container-step1': {
     '.type-btn-group': {
       paddingTop: '0',
@@ -702,7 +710,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
         </Grid>
         {isGoodService && (
           <Grid item xs={12}>
-            <Typography fontStyle={'italic'} variant="body2">
+            <Typography className="offer-note" fontStyle={'italic'} variant="body2">
               The buyer pays with the method below. XEC can be the payment, or collateral if they pay another way.
             </Typography>
           </Grid>
@@ -730,7 +738,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
 
         {/* Description */}
         <Grid item xs={12}>
-          <Typography fontStyle={'italic'} className="heading" variant="body2">
+          <Typography className="offer-note" fontStyle={'italic'} variant="body2">
             {isGoodService
               ? isGoodsPaidInXec
                 ? isBuyOffer
