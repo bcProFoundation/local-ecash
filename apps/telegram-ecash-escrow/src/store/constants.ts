@@ -106,6 +106,29 @@ export const LIST_TICKER_GOODS_SERVICES = [
 ];
 export const DEFAULT_TICKER_GOODS_SERVICES = 'XEC';
 
+/**
+ * Offer category to distinguish XEC trading vs Goods & Services marketplace
+ * - XEC_TRADING: Traditional P2P exchange (buying/selling XEC for fiat/crypto)
+ * - GOODS_SERVICES: Marketplace for goods and services (paid in XEC)
+ */
+export enum OfferCategory {
+  XEC_TRADING = 'XEC_TRADING', // P2P XEC trading (default when null)
+  GOODS_SERVICES = 'GOODS_SERVICES' // Goods & Services marketplace
+}
+
+export const LIST_OFFER_CATEGORY = [
+  {
+    value: OfferCategory.XEC_TRADING,
+    label: 'XEC Trading',
+    description: 'Trade XEC for fiat or other cryptocurrencies'
+  },
+  {
+    value: OfferCategory.GOODS_SERVICES,
+    label: 'Goods & Services',
+    description: 'Buy or sell goods and services for XEC'
+  }
+];
+
 export const LIST_USD_STABLECOIN = [
   {
     id: 1,

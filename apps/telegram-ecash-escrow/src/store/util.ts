@@ -290,6 +290,39 @@ export function formatAmountForGoodsServices(amount) {
 }
 
 /**
+ * Formats a price based on currency type:
+ * - XEC: 2 decimal places with thousands separators
+ * - Currencies like VND: thousands separators, no decimals
+ * - Other currencies: thousands separators, 2 decimal places
+ * @param price - The price value to format
+ * @param currency - The currency code (e.g., 'XEC', 'VND', 'USD')
+ * @returns Formatted price string
+ */
+export function formatPriceByType(price: number | string, currency: string): string {
+  if (!price && price !== 0) return '0';
+
+  const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+
+  // Handle NaN values from invalid string inputs
+  if (isNaN(numPrice)) return '0';
+
+  // Currencies with no decimal places (THB uses 2 decimal places per ISO 4217)
+  const noDecimalCurrencies = ['VND', 'JPY', 'KRW', 'TWD', 'PHP', 'IDR'];
+
+  if (noDecimalCurrencies.includes(currency?.toUpperCase())) {
+    // Format with thousands separators, no decimals
+    return Math.round(numPrice).toLocaleString('en-US');
+  }
+
+  // XEC and most other currencies: 2 decimal places
+  const roundedPrice = Math.round(numPrice * 100) / 100;
+  return roundedPrice.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+
+/**
  * Fiat value of an XEC balance.
  * getAllFiatRate stores each fiat group as { currency: 'USD', fiatRates: [{ coin: 'XEC', rate: usdPerXec }] }.
  * transformFiatRates() is the wrong input here: it appends { coin: 'xec', rate: 1 }, which makes the
