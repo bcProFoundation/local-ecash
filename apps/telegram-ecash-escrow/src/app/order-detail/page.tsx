@@ -1453,6 +1453,11 @@ const OrderDetail = () => {
                 ? currentData?.escrowOrder.buyerAccount.telegramUsername
                 : currentData?.escrowOrder.sellerAccount.telegramUsername
             }
+            telegramId={
+              isSeller
+                ? currentData?.escrowOrder.buyerAccount.telegramId
+                : currentData?.escrowOrder.sellerAccount.telegramId
+            }
             content={content ? content : isSeller ? `Chat with buyer` : `Chat with seller`}
             disabled={chatButtonState?.disableTelegramButton}
           />

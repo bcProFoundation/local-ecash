@@ -19,34 +19,48 @@ const TelegramButtonWrap = styled(Button)`
 
 type TelegramButtonProps = {
   escrowOrderId: string;
-  username?: string;
+  username?: string | null;
+  telegramId?: string | null;
   content?: string;
   disabled?: boolean;
 };
 
-const TelegramButton: React.FC<TelegramButtonProps> = ({ escrowOrderId, username, content, disabled }) => {
+const NO_TELEGRAM_ACCOUNT =
+  'This person has no Telegram account linked, so a chat request cannot be delivered. You can still open a dispute.';
+
+const TelegramButton: React.FC<TelegramButtonProps> = ({ escrowOrderId, username, telegramId, content, disabled }) => {
   const { useLazyUserRequestTelegramChatQuery } = escrowOrderApi;
   const [trigger, { isFetching, isLoading }] = useLazyUserRequestTelegramChatQuery();
   const [request, setRequest] = useState(false);
   const [tooManyRequest, setTooManyRequest] = useState(false);
   const [fail, setFail] = useState(false);
+  const [failMessage, setFailMessage] = useState('Failed to request chat...');
 
   const handleTelegramClick = async () => {
     if (username && username.startsWith('@')) {
       const url = `https://t.me/${username.substring(1)}`;
       window.open(url, '_blank');
-    } else {
-      await trigger({ id: escrowOrderId })
-        .unwrap()
-        .then(() => setRequest(true))
-        .catch(e => {
-          if (e.message.includes('Too many requests')) {
-            setTooManyRequest(true);
-          } else {
-            setFail(true);
-          }
-        });
+      return;
     }
+
+    if (!telegramId) {
+      setFailMessage(NO_TELEGRAM_ACCOUNT);
+      setFail(true);
+      return;
+    }
+
+    await trigger({ id: escrowOrderId })
+      .unwrap()
+      .then(() => setRequest(true))
+      .catch(e => {
+        const message = typeof e?.message === 'string' ? e.message.replace(/^Error:\s*/i, '') : '';
+        if (message.includes('Too many requests')) {
+          setTooManyRequest(true);
+        } else {
+          setFailMessage(message || 'Failed to request chat...');
+          setFail(true);
+        }
+      });
   };
 
   return (
@@ -67,9 +81,9 @@ const TelegramButton: React.FC<TelegramButtonProps> = ({ escrowOrderId, username
         </Alert>
       </Snackbar>
 
-      <Snackbar open={fail} autoHideDuration={3500} onClose={() => setFail(false)}>
+      <Snackbar open={fail} autoHideDuration={6000} onClose={() => setFail(false)}>
         <Alert severity="error" variant="filled" sx={{ width: '100%' }}>
-          Failed to request chat...
+          {failMessage}
         </Alert>
       </Snackbar>
 

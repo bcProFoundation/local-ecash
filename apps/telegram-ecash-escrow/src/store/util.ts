@@ -301,6 +301,33 @@ export function formatAmountForGoodsServices(amount) {
 }
 
 /**
+ * Fiat value of an XEC balance.
+ * getAllFiatRate stores each fiat group as { currency: 'USD', fiatRates: [{ coin: 'XEC', rate: usdPerXec }] }.
+ * transformFiatRates() is the wrong input here: it appends { coin: 'xec', rate: 1 }, which makes the
+ * wallet show 1 XEC = 1 USD.
+ */
+export function fiatValueOfXec(
+  getAllFiatRate: { currency?: string; fiatRates?: { coin?: string; rate?: number }[] }[] | undefined,
+  fiatCurrency: string,
+  xecAmount: number
+): number | null {
+  if (!getAllFiatRate?.length || !Number.isFinite(xecAmount)) return null;
+
+  const currency = (fiatCurrency || 'USD').toUpperCase();
+  if (currency === 'XEC') return xecAmount;
+
+  const fiatGroup = getAllFiatRate.find(item => item.currency?.toUpperCase() === currency);
+  const fiatPerXec = fiatGroup?.fiatRates?.find(rate => rate.coin?.toUpperCase() === 'XEC')?.rate;
+  if (fiatPerXec && fiatPerXec > 0) return xecAmount * fiatPerXec;
+
+  const xecGroup = getAllFiatRate.find(item => item.currency?.toUpperCase() === 'XEC');
+  const fromXecGroup = xecGroup?.fiatRates?.find(rate => rate.coin?.toUpperCase() === currency)?.rate;
+  if (fromXecGroup && fromXecGroup > 0) return xecAmount * fromXecGroup;
+
+  return null;
+}
+
+/**
  * Transforms fiat rate data from backend format to frontend format.
  *
  * Backend returns: {coin: 'USD', rate: 0.0000147} meaning "1 XEC = 0.0000147 USD"

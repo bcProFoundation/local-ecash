@@ -14,6 +14,7 @@ import {
   isGoodsServicesOffer,
   showPriceInfo
 } from '@/src/store/util';
+import renderTextWithLinks from '@/src/utils/linkHelpers';
 import { COIN, PAYMENT_METHOD, coinInfo, getTickerText } from '@bcpros/lixi-models';
 import {
   DisputeStatus,
@@ -90,6 +91,11 @@ const OrderDetailWrap = styled('div')(({ theme }) => ({
     textOverflow: 'ellipsis'
   },
 
+  '.trade-copy': {
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-word'
+  },
+
   '.btn-view-order': {
     textTransform: 'none'
   },
@@ -98,6 +104,16 @@ const OrderDetailWrap = styled('div')(({ theme }) => ({
     pointerEvents: 'none'
   }
 }));
+
+function accountDisplayName(
+  account?: { telegramUsername?: string | null; anonymousUsernameLocalecash?: string | null },
+  preferAnonymous?: boolean
+): string {
+  if (preferAnonymous && account?.anonymousUsernameLocalecash) {
+    return account.anonymousUsernameLocalecash;
+  }
+  return account?.telegramUsername || account?.anonymousUsernameLocalecash || 'No Telegram username';
+}
 
 export const EscrowAddressLink = (name, escrowAddress) => (
   <Typography>
@@ -364,13 +380,32 @@ const OrderDetailInfo = ({
           <span className="prefix">{order?.markAsPaid && '(Mark as paid)'}</span>
         </div>
       </Typography>
+      {order?.escrowOffer?.message && (
+        <Typography className="trade-copy" variant="body1">
+          <span className="prefix">Offer: </span>
+          {renderTextWithLinks(order.escrowOffer.message)}
+        </Typography>
+      )}
+      {(order?.escrowOffer as { noteOffer?: string | null } | undefined)?.noteOffer && (
+        <Typography className="trade-copy" variant="body1">
+          <span className="prefix">Note: </span>
+          {renderTextWithLinks((order?.escrowOffer as { noteOffer?: string | null }).noteOffer)}
+        </Typography>
+      )}
+      {order?.message && (
+        <Typography className="trade-copy" variant="body1">
+          <span className="prefix">Order message: </span>
+          {renderTextWithLinks(order.message)}
+        </Typography>
+      )}
       <Typography variant="body1">
         {order?.sellerAccount.id === selectedAccount?.id && (
           <React.Fragment>
             <span className="prefix">{order.escrowOffer.type === OfferType.Buy ? 'Offered' : 'Ordered'} by: </span>
-            {allSettings?.[`${order?.buyerAccount.id.toString()}`]?.usePublicLocalUserName
-              ? order?.buyerAccount.anonymousUsernameLocalecash
-              : order?.buyerAccount.telegramUsername}
+            {accountDisplayName(
+              order?.buyerAccount,
+              Boolean(allSettings?.[`${order?.buyerAccount.id.toString()}`]?.usePublicLocalUserName)
+            )}
           </React.Fragment>
         )}
         {(() => {

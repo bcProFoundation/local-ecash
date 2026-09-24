@@ -506,17 +506,17 @@ export default function DisputeDetail() {
                     ? 'The funds have been forwarded to the buyer. '
                     : 'The funds have been returned to the seller. '}
                 </Typography>
-                <Link
-                  target="_blank"
-                  rel="noopener"
-                  href={
-                    escrowOrderQueryData?.escrowOrder?.releaseTxid
-                      ? `${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${escrowOrderQueryData?.escrowOrder?.releaseTxid}`
-                      : `${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${escrowOrderQueryData?.escrowOrder?.returnTxid}`
-                  }
-                >
-                  <b>View Transaction</b>
-                </Link>
+                {(escrowOrderQueryData?.escrowOrder?.releaseTxid || escrowOrderQueryData?.escrowOrder?.returnTxid) && (
+                  <Link
+                    target="_blank"
+                    rel="noopener"
+                    href={`${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${
+                      escrowOrderQueryData?.escrowOrder?.releaseTxid || escrowOrderQueryData?.escrowOrder?.returnTxid
+                    }`}
+                  >
+                    <b>View Transaction</b>
+                  </Link>
+                )}
               </div>
             </Alert>
           ) : (
