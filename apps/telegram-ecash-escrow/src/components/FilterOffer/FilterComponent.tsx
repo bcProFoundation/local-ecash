@@ -203,8 +203,9 @@ const FilterComponent = () => {
       case PAYMENT_METHOD.GOODS_SERVICES:
         offerFilterInput = {
           isBuyOffer: offerFilterInput?.isBuyOffer ?? true,
-          paymentMethodIds: [PAYMENT_METHOD.GOODS_SERVICES]
-        };
+          paymentMethodIds: [PAYMENT_METHOD.GOODS_SERVICES],
+          offerCategory: 'GOODS_SERVICES'
+        } as OfferFilterInput;
         break;
     }
 

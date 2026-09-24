@@ -5,6 +5,7 @@ import ShoppingFilterComponent from '@/src/components/FilterOffer/ShoppingFilter
 import Header from '@/src/components/Header/Header';
 import OfferItem from '@/src/components/OfferItem/OfferItem';
 import { ShoppingFilterConfig } from '@/src/shared/models/shoppingFilterConfig';
+import { OFFER_CATEGORY } from '@/src/store/goodsServices';
 import { PAYMENT_METHOD } from '@bcpros/lixi-models';
 import {
   OfferOrderField,
@@ -98,10 +99,14 @@ export default function Shopping() {
     refetchOnMountOrArgChange: true
   });
 
-  // Fixed filter config for shopping: only Goods & Services sell offers
+  // Goods listings of both sides. Sell offers are merchant listings (taker buys).
+  // Buy offers are requests (taker sells and escrows collateral).
   const [shoppingFilterConfig, setShoppingFilterConfig] = useState({
-    isBuyOffer: true, // Buy offers (users wanting to buy XEC by selling goods/services - so shoppers can buy the goods)
+    isBuyOffer: null as boolean | null,
+    // Method 5 keeps the published query hook from skipping. The API treats this,
+    // together with offerCategory, as every goods listing (bank, cash, app, crypto, and legacy method 5).
     paymentMethodIds: [PAYMENT_METHOD.GOODS_SERVICES],
+    offerCategory: OFFER_CATEGORY.GOODS_SERVICES,
     tickerPriceGoodsServices: null, // NEW: Backend filter for G&S currency
     fiatCurrency: null,
     coin: null,

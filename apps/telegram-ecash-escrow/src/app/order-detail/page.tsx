@@ -28,6 +28,7 @@ import {
   hexDecode,
   hexEncode,
   hexToUint8Array,
+  isExternalGoodsServicesOrder,
   showPriceInfo
 } from '@/src/store/util';
 import { COIN, coinInfo } from '@bcpros/lixi-models';
@@ -142,13 +143,37 @@ const OrderDetail = () => {
     useAllowOfferTakerChatMutation,
     useMarkAsPaidOrderMutation
   } = escrowOrderApi;
-  const { currentData, isError, isSuccess } = useEscrowOrderQuery({ id: id! }, { skip: !id || !token });
+  const [orderPollMs, setOrderPollMs] = useState(0);
+  const { currentData, isError, isSuccess, refetch } = useEscrowOrderQuery(
+    { id: id! },
+    {
+      skip: !id || !token,
+      pollingInterval: orderPollMs
+    }
+  );
   const [updateOrderTrigger] = useUpdateEscrowOrderStatusMutation();
   const [updateEscrowOrderSignatoryTrigger] = useUpdateEscrowOrderSignatoryMutation();
   const [markAsPaidOrderTrigger] = useMarkAsPaidOrderMutation();
   const [allowOfferTakerChatTrigger] = useAllowOfferTakerChatMutation();
 
   const isBuyOffer = currentData?.escrowOrder?.escrowOffer?.type === OfferType.Buy;
+  const goodsOfferCategory = (currentData?.escrowOrder?.escrowOffer as { offerCategory?: string | null } | undefined)
+    ?.offerCategory;
+  const isExternalPaymentOrder = isExternalGoodsServicesOrder(
+    currentData?.escrowOrder?.paymentMethod?.id,
+    currentData?.escrowOrder?.buyerDepositTx,
+    goodsOfferCategory,
+    currentData?.escrowOrder?.escrowOffer?.coinPayment
+  );
+
+  useEffect(() => {
+    const shouldPoll =
+      isExternalPaymentOrder &&
+      currentData?.escrowOrder?.escrowOrderStatus === EscrowOrderStatus.Escrow &&
+      !currentData?.escrowOrder?.returnSignatory &&
+      !currentData?.escrowOrder?.releaseSignatory;
+    setOrderPollMs(shouldPoll ? 8000 : 0);
+  }, [currentData?.escrowOrder, isExternalPaymentOrder]);
 
   useEffect(() => {
     if (
@@ -375,6 +400,55 @@ const OrderDetail = () => {
         showToast('success', {
           message: 'success',
           description: 'Order cancelled successfully!'
+        })
+      );
+    } catch (e) {
+      console.log(e);
+      showError();
+    }
+
+    setLoading(false);
+  };
+
+  const handleBuyerConfirmReceipt = async () => {
+    setLoading(true);
+
+    if (currentData?.escrowOrder.escrowOrderStatus === EscrowOrderStatus.Complete) {
+      dispatch(
+        showToast('warning', {
+          message: 'warning',
+          description: 'Order has already been completed!'
+        })
+      );
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const buyerSk = fromHex(selectedWalletPath?.privateKey);
+      const buyerPk = fromHex(selectedWalletPath.publicKey as string);
+      const buyerPkh = shaRmd160(buyerPk);
+      const nonce = currentData?.escrowOrder.nonce as string;
+      const buyerSignatory = SignOracleSignatory(buyerSk, ACTION.BUYER_RETURN, nonce);
+      const signatoryHex = hexEncode(buyerSignatory);
+      const buyerPkhHex = hexEncode(buyerPkh);
+
+      await updateEscrowOrderSignatoryTrigger({
+        input: {
+          orderId: id!,
+          action: 'BUYER_CONFIRM_RECEIPT' as EscrowOrderAction,
+          signatory: signatoryHex,
+          signatoryOwnerHash160: buyerPkhHex,
+          signatoryOwnerFeeHash160: buyerPkhHex
+        }
+      }).unwrap();
+
+      await refetch();
+
+      dispatch(
+        showToast('success', {
+          message: 'success',
+          description: 'Receipt confirmed. The seller can claim the collateral.'
         })
       );
     } catch (e) {
@@ -965,7 +1039,11 @@ const OrderDetail = () => {
             <Typography variant="body1" color="error" align="center" component={'div'}>
               {enoughSellerFunds ? (
                 <React.Fragment>
-                  {isBuyOffer ? (
+                  {isExternalPaymentOrder ? (
+                    safeComponent(
+                      'Escrow XEC as collateral for this goods or services order. It is returned to you after the buyer confirms receipt. Do not deliver until this order is escrowed.'
+                    )
+                  ) : isBuyOffer ? (
                     <div>
                       {telegramButton()}
                       <p>
@@ -1016,7 +1094,9 @@ const OrderDetail = () => {
                 Pending Escrow!
               </Typography>
               {safeComponent(
-                ' Once the order is escrowed, the status will turn green with a closed safe icon. Do not send money or goods until the order is escrowed, or you risk losing money.'
+                isExternalPaymentOrder
+                  ? 'Do not pay the seller until their collateral is escrowed. After you receive the goods or services, confirm receipt so the collateral returns to them.'
+                  : ' Once the order is escrowed, the status will turn green with a closed safe icon. Do not send money or goods until the order is escrowed, or you risk losing money.'
               )}
             </React.Fragment>
           );
@@ -1156,7 +1236,21 @@ const OrderDetail = () => {
         }
 
         // Default escrow state
-        if (isSeller) {
+        if (isSeller && isExternalPaymentOrder) {
+          state.statusComponent = (
+            <Typography variant="body1" color="warning.main" align="center">
+              Your XEC collateral is held in escrow. It is returned to you after the buyer confirms receipt of the goods
+              or services.
+            </Typography>
+          );
+          state.actionButtons = (
+            <div className="group-button-wrap">
+              <Button color="warning" variant="contained" disabled={loading} onClick={() => handleCreateDispute()}>
+                Dispute
+              </Button>
+            </div>
+          );
+        } else if (isSeller) {
           state.statusComponent = (
             <Typography variant="body1" color="error" align="center">
               Only release the escrowed funds once you have confirmed that the buyer has completed the payment or
@@ -1171,6 +1265,51 @@ const OrderDetail = () => {
               <Button color="success" variant="contained" onClick={() => setOpenReleaseModal(true)} disabled={loading}>
                 Release
               </Button>
+            </div>
+          );
+        } else if (isExternalPaymentOrder) {
+          state.statusColor = '#66bb6a';
+          state.statusComponent = (
+            <React.Fragment>
+              <Typography variant="body1" color="#66bb6a" align="center">
+                Seller collateral escrowed
+              </Typography>
+              <Stack
+                direction="row"
+                spacing={0}
+                justifyContent="center"
+                color="white"
+                alignItems="center"
+                margin="20px"
+              >
+                <Image width={50} height={50} src="/safebox-close.svg" alt="" />
+                <CheckIcon color="success" style={{ fontSize: '50px' }} />
+              </Stack>
+              <Typography variant="body1" color="#66bb6a" align="center">
+                {`${currentData.escrowOrder.amount} XEC is locked as the seller's collateral.`}
+              </Typography>
+              <Typography variant="body2" align="center">
+                Pay the seller outside escrow. After you receive the goods or services, confirm receipt to return the
+                collateral.
+              </Typography>
+            </React.Fragment>
+          );
+          state.actionButtons = (
+            <div>
+              {telegramButton('Chat with seller for payment details')}
+              <div className="group-button-wrap">
+                <Button color="warning" variant="contained" disabled={loading} onClick={() => handleCreateDispute()}>
+                  Dispute
+                </Button>
+                <Button
+                  color="success"
+                  variant="contained"
+                  disabled={loading}
+                  onClick={() => handleBuyerConfirmReceipt()}
+                >
+                  Confirm receipt
+                </Button>
+              </div>
             </div>
           );
         } else {

@@ -1,5 +1,6 @@
 'use client';
 
+import { installOfferCategoryQueryPatch } from '@/src/store/offerCategoryQuery';
 import { installOfferNoteQueryPatch } from '@/src/store/orderNoteQuery';
 import {
   AuthenticationProvider,
@@ -19,6 +20,7 @@ import { persistStore, type Persistor } from 'redux-persist';
 import { PersistGate } from 'redux-persist/integration/react';
 import { AppStore, makeStore } from './store';
 
+installOfferCategoryQueryPatch();
 installOfferNoteQueryPatch();
 
 const PGate = PersistGate;

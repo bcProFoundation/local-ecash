@@ -2,7 +2,7 @@
 
 import useOfferPrice from '@/src/hooks/useOfferPrice';
 import { DEFAULT_TICKER_GOODS_SERVICES } from '@/src/store/constants';
-import { formatNumber, getOrderLimitText } from '@/src/store/util';
+import { formatNumber, formatPriceByType, getOrderLimitText } from '@/src/store/util';
 import renderTextWithLinks from '@/src/utils/linkHelpers';
 import { GOODS_SERVICES_UNIT } from '@bcpros/lixi-models';
 import { Post } from '@bcpros/redux-store';
@@ -42,17 +42,6 @@ const OrderDetailInfo = ({ key, post }: { key: string; post: Post }) => {
     isGoodsServices: _isGoodsServices
   } = useOfferPrice({ paymentInfo: post?.offer, inputAmount: 1 });
 
-  // Format fiat price without decimals and with thousands separators for display
-  const formatFiatPrice = (price: number | string | undefined): string => {
-    if (price == null || price === '') return '';
-    const num = typeof price === 'string' ? parseFloat(price) : price;
-    if (isNaN(num)) return String(price);
-    return new Intl.NumberFormat('en-GB', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(Math.round(num));
-  };
-
   return (
     <OrderDetailWrap>
       <Typography variant="body1">
@@ -71,7 +60,8 @@ const OrderDetailInfo = ({ key, post }: { key: string; post: Post }) => {
             (post.offer?.tickerPriceGoodsServices ?? DEFAULT_TICKER_GOODS_SERVICES) !==
               DEFAULT_TICKER_GOODS_SERVICES ? (
               <span>
-                ({formatFiatPrice(post.offer.priceGoodsServices)} {post.offer.tickerPriceGoodsServices ?? 'USD'})
+                ({formatPriceByType(post.offer.priceGoodsServices, post.offer.tickerPriceGoodsServices ?? 'USD')}{' '}
+                {post.offer.tickerPriceGoodsServices ?? 'USD'})
               </span>
             ) : null}
           </>

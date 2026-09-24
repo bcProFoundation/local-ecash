@@ -15,11 +15,14 @@ import {
   formatAmountFor1MXEC,
   formatAmountForGoodsServices,
   formatNumber,
+  formatPriceByType,
   getNumberFromFormatNumber,
   getOrderLimitText,
   getXecTransformedRateData,
   hexEncode,
   isConvertGoodsServices,
+  isExternalGoodsServicesOrder,
+  isGoodsServicesOffer,
   showPriceInfo
 } from '@/src/store/util';
 import {
@@ -318,11 +321,15 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const [openConfirmDeposit, setOpenConfirmDeposit] = useState(false);
   const [amountXECGoodsServices, setAmountXECGoodsServices] = useState(0);
   const [amountXECPerUnitGoodsServices, setAmountXECPerUnitGoodsServices] = useState(0);
-  const [isGoodsServices, setIsGoodsServices] = useState(
-    post?.postOffer?.paymentMethods[0]?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES
-  );
+  const isGoodsServices = isGoodsServicesOffer(post?.postOffer);
   const [isGoodsServicesConversion, setIsGoodsServicesConversion] = useState(() =>
     isConvertGoodsServices(post?.postOffer?.priceGoodsServices, post?.postOffer?.tickerPriceGoodsServices)
+  );
+  const isExternalPayment = isExternalGoodsServicesOrder(
+    post?.postOffer?.paymentMethods?.[0]?.paymentMethod?.id,
+    null,
+    (post?.postOffer as { offerCategory?: string | null } | undefined)?.offerCategory,
+    post?.postOffer?.coinPayment
   );
   const selectedWalletPath = useLixiSliceSelector(getSelectedWalletPath);
 
@@ -490,7 +497,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
 
       if (!moderatorData?.getModeratorAccount) {
         setArbiDataErrorMessage(
-          moderatorIsError ? "Can't get moderator data. Please sign in again and retry." : "Moderator is not available."
+          moderatorIsError ? "Can't get moderator data. Please sign in again and retry." : 'Moderator is not available.'
         );
         setArbiDataError(true);
         return;
@@ -506,104 +513,105 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
         return;
       }
 
-    const bankInfo: BankInfoInput = {
-      bankName: data?.bankName ?? null,
-      accountNameBank: data?.bankName ? data?.accountName : null,
-      accountNumberBank: data?.bankName ? data?.accountNumber : null,
-      appName: post.postOffer?.paymentApp ?? null,
-      accountNameApp: post.postOffer?.paymentApp ? data?.accountName : null,
-      accountNumberApp: post.postOffer?.paymentApp ? data?.accountNumber : null
-    };
-
-    const { amount, message }: { amount: string; message: string } = data;
-    const parseAmount = getNumberFromFormatNumber(amount);
-    const offerAccountId = post.accountId;
-    const moderatorId = moderatorData.getModeratorAccount.id;
-    const arbitratorId = arbitratorData.getRandomArbitratorAccount.id;
-
-    const buyerPk = fromHex(selectedWalletPath?.publicKey);
-    const buyerSk = fromHex(selectedWalletPath?.privateKey);
-
-    try {
-      const scriptSmartContract = escrowScript.script();
-      const scriptFeeSmartContract = escrowFeeScript.script();
-      const scriptBuyerDepositFeeSmartContract = escrowBuyerDepositFeeScript.script();
-
-      //split utxos is here and broadcast. Then build tx
-      let hexTxBuyerDeposit = null;
-      let escrowBuyerDepositFeeAddress = null;
-      let foundUtxo: UtxoInNodeInput;
-      const depositFeeSats = convertXECToSatoshi(calDisputeFee);
-
-      if (isDepositFee) {
-        const utxosToSplit = [];
-        let totalAmount = 0;
-        for (let i = 0; i < totalValidUtxos.length; i++) {
-          totalAmount += totalValidUtxos[i].value;
-          utxosToSplit.push(totalValidUtxos[i]);
-          const feeSats =
-            XPI.BitcoinCash.getByteCount({ P2PKH: utxosToSplit.length }, { P2PKH: 2 }) * coinInfo[COIN.XEC].defaultFee;
-          if (totalAmount >= depositFeeSats + feeSats) break;
-        }
-        const txBuildSplitUtxo = splitUtxos(utxosToSplit, buyerSk, buyerPk, depositFeeSats);
-        const txidSplit = (await chronik.broadcastTx(txBuildSplitUtxo)).txid;
-
-        if (txidSplit) {
-          foundUtxo = {
-            txid: txidSplit,
-            outIdx: 0,
-            value: depositFeeSats
-          };
-        }
-        if (!foundUtxo) throw new Error('No suitable UTXO found!');
-
-        const totalAmountBuyerDepositFee = escrowCalculations.totalAmount;
-        const scriptEscrow = new Script(scriptBuyerDepositFeeSmartContract.bytecode);
-        hexTxBuyerDeposit = buyerDepositFee(foundUtxo, buyerSk, buyerPk, totalAmountBuyerDepositFee, scriptEscrow);
-      }
-
-      const escrowAddress = convertEscrowScriptHashToEcashAddress(shaRmd160(scriptSmartContract.bytecode));
-      const escrowFeeAddress = convertEscrowScriptHashToEcashAddress(shaRmd160(scriptFeeSmartContract.bytecode));
-      escrowBuyerDepositFeeAddress = convertEscrowScriptHashToEcashAddress(
-        shaRmd160(scriptBuyerDepositFeeSmartContract.bytecode)
-      );
-
-      const data: CreateEscrowOrderInput = {
-        amount: isGoodsServices ? amountXECGoodsServices : amountXEC,
-        amountCoinOrCurrency: parseAmount,
-        offerAccountId,
-        arbitratorId,
-        moderatorId,
-        escrowAddress,
-        escrowFeeAddress,
-        escrowBuyerDepositFeeAddress,
-        nonce,
-        escrowScript: hexEncode(scriptSmartContract.bytecode),
-        escrowFeeScript: hexEncode(scriptFeeSmartContract.bytecode),
-        escrowBuyerDepositFeeScript: hexEncode(scriptBuyerDepositFeeSmartContract.bytecode),
-        price: isGoodsServices ? formatAmountForGoodsServices(amountXECPerUnitGoodsServices) : textAmountPer1MXEC,
-        paymentMethodId: post.postOffer.paymentMethods[0].paymentMethod.id,
-        postId: post.id,
-        message: message,
-        buyerDepositTx: hexTxBuyerDeposit,
-        utxoInProcess: foundUtxo,
-        bankInfoInput: bankInfo
+      const bankInfo: BankInfoInput = {
+        bankName: data?.bankName ?? null,
+        accountNameBank: data?.bankName ? data?.accountName : null,
+        accountNumberBank: data?.bankName ? data?.accountNumber : null,
+        appName: post.postOffer?.paymentApp ?? null,
+        accountNameApp: post.postOffer?.paymentApp ? data?.accountName : null,
+        accountNumberApp: post.postOffer?.paymentApp ? data?.accountNumber : null
       };
 
-      const result = await createOrderTrigger({ input: data }).unwrap();
+      const { amount, message }: { amount: string; message: string } = data;
+      const parseAmount = getNumberFromFormatNumber(amount);
+      const offerAccountId = post.accountId;
+      const moderatorId = moderatorData.getModeratorAccount.id;
+      const arbitratorId = arbitratorData.getRandomArbitratorAccount.id;
 
-      dispatch(
-        showToast('success', {
-          message: 'Success',
-          description: 'Order created successfully!'
-        })
-      );
-      handleCloseModal();
-      router.push(`/order-detail?id=${result.createEscrowOrder.id}`);
-    } catch (e) {
-      console.error('Error creating escrow order:', e);
-      setError(true);
-    }
+      const buyerPk = fromHex(selectedWalletPath?.publicKey);
+      const buyerSk = fromHex(selectedWalletPath?.privateKey);
+
+      try {
+        const scriptSmartContract = escrowScript.script();
+        const scriptFeeSmartContract = escrowFeeScript.script();
+        const scriptBuyerDepositFeeSmartContract = escrowBuyerDepositFeeScript.script();
+
+        //split utxos is here and broadcast. Then build tx
+        let hexTxBuyerDeposit = null;
+        let escrowBuyerDepositFeeAddress = null;
+        let foundUtxo: UtxoInNodeInput;
+        const depositFeeSats = convertXECToSatoshi(calDisputeFee);
+
+        if (isDepositFee) {
+          const utxosToSplit = [];
+          let totalAmount = 0;
+          for (let i = 0; i < totalValidUtxos.length; i++) {
+            totalAmount += totalValidUtxos[i].value;
+            utxosToSplit.push(totalValidUtxos[i]);
+            const feeSats =
+              XPI.BitcoinCash.getByteCount({ P2PKH: utxosToSplit.length }, { P2PKH: 2 }) *
+              coinInfo[COIN.XEC].defaultFee;
+            if (totalAmount >= depositFeeSats + feeSats) break;
+          }
+          const txBuildSplitUtxo = splitUtxos(utxosToSplit, buyerSk, buyerPk, depositFeeSats);
+          const txidSplit = (await chronik.broadcastTx(txBuildSplitUtxo)).txid;
+
+          if (txidSplit) {
+            foundUtxo = {
+              txid: txidSplit,
+              outIdx: 0,
+              value: depositFeeSats
+            };
+          }
+          if (!foundUtxo) throw new Error('No suitable UTXO found!');
+
+          const totalAmountBuyerDepositFee = escrowCalculations.totalAmount;
+          const scriptEscrow = new Script(scriptBuyerDepositFeeSmartContract.bytecode);
+          hexTxBuyerDeposit = buyerDepositFee(foundUtxo, buyerSk, buyerPk, totalAmountBuyerDepositFee, scriptEscrow);
+        }
+
+        const escrowAddress = convertEscrowScriptHashToEcashAddress(shaRmd160(scriptSmartContract.bytecode));
+        const escrowFeeAddress = convertEscrowScriptHashToEcashAddress(shaRmd160(scriptFeeSmartContract.bytecode));
+        escrowBuyerDepositFeeAddress = convertEscrowScriptHashToEcashAddress(
+          shaRmd160(scriptBuyerDepositFeeSmartContract.bytecode)
+        );
+
+        const data: CreateEscrowOrderInput = {
+          amount: isGoodsServices ? amountXECGoodsServices : amountXEC,
+          amountCoinOrCurrency: parseAmount,
+          offerAccountId,
+          arbitratorId,
+          moderatorId,
+          escrowAddress,
+          escrowFeeAddress,
+          escrowBuyerDepositFeeAddress,
+          nonce,
+          escrowScript: hexEncode(scriptSmartContract.bytecode),
+          escrowFeeScript: hexEncode(scriptFeeSmartContract.bytecode),
+          escrowBuyerDepositFeeScript: hexEncode(scriptBuyerDepositFeeSmartContract.bytecode),
+          price: isGoodsServices ? formatAmountForGoodsServices(amountXECPerUnitGoodsServices) : textAmountPer1MXEC,
+          paymentMethodId: post.postOffer.paymentMethods[0].paymentMethod.id,
+          postId: post.id,
+          message: message,
+          buyerDepositTx: hexTxBuyerDeposit,
+          utxoInProcess: foundUtxo,
+          bankInfoInput: bankInfo
+        };
+
+        const result = await createOrderTrigger({ input: data }).unwrap();
+
+        dispatch(
+          showToast('success', {
+            message: 'Success',
+            description: 'Order created successfully!'
+          })
+        );
+        handleCloseModal();
+        router.push(`/order-detail?id=${result.createEscrowOrder.id}`);
+      } catch (e) {
+        console.error('Error creating escrow order:', e);
+        setError(true);
+      }
     } catch (e) {
       console.error('Error resolving moderator/arbitrator data:', e);
       setArbiDataErrorMessage("Can't get arbi/mod data");
@@ -909,6 +917,14 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     const isValid = await trigger();
     if (!isValid) return;
 
+    // External goods orders: the buyer pays outside escrow. The seller locks collateral later.
+    if (isExternalPayment) {
+      handleSubmit(data => {
+        handleCreateEscrowOrder(data, false);
+      })();
+      return;
+    }
+
     if (checkBuyerEnoughFund() && !isBuyOffer) {
       setOpenConfirmDeposit(true);
     } else {
@@ -954,14 +970,14 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const showPrice = useMemo(() => {
     return (
       showPriceInfo(
-        post?.postOffer?.paymentMethods[0]?.paymentMethod?.id,
+        isGoodsServices ? PAYMENT_METHOD.GOODS_SERVICES : post?.postOffer?.paymentMethods[0]?.paymentMethod?.id,
         post?.postOffer?.coinPayment,
         post?.postOffer?.priceCoinOthers,
         post?.postOffer?.priceGoodsServices,
         post?.postOffer?.tickerPriceGoodsServices
       ) || isGoodsServices
     );
-  }, [post?.postOffer]);
+  }, [post?.postOffer, isGoodsServices]);
 
   const coinCurrency = useMemo(() => {
     return getTickerText(
@@ -1306,14 +1322,39 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                     ? `Total amount (${formatNumber(amountXECGoodsServices)} XEC) is less than minimum 5.46 XEC. Try increasing the quantity.`
                     : showPrice && (
                         <div>
-                          You will {isBuyOffer ? 'send' : 'receive'}{' '}
-                          <span className="amount-receive">
-                            {/* Show loading state when rate data is being fetched */}
-                            {needsFiatRates && !rateData
-                              ? 'loading...'
-                              : formatNumber(isGoodsServices ? amountXECGoodsServices : amountXEC)}
-                          </span>{' '}
-                          {COIN.XEC} {isBuyOffer && '(estimated)'}
+                          {isExternalPayment ? (
+                            isBuyOffer ? (
+                              <>
+                                You will escrow{' '}
+                                <span className="amount-receive">
+                                  {needsFiatRates && !rateData
+                                    ? 'loading...'
+                                    : formatNumber(isGoodsServices ? amountXECGoodsServices : amountXEC)}
+                                </span>{' '}
+                                {COIN.XEC} as collateral until the buyer confirms receipt.
+                              </>
+                            ) : (
+                              <>
+                                The seller escrows{' '}
+                                <span className="amount-receive">
+                                  {needsFiatRates && !rateData
+                                    ? 'loading...'
+                                    : formatNumber(isGoodsServices ? amountXECGoodsServices : amountXEC)}
+                                </span>{' '}
+                                {COIN.XEC} as collateral. You pay the seller outside escrow.
+                              </>
+                            )
+                          ) : (
+                            <>
+                              You will {isBuyOffer ? 'send' : 'receive'}{' '}
+                              <span className="amount-receive">
+                                {needsFiatRates && !rateData
+                                  ? 'loading...'
+                                  : formatNumber(isGoodsServices ? amountXECGoodsServices : amountXEC)}
+                              </span>{' '}
+                              {COIN.XEC} {isBuyOffer && '(estimated)'}
+                            </>
+                          )}
                           <div>
                             Price:{' '}
                             {isGoodsServices ? (
@@ -1325,7 +1366,11 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                                   DEFAULT_TICKER_GOODS_SERVICES ? (
                                   <span>
                                     {' '}
-                                    ({post.postOffer.priceGoodsServices}{' '}
+                                    (
+                                    {formatPriceByType(
+                                      post.postOffer.priceGoodsServices,
+                                      post.postOffer.tickerPriceGoodsServices ?? 'USD'
+                                    )}{' '}
                                     {post.postOffer.tickerPriceGoodsServices ?? 'USD'})
                                   </span>
                                 ) : null}
@@ -1400,6 +1445,17 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
                 <Typography color="error">{errors?.paymentMethod?.message as string}</Typography>
               )}
             </RadioGroup>
+            {isExternalPayment && (
+              <Box sx={{ mt: 2, p: 2, borderRadius: 1, bgcolor: 'info.main', color: 'info.contrastText' }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
+                  External payment
+                </Typography>
+                <Typography variant="body2">
+                  Pay the seller directly for the goods or services. They lock XEC in escrow as collateral and get it
+                  back after you confirm receipt.
+                </Typography>
+              </Box>
+            )}
             {isBuyOffer && InfoPaymentDetail()}
           </PlaceAnOrderWrap>
         </DialogContent>

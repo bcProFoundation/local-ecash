@@ -8,8 +8,10 @@ import {
   formatAmountFor1MXEC,
   formatAmountForGoodsServices,
   formatNumber,
+  formatPriceByType,
   getXecTransformedRateData,
   isConvertGoodsServices,
+  isGoodsServicesOffer,
   showPriceInfo
 } from '@/src/store/util';
 import renderTextWithLinks from '@/src/utils/linkHelpers';
@@ -155,7 +157,10 @@ const OrderDetailInfo = ({
 
   const [rateData, setRateData] = useState(null);
   const [marginCurrentPrice, setMarginCurrentPrice] = useState(0);
-  const [isGoodsServices, setIsGoodsServices] = useState(order?.paymentMethod.id === PAYMENT_METHOD.GOODS_SERVICES);
+  const isGoodsServices = isGoodsServicesOffer({
+    offerCategory: (order?.escrowOffer as { offerCategory?: string | null } | undefined)?.offerCategory,
+    paymentMethod: order?.paymentMethod
+  });
   const [isGoodsServicesConversion, setIsGoodsServicesConversion] = useState(() =>
     isConvertGoodsServices(order?.escrowOffer?.priceGoodsServices, order?.escrowOffer?.tickerPriceGoodsServices)
   );
@@ -184,7 +189,6 @@ const OrderDetailInfo = ({
     if (!isRelevantParty) return false;
 
     // Check if order needs fiat conversion
-    const isGoodsServices = order?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES;
     if (isGoodsServices) return true;
 
     return order?.escrowOffer?.coinPayment && order?.escrowOffer?.coinPayment !== 'XEC';
@@ -192,7 +196,7 @@ const OrderDetailInfo = ({
     selectedWalletPath?.hash160,
     order?.sellerAccount?.hash160,
     isBuyOffer,
-    order?.paymentMethod?.id,
+    isGoodsServices,
     order?.escrowOffer?.coinPayment
   ]);
 
@@ -250,7 +254,7 @@ const OrderDetailInfo = ({
 
       effectiveSetTextAmount(
         isGoodsServices
-          ? `${formatAmountForGoodsServices(xecPerUnit)}${order?.escrowOffer?.priceGoodsServices && (order.escrowOffer?.tickerPriceGoodsServices ?? DEFAULT_TICKER_GOODS_SERVICES) !== DEFAULT_TICKER_GOODS_SERVICES ? ` (${order.escrowOffer.priceGoodsServices} ${order.escrowOffer.tickerPriceGoodsServices ?? 'USD'})` : ''}`
+          ? `${formatAmountForGoodsServices(xecPerUnit)}${order?.escrowOffer?.priceGoodsServices && (order.escrowOffer?.tickerPriceGoodsServices ?? DEFAULT_TICKER_GOODS_SERVICES) !== DEFAULT_TICKER_GOODS_SERVICES ? ` (${formatPriceByType(order.escrowOffer.priceGoodsServices, order.escrowOffer.tickerPriceGoodsServices ?? 'USD')} ${order.escrowOffer.tickerPriceGoodsServices ?? 'USD'})` : ''}`
           : formatAmountFor1MXEC(amountCoinOrCurrency, order?.escrowOffer?.marginPercentage, coinCurrency, isBuyOffer)
       );
     }
@@ -268,13 +272,13 @@ const OrderDetailInfo = ({
 
   const showPrice = useMemo(() => {
     return showPriceInfo(
-      order?.paymentMethod?.id,
+      isGoodsServices ? PAYMENT_METHOD.GOODS_SERVICES : order?.paymentMethod?.id,
       order?.escrowOffer?.coinPayment,
       order?.escrowOffer?.priceCoinOthers,
       order?.escrowOffer?.priceGoodsServices,
       order?.escrowOffer?.tickerPriceGoodsServices
     );
-  }, [order]);
+  }, [order, isGoodsServices]);
 
   const coinCurrency = useMemo(() => {
     return getTickerText(
@@ -412,12 +416,12 @@ const OrderDetailInfo = ({
             <>
               {order?.sellerAccount.id === selectedAccount?.id && (
                 <Button className="btn-order-type" size="small" color="error" variant="outlined">
-                  {order?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES ? flipped : baseLabel}
+                  {isGoodsServices ? 'Sell' : baseLabel}
                 </Button>
               )}
               {order?.buyerAccount.id === selectedAccount?.id && (
                 <Button className="btn-order-type" size="small" color="success" variant="outlined">
-                  {order?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES ? baseLabel : flipped}
+                  {isGoodsServices ? 'Buy' : flipped}
                 </Button>
               )}
             </>
@@ -444,12 +448,12 @@ const OrderDetailInfo = ({
               <>
                 {order?.sellerAccount.id === selectedAccount?.id && (
                   <Button className="btn-order-type" size="small" color="error" variant="outlined">
-                    {order?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES ? flipped : baseLabel}
+                    {isGoodsServices ? 'Sell' : baseLabel}
                   </Button>
                 )}
                 {order?.buyerAccount.id === selectedAccount?.id && (
                   <Button className="btn-order-type" size="small" color="success" variant="outlined">
-                    {order?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES ? baseLabel : flipped}
+                    {isGoodsServices ? 'Buy' : flipped}
                   </Button>
                 )}
               </>

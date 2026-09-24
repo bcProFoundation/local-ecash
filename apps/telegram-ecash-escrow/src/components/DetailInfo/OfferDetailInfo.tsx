@@ -3,9 +3,9 @@
 import useOfferPrice from '@/src/hooks/useOfferPrice';
 import { DEFAULT_TICKER_GOODS_SERVICES } from '@/src/store/constants';
 import { SettingContext } from '@/src/store/context/settingProvider';
-import { formatNumber, getOrderLimitText, showPriceInfo } from '@/src/store/util';
+import { formatNumber, formatPriceByType, getOrderLimitText, showPriceInfo, takerActionLabel } from '@/src/store/util';
 import renderTextWithLinks from '@/src/utils/linkHelpers';
-import { GOODS_SERVICES_UNIT, PAYMENT_METHOD, getTickerText } from '@bcpros/lixi-models';
+import { GOODS_SERVICES_UNIT, getTickerText } from '@bcpros/lixi-models';
 import {
   OfferStatus,
   OfferType,
@@ -96,17 +96,6 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
 
   const isOwner = (postData ?? post)?.accountId === selectedAccountId;
 
-  // Format fiat price without decimals and with thousands separators for display
-  const formatFiatPrice = (price: number | string | undefined): string => {
-    if (price == null || price === '') return '';
-    const num = typeof price === 'string' ? parseFloat(price) : price;
-    if (isNaN(num)) return String(price);
-    return new Intl.NumberFormat('en-GB', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(Math.round(num));
-  };
-
   const handleClickAction = e => {
     e.stopPropagation();
     dispatch(openActionSheet('OfferActionSheet', { post: postData }));
@@ -165,12 +154,9 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
     isGoodsServices: _isGoodsServices
   } = useOfferPrice({ paymentInfo: offerData, inputAmount: 1 });
 
-  // Determine the taker-facing button label and whether to show the XEC logo. For currency to currency offers, the Buy offers are showing as Sell for the taker, and Sell offers are showing as Buy.
-  // For Goods & Services offers, taker label is reversed (Buy <-> Sell).
-  const takerActionLabel = useMemo(() => {
-    const baseLabel = offerData?.type === OfferType.Buy ? 'Sell' : 'Buy';
-    return _isGoodsServices ? (baseLabel === 'Buy' ? 'Sell' : 'Buy') : baseLabel;
-  }, [offerData?.type, _isGoodsServices]);
+  const takerActionLabelText = useMemo(() => {
+    return takerActionLabel(offerData?.type === OfferType.Buy);
+  }, [offerData?.type]);
 
   return (
     <OfferDetailWrap onClick={() => router.push(`/offer-detail?id=${offerData.postId}`)}>
@@ -195,7 +181,8 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
               (offerData?.tickerPriceGoodsServices ?? DEFAULT_TICKER_GOODS_SERVICES) !==
                 DEFAULT_TICKER_GOODS_SERVICES ? (
                 <span>
-                  ({formatFiatPrice(offerData.priceGoodsServices)} {offerData.tickerPriceGoodsServices ?? 'USD'})
+                  ({formatPriceByType(offerData.priceGoodsServices, offerData.tickerPriceGoodsServices ?? 'USD')}{' '}
+                  {offerData.tickerPriceGoodsServices ?? 'USD'})
                 </span>
               ) : null}
             </>
@@ -276,10 +263,8 @@ const OfferDetailInfo = ({ timelineItem, post, isShowBuyButton = false, isItemTi
             {isShowBuyButton && (
               // Takers always see the opposite action; Goods & Services still hide the XEC logo
               <BuyButtonStyled style={{ height: 'fit-content' }} variant="contained" onClick={e => handleBuyClick(e)}>
-                {takerActionLabel}
-                {offerData?.paymentMethods?.[0]?.paymentMethod?.id === PAYMENT_METHOD.GOODS_SERVICES ? null : (
-                  <Image width={25} height={25} src="/eCash.svg" alt="" />
-                )}
+                {takerActionLabelText}
+                {_isGoodsServices ? null : <Image width={25} height={25} src="/eCash.svg" alt="" />}
               </BuyButtonStyled>
             )}
           </>
