@@ -143,6 +143,13 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
       '.active': {
         color: '#fff'
       }
+    },
+    '.category-btn-group button': {
+      whiteSpace: 'nowrap',
+      textTransform: 'none',
+      fontSize: '15px',
+      lineHeight: 1.2,
+      padding: '8px 10px'
     }
   },
 
@@ -681,7 +688,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
     <div className="container-step1">
       <Grid container spacing={2}>
         {/* Offer category. Choose what is being listed before buy or sell. */}
-        <Grid item xs={12} className="type-btn-group">
+        <Grid item xs={12} className="type-btn-group category-btn-group">
           <Button
             className={`type-buy-btn ${offerCategory === OFFER_CATEGORY.XEC_TRADING ? 'active' : 'inactive'}`}
             variant="contained"
@@ -705,16 +712,9 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
               }
             }}
           >
-            Goods & Services
+            Goods
           </Button>
         </Grid>
-        {isGoodService && (
-          <Grid item xs={12}>
-            <Typography className="offer-note" fontStyle={'italic'} variant="body2">
-              The buyer pays with the method below. XEC can be the payment, or collateral if they pay another way.
-            </Typography>
-          </Grid>
-        )}
 
         {/* Buy/Sell buttons */}
         <Grid item xs={12} className="type-btn-group">
