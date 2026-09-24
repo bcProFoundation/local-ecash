@@ -375,6 +375,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
   const percentageValue = watch('percentage');
   const currencyValue = watch('currency');
   const coinValue = watch('coin');
+  const tickerPriceGoodsServices = watch('tickerPriceGoodsServices');
 
   const isGoodService = offerCategory === OFFER_CATEGORY.GOODS_SERVICES || option === PAYMENT_METHOD.GOODS_SERVICES;
   const selectedCoin = (coinValue?.split(':')[0] ?? '').toUpperCase();
@@ -1279,7 +1280,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
                         endAdornment: (
                           <InputAdornment position="end">
                             <Select
-                              defaultValue={getValues('tickerPriceGoodsServices') ?? DEFAULT_TICKER_GOODS_SERVICES}
+                              value={tickerPriceGoodsServices ?? DEFAULT_TICKER_GOODS_SERVICES}
                               onChange={event => {
                                 setValue('tickerPriceGoodsServices', event.target.value);
                               }}
@@ -1477,9 +1478,9 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
             <Typography variant="body1">
               <span className="prefix">Price: </span>{' '}
               {isGoodService
-                ? formatPriceByType(getValues('priceGoodsServices'), getValues('tickerPriceGoodsServices'))
+                ? formatPriceByType(getValues('priceGoodsServices'), tickerPriceGoodsServices)
                 : getValues('priceCoinOthers')}{' '}
-              {isGoodService ? getValues('tickerPriceGoodsServices') : 'USD'}
+              {isGoodService ? tickerPriceGoodsServices : 'USD'}
             </Typography>
           </Grid>
         );
@@ -1549,7 +1550,9 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = props => {
               <div className="payment-currency">
                 <Typography>Payment currency</Typography>
                 <Button variant="outlined" color="warning">
-                  <Typography>{isGoodService ? 'XEC' : coinCurrency}</Typography>
+                  <Typography>
+                    {isGoodService ? tickerPriceGoodsServices || DEFAULT_TICKER_GOODS_SERVICES : coinCurrency}
+                  </Typography>
                 </Button>
               </div>
             </div>
