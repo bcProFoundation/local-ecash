@@ -8,7 +8,7 @@ import { UtxoContext } from '@/src/store/context/utxoProvider';
 import { buyerDepositFee, splitUtxos } from '@/src/store/escrow';
 import { Escrow, EscrowBuyerDepositFee, EscrowFee } from '@/src/store/escrow/script';
 import {
-  constructXECRatesFromFiatCurrencies,
+  buildCryptoOfferRateData,
   convertXECAndCurrency,
   convertXECToSatoshi,
   estimatedFee,
@@ -18,10 +18,10 @@ import {
   formatPriceByType,
   getNumberFromFormatNumber,
   getOrderLimitText,
+  getXecTransformedRateData,
   hexEncode,
   isConvertGoodsServices,
-  showPriceInfo,
-  transformFiatRates
+  showPriceInfo
 } from '@/src/store/util';
 import {
   BankInfoInput,
@@ -301,7 +301,11 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
   const { totalValidAmount, totalValidUtxos } = useContext(UtxoContext);
   const { chronik, XPI } = Wallet;
 
+  const [authToken, setAuthToken] = useState<string | null>(
+    typeof window !== 'undefined' ? sessionStorage.getItem('Authorization') : null
+  );
   const [arbiDataError, setArbiDataError] = useState(false);
+  const [arbiDataErrorMessage, setArbiDataErrorMessage] = useState("Can't get arbi/mod data");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [rateData, setRateData] = useState(null);
@@ -373,14 +377,45 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     escrowOrderApi;
   const [createOrderTrigger] = useCreateEscrowOrderMutation();
 
-  const { currentData: moderatorCurrentData, isError: moderatorIsError } = useGetModeratorAccountQuery(
-    {},
-    { skip: !data, refetchOnMountOrArgChange: true }
-  );
-  const { currentData: arbitratorCurrentData, isError: arbitratorIsError } = useGetRandomArbitratorAccountQuery(
+  const canFetchArbiMod = !!data && !!authToken;
+
+  const {
+    currentData: moderatorCurrentData,
+    isError: moderatorIsError,
+    isFetching: moderatorIsFetching,
+    refetch: refetchModerator
+  } = useGetModeratorAccountQuery({}, { skip: !canFetchArbiMod, refetchOnMountOrArgChange: true });
+  const {
+    currentData: arbitratorCurrentData,
+    isError: arbitratorIsError,
+    isFetching: arbitratorIsFetching,
+    refetch: refetchArbitrator
+  } = useGetRandomArbitratorAccountQuery(
     { offerId: post.id },
-    { skip: !data, refetchOnMountOrArgChange: true }
+    { skip: !canFetchArbiMod, refetchOnMountOrArgChange: true }
   );
+
+  const arbiModIsLoading = canFetchArbiMod && (moderatorIsFetching || arbitratorIsFetching);
+  const hasArbiModData =
+    !!moderatorCurrentData?.getModeratorAccount?.id && !!arbitratorCurrentData?.getRandomArbitratorAccount?.id;
+
+  useEffect(() => {
+    if (authToken) return;
+
+    let attempts = 0;
+    const interval = setInterval(() => {
+      const sessionToken = sessionStorage.getItem('Authorization');
+      attempts++;
+      if (sessionToken) {
+        setAuthToken(sessionToken);
+        clearInterval(interval);
+      } else if (attempts >= 20) {
+        clearInterval(interval);
+      }
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [authToken]);
 
   // Lazy load fiat rates - will use cached data from Shopping page if available
   // Skip fetching entirely if this is a pure XEC offer (no conversion needed)
@@ -481,13 +516,42 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     setNonce(nonce);
   };
 
+  const resolveArbiModData = async () => {
+    let moderatorData = moderatorCurrentData;
+    let arbitratorData = arbitratorCurrentData;
+
+    if (!moderatorData?.getModeratorAccount || !arbitratorData?.getRandomArbitratorAccount) {
+      const [moderatorResult, arbitratorResult] = await Promise.all([refetchModerator(), refetchArbitrator()]);
+      moderatorData = moderatorResult.data ?? moderatorData;
+      arbitratorData = arbitratorResult.data ?? arbitratorData;
+    }
+
+    return { moderatorData, arbitratorData };
+  };
+
   const handleCreateEscrowOrder = async (data, isDepositFee) => {
     setLoading(true);
-    if (moderatorIsError || arbitratorIsError) {
-      setArbiDataError(true);
 
-      return;
-    }
+    try {
+      const { moderatorData, arbitratorData } = await resolveArbiModData();
+
+      if (!moderatorData?.getModeratorAccount) {
+        setArbiDataErrorMessage(
+          moderatorIsError ? "Can't get moderator data. Please sign in again and retry." : "Moderator is not available."
+        );
+        setArbiDataError(true);
+        return;
+      }
+
+      if (!arbitratorData?.getRandomArbitratorAccount) {
+        setArbiDataErrorMessage(
+          arbitratorIsError
+            ? 'No arbitrator is available for this offer. The offer owner or your account may be the only arbitrator.'
+            : "Can't get arbitrator data. Please try again."
+        );
+        setArbiDataError(true);
+        return;
+      }
 
     const bankInfo: BankInfoInput = {
       bankName: data?.bankName ?? null,
@@ -501,8 +565,8 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
     const { amount, message }: { amount: string; message: string } = data;
     const parseAmount = getNumberFromFormatNumber(amount);
     const offerAccountId = post.accountId;
-    const moderatorId = moderatorCurrentData.getModeratorAccount.id;
-    const arbitratorId = arbitratorCurrentData.getRandomArbitratorAccount.id;
+    const moderatorId = moderatorData.getModeratorAccount.id;
+    const arbitratorId = arbitratorData.getRandomArbitratorAccount.id;
 
     const buyerPk = fromHex(selectedWalletPath?.publicKey);
     const buyerSk = fromHex(selectedWalletPath?.privateKey);
@@ -587,7 +651,13 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
       console.error('Error creating escrow order:', e);
       setError(true);
     }
-    setLoading(false);
+    } catch (e) {
+      console.error('Error resolving moderator/arbitrator data:', e);
+      setArbiDataErrorMessage("Can't get arbi/mod data");
+      setArbiDataError(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const calDisputeFee = useMemo(() => {
@@ -1005,46 +1075,17 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
         return;
       }
 
-      // Goods & Services priced in fiat: Find XEC currency and get its fiat rates
-      const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
-
-      if (xecCurrency?.fiatRates) {
-        const transformedRates = transformFiatRates(xecCurrency.fiatRates);
-
-        setRateData(transformedRates);
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('📊 Fiat rates loaded for Goods & Services:', {
-            currency: 'XEC',
-            originalRatesCount: xecCurrency.fiatRates.length,
-            transformedRatesCount: transformedRates?.length || 0,
-            priceInCurrency: post?.postOffer?.tickerPriceGoodsServices,
-            matchedRate: transformedRates?.find(
-              r => r.coin?.toUpperCase() === post?.postOffer?.tickerPriceGoodsServices?.toUpperCase()
-            )
-          });
-        }
-      } else {
-        // FALLBACK: If XEC entry is missing, construct it from fiat currencies
-        const constructedRates = constructXECRatesFromFiatCurrencies(fiatData?.getAllFiatRate);
-        if (constructedRates) {
-          const transformedRates = transformFiatRates(constructedRates);
-          setRateData(transformedRates);
-          if (process.env.NODE_ENV !== 'production') {
-            console.log('📊 Fiat rates constructed from fiat currencies (fallback):', {
-              constructedRatesCount: constructedRates.length,
-              transformedRatesCount: transformedRates?.length || 0,
-              priceInCurrency: post?.postOffer?.tickerPriceGoodsServices,
-              matchedRate: transformedRates?.find(
-                r => r.coin?.toUpperCase() === post?.postOffer?.tickerPriceGoodsServices?.toUpperCase()
-              )
-            });
-          }
-        } else {
-          setRateData(null);
-          if (process.env.NODE_ENV !== 'production') {
-            console.warn('⚠️ XEC currency not found in fiatData for Goods & Services');
-          }
-        }
+      const transformedRates = getXecTransformedRateData(fiatData?.getAllFiatRate);
+      setRateData(transformedRates);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('📊 Fiat rates loaded for Goods & Services:', {
+          currency: 'XEC',
+          transformedRatesCount: transformedRates?.length || 0,
+          priceInCurrency: post?.postOffer?.tickerPriceGoodsServices,
+          matchedRate: transformedRates?.find(
+            r => r.coin?.toUpperCase() === post?.postOffer?.tickerPriceGoodsServices?.toUpperCase()
+          )
+        });
       }
     } else {
       // XEC P2P offers with fiat localCurrency: Need to get fiat rates for price display
@@ -1054,28 +1095,16 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
       if (effectiveCoinPayment === 'XEC') {
         // If localCurrency is fiat (not XEC), we need fiat rates for display
         if (post?.postOffer?.localCurrency && post.postOffer.localCurrency.toUpperCase() !== 'XEC') {
-          const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
-          if (xecCurrency?.fiatRates) {
-            const transformedRates = transformFiatRates(xecCurrency.fiatRates);
-            setRateData(transformedRates);
-            if (process.env.NODE_ENV !== 'production') {
-              console.log('📊 Fiat rates loaded for XEC P2P offer with fiat display:', {
-                localCurrency: post?.postOffer?.localCurrency,
-                transformedRatesCount: transformedRates?.length || 0,
-                matchedRate: transformedRates?.find(
-                  r => r.coin?.toUpperCase() === post?.postOffer?.localCurrency?.toUpperCase()
-                )
-              });
-            }
-          } else {
-            // Fallback: construct XEC rates from fiat currencies
-            const constructedRates = constructXECRatesFromFiatCurrencies(fiatData?.getAllFiatRate);
-            if (constructedRates) {
-              const transformedRates = transformFiatRates(constructedRates);
-              setRateData(transformedRates);
-            } else {
-              setRateData(null);
-            }
+          const transformedRates = getXecTransformedRateData(fiatData?.getAllFiatRate);
+          setRateData(transformedRates);
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('📊 Fiat rates loaded for XEC P2P offer with fiat display:', {
+              localCurrency: post?.postOffer?.localCurrency,
+              transformedRatesCount: transformedRates?.length || 0,
+              matchedRate: transformedRates?.find(
+                r => r.coin?.toUpperCase() === post?.postOffer?.localCurrency?.toUpperCase()
+              )
+            });
           }
           return;
         }
@@ -1099,49 +1128,27 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
         post?.postOffer?.coinPayment?.toUpperCase() === COIN_OTHERS.toUpperCase() &&
         post?.postOffer?.priceCoinOthers
       ) {
-        const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
-
-        if (xecCurrency?.fiatRates) {
-          const transformedRates = transformFiatRates(xecCurrency.fiatRates);
-          setRateData(transformedRates);
-          if (process.env.NODE_ENV !== 'production') {
-            console.log('📊 Fiat rates loaded for COIN_OTHERS Offer:', {
-              coinOthers: post?.postOffer?.coinOthers,
-              priceCoinOthers: post?.postOffer?.priceCoinOthers,
-              transformedRatesCount: transformedRates?.length || 0,
-              usdRate: transformedRates?.find(r => r.coin?.toUpperCase() === 'USD')?.rate
-            });
-          }
-        } else {
-          // Fallback: construct XEC rates from fiat currencies
-          const constructedRates = constructXECRatesFromFiatCurrencies(fiatData?.getAllFiatRate);
-          if (constructedRates) {
-            const transformedRates = transformFiatRates(constructedRates);
-            setRateData(transformedRates);
-          } else {
-            setRateData(null);
-          }
+        const transformedRates = getXecTransformedRateData(fiatData?.getAllFiatRate);
+        setRateData(transformedRates);
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('📊 Fiat rates loaded for COIN_OTHERS Offer:', {
+            coinOthers: post?.postOffer?.coinOthers,
+            priceCoinOthers: post?.postOffer?.priceCoinOthers,
+            transformedRatesCount: transformedRates?.length || 0,
+            usdRate: transformedRates?.find(r => r.coin?.toUpperCase() === 'USD')?.rate
+          });
         }
         return;
       }
 
-      // Crypto Offers: Find the user's selected local currency and transform the same way
-      const currencyData = fiatData?.getAllFiatRate?.find(
-        item => item.currency === (post?.postOffer?.localCurrency ?? 'USD')
-      );
-
-      if (currencyData?.fiatRates) {
-        const transformedRates = transformFiatRates(currencyData.fiatRates);
-
-        setRateData(transformedRates);
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('📊 Fiat rates loaded for Crypto Offer:', {
-            localCurrency: post?.postOffer?.localCurrency,
-            transformedRatesCount: transformedRates?.length || 0
-          });
-        }
-      } else {
-        setRateData(null);
+      const localCurrency = post?.postOffer?.localCurrency ?? 'USD';
+      const transformedRates = buildCryptoOfferRateData(fiatData?.getAllFiatRate, localCurrency);
+      setRateData(transformedRates);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('📊 Fiat rates loaded for Crypto Offer:', {
+          localCurrency,
+          transformedRatesCount: transformedRates?.length || 0
+        });
       }
     }
   }, [
@@ -1494,7 +1501,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
               }
             }}
             autoFocus
-            disabled={loading}
+            disabled={loading || arbiModIsLoading || (canFetchArbiMod && !hasArbiModData)}
           >
             Create
           </Button>
@@ -1502,7 +1509,7 @@ const PlaceAnOrderModal: React.FC<PlaceAnOrderModalProps> = props => {
       </StyledDialog>
       <CustomToast
         isOpen={arbiDataError}
-        content="Can't get arbi/mod data"
+        content={arbiDataErrorMessage}
         handleClose={() => setArbiDataError(false)}
         type="error"
         autoHideDuration={3500}

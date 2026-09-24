@@ -3,15 +3,16 @@
 import { DEFAULT_TICKER_GOODS_SERVICES, securityDepositPercentage } from '@/src/store/constants';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import {
-  constructXECRatesFromFiatCurrencies,
+  buildCryptoOfferRateData,
   convertXECAndCurrency,
   formatAmountFor1MXEC,
   formatAmountForGoodsServices,
   formatNumber,
+  getXecTransformedRateData,
   isConvertGoodsServices,
-  showPriceInfo,
-  transformFiatRates
+  showPriceInfo
 } from '@/src/store/util';
+import renderTextWithLinks from '@/src/utils/linkHelpers';
 import { COIN, PAYMENT_METHOD, coinInfo, getTickerText } from '@bcpros/lixi-models';
 import {
   DisputeStatus,
@@ -88,6 +89,11 @@ const OrderDetailWrap = styled('div')(({ theme }) => ({
     textOverflow: 'ellipsis'
   },
 
+  '.trade-copy': {
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-word'
+  },
+
   '.btn-view-order': {
     textTransform: 'none'
   },
@@ -96,6 +102,16 @@ const OrderDetailWrap = styled('div')(({ theme }) => ({
     pointerEvents: 'none'
   }
 }));
+
+function accountDisplayName(
+  account?: { telegramUsername?: string | null; anonymousUsernameLocalecash?: string | null },
+  preferAnonymous?: boolean
+): string {
+  if (preferAnonymous && account?.anonymousUsernameLocalecash) {
+    return account.anonymousUsernameLocalecash;
+  }
+  return account?.telegramUsername || account?.anonymousUsernameLocalecash || 'No Telegram username';
+}
 
 export const EscrowAddressLink = (name, escrowAddress) => (
   <Typography>
@@ -329,34 +345,10 @@ const OrderDetailInfo = ({
       // For Goods & Services: Always use XEC fiat rates (price is in fiat, need to convert to XEC)
       // For Crypto Orders: Use the selected fiat currency from localCurrency (user's choice)
       if (isGoodsServices) {
-        // Goods & Services: Transform XEC currency fiat rates
-        const xecCurrency = fiatData?.getAllFiatRate?.find(item => item.currency === 'XEC');
-
-        if (xecCurrency?.fiatRates) {
-          const transformedRates = transformFiatRates(xecCurrency.fiatRates);
-          setRateData(transformedRates);
-        } else {
-          // FALLBACK: If XEC entry is missing, construct it from fiat currencies
-          const constructedRates = constructXECRatesFromFiatCurrencies(fiatData?.getAllFiatRate);
-          if (constructedRates) {
-            const transformedRates = transformFiatRates(constructedRates);
-            setRateData(transformedRates);
-          } else {
-            setRateData(null);
-          }
-        }
+        setRateData(getXecTransformedRateData(fiatData?.getAllFiatRate));
       } else {
-        // Crypto Orders: Transform the user's selected local currency
-        const currencyData = fiatData?.getAllFiatRate?.find(
-          item => item.currency === (order?.escrowOffer?.localCurrency ?? 'USD')
-        );
-
-        if (currencyData?.fiatRates) {
-          const transformedRates = transformFiatRates(currencyData.fiatRates);
-          setRateData(transformedRates);
-        } else {
-          setRateData(null);
-        }
+        const localCurrency = order?.escrowOffer?.localCurrency ?? 'USD';
+        setRateData(buildCryptoOfferRateData(fiatData?.getAllFiatRate, localCurrency));
       }
     }
   }, [
@@ -384,13 +376,32 @@ const OrderDetailInfo = ({
           <span className="prefix">{order?.markAsPaid && '(Mark as paid)'}</span>
         </div>
       </Typography>
+      {order?.escrowOffer?.message && (
+        <Typography className="trade-copy" variant="body1">
+          <span className="prefix">Offer: </span>
+          {renderTextWithLinks(order.escrowOffer.message)}
+        </Typography>
+      )}
+      {(order?.escrowOffer as { noteOffer?: string | null } | undefined)?.noteOffer && (
+        <Typography className="trade-copy" variant="body1">
+          <span className="prefix">Note: </span>
+          {renderTextWithLinks((order?.escrowOffer as { noteOffer?: string | null }).noteOffer)}
+        </Typography>
+      )}
+      {order?.message && (
+        <Typography className="trade-copy" variant="body1">
+          <span className="prefix">Order message: </span>
+          {renderTextWithLinks(order.message)}
+        </Typography>
+      )}
       <Typography variant="body1">
         {order?.sellerAccount.id === selectedAccount?.id && (
           <React.Fragment>
             <span className="prefix">{order.escrowOffer.type === OfferType.Buy ? 'Offered' : 'Ordered'} by: </span>
-            {allSettings?.[`${order?.buyerAccount.id.toString()}`]?.usePublicLocalUserName
-              ? order?.buyerAccount.anonymousUsernameLocalecash
-              : order?.buyerAccount.telegramUsername}
+            {accountDisplayName(
+              order?.buyerAccount,
+              Boolean(allSettings?.[`${order?.buyerAccount.id.toString()}`]?.usePublicLocalUserName)
+            )}
           </React.Fragment>
         )}
         {(() => {

@@ -1,6 +1,8 @@
 'use client';
 
+import { UtxoContext } from '@/src/store/context/utxoProvider';
 import { withdrawFund } from '@/src/store/escrow';
+import { formatSatsAsXec, maxSendableXec, quoteWalletSend } from '@/src/store/walletSend';
 import { COIN, coinInfo } from '@bcpros/lixi-models';
 import {
   UtxoInNode,
@@ -14,10 +16,10 @@ import {
 } from '@bcpros/redux-store';
 import styled from '@emotion/styled';
 import { QrCodeScanner } from '@mui/icons-material';
-import { Button, FormControl, IconButton, TextField } from '@mui/material';
+import { Button, FormControl, IconButton, InputAdornment, TextField } from '@mui/material';
 import { fromHex } from 'ecash-lib';
 import cashaddr from 'ecashaddrjs';
-import React, { useMemo, useState } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import ScanQRcode from '../QRcode/ScanQRcode';
 
@@ -32,6 +34,15 @@ const WrapComponent = styled.div`
   }
   .amount-input {
     margin-top: 10px;
+  }
+  .network-fee {
+    margin-top: 6px;
+    font-size: 13px;
+    opacity: 0.8;
+  }
+  .max-btn {
+    font-weight: 700;
+    min-width: auto;
   }
   .btn-send {
     width: 100%;
@@ -52,17 +63,17 @@ const WrapComponent = styled.div`
   }
 `;
 interface SendComponentProps {
-  totalValidAmount: number;
   totalValidUtxos: Array<UtxoInNode>;
 }
 
 const SendComponent: React.FC<SendComponentProps> = props => {
   const dispatch = useLixiSliceDispatch();
-  const { totalValidAmount, totalValidUtxos } = props;
+  const { totalValidUtxos } = props;
+  const { applyLocalSpend } = useContext(UtxoContext);
 
   const selectedWallet = useLixiSliceSelector(getSelectedWalletPath);
   const Wallet = React.useContext(WalletContextNode);
-  const { chronik, XPI } = Wallet;
+  const { chronik } = Wallet;
 
   const {
     handleSubmit,
@@ -81,15 +92,22 @@ const SendComponent: React.FC<SendComponentProps> = props => {
   const amountValue = watch('amount');
 
   const [myAddress, setMyAddress] = useState(parseCashAddressToPrefix(COIN.XEC, selectedWallet?.cashAddress));
-  const [feeSats, setFeeSats] = useState(
-    XPI.BitcoinCash.getByteCount({ P2PKH: totalValidUtxos.length }, { P2PKH: 1, P2SH: 1 }) *
-      coinInfo[COIN.XEC].defaultFee
-  );
-  const [estimatedTxFee, setEstimatedTxFee] = useState(
-    parseFloat((feeSats / Math.pow(10, coinInfo[COIN.XEC].cashDecimals)).toFixed(2))
-  );
 
   const [openScan, setOpenScan] = useState(false);
+
+  const maxAmount = useMemo(() => maxSendableXec(totalValidUtxos), [totalValidUtxos]);
+
+  const sendQuote = useMemo(
+    () => quoteWalletSend(totalValidUtxos, Number(amountValue)),
+    [totalValidUtxos, amountValue]
+  );
+
+  const networkFeeLabel = sendQuote ? formatSatsAsXec(sendQuote.feeSats) : null;
+
+  const handleMax = () => {
+    if (maxAmount == null) return;
+    setValue('amount', maxAmount, { shouldValidate: true, shouldDirty: true });
+  };
 
   const handleSendCoin = async data => {
     const { address, amount } = data;
@@ -98,41 +116,62 @@ const SendComponent: React.FC<SendComponentProps> = props => {
 
     const myPk = fromHex(selectedWallet?.publicKey);
     const mySk = fromHex(selectedWallet?.privateKey);
+    const utxosSpent = totalValidUtxos;
+    const quote = quoteWalletSend(utxosSpent, Number(amount));
+    if (!quote || quote.inputSats < quote.sendSats + quote.feeSats) {
+      dispatch(
+        showToast('error', {
+          message: 'error',
+          description: 'Not enough funds to cover the amount and network fee.'
+        })
+      );
+      return;
+    }
 
-    const txBuild = withdrawFund(
-      totalValidUtxos,
-      mySk,
-      myPk,
-      recipientHash,
-      'P2PKH',
-      Number(amount),
-      '',
-      calFee1Percent
-    );
+    const txBuild = withdrawFund(utxosSpent, mySk, myPk, recipientHash, 'P2PKH', Number(amount), '', calFee1Percent);
     try {
       const txid = (await chronik.broadcastTx(txBuild)).txid;
+      applyLocalSpend({
+        spent: utxosSpent.map(utxo => ({ txid: utxo.txid, outIdx: utxo.outIdx })),
+        remainingUtxos:
+          quote.changeSats > BigInt(0)
+            ? [
+                {
+                  txid,
+                  outIdx: 1,
+                  value: Number(quote.changeSats)
+                }
+              ]
+            : [],
+        remainingAmount: quote.changeSats > BigInt(0) ? Number(formatSatsAsXec(quote.changeSats)) : 0
+      });
       const link = `${coinInfo[COIN.XEC].blockExplorerUrl}/tx/${txid}`;
-      if (link) {
-        dispatch(
-          showToast(
-            'success',
-            {
-              message: 'success',
-              description: 'Transaction successful. Click to view in block explorer.'
-            },
-            true,
-            link
-          )
-        );
-        reset();
-      }
+      dispatch(
+        showToast(
+          'success',
+          {
+            message: 'success',
+            description: 'Transaction successful. Click to view in block explorer.'
+          },
+          true,
+          link
+        )
+      );
+      reset();
     } catch (err) {
-      console.log('Error when broadcast tx');
+      const description = err instanceof Error && err.message ? err.message : 'Transaction failed';
+      dispatch(
+        showToast('error', {
+          message: 'error',
+          description
+        })
+      );
     }
   };
 
   const checkEnoughFund = () => {
-    return totalValidAmount > Number(amountValue) + estimatedTxFee;
+    if (!sendQuote) return false;
+    return sendQuote.inputSats >= sendQuote.sendSats + sendQuote.feeSats;
   };
 
   const calFee1Percent = useMemo(() => {
@@ -221,10 +260,28 @@ const SendComponent: React.FC<SendComponentProps> = props => {
                     onChange(''); // Clear the value
                   }
                 }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <Button
+                        className="max-btn"
+                        type="button"
+                        size="small"
+                        color="secondary"
+                        disabled={maxAmount == null}
+                        onMouseDown={event => event.preventDefault()}
+                        onClick={handleMax}
+                      >
+                        Max
+                      </Button>
+                    </InputAdornment>
+                  )
+                }}
               />
             </FormControl>
           )}
         />
+        {networkFeeLabel && <div className="network-fee">Network fee {networkFeeLabel} XEC</div>}
       </div>
       <Button
         className="btn-send"

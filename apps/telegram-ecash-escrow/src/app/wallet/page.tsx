@@ -10,7 +10,7 @@ import MobileLayout from '@/src/components/layout/MobileLayout';
 import { TabType } from '@/src/store/constants';
 import { SettingContext } from '@/src/store/context/settingProvider';
 import { UtxoContext } from '@/src/store/context/utxoProvider';
-import { formatNumber, transformFiatRates } from '@/src/store/util';
+import { fiatValueOfXec, formatNumber } from '@/src/store/util';
 import { COIN, coinInfo } from '@bcpros/lixi-models';
 import {
   WalletContextNode,
@@ -124,8 +124,7 @@ export default function Wallet() {
       })[]
     >
   >();
-  const [rateData, setRateData] = useState(null);
-  const [amountConverted, setAmountConverted] = useState(0);
+  const [amountConverted, setAmountConverted] = useState<number | null>(null);
 
   // Get fiat rates from GraphQL API with cache reuse
   // Always needed in wallet to show balance conversion
@@ -178,15 +177,6 @@ export default function Wallet() {
     return true;
   };
 
-  const convertXECToAmount = async () => {
-    if (!rateData) return 0;
-
-    const rateArrayXec = rateData.find(item => item.coin === 'xec');
-    const latestRateXec = rateArrayXec?.rate;
-    const amountConverted = totalValidAmount * latestRateXec;
-    setAmountConverted(parseFloat(amountConverted.toFixed(2)));
-  };
-
   useEffect(() => {
     (async () => {
       setLoading(true);
@@ -215,21 +205,9 @@ export default function Wallet() {
   }, [walletState.walletStatusNode]);
 
   useEffect(() => {
-    // Wallet: Transform the user's selected fiat currency filter
-    const currencyData = fiatData?.getAllFiatRate?.find(item => item.currency === fiatCurrencyFilter);
-
-    if (currencyData?.fiatRates) {
-      const transformedRates = transformFiatRates(currencyData.fiatRates);
-      setRateData(transformedRates);
-    } else {
-      setRateData(null);
-    }
-  }, [fiatData?.getAllFiatRate, fiatCurrencyFilter]);
-
-  //convert to fiat
-  useEffect(() => {
-    convertXECToAmount();
-  }, [rateData]);
+    const fiatValue = fiatValueOfXec(fiatData?.getAllFiatRate, fiatCurrencyFilter, totalValidAmount ?? 0);
+    setAmountConverted(fiatValue == null ? null : parseFloat(fiatValue.toFixed(2)));
+  }, [fiatData?.getAllFiatRate, fiatCurrencyFilter, totalValidAmount]);
 
   return (
     <MobileLayout>
@@ -244,9 +222,11 @@ export default function Wallet() {
                 <Typography variant="h5">
                   {formatNumber(totalValidAmount ?? 0)} <span className="coin-ticker">XEC</span>
                 </Typography>
-                <Typography variant="h6" style={{ fontSize: '16px' }}>
-                  ~{formatNumber(amountConverted ?? 0)} <span className="coin-ticker">{fiatCurrencyFilter}</span>
-                </Typography>
+                {amountConverted != null && (
+                  <Typography variant="h6" style={{ fontSize: '16px' }}>
+                    ~{formatNumber(amountConverted)} <span className="coin-ticker">{fiatCurrencyFilter}</span>
+                  </Typography>
+                )}
               </div>
             </div>
             <div>
@@ -271,7 +251,7 @@ export default function Wallet() {
               <SwipeableViews index={value} onChangeIndex={handleChangeIndex}>
                 <TabPanel value={value} index={0}>
                   <SendWrap>
-                    <SendComponent totalValidAmount={totalValidAmount} totalValidUtxos={totalValidUtxos} />
+                    <SendComponent totalValidUtxos={totalValidUtxos} />
                   </SendWrap>
                 </TabPanel>
                 <TabPanel value={value} index={1}>
